@@ -1,5 +1,8 @@
 package io.camunda.migrator;
 
+import io.camunda.db.rdbms.write.RdbmsWriter;
+import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
+import io.camunda.db.rdbms.write.service.ProcessInstanceWriter;
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.ProcessEngineConfiguration;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
@@ -48,8 +51,20 @@ public class CamundaMigrator {
     }
   }
 
-  private static void migrateProcessInstance(HistoricProcessInstance instance) {
+  private static void migrateProcessInstance(RdbmsService c8Service, HistoricProcessInstance instance) {
     // C8 RDBMS ProcessInstanceWriter to persist the data to the database
+
+    //TODO how should these values be populated?
+    long partitionId = 1L; // zeebee partition id
+    int queueSize = 1; // the size of flushing, set to 1 to start small
+
+    RdbmsWriter rdbmsWriter = c8Service.createWriter(partitionId, queueSize);
+
+    ProcessInstanceWriter processInstanceWriter = rdbmsWriter.getProcessInstanceWriter();
+
+    ProcessInstanceDbModel processInstance = ProcessInstanceDbModelFactory.create(instance);
+
+    processInstanceWriter.create(processInstance);
   }
 
 }
