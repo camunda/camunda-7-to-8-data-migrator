@@ -1,215 +1,216 @@
-///*
-// * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH under
-// * one or more contributor license agreements. See the NOTICE file distributed
-// * with this work for additional information regarding copyright ownership.
-// * Licensed under the Camunda License 1.0. You may not use this file
-// * except in compliance with the Camunda License 1.0.
-// */
-//package io.camunda.migrator.config;
-//
-//import io.camunda.db.rdbms.sql.AuthorizationMapper;
-//import io.camunda.db.rdbms.sql.DecisionDefinitionMapper;
-//import io.camunda.db.rdbms.sql.DecisionInstanceMapper;
-//import io.camunda.db.rdbms.sql.DecisionRequirementsMapper;
-//import io.camunda.db.rdbms.sql.ExporterPositionMapper;
-//import io.camunda.db.rdbms.sql.FlowNodeInstanceMapper;
-//import io.camunda.db.rdbms.sql.FormMapper;
-//import io.camunda.db.rdbms.sql.GroupMapper;
-//import io.camunda.db.rdbms.sql.IncidentMapper;
-//import io.camunda.db.rdbms.sql.MappingMapper;
-//import io.camunda.db.rdbms.sql.ProcessDefinitionMapper;
-//import io.camunda.db.rdbms.sql.ProcessInstanceMapper;
-//import io.camunda.db.rdbms.sql.PurgeMapper;
-//import io.camunda.db.rdbms.sql.RoleMapper;
-//import io.camunda.db.rdbms.sql.TenantMapper;
-//import io.camunda.db.rdbms.sql.UserMapper;
-//import io.camunda.db.rdbms.sql.UserTaskMapper;
-//import io.camunda.db.rdbms.sql.VariableMapper;
-//import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
-//import org.apache.ibatis.session.SqlSessionFactory;
-//import org.apache.ibatis.type.JdbcType;
-//import org.apache.ibatis.type.OffsetDateTimeTypeHandler;
-//import org.mybatis.spring.SqlSessionFactoryBean;
-//import org.mybatis.spring.mapper.MapperFactoryBean;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-//import org.springframework.context.annotation.Bean;
-//import org.springframework.context.annotation.Import;
-//import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-//
-//import javax.sql.DataSource;
-//import java.io.IOException;
-//import java.util.Properties;
-//
-//@Import(DataSourceAutoConfiguration.class)
-//public class MyBatisConfiguration {
-//
-//  private static final Logger LOGGER = LoggerFactory.getLogger(MyBatisConfiguration.class);
-//
-//  /*@Bean
-//  public MultiTenantSpringLiquibase customerLiquibase(final DataSource dataSource) {
-//    LOGGER.info("Initializing Liquibase for RDBMS.");
-//    final var moduleConfig = new MultiTenantSpringLiquibase();
-//    moduleConfig.setDataSource(dataSource);
-//    // changelog file located in src/main/resources directly in the module
-//    moduleConfig.setChangeLog("db/changelog/rdbms-exporter/changelog-master.xml");
-//    return moduleConfig;
-//  }*/
-//
-//  @Bean
-//  public SqlSessionFactory sqlSessionFactory(final DataSource dataSource) throws Exception {
-//    final Properties vendorProperties = new Properties();
-//
-//    vendorProperties.put("H2", "h2");
-//    vendorProperties.put("PostgreSQL", "postgresql");
-//    vendorProperties.put("Oracle", "oracle");
-//    vendorProperties.put("MariaDB", "mariadb");
-//    vendorProperties.put("MySQL", "mariadb");
-//    vendorProperties.put("SQL Server", "sqlserver");
-//
-//    final var databaseIdProvider = new VendorDatabaseIdProvider();
-//    databaseIdProvider.setProperties(vendorProperties);
-//
-//    final var configuration = new org.apache.ibatis.session.Configuration();
-//    configuration.setJdbcTypeForNull(JdbcType.NULL);
-//    configuration.getTypeHandlerRegistry().register(OffsetDateTimeTypeHandler.class);
-//
-//    final SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
-//    factoryBean.setConfiguration(configuration);
-//    factoryBean.setDataSource(dataSource);
-//    factoryBean.setDatabaseIdProvider(databaseIdProvider);
-//    factoryBean.addMapperLocations(
-//        new PathMatchingResourcePatternResolver().getResources("classpath*:mapper/*.xml"));
-//
-//    // load vendor specific template variables
-//    final var databaseId = databaseIdProvider.getDatabaseId(dataSource);
-//    LOGGER.info("Detected databaseId: {}", databaseId);
-//    final Properties p = getVendorProperties(databaseIdProvider.getDatabaseId(dataSource));
-//
-//    factoryBean.setConfigurationProperties(p);
-//    return factoryBean.getObject();
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<AuthorizationMapper> authorizationMapper(
-//      final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, AuthorizationMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<DecisionDefinitionMapper> decisionDefinitionMapper(
-//      final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, DecisionDefinitionMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<DecisionInstanceMapper> decisionInstanceMapper(
-//      final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, DecisionInstanceMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<DecisionRequirementsMapper> decisionRequirementsMapper(
-//      final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, DecisionRequirementsMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<FlowNodeInstanceMapper> flowNodeInstanceMapper(
-//      final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, FlowNodeInstanceMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<GroupMapper> groupInstanceMapper(
-//      final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, GroupMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<IncidentMapper> incidentMapper(
-//      final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, IncidentMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<ProcessInstanceMapper> processInstanceMapper(
-//      final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, ProcessInstanceMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<ProcessDefinitionMapper> processDeploymentMapper(
-//      final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, ProcessDefinitionMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<TenantMapper> tenantMapper(final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, TenantMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<VariableMapper> variableMapper(
-//      final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, VariableMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<RoleMapper> roleMapper(final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, RoleMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<UserMapper> userMapper(final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, UserMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<UserTaskMapper> userTaskMapper(
-//      final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, UserTaskMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<FormMapper> formMapper(final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, FormMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<MappingMapper> mappingMapper(final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, MappingMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<ExporterPositionMapper> exporterPosition(
-//      final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, ExporterPositionMapper.class);
-//  }
-//
-//  @Bean
-//  public MapperFactoryBean<PurgeMapper> purgeMapper(final SqlSessionFactory sqlSessionFactory) {
-//    return createMapperFactoryBean(sqlSessionFactory, PurgeMapper.class);
-//  }
-//
-//  private <T> MapperFactoryBean<T> createMapperFactoryBean(
-//      final SqlSessionFactory sqlSessionFactory, final Class<T> clazz) {
-//    final MapperFactoryBean<T> factoryBean = new MapperFactoryBean<>(clazz);
-//    factoryBean.setSqlSessionFactory(sqlSessionFactory);
-//    return factoryBean;
-//  }
-//
-//  private Properties getVendorProperties(final String vendorId) throws IOException {
-//    final Properties properties = new Properties();
-//    final var file = "db/vendor-properties/" + vendorId + ".properties";
-//    try (final var propertiesInputStream = getClass().getClassLoader().getResourceAsStream(file)) {
-//      if (propertiesInputStream != null) {
-//        properties.load(propertiesInputStream);
-//      } else {
-//        LOGGER.debug("No vendor properties found for databaseId {}", vendorId);
-//      }
-//    }
-//    return properties;
-//  }
-//}
+/*
+ * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH under
+ * one or more contributor license agreements. See the NOTICE file distributed
+ * with this work for additional information regarding copyright ownership.
+ * Licensed under the Camunda License 1.0. You may not use this file
+ * except in compliance with the Camunda License 1.0.
+ */
+package io.camunda.migrator.config;
+
+import io.camunda.db.rdbms.sql.AuthorizationMapper;
+import io.camunda.db.rdbms.sql.DecisionDefinitionMapper;
+import io.camunda.db.rdbms.sql.DecisionInstanceMapper;
+import io.camunda.db.rdbms.sql.DecisionRequirementsMapper;
+import io.camunda.db.rdbms.sql.ExporterPositionMapper;
+import io.camunda.db.rdbms.sql.FlowNodeInstanceMapper;
+import io.camunda.db.rdbms.sql.FormMapper;
+import io.camunda.db.rdbms.sql.GroupMapper;
+import io.camunda.db.rdbms.sql.IncidentMapper;
+import io.camunda.db.rdbms.sql.MappingMapper;
+import io.camunda.db.rdbms.sql.ProcessDefinitionMapper;
+import io.camunda.db.rdbms.sql.ProcessInstanceMapper;
+import io.camunda.db.rdbms.sql.PurgeMapper;
+import io.camunda.db.rdbms.sql.RoleMapper;
+import io.camunda.db.rdbms.sql.TenantMapper;
+import io.camunda.db.rdbms.sql.UserMapper;
+import io.camunda.db.rdbms.sql.UserTaskMapper;
+import io.camunda.db.rdbms.sql.VariableMapper;
+import liquibase.integration.spring.MultiTenantSpringLiquibase;
+import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.type.JdbcType;
+import org.apache.ibatis.type.OffsetDateTimeTypeHandler;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.mapper.MapperFactoryBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.util.Properties;
+
+@Import(DataSourceAutoConfiguration.class)
+public class MyBatisConfiguration {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MyBatisConfiguration.class);
+
+  @Bean
+  public MultiTenantSpringLiquibase customerLiquibase(final DataSource dataSource) {
+    LOGGER.info("Initializing Liquibase for RDBMS.");
+    final var moduleConfig = new MultiTenantSpringLiquibase();
+    moduleConfig.setDataSource(dataSource);
+    // changelog file located in src/main/resources directly in the module
+    moduleConfig.setChangeLog("db/changelog/rdbms-exporter/changelog-master.xml");
+    return moduleConfig;
+  }
+
+  @Bean
+  public SqlSessionFactory sqlSessionFactory(final DataSource dataSource) throws Exception {
+    final Properties vendorProperties = new Properties();
+
+    vendorProperties.put("H2", "h2");
+    vendorProperties.put("PostgreSQL", "postgresql");
+    vendorProperties.put("Oracle", "oracle");
+    vendorProperties.put("MariaDB", "mariadb");
+    vendorProperties.put("MySQL", "mariadb");
+    vendorProperties.put("SQL Server", "sqlserver");
+
+    final var databaseIdProvider = new VendorDatabaseIdProvider();
+    databaseIdProvider.setProperties(vendorProperties);
+
+    final var configuration = new org.apache.ibatis.session.Configuration();
+    configuration.setJdbcTypeForNull(JdbcType.NULL);
+    configuration.getTypeHandlerRegistry().register(OffsetDateTimeTypeHandler.class);
+
+    final SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+    factoryBean.setConfiguration(configuration);
+    factoryBean.setDataSource(dataSource);
+    factoryBean.setDatabaseIdProvider(databaseIdProvider);
+    factoryBean.addMapperLocations(
+        new PathMatchingResourcePatternResolver().getResources("classpath*:mapper/*.xml"));
+
+    // load vendor specific template variables
+    final var databaseId = databaseIdProvider.getDatabaseId(dataSource);
+    LOGGER.info("Detected databaseId: {}", databaseId);
+    final Properties p = getVendorProperties(databaseIdProvider.getDatabaseId(dataSource));
+
+    factoryBean.setConfigurationProperties(p);
+    return factoryBean.getObject();
+  }
+
+  @Bean
+  public MapperFactoryBean<AuthorizationMapper> authorizationMapper(
+      final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, AuthorizationMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<DecisionDefinitionMapper> decisionDefinitionMapper(
+      final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, DecisionDefinitionMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<DecisionInstanceMapper> decisionInstanceMapper(
+      final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, DecisionInstanceMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<DecisionRequirementsMapper> decisionRequirementsMapper(
+      final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, DecisionRequirementsMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<FlowNodeInstanceMapper> flowNodeInstanceMapper(
+      final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, FlowNodeInstanceMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<GroupMapper> groupInstanceMapper(
+      final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, GroupMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<IncidentMapper> incidentMapper(
+      final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, IncidentMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<ProcessInstanceMapper> processInstanceMapper(
+      final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, ProcessInstanceMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<ProcessDefinitionMapper> processDeploymentMapper(
+      final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, ProcessDefinitionMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<TenantMapper> tenantMapper(final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, TenantMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<VariableMapper> variableMapper(
+      final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, VariableMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<RoleMapper> roleMapper(final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, RoleMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<UserMapper> userMapper(final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, UserMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<UserTaskMapper> userTaskMapper(
+      final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, UserTaskMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<FormMapper> formMapper(final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, FormMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<MappingMapper> mappingMapper(final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, MappingMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<ExporterPositionMapper> exporterPosition(
+      final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, ExporterPositionMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<PurgeMapper> purgeMapper(final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, PurgeMapper.class);
+  }
+
+  private <T> MapperFactoryBean<T> createMapperFactoryBean(
+      final SqlSessionFactory sqlSessionFactory, final Class<T> clazz) {
+    final MapperFactoryBean<T> factoryBean = new MapperFactoryBean<>(clazz);
+    factoryBean.setSqlSessionFactory(sqlSessionFactory);
+    return factoryBean;
+  }
+
+  private Properties getVendorProperties(final String vendorId) throws IOException {
+    final Properties properties = new Properties();
+    final var file = "db/vendor-properties/" + vendorId + ".properties";
+    try (final var propertiesInputStream = getClass().getClassLoader().getResourceAsStream(file)) {
+      if (propertiesInputStream != null) {
+        properties.load(propertiesInputStream);
+      } else {
+        LOGGER.debug("No vendor properties found for databaseId {}", vendorId);
+      }
+    }
+    return properties;
+  }
+}
