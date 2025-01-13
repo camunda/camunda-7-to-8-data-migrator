@@ -6,10 +6,11 @@ import org.springframework.stereotype.Component;
 
 import java.time.ZoneOffset;
 
+import static io.camunda.migrator.ConverterUtil.convertIdToKey;
 import static io.camunda.search.entities.ProcessInstanceEntity.ProcessInstanceState;
 
 @Component
-public class HistoricProcessInstanceConverter {
+public class ProcessInstanceConverter {
 
   public ProcessInstanceDbModel apply(HistoricProcessInstance historicProcessInstance) {
 
@@ -17,7 +18,7 @@ public class HistoricProcessInstanceConverter {
 
     return new ProcessInstanceDbModel(
         convertIdToKey(historicProcessInstance.getId()),
-        historicProcessInstance.getProcessDefinitionId(), // TODO is this the same field?
+        historicProcessInstance.getProcessDefinitionKey(), // TODO is this the same field?
         convertIdToKey(convertProcessDefinitionIdToKey(historicProcessInstance.getProcessDefinitionId())),
         convertState(historicProcessInstance.getState()),
         historicProcessInstance.getStartTime().toInstant().atOffset(ZoneOffset.UTC),
@@ -40,17 +41,6 @@ public class HistoricProcessInstanceConverter {
 
       default -> throw new IllegalArgumentException("Unknown state: " + state);
     };
-  }
-
-  protected Long convertIdToKey(String id) {
-    // The C7 ID is UUID whereas C8 IDs are called keys.
-    // C8 keys are a composite of the partition and the id.
-    // TODO: convert C7 IDs correctly to C8 IDs.
-    if (id == null) {
-      return null;
-    }
-
-    return Long.valueOf(id);
   }
 
 
