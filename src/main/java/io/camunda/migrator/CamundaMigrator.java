@@ -8,13 +8,10 @@ import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
+//@Component
 public class CamundaMigrator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CamundaMigrator.class);
