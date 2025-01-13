@@ -20,3 +20,13 @@ spring:
     change-log: db/changelog/rdbms-exporter/changelog-master.xml
 mybatis:
   mapper-locations: classpath:mapper/**/*-mapper.xml
+
+
+# Application properties
+migrator:
+  camunda7:
+    engine:
+      jdbc-url: jdbc:h2:~/Documents/Camunda Distributions/camunda-bpm-run-ee-7.22.1-ee/camunda-h2-default/process-engine.mv.db
+      jdbc-username: sa
+      jdbc-password: ""
+      jdbc-driver: org.h2.Driver
