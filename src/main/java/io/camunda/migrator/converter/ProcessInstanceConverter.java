@@ -32,7 +32,6 @@ public class ProcessInstanceConverter {
     );
   }
 
-
   private ProcessInstanceState convertState(String state) {
     return switch (state) {
       case "ACTIVE", "SUSPENDED" -> ProcessInstanceState.ACTIVE;
