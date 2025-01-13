@@ -1,8 +1,12 @@
 package io.camunda.migrator;
 
 import io.camunda.db.rdbms.write.RdbmsWriter;
+import io.camunda.db.rdbms.write.RdbmsWriterFactory;
 import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import io.camunda.db.rdbms.write.service.ProcessInstanceWriter;
+import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.ProcessEngineConfiguration;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
@@ -12,6 +16,8 @@ import io.camunda.db.rdbms.RdbmsService;
 import java.util.List;
 
 public class CamundaMigrator {
+
+
 
   public static void main(String[] args) {
     // Configure and build the C7 process engine
@@ -25,6 +31,7 @@ public class CamundaMigrator {
 
     // Configure and build the C8 process engine
     RdbmsService c8Service = new RdbmsService();
+    RdbmsWriterFactory rdbmsWriterFactory = new RdbmsWriterFactory();
 
     // Deploy process definition to C7
 
