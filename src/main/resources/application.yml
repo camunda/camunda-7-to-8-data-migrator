@@ -18,3 +18,5 @@ spring.datasource:
 spring:
   liquibase:
     change-log: db/changelog/rdbms-exporter/changelog-master.xml
+mybatis:
+  mapper-locations: classpath:mapper/**/*-mapper.xml
