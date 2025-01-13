@@ -47,7 +47,7 @@
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>camunda-db-rdbms</artifactId>
-      <version>8.7.0-SNAPSHOT</version>
+      <version>${version.camunda-db}</version>
     </dependency>
 
     <dependency>
@@ -61,6 +61,11 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
     </dependency>
 
     <dependency>
