@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0xjzodo" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.10.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.19.0">
+  <bpmn:process id="simple-process-user-task-with-variables" isExecutable="true" camunda:historyTimeToLive="180">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_07k5mgx</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_07k5mgx" sourceRef="StartEvent_1" targetRef="simple-process-user-task-with-variables-user-task" />
+    <bpmn:endEvent id="Event_08aawxj">
+      <bpmn:incoming>Flow_1uajlbq</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1uajlbq" sourceRef="simple-process-user-task-with-variables-user-task" targetRef="Event_08aawxj" />
+    <bpmn:userTask id="simple-process-user-task-with-variables-user-task" name="My C7 User task">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="variable_string">This is a string value of the variable_string</camunda:inputParameter>
+          <camunda:inputParameter name="variable_javascript">
+            <camunda:script scriptFormat="javascript">console.log('This is a console log string value for the variable_javascript')</camunda:script>
+          </camunda:inputParameter>
+          <camunda:inputParameter name="variable_list">
+            <camunda:list>
+              <camunda:value>This list value #1 of the variable_list</camunda:value>
+              <camunda:value>This is list value #2 of the variable_list</camunda:value>
+            </camunda:list>
+          </camunda:inputParameter>
+          <camunda:inputParameter name="variable_map">
+            <camunda:map>
+              <camunda:entry key="variable_map_key1">variable_map_value1</camunda:entry>
+              <camunda:entry key="variable_map_key2">variable_map_value2</camunda:entry>
+            </camunda:map>
+          </camunda:inputParameter>
+          <camunda:inputParameter name="variable_string_or_expression">${'This is an evaluated string value of the variable_string_or_expression'}</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_07k5mgx</bpmn:incoming>
+      <bpmn:outgoing>Flow_1uajlbq</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:textAnnotation id="TextAnnotation_1iqrvat">
+      <bpmn:text>The User task contains the following variable:
+
+variable_string
+variable_javascript
+variable_list
+variable_map
+variable_string_or_expression</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0vlqf0r" sourceRef="simple-process-user-task-with-variables-user-task" targetRef="TextAnnotation_1iqrvat" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="simple-process-user-task-with-variables">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="219" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_08aawxj_di" bpmnElement="Event_08aawxj">
+        <dc:Bounds x="432" y="219" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1t4847y_di" bpmnElement="simple-process-user-task-with-variables-user-task">
+        <dc:Bounds x="267" y="197" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1iqrvat_di" bpmnElement="TextAnnotation_1iqrvat">
+        <dc:Bounds x="400" y="-30" width="100" height="185" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_07k5mgx_di" bpmnElement="Flow_07k5mgx">
+        <di:waypoint x="215" y="237" />
+        <di:waypoint x="267" y="237" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1uajlbq_di" bpmnElement="Flow_1uajlbq">
+        <di:waypoint x="367" y="237" />
+        <di:waypoint x="432" y="237" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0vlqf0r_di" bpmnElement="Association_0vlqf0r">
+        <di:waypoint x="338" y="197" />
+        <di:waypoint x="400" y="81" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -76,7 +76,9 @@ public class CamundaMigrator {
   public void migrateAllHistoricProcessInstances() {
     // Start process instance
     runtimeService.startProcessInstanceByKey("simple-process-service-task");
+
     runtimeService.startProcessInstanceByKey("simple-process-user-task");
+    runtimeService.startProcessInstanceByKey("simple-process-user-task-with-variables");
 
     addIncidentToProcess("simple-process-user-task", "failedJob");
 
