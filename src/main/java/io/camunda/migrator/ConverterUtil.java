@@ -6,6 +6,10 @@ import java.util.Date;
 
 public class ConverterUtil {
 
+  public static Long convertJobDefinitionIdToKey(String jobDefinitionId) {
+    return convertIdToKey(jobDefinitionId); //TODO check correctness
+  }
+
   public static Long convertProcessDefinitionIdToKey(String processDefinitionId) {
     // The process definition id consists of <proc def key>:<version>:<id>
     // Split it up and only pass the id

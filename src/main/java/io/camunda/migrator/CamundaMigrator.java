@@ -1,25 +1,18 @@
 package io.camunda.migrator;
 
 import io.camunda.db.rdbms.read.domain.UserTaskDbQuery;
-import io.camunda.db.rdbms.sql.FlowNodeInstanceMapper;
-import io.camunda.db.rdbms.sql.ProcessInstanceMapper;
-import io.camunda.db.rdbms.sql.UserTaskMapper;
-import io.camunda.db.rdbms.sql.VariableMapper;
-import io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel;
-import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
-import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
-import io.camunda.db.rdbms.write.domain.VariableDbModel;
-import io.camunda.migrator.converter.FlowNodeInstanceConverter;
-import io.camunda.migrator.converter.ProcessInstanceConverter;
-import io.camunda.migrator.converter.UserTaskConverter;
-import io.camunda.migrator.converter.VariableConverter;
+import io.camunda.db.rdbms.sql.*;
+import io.camunda.db.rdbms.write.domain.*;
+import io.camunda.migrator.converter.*;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
+import io.camunda.search.entities.IncidentEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.page.SearchQueryPage;
 import io.camunda.search.entities.VariableEntity;
 import jakarta.annotation.PostConstruct;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.runtime.Execution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -38,6 +31,7 @@ public class CamundaMigrator {
   private final FlowNodeInstanceMapper flowNodeInstanceMapper;
   private final UserTaskMapper userTaskMapper;
   private final VariableMapper variableMapper;
+  private final IncidentMapper incidentMapper;
 
   private final RuntimeService runtimeService;
   private final HistoryService historyService;
@@ -46,12 +40,14 @@ public class CamundaMigrator {
   private final FlowNodeInstanceConverter flowNodeInstanceConverter;
   private final UserTaskConverter userTaskConverter;
   private final VariableConverter variableConverter;
+  private final IncidentConverter incidentConverter;
 
   public CamundaMigrator(
       ProcessInstanceMapper processInstanceMapper,
       FlowNodeInstanceMapper flowNodeInstanceMapper,
       UserTaskMapper userTaskMapper,
       VariableMapper variableMapper,
+      IncidentMapper incidentMapper,
 
       RuntimeService runtimeService,
       HistoryService historyService,
@@ -59,18 +55,21 @@ public class CamundaMigrator {
       ProcessInstanceConverter processInstanceConverter,
       FlowNodeInstanceConverter flowNodeInstanceConverter,
       UserTaskConverter userTaskConverter,
-      VariableConverter variableConverter
+      VariableConverter variableConverter,
+      IncidentConverter incidentConverter
   ) {
     this.processInstanceMapper = processInstanceMapper;
     this.flowNodeInstanceMapper = flowNodeInstanceMapper;
     this.userTaskMapper = userTaskMapper;
     this.variableMapper = variableMapper;
+    this.incidentMapper = incidentMapper;
     this.runtimeService = runtimeService;
     this.historyService = historyService;
     this.processInstanceConverter = processInstanceConverter;
     this.flowNodeInstanceConverter = flowNodeInstanceConverter;
     this.userTaskConverter = userTaskConverter;
     this.variableConverter = variableConverter;
+    this.incidentConverter = incidentConverter;
   }
 
   @PostConstruct
@@ -79,10 +78,30 @@ public class CamundaMigrator {
     runtimeService.startProcessInstanceByKey("simple-process-service-task");
     runtimeService.startProcessInstanceByKey("simple-process-user-task");
 
+    addIncidentToProcess("simple-process-user-task", "failedJob");
+
     migrateProcessInstances();
     migrateFlowNodeInstances();
     migrateUserTasks();
     migrateVariables();
+    migrateIncidents();
+  }
+
+  private void migrateIncidents() {
+    LOGGER.info("Migrating Incidents");
+
+    List<IncidentEntity> c8Incidents = incidentMapper.search(null);
+    List<Long> migratedKeys = c8Incidents.stream().map(IncidentEntity::incidentKey).toList();
+
+    historyService.createHistoricIncidentQuery().list().forEach(historicIncident -> {
+      Long key = convertIdToKey(historicIncident.getId());
+      if (!migratedKeys.contains(key)) {
+        IncidentDbModel dbModel = incidentConverter.apply(historicIncident);
+        incidentMapper.insert(dbModel);
+      }
+    });
+
+
   }
 
   private void migrateVariables() {
@@ -143,6 +162,14 @@ public class CamundaMigrator {
         processInstanceMapper.insert(dbModel);
       }
     });
+  }
+
+  private void addIncidentToProcess(String processInstanceId, String incidentType) {
+    Execution processInstance = runtimeService.createProcessInstanceQuery()
+        .processInstanceId(processInstanceId)
+        .singleResult();
+
+    runtimeService.createIncident(incidentType, processInstance.getId(), "someConfig", "The message of failure");
   }
 
 }
