@@ -1,5 +1,6 @@
 package io.camunda.migrator;
 
+import io.camunda.db.rdbms.read.domain.UserTaskDbQuery;
 import io.camunda.db.rdbms.sql.FlowNodeInstanceMapper;
 import io.camunda.db.rdbms.sql.ProcessInstanceMapper;
 import io.camunda.db.rdbms.sql.UserTaskMapper;
@@ -14,6 +15,7 @@ import io.camunda.migrator.converter.UserTaskConverter;
 import io.camunda.migrator.converter.VariableConverter;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
+import io.camunda.search.page.SearchQueryPage;
 import io.camunda.search.entities.VariableEntity;
 import jakarta.annotation.PostConstruct;
 import org.camunda.bpm.engine.HistoryService;
@@ -101,7 +103,8 @@ public class CamundaMigrator {
   private void migrateUserTasks() {
     LOGGER.info("Migrating user tasks");
 
-    List<UserTaskDbModel> userTasks = userTaskMapper.search(null);
+    var dbQuery = UserTaskDbQuery.of(b -> b.page(new SearchQueryPage(0, Integer.MAX_VALUE, new Object[0], new Object[0])));
+    List<UserTaskDbModel> userTasks = userTaskMapper.search(dbQuery);
     List<Long> migratedKeys = userTasks.stream().map(UserTaskDbModel::userTaskKey).toList();
 
     historyService.createHistoricTaskInstanceQuery().list().forEach(historicTask -> {

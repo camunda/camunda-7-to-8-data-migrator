@@ -4,7 +4,6 @@ import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
 import org.camunda.bpm.engine.history.HistoricTaskInstance;
 import org.springframework.stereotype.Component;
 
-import static io.camunda.migrator.ConverterUtil.convertActivityInstanceIdToKey;
 import static io.camunda.migrator.ConverterUtil.convertDate;
 import static io.camunda.migrator.ConverterUtil.convertIdToKey;
 import static io.camunda.migrator.ConverterUtil.convertProcessDefinitionIdToKey;
@@ -14,7 +13,7 @@ public class UserTaskConverter {
 
   public UserTaskDbModel apply(HistoricTaskInstance historicTask) {
 
-    Long key = convertActivityInstanceIdToKey(historicTask.getId());
+    Long key = convertIdToKey(historicTask.getId());
     Long processInstanceKey = convertIdToKey(historicTask.getProcessInstanceId());
 
     Long processDefinitionKey = convertProcessDefinitionIdToKey(historicTask.getProcessDefinitionId());
