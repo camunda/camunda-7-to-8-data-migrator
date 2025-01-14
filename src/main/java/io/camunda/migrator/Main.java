@@ -16,12 +16,17 @@ public class Main {
 
     LOGGER.info("C7 Data Migrator Application Started");
 
-    // Retrieve the bean from the context
-    C7MigrationService myService = context.getBean(C7MigrationService.class);
-    myService.migrate();
+    try {
+      C7MigrationService migrationService = context.getBean(C7MigrationService.class);
+      migrationService.execute();
 
-    LOGGER.info("C7 Data Migrator Application Ended");
-    SpringApplication.exit(context);
+      LOGGER.info("C7 Data Migrator Application Ended");
+    } catch (Exception e) {
+      LOGGER.error("Camunda Migrator finished with error", e);
+    } finally {
+      SpringApplication.exit(context);
+    }
+
   }
 
 }

@@ -7,22 +7,20 @@ import io.camunda.migrator.converter.*;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.IncidentEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
-import io.camunda.search.page.SearchQueryPage;
 import io.camunda.search.entities.VariableEntity;
+import io.camunda.search.page.SearchQueryPage;
 import jakarta.annotation.PostConstruct;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.Execution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 import static io.camunda.migrator.ConverterUtil.convertActivityInstanceIdToKey;
 import static io.camunda.migrator.ConverterUtil.convertIdToKey;
 
-//@Component
 public class CamundaMigrator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CamundaMigrator.class);
@@ -168,8 +166,8 @@ public class CamundaMigrator {
 
   private void addIncidentToProcess(String processInstanceId, String incidentType) {
     Execution processInstance = runtimeService.createProcessInstanceQuery()
-        .processInstanceId(processInstanceId)
-        .singleResult();
+        .processDefinitionKey(processInstanceId)
+        .listPage(0, 1).get(0);
 
     runtimeService.createIncident(incidentType, processInstance.getId(), "someConfig", "The message of failure");
   }
