@@ -1,9 +1,21 @@
 package io.camunda.migrator;
 
 import io.camunda.db.rdbms.read.domain.UserTaskDbQuery;
-import io.camunda.db.rdbms.sql.*;
-import io.camunda.db.rdbms.write.domain.*;
-import io.camunda.migrator.converter.*;
+import io.camunda.db.rdbms.sql.FlowNodeInstanceMapper;
+import io.camunda.db.rdbms.sql.IncidentMapper;
+import io.camunda.db.rdbms.sql.ProcessInstanceMapper;
+import io.camunda.db.rdbms.sql.UserTaskMapper;
+import io.camunda.db.rdbms.sql.VariableMapper;
+import io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel;
+import io.camunda.db.rdbms.write.domain.IncidentDbModel;
+import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
+import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
+import io.camunda.db.rdbms.write.domain.VariableDbModel;
+import io.camunda.migrator.converter.FlowNodeInstanceConverter;
+import io.camunda.migrator.converter.IncidentConverter;
+import io.camunda.migrator.converter.ProcessInstanceConverter;
+import io.camunda.migrator.converter.UserTaskConverter;
+import io.camunda.migrator.converter.VariableConverter;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.IncidentEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;

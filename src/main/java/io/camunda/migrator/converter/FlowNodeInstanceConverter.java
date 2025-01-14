@@ -1,8 +1,6 @@
 package io.camunda.migrator.converter;
 
 import io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel;
-import io.camunda.search.entities.FlowNodeInstanceEntity;
-import io.camunda.zeebe.util.DateUtil;
 import org.camunda.bpm.engine.ActivityTypes;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.springframework.stereotype.Component;
