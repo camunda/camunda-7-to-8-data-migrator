@@ -5,7 +5,6 @@ import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.springframework.stereotype.Component;
 
 import static io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel.ProcessInstanceDbModelBuilder;
-import static io.camunda.migrator.ConverterUtil.convertActivityInstanceIdToKey;
 import static io.camunda.migrator.ConverterUtil.convertDate;
 import static io.camunda.migrator.ConverterUtil.convertIdToKey;
 import static io.camunda.migrator.ConverterUtil.convertProcessDefinitionIdToKey;

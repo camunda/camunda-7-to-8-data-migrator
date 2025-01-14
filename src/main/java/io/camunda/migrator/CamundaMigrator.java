@@ -3,14 +3,18 @@ package io.camunda.migrator;
 import io.camunda.db.rdbms.sql.FlowNodeInstanceMapper;
 import io.camunda.db.rdbms.sql.ProcessInstanceMapper;
 import io.camunda.db.rdbms.sql.UserTaskMapper;
+import io.camunda.db.rdbms.sql.VariableMapper;
 import io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel;
 import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
+import io.camunda.db.rdbms.write.domain.VariableDbModel;
 import io.camunda.migrator.converter.FlowNodeInstanceConverter;
 import io.camunda.migrator.converter.ProcessInstanceConverter;
 import io.camunda.migrator.converter.UserTaskConverter;
+import io.camunda.migrator.converter.VariableConverter;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
+import io.camunda.search.entities.VariableEntity;
 import jakarta.annotation.PostConstruct;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RuntimeService;
@@ -31,6 +35,7 @@ public class CamundaMigrator {
   private final ProcessInstanceMapper processInstanceMapper;
   private final FlowNodeInstanceMapper flowNodeInstanceMapper;
   private final UserTaskMapper userTaskMapper;
+  private final VariableMapper variableMapper;
 
   private final RuntimeService runtimeService;
   private final HistoryService historyService;
@@ -38,27 +43,32 @@ public class CamundaMigrator {
   private final ProcessInstanceConverter processInstanceConverter;
   private final FlowNodeInstanceConverter flowNodeInstanceConverter;
   private final UserTaskConverter userTaskConverter;
+  private final VariableConverter variableConverter;
 
   public CamundaMigrator(
       ProcessInstanceMapper processInstanceMapper,
       FlowNodeInstanceMapper flowNodeInstanceMapper,
       UserTaskMapper userTaskMapper,
+      VariableMapper variableMapper,
 
       RuntimeService runtimeService,
       HistoryService historyService,
 
       ProcessInstanceConverter processInstanceConverter,
       FlowNodeInstanceConverter flowNodeInstanceConverter,
-      UserTaskConverter userTaskConverter
+      UserTaskConverter userTaskConverter,
+      VariableConverter variableConverter
   ) {
     this.processInstanceMapper = processInstanceMapper;
     this.flowNodeInstanceMapper = flowNodeInstanceMapper;
     this.userTaskMapper = userTaskMapper;
+    this.variableMapper = variableMapper;
     this.runtimeService = runtimeService;
     this.historyService = historyService;
     this.processInstanceConverter = processInstanceConverter;
     this.flowNodeInstanceConverter = flowNodeInstanceConverter;
     this.userTaskConverter = userTaskConverter;
+    this.variableConverter = variableConverter;
   }
 
   @PostConstruct
@@ -70,6 +80,22 @@ public class CamundaMigrator {
     migrateProcessInstances();
     migrateFlowNodeInstances();
     migrateUserTasks();
+    migrateVariables();
+  }
+
+  private void migrateVariables() {
+    LOGGER.info("Migrating variables");
+
+    List<VariableEntity> c8Variables = variableMapper.search(null);
+    List<Long> migratedKeys = c8Variables.stream().map(VariableEntity::variableKey).toList();
+
+    historyService.createHistoricVariableInstanceQuery().list().forEach(historicVariable -> {
+      Long key = convertIdToKey(historicVariable.getId());
+      if (!migratedKeys.contains(key)) {
+        VariableDbModel dbModel = variableConverter.apply(historicVariable);
+        variableMapper.insert(dbModel);
+      }
+    });
   }
 
   private void migrateUserTasks() {
