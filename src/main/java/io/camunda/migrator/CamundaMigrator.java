@@ -9,7 +9,6 @@ import io.camunda.search.entities.IncidentEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.entities.VariableEntity;
 import io.camunda.search.page.SearchQueryPage;
-import jakarta.annotation.PostConstruct;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.Execution;
@@ -70,7 +69,6 @@ public class CamundaMigrator {
     this.incidentConverter = incidentConverter;
   }
 
-  @PostConstruct
   public void migrateAllHistoricProcessInstances() {
     // Start process instance
     runtimeService.startProcessInstanceByKey("simple-process-service-task");
