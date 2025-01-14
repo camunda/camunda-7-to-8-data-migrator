@@ -15,7 +15,7 @@ import static io.camunda.search.entities.ProcessInstanceEntity.ProcessInstanceSt
 public class ProcessInstanceConverter {
 
   public ProcessInstanceDbModel apply(HistoricProcessInstance processInstance) {
-    Long key = convertIdToKey(convertActivityInstanceIdToKey(processInstance.getId()));
+    Long key = convertIdToKey(processInstance.getId());
     return new ProcessInstanceDbModelBuilder()
         // Get key from runtime instance migration
         .processInstanceKey(key)

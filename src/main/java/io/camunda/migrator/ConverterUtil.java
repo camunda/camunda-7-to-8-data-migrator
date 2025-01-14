@@ -23,11 +23,12 @@ public class ConverterUtil {
     return Long.valueOf(id);
   }
 
-  public static String convertActivityInstanceIdToKey(String id) {
-    return id.split(":")[1];
+  public static Long convertActivityInstanceIdToKey(String id) {
+    return convertIdToKey(id.split(":")[1]);
   }
 
   public static OffsetDateTime convertDate(Date date) {
+    if (date == null) return null;
     return date.toInstant().atOffset(ZoneOffset.UTC);
   }
 

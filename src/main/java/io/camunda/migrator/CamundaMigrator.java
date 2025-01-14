@@ -94,7 +94,7 @@ public class CamundaMigrator {
     List<Long> migratedKeys = c8FlowNodeInstances.stream().map(FlowNodeInstanceEntity::flowNodeInstanceKey).toList();
 
     historyService.createHistoricActivityInstanceQuery().list().forEach(historicActivity -> {
-      Long key = convertIdToKey(convertActivityInstanceIdToKey(historicActivity.getId()));
+      Long key = convertActivityInstanceIdToKey(historicActivity.getId());
       if (!migratedKeys.contains(key)) {
         FlowNodeInstanceDbModel dbModel = flowNodeInstanceConverter.apply(historicActivity);
         flowNodeInstanceMapper.insert(dbModel);
