@@ -1,10 +1,13 @@
 package io.camunda.migrator.converter;
 
 import io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel;
+import io.camunda.search.entities.FlowNodeInstanceEntity;
+import io.camunda.zeebe.util.DateUtil;
 import org.camunda.bpm.engine.ActivityTypes;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.springframework.stereotype.Component;
 
+import static io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel.FlowNodeInstanceDbModelBuilder;
 import static io.camunda.migrator.ConverterUtil.convertActivityInstanceIdToKey;
 import static io.camunda.migrator.ConverterUtil.convertDate;
 import static io.camunda.migrator.ConverterUtil.convertIdToKey;
@@ -15,20 +18,20 @@ public class FlowNodeInstanceConverter {
 
   public FlowNodeInstanceDbModel apply(HistoricActivityInstance flowNode) {
     Long key = convertIdToKey(convertActivityInstanceIdToKey(flowNode.getId()));
-    return new FlowNodeInstanceDbModel.FlowNodeInstanceDbModelBuilder()
+    return new FlowNodeInstanceDbModelBuilder()
         .flowNodeInstanceKey(key)
+        .flowNodeId(flowNode.getActivityId())
         .processInstanceKey(convertIdToKey(flowNode.getProcessInstanceId()))
         .processDefinitionKey(convertIdToKey(convertProcessDefinitionIdToKey(flowNode.getProcessDefinitionId())))
         .processDefinitionId(flowNode.getProcessDefinitionKey())
         .startDate(convertDate(flowNode.getStartTime()))
         .endDate(convertDate(flowNode.getEndTime()))
-        .flowNodeId(flowNode.getActivityId())
         .type(convertType(flowNode.getActivityType()))
         .tenantId(flowNode.getTenantId())
-        .treePath(null) // TODO doesn't exist
-        .state(null) // TODO doesn't exist
-        .incidentKey(null) // TODO doesn't exist
-        .numSubprocessIncidents(null) // TODO doesn't exist
+        .state(null) // TODO: Doesn't exist in C7 activity instance. Inherited from process instance.
+        .treePath(null) // TODO: Doesn't exist in C7 activity instance. Not yet supported by C8 RDBMS
+        .incidentKey(null) // TODO Doesn't exist in C7 activity instance.
+        .numSubprocessIncidents(null) // TODO: increment/decrement when incident exist in subprocess. C8 RDBMS specific.
         .build();
   }
 

@@ -4,7 +4,10 @@ import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.springframework.stereotype.Component;
 
-import static io.camunda.migrator.ConverterUtil.*;
+import static io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel.ProcessInstanceDbModelBuilder;
+import static io.camunda.migrator.ConverterUtil.convertActivityInstanceIdToKey;
+import static io.camunda.migrator.ConverterUtil.convertDate;
+import static io.camunda.migrator.ConverterUtil.convertIdToKey;
 import static io.camunda.search.entities.ProcessInstanceEntity.ProcessInstanceState;
 
 @Component
@@ -12,18 +15,22 @@ public class ProcessInstanceConverter {
 
   public ProcessInstanceDbModel apply(HistoricProcessInstance processInstance) {
     Long key = convertIdToKey(convertActivityInstanceIdToKey(processInstance.getId()));
-    return new ProcessInstanceDbModel.ProcessInstanceDbModelBuilder()
+    return new ProcessInstanceDbModelBuilder()
+        // Get key from runtime instance migration
         .processInstanceKey(key)
-        .processDefinitionKey(convertIdToKey(convertProcessDefinitionIdToKey(processInstance.getProcessDefinitionId())))
+        // Get key from runtime instance/model migration
+        .processDefinitionKey(convertProcessDefinitionIdToKey(processInstance.getProcessDefinitionId()))
         .processDefinitionId(processInstance.getProcessDefinitionKey())
         .startDate(convertDate(processInstance.getStartTime()))
         .endDate(convertDate(processInstance.getEndTime()))
         .state(convertState(processInstance.getState()))
         .tenantId(processInstance.getTenantId())
-        .parentProcessInstanceKey(null) // TODO
-        .parentElementInstanceKey(null) // TODO
-        .numIncidents(0) // TODO
-        .version(processInstance.getProcessDefinitionVersion()) // TODO
+        .version(processInstance.getProcessDefinitionVersion())
+        // parent and super process instance are used synonym (process instance that contained the call activity)
+        .parentProcessInstanceKey(convertIdToKey(processInstance.getSuperProcessInstanceId()))
+        .elementId(null) // TODO: activityId in C7 but not part of the historic process instance. Not yet populated by RDBMS.
+        .parentElementInstanceKey(null) // TODO: Call activity instance id that created the process. Not part of C7 historic process instance.
+        .numIncidents(0) // TODO: Incremented/decremented whenever incident is created/resolved. RDBMS specific.
         .build();
   }
 
