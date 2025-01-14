@@ -22,7 +22,7 @@ import java.util.List;
 import static io.camunda.migrator.ConverterUtil.convertActivityInstanceIdToKey;
 import static io.camunda.migrator.ConverterUtil.convertIdToKey;
 
-@Component
+//@Component
 public class CamundaMigrator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CamundaMigrator.class);
