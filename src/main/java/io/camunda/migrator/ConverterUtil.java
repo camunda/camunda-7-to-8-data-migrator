@@ -1,5 +1,9 @@
 package io.camunda.migrator;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
+
 public class ConverterUtil {
 
   public static Long convertIdToKey(String id) {
@@ -15,6 +19,10 @@ public class ConverterUtil {
 
   public static String convertActivityInstanceIdToKey(String id) {
     return id.split(":")[1];
+  }
+
+  public static OffsetDateTime convertDate(Date date) {
+    return date.toInstant().atOffset(ZoneOffset.UTC);
   }
 
 }

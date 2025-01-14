@@ -5,31 +5,30 @@ import org.camunda.bpm.engine.ActivityTypes;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.springframework.stereotype.Component;
 
-import java.time.ZoneOffset;
-
 import static io.camunda.migrator.ConverterUtil.convertActivityInstanceIdToKey;
+import static io.camunda.migrator.ConverterUtil.convertDate;
 import static io.camunda.migrator.ConverterUtil.convertIdToKey;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType;
 
 @Component
 public class FlowNodeInstanceConverter {
 
-  public FlowNodeInstanceDbModel apply(HistoricActivityInstance historicActivityInstance) {
-    Long key = convertIdToKey(convertActivityInstanceIdToKey(historicActivityInstance.getId()));
+  public FlowNodeInstanceDbModel apply(HistoricActivityInstance flowNode) {
+    Long key = convertIdToKey(convertActivityInstanceIdToKey(flowNode.getId()));
     return new FlowNodeInstanceDbModel.FlowNodeInstanceDbModelBuilder()
         .flowNodeInstanceKey(key)
-        .processInstanceKey(convertIdToKey(historicActivityInstance.getProcessInstanceId()))
-        .processDefinitionKey(convertIdToKey(convertProcessDefinitionIdToKey(historicActivityInstance.getProcessDefinitionId())))
-        .processDefinitionId(historicActivityInstance.getProcessDefinitionKey())
-        .startDate(historicActivityInstance.getStartTime().toInstant().atOffset(ZoneOffset.UTC))
-        .endDate(historicActivityInstance.getEndTime().toInstant().atOffset(ZoneOffset.UTC))
-        .flowNodeId(historicActivityInstance.getActivityId())
-        .type(convertType(historicActivityInstance.getActivityType()))
+        .processInstanceKey(convertIdToKey(flowNode.getProcessInstanceId()))
+        .processDefinitionKey(convertIdToKey(convertProcessDefinitionIdToKey(flowNode.getProcessDefinitionId())))
+        .processDefinitionId(flowNode.getProcessDefinitionKey())
+        .startDate(convertDate(flowNode.getStartTime()))
+        .endDate(convertDate(flowNode.getEndTime()))
+        .flowNodeId(flowNode.getActivityId())
+        .type(convertType(flowNode.getActivityType()))
+        .tenantId(flowNode.getTenantId())
         .treePath(null) // TODO doesn't exist
         .state(null) // TODO doesn't exist
         .incidentKey(null) // TODO doesn't exist
         .numSubprocessIncidents(null) // TODO doesn't exist
-        .tenantId(historicActivityInstance.getTenantId())
         .build();
   }
 

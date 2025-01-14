@@ -4,32 +4,29 @@ import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.springframework.stereotype.Component;
 
-import java.time.ZoneOffset;
-
+import static io.camunda.migrator.ConverterUtil.convertActivityInstanceIdToKey;
+import static io.camunda.migrator.ConverterUtil.convertDate;
 import static io.camunda.migrator.ConverterUtil.convertIdToKey;
 import static io.camunda.search.entities.ProcessInstanceEntity.ProcessInstanceState;
 
 @Component
 public class ProcessInstanceConverter {
 
-  public ProcessInstanceDbModel apply(HistoricProcessInstance historicProcessInstance) {
-
-    //TODO map fields of historic process instance to ProcessInstanceDbModel
-
-    return new ProcessInstanceDbModel(
-        convertIdToKey(historicProcessInstance.getId()),
-        historicProcessInstance.getProcessDefinitionKey(), // TODO is this the same field?
-        convertIdToKey(convertProcessDefinitionIdToKey(historicProcessInstance.getProcessDefinitionId())),
-        convertState(historicProcessInstance.getState()),
-        historicProcessInstance.getStartTime().toInstant().atOffset(ZoneOffset.UTC),
-        historicProcessInstance.getEndTime().toInstant().atOffset(ZoneOffset.UTC),
-        historicProcessInstance.getTenantId(),
-        convertIdToKey(historicProcessInstance.getSuperProcessInstanceId()), // TODO is this the same field?
-        null,
-        null,
-        null,
-        historicProcessInstance.getProcessDefinitionVersion() // TODO is this the same field?
-    );
+  public ProcessInstanceDbModel apply(HistoricProcessInstance processInstance) {
+    Long key = convertIdToKey(convertActivityInstanceIdToKey(processInstance.getId()));
+    return new ProcessInstanceDbModel.ProcessInstanceDbModelBuilder()
+        .processInstanceKey(key)
+        .processDefinitionKey(convertIdToKey(convertProcessDefinitionIdToKey(processInstance.getProcessDefinitionId())))
+        .processDefinitionId(processInstance.getProcessDefinitionKey())
+        .startDate(convertDate(processInstance.getStartTime()))
+        .endDate(convertDate(processInstance.getEndTime()))
+        .state(convertState(processInstance.getState()))
+        .tenantId(processInstance.getTenantId())
+        .parentProcessInstanceKey(null) // TODO
+        .parentElementInstanceKey(null) // TODO
+        .numIncidents(0) // TODO
+        .version(processInstance.getProcessDefinitionVersion()) // TODO
+        .build();
   }
 
   private ProcessInstanceState convertState(String state) {
