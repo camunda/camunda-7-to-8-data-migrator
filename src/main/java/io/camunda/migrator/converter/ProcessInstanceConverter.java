@@ -8,6 +8,7 @@ import static io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel.ProcessIns
 import static io.camunda.migrator.ConverterUtil.convertActivityInstanceIdToKey;
 import static io.camunda.migrator.ConverterUtil.convertDate;
 import static io.camunda.migrator.ConverterUtil.convertIdToKey;
+import static io.camunda.migrator.ConverterUtil.convertProcessDefinitionIdToKey;
 import static io.camunda.search.entities.ProcessInstanceEntity.ProcessInstanceState;
 
 @Component

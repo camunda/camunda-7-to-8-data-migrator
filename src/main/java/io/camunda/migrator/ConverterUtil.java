@@ -6,10 +6,10 @@ import java.util.Date;
 
 public class ConverterUtil {
 
-  public static String convertProcessDefinitionIdToKey(String processDefinitionId) {
+  public static Long convertProcessDefinitionIdToKey(String processDefinitionId) {
     // The process definition id consists of <proc def key>:<version>:<id>
     // Split it up and only pass the id
-    return processDefinitionId.split(":")[2];
+    return convertIdToKey(processDefinitionId.split(":")[2]);
   }
 
   public static Long convertIdToKey(String id) {

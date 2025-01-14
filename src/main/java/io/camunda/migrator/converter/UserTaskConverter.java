@@ -14,7 +14,7 @@ public class UserTaskConverter {
     Long key = convertIdToKey(convertActivityInstanceIdToKey(historicTask.getId()));
     Long processInstanceKey = convertIdToKey(convertActivityInstanceIdToKey(historicTask.getProcessInstanceId()));
 
-    Long processDefinitionKey = convertIdToKey(convertProcessDefinitionIdToKey(historicTask.getProcessDefinitionId()));
+    Long processDefinitionKey = convertProcessDefinitionIdToKey(historicTask.getProcessDefinitionId());
 
     return new UserTaskDbModel.Builder()
         .userTaskKey(key)
