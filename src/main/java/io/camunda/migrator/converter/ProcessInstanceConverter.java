@@ -4,9 +4,7 @@ import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.springframework.stereotype.Component;
 
-import static io.camunda.migrator.ConverterUtil.convertActivityInstanceIdToKey;
-import static io.camunda.migrator.ConverterUtil.convertDate;
-import static io.camunda.migrator.ConverterUtil.convertIdToKey;
+import static io.camunda.migrator.ConverterUtil.*;
 import static io.camunda.search.entities.ProcessInstanceEntity.ProcessInstanceState;
 
 @Component
@@ -37,12 +35,5 @@ public class ProcessInstanceConverter {
 
       default -> throw new IllegalArgumentException("Unknown state: " + state);
     };
-  }
-
-
-  private String convertProcessDefinitionIdToKey(String processDefinitionId) {
-    // The process definition id consists of <proc def key>:<version>:<id>
-    // Split it up and only pass the id
-    return processDefinitionId.split(":")[2];
   }
 }
