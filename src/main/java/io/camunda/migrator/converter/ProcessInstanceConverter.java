@@ -16,6 +16,7 @@ public class ProcessInstanceConverter {
   public ProcessInstanceDbModel apply(HistoricProcessInstance processInstance) {
     Long key = convertIdToKey(processInstance.getId());
     return new ProcessInstanceDbModelBuilder()
+        .legacyProcessInstanceId(processInstance.getId())
         // Get key from runtime instance migration
         .processInstanceKey(key)
         // Get key from runtime instance/model migration

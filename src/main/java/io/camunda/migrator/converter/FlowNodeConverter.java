@@ -13,14 +13,16 @@ import static io.camunda.migrator.ConverterUtil.convertProcessDefinitionIdToKey;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType;
 
 @Component
-public class FlowNodeInstanceConverter {
+public class FlowNodeConverter {
 
-  public FlowNodeInstanceDbModel apply(HistoricActivityInstance flowNode) {
+  public FlowNodeInstanceDbModel apply(HistoricActivityInstance flowNode, Long newProcessInstanceKey) {
     Long key = convertActivityInstanceIdToKey(flowNode.getId());
     return new FlowNodeInstanceDbModelBuilder()
+        .legacyId(flowNode.getId())
+        .legacyProcessInstanceId(flowNode.getProcessInstanceId())
         .flowNodeInstanceKey(key)
         .flowNodeId(flowNode.getActivityId())
-        .processInstanceKey(convertIdToKey(flowNode.getProcessInstanceId()))
+        .processInstanceKey(newProcessInstanceKey)
         .processDefinitionKey(convertProcessDefinitionIdToKey(flowNode.getProcessDefinitionId()))
         .processDefinitionId(flowNode.getProcessDefinitionKey())
         .startDate(convertDate(flowNode.getStartTime()))

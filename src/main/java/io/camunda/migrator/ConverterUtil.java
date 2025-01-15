@@ -5,6 +5,7 @@ import io.camunda.zeebe.protocol.Protocol;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.Random;
 
 public class ConverterUtil {
 
@@ -37,7 +38,7 @@ public class ConverterUtil {
     // C8 keys are a composite of the partition and the id.
     // TODO: convert C7 IDs correctly to C8 IDs.
     if (id == null) return null;
-    return Protocol.encodePartitionId(99, Long.parseLong(id));
+    return Protocol.encodePartitionId(99, new Random().nextLong());
   }
 
   public static OffsetDateTime convertDate(Date date) {

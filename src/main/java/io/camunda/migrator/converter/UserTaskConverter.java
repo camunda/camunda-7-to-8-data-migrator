@@ -11,14 +11,15 @@ import static io.camunda.migrator.ConverterUtil.convertProcessDefinitionIdToKey;
 @Component
 public class UserTaskConverter {
 
-  public UserTaskDbModel apply(HistoricTaskInstance historicTask) {
+  public UserTaskDbModel apply(HistoricTaskInstance historicTask, Long newProcessInstanceKey) {
 
     Long key = convertIdToKey(historicTask.getId());
-    Long processInstanceKey = convertIdToKey(historicTask.getProcessInstanceId());
 
     Long processDefinitionKey = convertProcessDefinitionIdToKey(historicTask.getProcessDefinitionId());
 
     return new UserTaskDbModel.Builder()
+        .legacyId(historicTask.getId())
+        .legacyProcessInstanceId(historicTask.getProcessInstanceId())
         .userTaskKey(key)
         .elementId(null) //TODO ?
         .processDefinitionId(historicTask.getProcessDefinitionKey())
@@ -28,7 +29,7 @@ public class UserTaskConverter {
         .state(convertState(historicTask.getTaskState()))
         .formKey(null) //TODO ?
         .processDefinitionKey(processDefinitionKey)
-        .processInstanceKey(processInstanceKey)
+        .processInstanceKey(newProcessInstanceKey)
         .elementInstanceKey(null) // TODO ?
         .tenantId(historicTask.getTenantId())
         .dueDate(convertDate(historicTask.getDueDate()))

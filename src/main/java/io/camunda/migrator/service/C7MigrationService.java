@@ -46,7 +46,7 @@ public class C7MigrationService {
   private ProcessInstanceConverter processInstanceConverter;
 
   @Autowired
-  private FlowNodeInstanceConverter flowNodeInstanceConverter;
+  private FlowNodeConverter flowNodeConverter;
 
   @Autowired
   private UserTaskConverter userTaskConverter;
@@ -68,8 +68,7 @@ public class C7MigrationService {
           incidentMapper,
           runtimeService,
           historyService,
-          processInstanceConverter,
-          flowNodeInstanceConverter,
+          processInstanceConverter, flowNodeConverter,
           userTaskConverter,
           variableConverter,
           incidentConverter

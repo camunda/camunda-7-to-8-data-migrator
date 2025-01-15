@@ -23,20 +23,21 @@ public class VariableConverter {
   @Autowired
   private ObjectMapper objectMapper;
 
-  public VariableDbModel apply(HistoricVariableInstance historicVariable) {
+  public VariableDbModel apply(HistoricVariableInstance historicVariable, Long newProcessInstanceKey) {
 
-    Long processInstanceKey = convertIdToKey(historicVariable.getProcessInstanceId());
     Long key = convertIdToKey(historicVariable.getId());
 
     Long activityInstanceKey = convertActivityInstanceIdToKey(historicVariable.getActivityInstanceId());
 
     // TODO currently the VariableDbModelBuilder maps all variables to String type
     return new VariableDbModel.VariableDbModelBuilder()
+        .legacyId(historicVariable.getId())
+        .legacyProcessInstanceId(historicVariable.getProcessInstanceId())
         .variableKey(key)
         .name(historicVariable.getName())
         .value(convertValue(historicVariable)) //TODO ?
         .scopeKey(activityInstanceKey) //TODO ?
-        .processInstanceKey(processInstanceKey)
+        .processInstanceKey(newProcessInstanceKey)
         .processDefinitionId(historicVariable.getProcessDefinitionKey())
         .tenantId(historicVariable.getTenantId())
         .build();
