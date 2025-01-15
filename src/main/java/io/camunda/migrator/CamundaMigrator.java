@@ -115,7 +115,7 @@ public class CamundaMigrator {
   }
 
   private void migrateVariables() {
-    LOGGER.info("Migrating variables");
+    LOGGER.info("Migrating variables; Total: {}",     historyService.createHistoricVariableInstanceQuery().count());
 
     List<VariableEntity> c8Variables = variableMapper.search(null);
     List<Long> migratedKeys = c8Variables.stream().map(VariableEntity::variableKey).toList();

@@ -29,6 +29,7 @@
             </camunda:map>
           </camunda:inputParameter>
           <camunda:inputParameter name="variable_string_or_expression">${'This is an evaluated string value of the variable_string_or_expression'}</camunda:inputParameter>
+          <camunda:inputParameter name="variable_boolean">true</camunda:inputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_07k5mgx</bpmn:incoming>
@@ -48,30 +49,30 @@ variable_string_or_expression</bpmn:text>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="simple-process-user-task-with-variables">
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
-        <dc:Bounds x="179" y="219" width="36" height="36" />
+        <dc:Bounds x="179" y="329" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_08aawxj_di" bpmnElement="Event_08aawxj">
-        <dc:Bounds x="432" y="219" width="36" height="36" />
+        <dc:Bounds x="432" y="329" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1t4847y_di" bpmnElement="simple-process-user-task-with-variables-user-task">
-        <dc:Bounds x="267" y="197" width="100" height="80" />
+        <dc:Bounds x="267" y="307" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1iqrvat_di" bpmnElement="TextAnnotation_1iqrvat">
-        <dc:Bounds x="400" y="-30" width="100" height="185" />
+        <dc:Bounds x="400" y="80" width="100" height="185" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_07k5mgx_di" bpmnElement="Flow_07k5mgx">
-        <di:waypoint x="215" y="237" />
-        <di:waypoint x="267" y="237" />
+        <di:waypoint x="215" y="347" />
+        <di:waypoint x="267" y="347" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1uajlbq_di" bpmnElement="Flow_1uajlbq">
-        <di:waypoint x="367" y="237" />
-        <di:waypoint x="432" y="237" />
+        <di:waypoint x="367" y="347" />
+        <di:waypoint x="432" y="347" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_0vlqf0r_di" bpmnElement="Association_0vlqf0r">
-        <di:waypoint x="338" y="197" />
-        <di:waypoint x="400" y="81" />
+        <di:waypoint x="338" y="307" />
+        <di:waypoint x="400" y="191" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
