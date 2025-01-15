@@ -40,7 +40,7 @@ public class VariableConverter {
         .processInstanceKey(newProcessInstanceKey)
         .processDefinitionId(historicVariable.getProcessDefinitionKey())
         .tenantId(historicVariable.getTenantId())
-        .build();
+        .build(); //FIXME boolean values should be mapped to boolean by rdbms. Update version and fix
   }
 
   private String convertValue(HistoricVariableInstance variable) {

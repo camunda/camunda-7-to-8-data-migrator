@@ -30,6 +30,9 @@
           </camunda:inputParameter>
           <camunda:inputParameter name="variable_string_or_expression">${'This is an evaluated string value of the variable_string_or_expression'}</camunda:inputParameter>
           <camunda:inputParameter name="variable_boolean">true</camunda:inputParameter>
+          <camunda:inputParameter name="variable_integer">13</camunda:inputParameter>
+          <camunda:inputParameter name="variable_double">3.1415</camunda:inputParameter>
+          <camunda:inputParameter name="variable_null">null</camunda:inputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_07k5mgx</bpmn:incoming>
@@ -42,12 +45,19 @@ variable_string
 variable_javascript
 variable_list
 variable_map
-variable_string_or_expression</bpmn:text>
+variable_string_or_expression
+variable_integer
+variable_double
+variable_null</bpmn:text>
     </bpmn:textAnnotation>
     <bpmn:association id="Association_0vlqf0r" sourceRef="simple-process-user-task-with-variables-user-task" targetRef="TextAnnotation_1iqrvat" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="simple-process-user-task-with-variables">
+      <bpmndi:BPMNShape id="TextAnnotation_1iqrvat_di" bpmnElement="TextAnnotation_1iqrvat">
+        <dc:Bounds x="400" y="80" width="412" height="156" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
         <dc:Bounds x="179" y="329" width="36" height="36" />
       </bpmndi:BPMNShape>
@@ -58,10 +68,10 @@ variable_string_or_expression</bpmn:text>
         <dc:Bounds x="267" y="307" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="TextAnnotation_1iqrvat_di" bpmnElement="TextAnnotation_1iqrvat">
-        <dc:Bounds x="400" y="80" width="100" height="185" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0vlqf0r_di" bpmnElement="Association_0vlqf0r">
+        <di:waypoint x="338" y="307" />
+        <di:waypoint x="400" y="192" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_07k5mgx_di" bpmnElement="Flow_07k5mgx">
         <di:waypoint x="215" y="347" />
         <di:waypoint x="267" y="347" />
@@ -69,10 +79,6 @@ variable_string_or_expression</bpmn:text>
       <bpmndi:BPMNEdge id="Flow_1uajlbq_di" bpmnElement="Flow_1uajlbq">
         <di:waypoint x="367" y="347" />
         <di:waypoint x="432" y="347" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_0vlqf0r_di" bpmnElement="Association_0vlqf0r">
-        <di:waypoint x="338" y="307" />
-        <di:waypoint x="400" y="191" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
