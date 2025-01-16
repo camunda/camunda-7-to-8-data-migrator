@@ -10,20 +10,20 @@ import static io.camunda.migrator.ConverterUtil.*;
 @Component
 public class IncidentConverter {
 
-  public IncidentDbModel apply(HistoricIncident historicIncident, Long newProcessInstanceKey) {
-    Long key = convertIdToKey(historicIncident.getId());
-    Long processDefinitionKey = convertProcessDefinitionIdToKey(historicIncident.getProcessDefinitionId());
-
+  public IncidentDbModel apply(HistoricIncident historicIncident,
+                               Long processDefinitionKey,
+                               Long processInstanceKey,
+                               Long jobDefinitionKey) {
     return new IncidentDbModel.Builder()
         .legacyId(historicIncident.getId())
         .legacyProcessInstanceId(historicIncident.getProcessInstanceId())
-        .incidentKey(key)
+        .incidentKey(getNextKey())
         .processDefinitionKey(processDefinitionKey)
         .processDefinitionId(historicIncident.getProcessDefinitionKey())
-        .processInstanceKey(newProcessInstanceKey)
+        .processInstanceKey(processInstanceKey)
         .flowNodeInstanceKey(null) //TODO ?
         .flowNodeId(null) //TODO ?
-        .jobKey(convertJobDefinitionIdToKey(historicIncident.getJobDefinitionId()))
+        .jobKey(jobDefinitionKey)
         .errorType(convertErrorType(historicIncident.getIncidentType()))
         .errorMessage(historicIncident.getIncidentMessage())
         .creationDate(convertDate(historicIncident.getCreateTime()))

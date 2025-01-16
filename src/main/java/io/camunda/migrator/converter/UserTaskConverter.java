@@ -5,22 +5,19 @@ import org.camunda.bpm.engine.history.HistoricTaskInstance;
 import org.springframework.stereotype.Component;
 
 import static io.camunda.migrator.ConverterUtil.convertDate;
-import static io.camunda.migrator.ConverterUtil.convertIdToKey;
-import static io.camunda.migrator.ConverterUtil.convertProcessDefinitionIdToKey;
+import static io.camunda.migrator.ConverterUtil.getNextKey;
 
 @Component
 public class UserTaskConverter {
 
-  public UserTaskDbModel apply(HistoricTaskInstance historicTask, Long newProcessInstanceKey) {
-
-    Long key = convertIdToKey(historicTask.getId());
-
-    Long processDefinitionKey = convertProcessDefinitionIdToKey(historicTask.getProcessDefinitionId());
+  public UserTaskDbModel apply(HistoricTaskInstance historicTask,
+                               Long processDefinitionKey,
+                               Long processInstanceKey) {
 
     return new UserTaskDbModel.Builder()
         .legacyId(historicTask.getId())
         .legacyProcessInstanceId(historicTask.getProcessInstanceId())
-        .userTaskKey(key)
+        .userTaskKey(getNextKey())
         .elementId(null) //TODO ?
         .processDefinitionId(historicTask.getProcessDefinitionKey())
         .creationDate(convertDate(historicTask.getStartTime()))
@@ -29,7 +26,7 @@ public class UserTaskConverter {
         .state(convertState(historicTask.getTaskState()))
         .formKey(null) //TODO ?
         .processDefinitionKey(processDefinitionKey)
-        .processInstanceKey(newProcessInstanceKey)
+        .processInstanceKey(processInstanceKey)
         .elementInstanceKey(null) // TODO ?
         .tenantId(historicTask.getTenantId())
         .dueDate(convertDate(historicTask.getDueDate()))

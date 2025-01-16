@@ -12,8 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static io.camunda.migrator.ConverterUtil.convertActivityInstanceIdToKey;
-import static io.camunda.migrator.ConverterUtil.convertIdToKey;
+import static io.camunda.migrator.ConverterUtil.getNextKey;
 
 @Component
 public class VariableConverter {
@@ -23,21 +22,16 @@ public class VariableConverter {
   @Autowired
   private ObjectMapper objectMapper;
 
-  public VariableDbModel apply(HistoricVariableInstance historicVariable, Long newProcessInstanceKey) {
-
-    Long key = convertIdToKey(historicVariable.getId());
-
-    Long activityInstanceKey = convertActivityInstanceIdToKey(historicVariable.getActivityInstanceId());
-
+  public VariableDbModel apply(HistoricVariableInstance historicVariable, Long processInstanceKey, Long scopeKey) {
     // TODO currently the VariableDbModelBuilder maps all variables to String type
     return new VariableDbModel.VariableDbModelBuilder()
         .legacyId(historicVariable.getId())
         .legacyProcessInstanceId(historicVariable.getProcessInstanceId())
-        .variableKey(key)
+        .variableKey(getNextKey())
         .name(historicVariable.getName())
         .value(convertValue(historicVariable)) //TODO ?
-        .scopeKey(activityInstanceKey) //TODO ?
-        .processInstanceKey(newProcessInstanceKey)
+        .scopeKey(scopeKey) //TODO ?
+        .processInstanceKey(processInstanceKey)
         .processDefinitionId(historicVariable.getProcessDefinitionKey())
         .tenantId(historicVariable.getTenantId())
         .build(); //FIXME boolean values should be mapped to boolean by rdbms. Update version and fix

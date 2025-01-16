@@ -6,24 +6,23 @@ import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.springframework.stereotype.Component;
 
 import static io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel.FlowNodeInstanceDbModelBuilder;
-import static io.camunda.migrator.ConverterUtil.convertActivityInstanceIdToKey;
 import static io.camunda.migrator.ConverterUtil.convertDate;
-import static io.camunda.migrator.ConverterUtil.convertIdToKey;
-import static io.camunda.migrator.ConverterUtil.convertProcessDefinitionIdToKey;
+import static io.camunda.migrator.ConverterUtil.getNextKey;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType;
 
 @Component
 public class FlowNodeConverter {
 
-  public FlowNodeInstanceDbModel apply(HistoricActivityInstance flowNode, Long newProcessInstanceKey) {
-    Long key = convertActivityInstanceIdToKey(flowNode.getId());
+  public FlowNodeInstanceDbModel apply(HistoricActivityInstance flowNode,
+                                       Long processDefinitionKey,
+                                       Long processInstanceKey) {
     return new FlowNodeInstanceDbModelBuilder()
         .legacyId(flowNode.getId())
         .legacyProcessInstanceId(flowNode.getProcessInstanceId())
-        .flowNodeInstanceKey(key)
+        .flowNodeInstanceKey(getNextKey())
         .flowNodeId(flowNode.getActivityId())
-        .processInstanceKey(newProcessInstanceKey)
-        .processDefinitionKey(convertProcessDefinitionIdToKey(flowNode.getProcessDefinitionId()))
+        .processInstanceKey(processInstanceKey)
+        .processDefinitionKey(processDefinitionKey)
         .processDefinitionId(flowNode.getProcessDefinitionKey())
         .startDate(convertDate(flowNode.getStartTime()))
         .endDate(convertDate(flowNode.getEndTime()))
