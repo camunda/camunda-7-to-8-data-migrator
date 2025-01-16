@@ -15,10 +15,12 @@ public class UserTaskConverter {
                                Long processInstanceKey) {
 
     return new UserTaskDbModel.Builder()
+        .userTaskKey(getNextKey())
+
         .legacyId(historicTask.getId())
         .legacyProcessInstanceId(historicTask.getProcessInstanceId())
-        .userTaskKey(getNextKey())
-        .elementId(null) //TODO ?
+
+        .elementId(historicTask.getTaskDefinitionKey())
         .processDefinitionId(historicTask.getProcessDefinitionKey())
         .creationDate(convertDate(historicTask.getStartTime()))
         .completionDate(convertDate(historicTask.getEndTime()))

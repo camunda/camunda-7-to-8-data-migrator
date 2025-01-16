@@ -16,9 +16,10 @@ public class ProcessInstanceConverter {
                                       Long processDefinitionKey,
                                       Long parentProcessInstanceKey) {
     return new ProcessInstanceDbModelBuilder()
-        .legacyProcessInstanceId(processInstance.getId())
-        // Get key from runtime instance migration
         .processInstanceKey(getNextKey())
+
+        .legacyProcessInstanceId(processInstance.getId())
+
         // Get key from runtime instance/model migration
         .processDefinitionKey(processDefinitionKey)
         .processDefinitionId(processInstance.getProcessDefinitionKey())

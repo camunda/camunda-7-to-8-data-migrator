@@ -25,9 +25,11 @@ public class VariableConverter {
   public VariableDbModel apply(HistoricVariableInstance historicVariable, Long processInstanceKey, Long scopeKey) {
     // TODO currently the VariableDbModelBuilder maps all variables to String type
     return new VariableDbModel.VariableDbModelBuilder()
+        .variableKey(getNextKey())
+
         .legacyId(historicVariable.getId())
         .legacyProcessInstanceId(historicVariable.getProcessInstanceId())
-        .variableKey(getNextKey())
+
         .name(historicVariable.getName())
         .value(convertValue(historicVariable)) //TODO ?
         .scopeKey(scopeKey) //TODO ?

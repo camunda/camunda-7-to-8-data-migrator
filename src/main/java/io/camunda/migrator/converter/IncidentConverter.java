@@ -20,9 +20,11 @@ public class IncidentConverter {
                                Long jobDefinitionKey,
                                Long flowNodeInstanceKey) {
     return new IncidentDbModel.Builder()
+        .incidentKey(getNextKey())
+
         .legacyId(historicIncident.getId())
         .legacyProcessInstanceId(historicIncident.getProcessInstanceId())
-        .incidentKey(getNextKey())
+
         .processDefinitionKey(processDefinitionKey)
         .processDefinitionId(historicIncident.getProcessDefinitionKey())
         .processInstanceKey(processInstanceKey)
