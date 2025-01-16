@@ -21,6 +21,7 @@ import io.camunda.migrator.converter.ProcessInstanceConverter;
 import io.camunda.migrator.converter.UserTaskConverter;
 import io.camunda.migrator.converter.VariableConverter;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
+import io.camunda.search.filter.FlowNodeInstanceFilter;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.Execution;
@@ -126,11 +127,16 @@ public class CamundaMigrator {
       if (checkIncidentNotMigrated(legacyIncidentId)) {
         Long processInstanceKey = findProcessInstanceKey(historicIncident.getProcessInstanceId());
         if (processInstanceKey != null) {
-          LOGGER.info("Migration of legacy incident with id '{}' completed.", legacyIncidentId);
-          Long processDefinitionKey = null; // TODO migrate process definitions.
-          Long jobDefinitionKey = null; // TODO Job table doesn't exist yet.
-          IncidentDbModel dbModel = incidentConverter.apply(historicIncident, processDefinitionKey, processInstanceKey, jobDefinitionKey);
-          incidentMapper.insert(dbModel);
+          Long flowNodeInstanceKey = findFlowNodeKey(historicIncident.getActivityId(), historicIncident.getProcessInstanceId());
+          if (flowNodeInstanceKey != null) {
+            LOGGER.info("Migration of legacy incident with id '{}' completed.", legacyIncidentId);
+            Long processDefinitionKey = null; // TODO migrate process definitions.
+            Long jobDefinitionKey = null; // TODO Job table doesn't exist yet.
+            IncidentDbModel dbModel = incidentConverter.apply(historicIncident, processDefinitionKey, processInstanceKey, jobDefinitionKey, flowNodeInstanceKey);
+            incidentMapper.insert(dbModel);
+          } else {
+            LOGGER.info("Migration of legacy incident with id '{}' skipped. Flow node not yet available.", legacyIncidentId);
+          }
         } else {
           LOGGER.info("Migration of legacy incident with id '{}' skipped. Process instance not yet available.", legacyIncidentId);
         }
@@ -209,6 +215,19 @@ public class CamundaMigrator {
 
     if (!processInstances.isEmpty()) {
       return processInstances.get(0).processInstanceKey();
+    } else {
+      return null;
+    }
+  }
+
+  private Long findFlowNodeKey(String activityId, String processInstanceId) {
+    List<FlowNodeInstanceDbModel> flowNodes = flowNodeMapper.search(
+        FlowNodeInstanceDbQuery.of(b ->
+            b.filter(FlowNodeInstanceFilter.of(f -> f.flowNodeIds(activityId)))
+                .legacyProcessInstanceId(processInstanceId)));
+
+    if (!flowNodes.isEmpty()) {
+      return flowNodes.get(0).flowNodeInstanceKey();
     } else {
       return null;
     }
