@@ -23,20 +23,23 @@ public class ProcessDefinitionConverter {
   @Autowired
   private RepositoryService repositoryService;
 
-  public ProcessDefinitionDbModel apply(ProcessDefinition processDefinition) {
-    String bpmnXml = getBpmnXmlAsString(processDefinition);
+  public ProcessDefinitionDbModel apply(ProcessDefinition legacyProcessDefinition) {
+    String bpmnXml = getBpmnXmlAsString(legacyProcessDefinition);
 
-    return new ProcessDefinitionDbModel(
-        getNextKey(),
-        processDefinition.getId(), //TODO verify correctness
-        processDefinition.getResourceName(),
-        processDefinition.getName(),
-        processDefinition.getTenantId(),
-        processDefinition.getVersionTag(),
-        processDefinition.getVersion(),
-        bpmnXml,
-        null //TODO ?
-    );
+    return new ProcessDefinitionDbModel.ProcessDefinitionDbModelBuilder()
+        .processDefinitionKey(getNextKey())
+
+        .legacyId(legacyProcessDefinition.getId())
+
+        .processDefinitionId(legacyProcessDefinition.getId())
+        .resourceName(legacyProcessDefinition.getResourceName())
+        .name(legacyProcessDefinition.getName())
+        .tenantId(legacyProcessDefinition.getTenantId())
+        .versionTag(legacyProcessDefinition.getVersionTag())
+        .version(legacyProcessDefinition.getVersion())
+        .bpmnXml(bpmnXml)
+        .formId(null) // TODO
+        .build();
   }
 
   private String getBpmnXmlAsString(ProcessDefinition processDefinition) {

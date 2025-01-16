@@ -83,54 +83,70 @@ public class CamundaMigrator {
 
     addIncidentToProcess("simple-process-user-task", "failedJob");
 
+    migrateProcessDefinitions();
     migrateProcessInstances();
     migrateFlowNodes();
     migrateUserTasks();
     migrateVariables();
     migrateIncidents();
-
-    migrateProcessDefinitions();
   }
 
-  private void migrateProcessInstances() {
-    historyService.createHistoricProcessInstanceQuery().list().forEach(historicProcessInstance -> {
-      String legacyProcessInstanceId = historicProcessInstance.getId();
-      if (checkProcessInstanceNotMigrated(legacyProcessInstanceId)) {
-
-        String legacySuperProcessInstanceId = historicProcessInstance.getSuperProcessInstanceId();
-        Long parentProcessInstanceKey = null;
-        if (legacySuperProcessInstanceId != null) {
-          parentProcessInstanceKey = findProcessInstanceKey(legacySuperProcessInstanceId).processInstanceKey();
-        }
-
-        if (parentProcessInstanceKey != null
-            // Continue if PI has no parent.
-            || legacySuperProcessInstanceId == null) {
-          LOGGER.info("Migration of legacy process instances with id '{}' completed", legacyProcessInstanceId);
-          Long processDefinitionKey = null; // TODO migrate process definitions
-          ProcessInstanceDbModel dbModel = processInstanceConverter.apply(historicProcessInstance, processDefinitionKey, parentProcessInstanceKey);
-          processInstanceMapper.insert(dbModel);
-        } else {
-          LOGGER.info("Migration of legacy process instance with id '{}' skipped. Parent process instance not yet available.", legacyProcessInstanceId);
-        }
+  private void migrateProcessDefinitions() {
+    repositoryService.createProcessDefinitionQuery().list().forEach(legacyProcessDefinition -> {
+      String processDefinitionId = legacyProcessDefinition.getId();
+      if (checkProcessDefinitionNotMigrated(processDefinitionId)) {
+        LOGGER.info("Migration of legacy process definition with id '{}' completed", processDefinitionId);
+        ProcessDefinitionDbModel dbModel = processDefinitionConverter.apply(legacyProcessDefinition);
+        processDefinitionMapper.insert(dbModel);
       } else {
-        LOGGER.info("Legacy process instances with id '{}' has been migrated already. Skipping.", legacyProcessInstanceId);
+        LOGGER.info("Legacy process definition with id '{}' has been migrated already. Skipping.", processDefinitionId);
       }
     });
   }
 
+  private void migrateProcessInstances() {
+    historyService.createHistoricProcessInstanceQuery().list().forEach(legacyProcessInstance -> {
+        String legacyProcessInstanceId = legacyProcessInstance.getId();
+        if (checkProcessInstanceNotMigrated(legacyProcessInstanceId)) {
+
+          Long processDefinitionKey = findProcessDefinitionKey(legacyProcessInstance.getProcessDefinitionId());
+          if (processDefinitionKey != null) {
+            String legacySuperProcessInstanceId = legacyProcessInstance.getSuperProcessInstanceId();
+            Long parentProcessInstanceKey = null;
+            if (legacySuperProcessInstanceId != null) {
+              parentProcessInstanceKey = findProcessInstanceKey(legacySuperProcessInstanceId).processInstanceKey();
+            }
+
+            if (parentProcessInstanceKey != null
+                // Continue if PI has no parent.
+                || legacySuperProcessInstanceId == null) {
+              LOGGER.info("Migration of legacy process instances with id '{}' completed", legacyProcessInstanceId);
+              ProcessInstanceDbModel dbModel = processInstanceConverter.apply(legacyProcessInstance, processDefinitionKey, parentProcessInstanceKey);
+              processInstanceMapper.insert(dbModel);
+            } else {
+              LOGGER.info("Migration of legacy process instance with id '{}' skipped. Parent process instance not yet available.", legacyProcessInstanceId);
+            }
+          } else {
+            LOGGER.info("Migration of legacy process instance with id '{}' skipped. Process definition not yet available.", legacyProcessInstanceId);
+          }
+        } else {
+          LOGGER.info("Legacy process instances with id '{}' has been migrated already. Skipping.", legacyProcessInstanceId);
+        }
+    });
+  }
+
   private void migrateIncidents() {
-    historyService.createHistoricIncidentQuery().list().forEach(historicIncident -> {
-      String legacyIncidentId = historicIncident.getId();
+    historyService.createHistoricIncidentQuery().list().forEach(legacyIncident -> {
+      String legacyIncidentId = legacyIncident.getId();
       if (checkIncidentNotMigrated(legacyIncidentId)) {
-        Long processInstanceKey = findProcessInstanceKey(historicIncident.getProcessInstanceId()).processInstanceKey();
+        Long processInstanceKey = findProcessInstanceKey(legacyIncident.getProcessInstanceId()).processInstanceKey();
         if (processInstanceKey != null) {
-          Long flowNodeInstanceKey = findFlowNodeKey(historicIncident.getActivityId(), historicIncident.getProcessInstanceId());
+          Long flowNodeInstanceKey = findFlowNodeKey(legacyIncident.getActivityId(), legacyIncident.getProcessInstanceId());
           if (flowNodeInstanceKey != null) {
             LOGGER.info("Migration of legacy incident with id '{}' completed.", legacyIncidentId);
-            Long processDefinitionKey = null; // TODO migrate process definitions.
+            Long processDefinitionKey = findProcessDefinitionKey(legacyIncident.getProcessDefinitionId());
             Long jobDefinitionKey = null; // TODO Job table doesn't exist yet.
-            IncidentDbModel dbModel = incidentConverter.apply(historicIncident, processDefinitionKey, processInstanceKey, jobDefinitionKey, flowNodeInstanceKey);
+            IncidentDbModel dbModel = incidentConverter.apply(legacyIncident, processDefinitionKey, processInstanceKey, jobDefinitionKey, flowNodeInstanceKey);
             incidentMapper.insert(dbModel);
           } else {
             LOGGER.info("Migration of legacy incident with id '{}' skipped. Flow node not yet available.", legacyIncidentId);
@@ -145,15 +161,15 @@ public class CamundaMigrator {
   }
 
   private void migrateVariables() {
-    historyService.createHistoricVariableInstanceQuery().list().forEach(historicVariable -> {
-      String legacyVariableId = historicVariable.getId();
+    historyService.createHistoricVariableInstanceQuery().list().forEach(legacyVariable -> {
+      String legacyVariableId = legacyVariable.getId();
       if (checkVariableNotMigrated(legacyVariableId)) {
-        Long processInstanceKey = findProcessInstanceKey(historicVariable.getProcessInstanceId()).processInstanceKey();
+        Long processInstanceKey = findProcessInstanceKey(legacyVariable.getProcessInstanceId()).processInstanceKey();
         if (processInstanceKey != null) {
-          Long scopeKey = findFlowNodeKey(historicVariable.getActivityInstanceId()); // TODO does this cover scope correctly?
+          Long scopeKey = findFlowNodeKey(legacyVariable.getActivityInstanceId()); // TODO does this cover scope correctly?
           if (scopeKey != null) {
             LOGGER.info("Migration of legacy variable with id '{}' completed.", legacyVariableId);
-            VariableDbModel dbModel = variableConverter.apply(historicVariable, processInstanceKey, scopeKey);
+            VariableDbModel dbModel = variableConverter.apply(legacyVariable, processInstanceKey, scopeKey);
             variableMapper.insert(dbModel);
           } else {
             LOGGER.info("Migration of legacy variable with id '{}' skipped. Activity instance not yet available.", legacyVariableId);
@@ -176,7 +192,7 @@ public class CamundaMigrator {
           Long elementInstanceKey = findFlowNodeKey(legacyUserTask.getActivityInstanceId());
           if (elementInstanceKey != null) {
             LOGGER.info("Migration of legacy user task with id '{}' completed.", legacyUserTaskId);
-            Long processDefinitionKey = null; // TODO migrate process definition.
+            Long processDefinitionKey = findProcessDefinitionKey(legacyUserTask.getProcessDefinitionId());
             UserTaskDbModel dbModel = userTaskConverter.apply(legacyUserTask, processDefinitionKey, processInstance, elementInstanceKey);
             userTaskMapper.insert(dbModel);
           } else {
@@ -198,7 +214,7 @@ public class CamundaMigrator {
         Long processInstanceKey = findProcessInstanceKey(legacyFlowNode.getProcessInstanceId()).processInstanceKey();
         if (processInstanceKey != null) {
           LOGGER.info("Migration of legacy flow node with id '{}' completed.", legacyFlowNodeId);
-          Long processDefinitionKey = null; // TODO migrate process definition
+          Long processDefinitionKey = findProcessDefinitionKey(legacyFlowNode.getProcessDefinitionId());
           FlowNodeInstanceDbModel dbModel = flowNodeConverter.apply(legacyFlowNode, processDefinitionKey, processInstanceKey);
           flowNodeMapper.insert(dbModel);
         } else {
@@ -206,19 +222,6 @@ public class CamundaMigrator {
         }
       } else {
         LOGGER.info("Legacy flow node with id '{}' has been migrated already. Skipping.", legacyFlowNodeId);
-      }
-    });
-  }
-
-  private void migrateProcessDefinitions() {
-    repositoryService.createProcessDefinitionQuery().list().forEach(processDefinition -> {
-      String processDefinitionId = processDefinition.getId();
-      if (checkProcessDefinitionNotMigrated(processDefinitionId)) {
-        LOGGER.info("Migration of legacy process definition with id '{}' completed", processDefinitionId);
-        ProcessDefinitionDbModel dbModel = processDefinitionConverter.apply(processDefinition);
-        processDefinitionMapper.insert(dbModel);
-      } else {
-        LOGGER.info("Legacy process definition with id '{}' has been migrated already. Skipping.", processDefinitionId);
       }
     });
   }
@@ -231,6 +234,17 @@ public class CamundaMigrator {
 
     if (!processInstances.isEmpty()) {
       return processInstances.get(0);
+    } else {
+      return null;
+    }
+  }
+
+  private Long findProcessDefinitionKey(String processDefinitionId) {
+    List<ProcessDefinitionDbModel> processDefinitions = processDefinitionMapper.search(
+        ProcessDefinitionDbQuery.of(b -> b.legacyId(processDefinitionId)));
+
+    if (!processDefinitions.isEmpty()) {
+      return processDefinitions.get(0).processDefinitionKey();
     } else {
       return null;
     }
@@ -258,6 +272,12 @@ public class CamundaMigrator {
     } else {
       return null;
     }
+  }
+
+  protected boolean checkProcessDefinitionNotMigrated(String legacyProcessDefinitionId) {
+    return processDefinitionMapper.search(
+        ProcessDefinitionDbQuery.of(b ->
+            b.legacyId(legacyProcessDefinitionId))).isEmpty();
   }
 
   protected boolean checkProcessInstanceNotMigrated(String legacyProcessInstanceId) {
@@ -288,11 +308,6 @@ public class CamundaMigrator {
     return flowNodeMapper.search(
         FlowNodeInstanceDbQuery.of(b ->
             b.legacyId(legacyId))).isEmpty();
-  }
-
-  protected boolean checkProcessDefinitionNotMigrated(String processDefinitionId) {
-    return processDefinitionMapper.search(ProcessDefinitionDbQuery.of(b ->
-        b.filter(new ProcessDefinitionFilter.Builder().processDefinitionIds(processDefinitionId).build()))).isEmpty();
   }
 
   private void addIncidentToProcess(String processInstanceId, String incidentType) {
