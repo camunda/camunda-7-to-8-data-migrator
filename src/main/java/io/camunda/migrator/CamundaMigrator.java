@@ -103,11 +103,12 @@ public class CamundaMigrator {
         String legacySuperProcessInstanceId = historicProcessInstance.getSuperProcessInstanceId();
         Long parentProcessInstanceKey = null;
         if (legacySuperProcessInstanceId != null) {
-          parentProcessInstanceKey = findProcessInstanceKey(legacySuperProcessInstanceId);
+          parentProcessInstanceKey = findProcessInstanceKey(legacySuperProcessInstanceId).processInstanceKey();
         }
 
-        // Continue if PI has no parent.
-        if (parentProcessInstanceKey != null || legacySuperProcessInstanceId == null) {
+        if (parentProcessInstanceKey != null
+            // Continue if PI has no parent.
+            || legacySuperProcessInstanceId == null) {
           LOGGER.info("Migration of legacy process instances with id '{}' completed", legacyProcessInstanceId);
           Long processDefinitionKey = null; // TODO migrate process definitions
           ProcessInstanceDbModel dbModel = processInstanceConverter.apply(historicProcessInstance, processDefinitionKey, parentProcessInstanceKey);
@@ -125,7 +126,7 @@ public class CamundaMigrator {
     historyService.createHistoricIncidentQuery().list().forEach(historicIncident -> {
       String legacyIncidentId = historicIncident.getId();
       if (checkIncidentNotMigrated(legacyIncidentId)) {
-        Long processInstanceKey = findProcessInstanceKey(historicIncident.getProcessInstanceId());
+        Long processInstanceKey = findProcessInstanceKey(historicIncident.getProcessInstanceId()).processInstanceKey();
         if (processInstanceKey != null) {
           Long flowNodeInstanceKey = findFlowNodeKey(historicIncident.getActivityId(), historicIncident.getProcessInstanceId());
           if (flowNodeInstanceKey != null) {
@@ -150,7 +151,7 @@ public class CamundaMigrator {
     historyService.createHistoricVariableInstanceQuery().list().forEach(historicVariable -> {
       String legacyVariableId = historicVariable.getId();
       if (checkVariableNotMigrated(legacyVariableId)) {
-        Long processInstanceKey = findProcessInstanceKey(historicVariable.getProcessInstanceId());
+        Long processInstanceKey = findProcessInstanceKey(historicVariable.getProcessInstanceId()).processInstanceKey();
         if (processInstanceKey != null) {
           Long scopeKey = findFlowNodeKey(historicVariable.getActivityInstanceId()); // TODO does this cover scope correctly?
           if (scopeKey != null) {
@@ -173,14 +174,19 @@ public class CamundaMigrator {
     historyService.createHistoricTaskInstanceQuery().list().forEach(legacyUserTask -> {
       String legacyUserTaskId = legacyUserTask.getId();
       if (checkUserTaskNotMigrated(legacyUserTaskId)) {
-        Long processInstanceKey = findProcessInstanceKey(legacyUserTask.getProcessInstanceId());
-        if (processInstanceKey != null) {
-          LOGGER.info("Migration of legacy user task with id '{}' completed.", legacyUserTaskId);
-          Long processDefinitionKey = null; // TODO migrate process definition.
-          UserTaskDbModel dbModel = userTaskConverter.apply(legacyUserTask, processDefinitionKey, processInstanceKey);
-          userTaskMapper.insert(dbModel);
+        ProcessInstanceDbModel processInstance = findProcessInstanceKey(legacyUserTask.getProcessInstanceId());
+        if (processInstance != null) {
+          Long elementInstanceKey = findFlowNodeKey(legacyUserTask.getActivityInstanceId());
+          if (elementInstanceKey != null) {
+            LOGGER.info("Migration of legacy user task with id '{}' completed.", legacyUserTaskId);
+            Long processDefinitionKey = null; // TODO migrate process definition.
+            UserTaskDbModel dbModel = userTaskConverter.apply(legacyUserTask, processDefinitionKey, processInstance, elementInstanceKey);
+            userTaskMapper.insert(dbModel);
+          } else {
+            LOGGER.info("Migration of legacy user task with id '{}' skipped. Flow node instance yet not available.", legacyUserTaskId);
+          }
         } else {
-          LOGGER.info("Migration of legacy user task with id '{}' skipped. Process instance not available.", legacyUserTaskId);
+          LOGGER.info("Migration of legacy user task with id '{}' skipped. Process instance not yet available.", legacyUserTaskId);
         }
       } else {
         LOGGER.info("Legacy user task with id '{}' has been migrated already. Skipping.", legacyUserTaskId);
@@ -192,7 +198,7 @@ public class CamundaMigrator {
     historyService.createHistoricActivityInstanceQuery().list().forEach(legacyFlowNode -> {
       String legacyFlowNodeId = legacyFlowNode.getId();
       if (checkFlowNodeNotMigrated(legacyFlowNodeId)) {
-        Long processInstanceKey = findProcessInstanceKey(legacyFlowNode.getProcessInstanceId());
+        Long processInstanceKey = findProcessInstanceKey(legacyFlowNode.getProcessInstanceId()).processInstanceKey();
         if (processInstanceKey != null) {
           LOGGER.info("Migration of legacy flow node with id '{}' completed.", legacyFlowNodeId);
           Long processDefinitionKey = null; // TODO migrate process definition
@@ -207,14 +213,14 @@ public class CamundaMigrator {
     });
   }
 
-  protected Long findProcessInstanceKey(String processInstanceId) {
+  protected ProcessInstanceDbModel findProcessInstanceKey(String processInstanceId) {
     if (processInstanceId == null) return null;
 
     List<ProcessInstanceDbModel> processInstances = processInstanceMapper.search(
         ProcessInstanceDbQuery.of(b -> b.legacyProcessInstanceId(processInstanceId)));
 
     if (!processInstances.isEmpty()) {
-      return processInstances.get(0).processInstanceKey();
+      return processInstances.get(0);
     } else {
       return null;
     }

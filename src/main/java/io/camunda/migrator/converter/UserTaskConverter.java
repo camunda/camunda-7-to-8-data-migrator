@@ -1,5 +1,6 @@
 package io.camunda.migrator.converter;
 
+import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
 import org.camunda.bpm.engine.history.HistoricTaskInstance;
 import org.springframework.stereotype.Component;
@@ -12,7 +13,8 @@ public class UserTaskConverter {
 
   public UserTaskDbModel apply(HistoricTaskInstance historicTask,
                                Long processDefinitionKey,
-                               Long processInstanceKey) {
+                               ProcessInstanceDbModel processInstance,
+                               Long elementInstanceKey) {
 
     return new UserTaskDbModel.Builder()
         .userTaskKey(getNextKey())
@@ -26,19 +28,19 @@ public class UserTaskConverter {
         .completionDate(convertDate(historicTask.getEndTime()))
         .assignee(historicTask.getAssignee())
         .state(convertState(historicTask.getTaskState()))
-        .formKey(null) //TODO ?
         .processDefinitionKey(processDefinitionKey)
-        .processInstanceKey(processInstanceKey)
-        .elementInstanceKey(null) // TODO ?
+        .processInstanceKey(processInstance.processInstanceKey())
         .tenantId(historicTask.getTenantId())
+        .elementInstanceKey(elementInstanceKey)
         .dueDate(convertDate(historicTask.getDueDate()))
         .followUpDate(convertDate(historicTask.getFollowUpDate()))
+        .priority(historicTask.getPriority())
+        .processDefinitionVersion(processInstance.version())
+        .formKey(null) //TODO ?
         .candidateGroups(null) //TODO ?
         .candidateUsers(null) //TODO ?
         .externalFormReference(null) //TODO ?
-        .processDefinitionVersion(0) //TODO ?
         .customHeaders(null) //TODO ?
-        .priority(historicTask.getPriority())
         .build();
   }
 

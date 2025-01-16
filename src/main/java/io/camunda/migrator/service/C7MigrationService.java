@@ -68,7 +68,8 @@ public class C7MigrationService {
           incidentMapper,
           runtimeService,
           historyService,
-          processInstanceConverter, flowNodeConverter,
+          processInstanceConverter,
+          flowNodeConverter,
           userTaskConverter,
           variableConverter,
           incidentConverter
