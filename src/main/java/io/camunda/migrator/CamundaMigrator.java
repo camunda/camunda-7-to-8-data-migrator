@@ -1,28 +1,14 @@
 package io.camunda.migrator;
 
-import io.camunda.db.rdbms.read.domain.FlowNodeInstanceDbQuery;
-import io.camunda.db.rdbms.read.domain.IncidentDbQuery;
-import io.camunda.db.rdbms.read.domain.ProcessInstanceDbQuery;
-import io.camunda.db.rdbms.read.domain.UserTaskDbQuery;
-import io.camunda.db.rdbms.read.domain.VariableDbQuery;
-import io.camunda.db.rdbms.sql.FlowNodeInstanceMapper;
-import io.camunda.db.rdbms.sql.IncidentMapper;
-import io.camunda.db.rdbms.sql.ProcessInstanceMapper;
-import io.camunda.db.rdbms.sql.UserTaskMapper;
-import io.camunda.db.rdbms.sql.VariableMapper;
-import io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel;
-import io.camunda.db.rdbms.write.domain.IncidentDbModel;
-import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
-import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
-import io.camunda.db.rdbms.write.domain.VariableDbModel;
-import io.camunda.migrator.converter.FlowNodeConverter;
-import io.camunda.migrator.converter.IncidentConverter;
-import io.camunda.migrator.converter.ProcessInstanceConverter;
-import io.camunda.migrator.converter.UserTaskConverter;
-import io.camunda.migrator.converter.VariableConverter;
+import io.camunda.db.rdbms.read.domain.*;
+import io.camunda.db.rdbms.sql.*;
+import io.camunda.db.rdbms.write.domain.*;
+import io.camunda.migrator.converter.*;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
+import io.camunda.search.filter.ProcessDefinitionFilter;
 import org.camunda.bpm.engine.HistoryService;
+import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.Execution;
 import org.slf4j.Logger;
@@ -39,15 +25,18 @@ public class CamundaMigrator {
   private final UserTaskMapper userTaskMapper;
   private final VariableMapper variableMapper;
   private final IncidentMapper incidentMapper;
+  private final ProcessDefinitionMapper processDefinitionMapper;
 
   private final RuntimeService runtimeService;
   private final HistoryService historyService;
+  private final RepositoryService repositoryService;
 
   private final ProcessInstanceConverter processInstanceConverter;
   private final FlowNodeConverter flowNodeConverter;
   private final UserTaskConverter userTaskConverter;
   private final VariableConverter variableConverter;
   private final IncidentConverter incidentConverter;
+  private final ProcessDefinitionConverter processDefinitionConverter;
 
   public CamundaMigrator(
       ProcessInstanceMapper processInstanceMapper,
@@ -55,28 +44,34 @@ public class CamundaMigrator {
       UserTaskMapper userTaskMapper,
       VariableMapper variableMapper,
       IncidentMapper incidentMapper,
+      ProcessDefinitionMapper processDefinitionMapper,
 
       RuntimeService runtimeService,
       HistoryService historyService,
+      RepositoryService repositoryService,
 
       ProcessInstanceConverter processInstanceConverter,
       FlowNodeConverter flowNodeConverter,
       UserTaskConverter userTaskConverter,
       VariableConverter variableConverter,
-      IncidentConverter incidentConverter
+      IncidentConverter incidentConverter,
+      ProcessDefinitionConverter processDefinitionConverter
   ) {
     this.processInstanceMapper = processInstanceMapper;
     this.flowNodeMapper = flowNodeMapper;
     this.userTaskMapper = userTaskMapper;
     this.variableMapper = variableMapper;
     this.incidentMapper = incidentMapper;
+    this.processDefinitionMapper = processDefinitionMapper;
     this.runtimeService = runtimeService;
     this.historyService = historyService;
+    this.repositoryService = repositoryService;
     this.processInstanceConverter = processInstanceConverter;
     this.flowNodeConverter = flowNodeConverter;
     this.userTaskConverter = userTaskConverter;
     this.variableConverter = variableConverter;
     this.incidentConverter = incidentConverter;
+    this.processDefinitionConverter = processDefinitionConverter;
   }
 
   public void migrateAllHistoricProcessInstances() {
@@ -93,6 +88,8 @@ public class CamundaMigrator {
     migrateUserTasks();
     migrateVariables();
     migrateIncidents();
+
+    migrateProcessDefinitions();
   }
 
   private void migrateProcessInstances() {
@@ -213,6 +210,19 @@ public class CamundaMigrator {
     });
   }
 
+  private void migrateProcessDefinitions() {
+    repositoryService.createProcessDefinitionQuery().list().forEach(processDefinition -> {
+      String processDefinitionId = processDefinition.getId();
+      if (checkProcessDefinitionNotMigrated(processDefinitionId)) {
+        LOGGER.info("Migration of legacy process definition with id '{}' completed", processDefinitionId);
+        ProcessDefinitionDbModel dbModel = processDefinitionConverter.apply(processDefinition);
+        processDefinitionMapper.insert(dbModel);
+      } else {
+        LOGGER.info("Legacy process definition with id '{}' has been migrated already. Skipping.", processDefinitionId);
+      }
+    });
+  }
+
   protected ProcessInstanceDbModel findProcessInstanceKey(String processInstanceId) {
     if (processInstanceId == null) return null;
 
@@ -278,6 +288,11 @@ public class CamundaMigrator {
     return flowNodeMapper.search(
         FlowNodeInstanceDbQuery.of(b ->
             b.legacyId(legacyId))).isEmpty();
+  }
+
+  protected boolean checkProcessDefinitionNotMigrated(String processDefinitionId) {
+    return processDefinitionMapper.search(ProcessDefinitionDbQuery.of(b ->
+        b.filter(new ProcessDefinitionFilter.Builder().processDefinitionIds(processDefinitionId).build()))).isEmpty();
   }
 
   private void addIncidentToProcess(String processInstanceId, String incidentType) {
