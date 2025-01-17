@@ -4,9 +4,7 @@ import io.camunda.db.rdbms.read.domain.*;
 import io.camunda.db.rdbms.sql.*;
 import io.camunda.db.rdbms.write.domain.*;
 import io.camunda.migrator.converter.*;
-import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
-import io.camunda.search.filter.ProcessDefinitionFilter;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
@@ -26,6 +24,7 @@ public class CamundaMigrator {
   private final VariableMapper variableMapper;
   private final IncidentMapper incidentMapper;
   private final ProcessDefinitionMapper processDefinitionMapper;
+  private final DecisionDefinitionMapper decisionDefinitionMapper;
 
   private final RuntimeService runtimeService;
   private final HistoryService historyService;
@@ -37,6 +36,7 @@ public class CamundaMigrator {
   private final VariableConverter variableConverter;
   private final IncidentConverter incidentConverter;
   private final ProcessDefinitionConverter processDefinitionConverter;
+  private final DecisionDefinitionConverter decisionDefinitionConverter;
 
   public CamundaMigrator(
       ProcessInstanceMapper processInstanceMapper,
@@ -45,6 +45,7 @@ public class CamundaMigrator {
       VariableMapper variableMapper,
       IncidentMapper incidentMapper,
       ProcessDefinitionMapper processDefinitionMapper,
+      DecisionDefinitionMapper decisionDefinitionMapper,
 
       RuntimeService runtimeService,
       HistoryService historyService,
@@ -55,7 +56,8 @@ public class CamundaMigrator {
       UserTaskConverter userTaskConverter,
       VariableConverter variableConverter,
       IncidentConverter incidentConverter,
-      ProcessDefinitionConverter processDefinitionConverter
+      ProcessDefinitionConverter processDefinitionConverter,
+      DecisionDefinitionConverter decisionDefinitionConverter
   ) {
     this.processInstanceMapper = processInstanceMapper;
     this.flowNodeMapper = flowNodeMapper;
@@ -63,6 +65,7 @@ public class CamundaMigrator {
     this.variableMapper = variableMapper;
     this.incidentMapper = incidentMapper;
     this.processDefinitionMapper = processDefinitionMapper;
+    this.decisionDefinitionMapper = decisionDefinitionMapper;
     this.runtimeService = runtimeService;
     this.historyService = historyService;
     this.repositoryService = repositoryService;
@@ -72,6 +75,7 @@ public class CamundaMigrator {
     this.variableConverter = variableConverter;
     this.incidentConverter = incidentConverter;
     this.processDefinitionConverter = processDefinitionConverter;
+    this.decisionDefinitionConverter = decisionDefinitionConverter;
   }
 
   public void migrateAllHistoricProcessInstances() {
@@ -89,6 +93,22 @@ public class CamundaMigrator {
     migrateUserTasks();
     migrateVariables();
     migrateIncidents();
+
+    migrateDecisionDefinitions();
+  }
+
+  private void migrateDecisionDefinitions() {
+    repositoryService.createDecisionDefinitionQuery().list().forEach(legacyDecisionDefinition -> {
+      String decisionDefinitionId = legacyDecisionDefinition.getId();
+
+      if (checkDecisionDefinitionNotMigrated(decisionDefinitionId)) {
+        LOGGER.info("Migration of legacy decision definition with id '{}' completed", decisionDefinitionId);
+        DecisionDefinitionDbModel dbModel = decisionDefinitionConverter.apply(legacyDecisionDefinition);
+        decisionDefinitionMapper.insert(dbModel);
+      } else {
+        LOGGER.info("Legacy decision definition with id '{}' has been migrated already. Skipping.", decisionDefinitionId);
+      }
+    });
   }
 
   private void migrateProcessDefinitions() {
@@ -308,6 +328,13 @@ public class CamundaMigrator {
     return flowNodeMapper.search(
         FlowNodeInstanceDbQuery.of(b ->
             b.legacyId(legacyId))).isEmpty();
+  }
+
+  protected boolean checkDecisionDefinitionNotMigrated(String decisionDefinitionId) {
+    return decisionDefinitionMapper.search(
+        DecisionDefinitionDbQuery.of(b ->
+            b.legacyId(decisionDefinitionId))).isEmpty(
+    );
   }
 
   private void addIncidentToProcess(String processInstanceId, String incidentType) {

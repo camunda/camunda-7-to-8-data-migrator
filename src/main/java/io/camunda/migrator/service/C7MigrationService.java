@@ -36,6 +36,9 @@ public class C7MigrationService {
   @Autowired
   private ProcessDefinitionMapper processDefinitionMapper;
 
+  @Autowired
+  private DecisionDefinitionMapper decisionDefinitionMapper;
+
   // Services
 
   @Autowired
@@ -67,6 +70,9 @@ public class C7MigrationService {
   @Autowired
   private ProcessDefinitionConverter processDefinitionConverter;
 
+  @Autowired
+  private DecisionDefinitionConverter decisionDefinitionConverter;
+
   public void execute() {
     LOGGER.info("Migrating C7 data...");
 
@@ -77,6 +83,7 @@ public class C7MigrationService {
           variableMapper,
           incidentMapper,
           processDefinitionMapper,
+          decisionDefinitionMapper,
           runtimeService,
           historyService,
           repositoryService,
@@ -85,7 +92,8 @@ public class C7MigrationService {
           userTaskConverter,
           variableConverter,
           incidentConverter,
-          processDefinitionConverter
+          processDefinitionConverter,
+          decisionDefinitionConverter
       );
 
       migrator.migrateAllHistoricProcessInstances();
