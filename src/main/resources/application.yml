@@ -17,7 +17,8 @@ spring.datasource:
 #  driver-class-name: com.ibm.db2.jcc.DB2Driver
 spring:
   liquibase:
-    change-log: db/changelog/rdbms-exporter/changelog-master.xml
+    enabled: false
+#    change-log: db/changelog/rdbms-exporter/changelog-master.xml
 mybatis:
   mapper-locations: classpath:mapper/**/*-mapper.xml
 
