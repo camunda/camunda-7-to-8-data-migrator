@@ -15,7 +15,7 @@
     <maven.compiler.target>17</maven.compiler.target>
 
     <version.camunda-engine>7.22.0</version.camunda-engine>
-    <version.camunda-db>8.7.0-SNAPSHOT</version.camunda-db>
+    <version.camunda-db>8.8.0-SNAPSHOT</version.camunda-db>
 
     <version.spring-boot>3.4.1</version.spring-boot>
     <version.graal.js>21.3.12</version.graal.js>
