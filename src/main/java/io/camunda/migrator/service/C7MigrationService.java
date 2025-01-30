@@ -4,6 +4,7 @@ import io.camunda.db.rdbms.sql.*;
 import io.camunda.migrator.CamundaMigrator;
 import io.camunda.migrator.converter.*;
 import org.camunda.bpm.engine.HistoryService;
+import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.slf4j.Logger;
@@ -50,6 +51,9 @@ public class C7MigrationService {
   @Autowired
   private RepositoryService repositoryService;
 
+  @Autowired
+  private ManagementService managementService;
+
   // Converters
 
   @Autowired
@@ -73,7 +77,7 @@ public class C7MigrationService {
   @Autowired
   private DecisionDefinitionConverter decisionDefinitionConverter;
 
-  public void execute() {
+  public void execute() throws InterruptedException {
     LOGGER.info("Migrating C7 data...");
 
       var migrator = new CamundaMigrator(
@@ -85,6 +89,7 @@ public class C7MigrationService {
           processDefinitionMapper,
           decisionDefinitionMapper,
           runtimeService,
+          managementService,
           historyService,
           repositoryService,
           processInstanceConverter,

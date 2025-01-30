@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cmmn:definitions xmlns:dc="http://www.omg.org/spec/CMMN/20151109/DC" xmlns:camunda="http://camunda.org/schema/1.0/cmmn" xmlns:cmmndi="http://www.omg.org/spec/CMMN/20151109/CMMNDI" xmlns:cmmn="http://www.omg.org/spec/CMMN/20151109/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_0fu3kyw" targetNamespace="http://bpmn.io/schema/cmmn" exporter="Camunda Modeler" exporterVersion="3.0.1">
+  <cmmn:case id="fill_all_tabs_case" name="fill_all_tabs_case" camunda:historyTimeToLive="P180D">
+    <cmmn:casePlanModel id="fill_all_tabs_case_" name="fill_all_tabs_case">
+      <cmmn:planItem id="PlanItem_1" definitionRef="HumanTask_1a0466i" />
+      <cmmn:humanTask id="HumanTask_1a0466i" />
+    </cmmn:casePlanModel>
+  </cmmn:case>
+  <cmmndi:CMMNDI>
+    <cmmndi:CMMNDiagram id="fill_all_tabs_casesad" name="fill_all_tabs_case">
+      <cmmndi:Size width="500" height="500" />
+      <cmmndi:CMMNShape id="DI_CasePlanModel_0i022y3" cmmnElementRef="fill_all_tabs_case_">
+        <dc:Bounds x="154" y="99" width="534" height="389" />
+        <cmmndi:CMMNLabel />
+      </cmmndi:CMMNShape>
+      <cmmndi:CMMNShape id="PlanItem_0vvt80s_di" cmmnElementRef="PlanItem_1">
+        <dc:Bounds x="207" y="148" width="100" height="80" />
+        <cmmndi:CMMNLabel />
+      </cmmndi:CMMNShape>
+    </cmmndi:CMMNDiagram>
+  </cmmndi:CMMNDI>
+</cmmn:definitions>

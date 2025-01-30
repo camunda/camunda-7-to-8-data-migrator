@@ -43,6 +43,12 @@ public class FlowNodeConverter {
       case ActivityTypes.END_EVENT_NONE -> FlowNodeType.END_EVENT;
       case ActivityTypes.TASK_SERVICE -> FlowNodeType.SERVICE_TASK;
       case ActivityTypes.TASK_USER_TASK -> FlowNodeType.USER_TASK;
+      case ActivityTypes.GATEWAY_EXCLUSIVE -> FlowNodeType.EXCLUSIVE_GATEWAY;
+      case ActivityTypes.INTERMEDIATE_EVENT_TIMER -> FlowNodeType.INTERMEDIATE_CATCH_EVENT;
+      case ActivityTypes.GATEWAY_PARALLEL -> FlowNodeType.PARALLEL_GATEWAY;
+      case ActivityTypes.TASK_BUSINESS_RULE -> FlowNodeType.BUSINESS_RULE_TASK;
+      case ActivityTypes.CALL_ACTIVITY -> FlowNodeType.CALL_ACTIVITY;
+      case ActivityTypes.TASK_SCRIPT -> FlowNodeType.SCRIPT_TASK;
       default -> throw new IllegalArgumentException("Unknown type: " + activityType);
     };
   }

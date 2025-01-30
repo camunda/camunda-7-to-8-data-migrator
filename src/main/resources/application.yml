@@ -22,7 +22,6 @@ spring:
 mybatis:
   mapper-locations: classpath:mapper/**/*-mapper.xml
 
-
 # Application properties
 migrator:
   camunda7:
@@ -31,3 +30,7 @@ migrator:
       jdbc-username: sa
       jdbc-password: ""
       jdbc-driver: org.h2.Driver
+camunda:
+  bpm:
+    job-execution:
+      enabled: false
