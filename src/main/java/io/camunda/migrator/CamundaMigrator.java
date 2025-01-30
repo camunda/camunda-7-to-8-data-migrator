@@ -280,7 +280,7 @@ public class CamundaMigrator {
         String legacyVariableId = legacyVariable.getId();
         if (checkVariableNotMigrated(legacyVariableId)) {
           String legacyProcessInstanceId = legacyVariable.getProcessInstanceId();
-          ProcessInstanceDbModel processInstance = findProcessInstanceKey();
+          ProcessInstanceDbModel processInstance = findProcessInstanceKey(legacyProcessInstanceId);
           if (processInstance != null) {
             Long processInstanceKey = processInstance.processInstanceKey();
             Long scopeKey = findFlowNodeKey(legacyVariable.getActivityInstanceId()); // TODO does this cover scope correctly?
