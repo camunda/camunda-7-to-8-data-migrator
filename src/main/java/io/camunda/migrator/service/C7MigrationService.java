@@ -1,12 +1,16 @@
 package io.camunda.migrator.service;
 
+import io.camunda.client.CamundaClient;
 import io.camunda.db.rdbms.sql.*;
 import io.camunda.migrator.CamundaMigrator;
+import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.converter.*;
+import io.camunda.zeebe.client.ZeebeClient;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.TaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +57,9 @@ public class C7MigrationService {
 
   @Autowired
   private ManagementService managementService;
+
+  @Autowired
+  private TaskService taskService;
 
   // Converters
 
@@ -101,7 +108,10 @@ public class C7MigrationService {
           decisionDefinitionConverter
       );
 
-      migrator.migrateAllHistoricProcessInstances();
+    CamundaClient client = CamundaClient.newClientBuilder().usePlaintext().build();
+      var runtimeMigrator = new RuntimeMigrator(repositoryService, runtimeService, taskService, client);
+      runtimeMigrator.migrate();
+      //migrator.migrateAllHistoricProcessInstances();
 
 
   }

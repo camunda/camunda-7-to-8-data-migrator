@@ -7,6 +7,7 @@ import io.camunda.migrator.converter.*;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.ManagementService;
+import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.impl.HistoricActivityInstanceQueryImpl;
@@ -15,13 +16,20 @@ import org.camunda.bpm.engine.impl.HistoricProcessInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.HistoricTaskInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.HistoricVariableInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.ProcessDefinitionQueryImpl;
+import org.camunda.bpm.engine.runtime.ActivityInstance;
 import org.camunda.bpm.engine.runtime.Execution;
 import org.camunda.bpm.engine.runtime.Job;
+import org.camunda.bpm.engine.runtime.TransitionInstance;
+import org.camunda.bpm.engine.runtime.VariableInstance;
 import org.camunda.bpm.engine.variable.Variables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CamundaMigrator {
 
@@ -94,67 +102,14 @@ public class CamundaMigrator {
     // Start process instance
     //String processInstanceId = runtimeService.startProcessInstanceByKey("fill_all_tabs", Variables.putValue("targetValue", 5_000_000)).getId();
 
-    //executeAllJobs(processInstanceId);
-
-    migrateProcessDefinitions();
     migrateProcessInstances();
     migrateFlowNodes();
     migrateUserTasks();
     migrateVariables();
     migrateIncidents();
-
-    //migrateDecisionDefinitions();
-  }
-
-  protected void executeAllJobs(String processInstanceId) {
-    String nextJobId = getNextExecutableJobId(processInstanceId);
-
-    while (nextJobId != null) {
-      try {
-        managementService.executeJob(nextJobId);
-      } catch (Throwable t) { /* ignore */
-      }
-      nextJobId = getNextExecutableJobId(processInstanceId);
-    }
-
-  }
-
-  protected String getNextExecutableJobId(String processInstanceId) {
-    List<Job> jobs = managementService.createJobQuery()
-        .processInstanceId(processInstanceId)
-        .executable()
-        .listPage(0, 1);
-    if (jobs.size() == 1) {
-      return jobs.get(0).getId();
-    } else {
-      return null;
-    }
-  }
-
-  private void migrateDecisionDefinitions() {
-    repositoryService.createDecisionDefinitionQuery().list().forEach(legacyDecisionDefinition -> {
-      String decisionDefinitionId = legacyDecisionDefinition.getId();
-
-      if (checkDecisionDefinitionNotMigrated(decisionDefinitionId)) {
-        LOGGER.info("Migration of legacy decision definition with id '{}' completed", decisionDefinitionId);
-        DecisionDefinitionDbModel dbModel = decisionDefinitionConverter.apply(legacyDecisionDefinition);
-        decisionDefinitionMapper.insert(dbModel);
-      } else {
-        LOGGER.info("Legacy decision definition with id '{}' has been migrated already. Skipping.",
-            decisionDefinitionId);
-      }
-    });
   }
 
   private void migrateProcessDefinitions() {
-    // 1. SELECT auf C8 PROCESS_INSTANCE table sort DESC by legacy ID and get element at index 0
-    //    LIMIT 1
-    // If empty, start without filter.
-    // 2. Pass legacy UUID into API query criterion "return bigger than UUID".
-    //    SELECT LIMIT 500;
-    // 3. Migrate the result
-    // 4. When migration successful use last element from returned PIs and pass again to #2.
-
     ProcessDefinitionQueryImpl legacyProcessDefinitionQuery = (ProcessDefinitionQueryImpl) repositoryService.createProcessDefinitionQuery()
         .orderByProcessDefinitionId()
         .asc();
@@ -289,8 +244,8 @@ public class CamundaMigrator {
               VariableDbModel dbModel = variableConverter.apply(legacyVariable, processInstanceKey, scopeKey);
               variableMapper.insert(dbModel);
             } else {
-              LOGGER.info("Migration of legacy variable with id '{}' skipped. Activity instance not yet available.",
-                  legacyVariableId);
+              /*LOGGER.info("Migration of legacy variable with id '{}' skipped. Activity instance not yet available.",
+                  legacyVariableId);*/
             }
           } else {
             LOGGER.info("Migration of legacy variable with id '{}' skipped. Process instance not yet available.",
@@ -461,4 +416,43 @@ public class CamundaMigrator {
     runtimeService.createIncident(incidentType, processInstance.getId(), "someConfig", "The message of failure");
   }
 
+  private void migrateDecisionDefinitions() {
+    repositoryService.createDecisionDefinitionQuery().list().forEach(legacyDecisionDefinition -> {
+      String decisionDefinitionId = legacyDecisionDefinition.getId();
+
+      if (checkDecisionDefinitionNotMigrated(decisionDefinitionId)) {
+        LOGGER.info("Migration of legacy decision definition with id '{}' completed", decisionDefinitionId);
+        DecisionDefinitionDbModel dbModel = decisionDefinitionConverter.apply(legacyDecisionDefinition);
+        decisionDefinitionMapper.insert(dbModel);
+      } else {
+        LOGGER.info("Legacy decision definition with id '{}' has been migrated already. Skipping.",
+            decisionDefinitionId);
+      }
+    });
+  }
+
+  protected void executeAllJobs(String processInstanceId) {
+    String nextJobId = getNextExecutableJobId(processInstanceId);
+
+    while (nextJobId != null) {
+      try {
+        managementService.executeJob(nextJobId);
+      } catch (Throwable t) { /* ignore */
+      }
+      nextJobId = getNextExecutableJobId(processInstanceId);
+    }
+
+  }
+
+  protected String getNextExecutableJobId(String processInstanceId) {
+    List<Job> jobs = managementService.createJobQuery()
+        .processInstanceId(processInstanceId)
+        .executable()
+        .listPage(0, 1);
+    if (jobs.size() == 1) {
+      return jobs.get(0).getId();
+    } else {
+      return null;
+    }
+  }
 }

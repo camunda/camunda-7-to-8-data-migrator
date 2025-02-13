@@ -34,3 +34,4 @@ camunda:
   bpm:
     job-execution:
       enabled: false
+    auto-deployment-enabled: false
