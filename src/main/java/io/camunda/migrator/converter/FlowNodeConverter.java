@@ -49,6 +49,7 @@ public class FlowNodeConverter {
       case ActivityTypes.TASK_BUSINESS_RULE -> FlowNodeType.BUSINESS_RULE_TASK;
       case ActivityTypes.CALL_ACTIVITY -> FlowNodeType.CALL_ACTIVITY;
       case ActivityTypes.TASK_SCRIPT -> FlowNodeType.SCRIPT_TASK;
+      case ActivityTypes.MULTI_INSTANCE_BODY -> FlowNodeType.MULTI_INSTANCE_BODY;
       default -> throw new IllegalArgumentException("Unknown type: " + activityType);
     };
   }
