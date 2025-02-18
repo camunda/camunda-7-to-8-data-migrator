@@ -14,11 +14,9 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
 
-    <version.camunda-engine>7.23.0-SNAPSHOT</version.camunda-engine>
-    <version.camunda-db>8.8.0-SNAPSHOT</version.camunda-db>
-
-    <version.spring-boot>3.4.1</version.spring-boot>
-    <version.graal.js>21.3.12</version.graal.js>
+    <version.camunda-7>7.23.0-SNAPSHOT</version.camunda-7>
+    <version.camunda-8>8.8.0-SNAPSHOT</version.camunda-8>
+    <version.spring-boot>3.4.2</version.spring-boot>
   </properties>
 
   <dependencyManagement>
@@ -36,28 +34,16 @@
   <dependencies>
 
     <!-- C7 Dependencies -->
-
     <dependency>
-      <groupId>org.camunda.bpm.springboot</groupId>
-      <artifactId>camunda-bpm-spring-boot-starter</artifactId>
-      <version>${version.camunda-engine}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.graalvm.js</groupId>
-      <artifactId>js</artifactId>
-      <version>${version.graal.js}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.graalvm.js</groupId>
-      <artifactId>js-scriptengine</artifactId>
-      <version>${version.graal.js}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
+      <groupId>org.camunda.bpm</groupId>
+      <artifactId>camunda-engine-spring-6</artifactId>
+      <version>${version.camunda-7}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-beans</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- C8 Dependencies -->
@@ -65,13 +51,19 @@
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>camunda-db-rdbms</artifactId>
-      <version>${version.camunda-db}</version>
+      <version>${version.camunda-8}</version>
     </dependency>
 
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>camunda-db-rdbms-schema</artifactId>
-      <version>${version.camunda-db}</version>
+      <version>${version.camunda-8}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.camunda</groupId>
+      <artifactId>camunda-client-java</artifactId>
+      <version>${version.camunda-8}</version>
     </dependency>
 
     <!-- Spring Boot -->
@@ -95,11 +87,6 @@
 
     <!-- Test Dependencies -->
 
-    <dependency>
-      <groupId>org.camunda.bpm.springboot</groupId>
-      <artifactId>camunda-bpm-spring-boot-starter-test</artifactId>
-      <version>${version.spring-boot}</version>
-    </dependency>
 
   </dependencies>
 

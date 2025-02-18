@@ -1,12 +1,15 @@
 package io.camunda.migrator;
 
-import io.camunda.migrator.service.C7MigrationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class, DataSourceTransactionManagerAutoConfiguration.class, HibernateJpaAutoConfiguration.class, JpaRepositoriesAutoConfiguration.class})
 public class Main {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
@@ -17,8 +20,8 @@ public class Main {
     LOGGER.info("C7 Data Migrator Application Started");
 
     try {
-      C7MigrationService migrationService = context.getBean(C7MigrationService.class);
-      migrationService.execute();
+      CamundaMigrator migrationService = context.getBean(CamundaMigrator.class);
+      migrationService.migrateAllHistoricProcessInstances();
 
       LOGGER.info("C7 Data Migrator Application Ended");
     } catch (Exception e) {

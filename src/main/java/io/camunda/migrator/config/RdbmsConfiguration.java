@@ -44,18 +44,11 @@ import io.camunda.db.rdbms.sql.UserMapper;
 import io.camunda.db.rdbms.sql.UserTaskMapper;
 import io.camunda.db.rdbms.sql.VariableMapper;
 import io.camunda.db.rdbms.write.RdbmsWriterFactory;
-import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
-@Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(
-    prefix = "camunda.database",
-    name = "type")
-@Import(io.camunda.migrator.config.MyBatisConfiguration.class)
+@Configuration
 public class RdbmsConfiguration {
 
   @Bean

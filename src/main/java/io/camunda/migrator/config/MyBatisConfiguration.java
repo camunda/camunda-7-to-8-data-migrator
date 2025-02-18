@@ -27,12 +27,9 @@ import io.camunda.db.rdbms.sql.UserMapper;
 import io.camunda.db.rdbms.sql.UserTaskMapper;
 import io.camunda.db.rdbms.sql.VariableMapper;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Properties;
 import javax.sql.DataSource;
 
-import io.camunda.migrator.config.RdbmsDatabaseIdProvider;
-import liquibase.integration.spring.MultiTenantSpringLiquibase;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -42,42 +39,16 @@ import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.mapper.MapperFactoryBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-@Import(DataSourceAutoConfiguration.class)
 @Configuration
 public class MyBatisConfiguration {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MyBatisConfiguration.class);
-
-  @Bean
-  @ConditionalOnProperty(
-      prefix = "camunda.database",
-      name = "auto-ddl",
-      havingValue = "true",
-      matchIfMissing = true)
-  public MultiTenantSpringLiquibase rdbmsExporterLiquibase(
-      final DataSource dataSource,
-      @Value("${camunda.database.index-prefix:}") final String indexPrefix) {
-    final String prefix = StringUtils.trimToEmpty(indexPrefix);
-    LOGGER.info("Initializing Liquibase for RDBMS with global table prefix '{}'.", prefix);
-
-    final var moduleConfig = new MultiTenantSpringLiquibase();
-    moduleConfig.setDataSource(dataSource);
-    moduleConfig.setDatabaseChangeLogTable(prefix + "DATABASECHANGELOG");
-    moduleConfig.setDatabaseChangeLogLockTable(prefix + "DATABASECHANGELOGLOCK");
-    moduleConfig.setParameters(Map.of("prefix", prefix));
-    // changelog file located in src/main/resources directly in the module
-    moduleConfig.setChangeLog("db/changelog/rdbms-exporter/changelog-master.xml");
-
-    return moduleConfig;
-  }
 
   @Bean
   public RdbmsDatabaseIdProvider databaseIdProvider(
@@ -87,7 +58,7 @@ public class MyBatisConfiguration {
 
   @Bean
   public VendorDatabaseProperties databaseProperties(
-      final DataSource dataSource, final RdbmsDatabaseIdProvider databaseIdProvider)
+      @Qualifier("targetDataSource") DataSource dataSource, final RdbmsDatabaseIdProvider databaseIdProvider)
       throws IOException {
     final var databaseId = databaseIdProvider.getDatabaseId(dataSource);
     LOGGER.info("Detected databaseId: {}", databaseId);
@@ -108,7 +79,7 @@ public class MyBatisConfiguration {
 
   @Bean
   public SqlSessionFactory sqlSessionFactory(
-      final DataSource dataSource,
+      @Qualifier("targetDataSource") DataSource targetDataSource,
       final DatabaseIdProvider databaseIdProvider,
       final VendorDatabaseProperties databaseProperties,
       @Value("${camunda.database.index-prefix:}") final String indexPrefix)
@@ -120,7 +91,7 @@ public class MyBatisConfiguration {
 
     final SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
     factoryBean.setConfiguration(configuration);
-    factoryBean.setDataSource(dataSource);
+    factoryBean.setDataSource(targetDataSource);
     factoryBean.setDatabaseIdProvider(databaseIdProvider);
     factoryBean.addMapperLocations(
         new PathMatchingResourcePatternResolver().getResources("classpath*:mapper/*.xml"));
@@ -239,18 +210,5 @@ public class MyBatisConfiguration {
     final MapperFactoryBean<T> factoryBean = new MapperFactoryBean<>(clazz);
     factoryBean.setSqlSessionFactory(sqlSessionFactory);
     return factoryBean;
-  }
-
-  private Properties getVendorProperties(final String vendorId) throws IOException {
-    final Properties properties = new Properties();
-    final var file = "db/vendor-properties/" + vendorId + ".properties";
-    try (final var propertiesInputStream = getClass().getClassLoader().getResourceAsStream(file)) {
-      if (propertiesInputStream != null) {
-        properties.load(propertiesInputStream);
-      } else {
-        LOGGER.debug("No vendor properties found for databaseId {}", vendorId);
-      }
-    }
-    return properties;
   }
 }
