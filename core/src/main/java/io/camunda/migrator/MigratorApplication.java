@@ -10,12 +10,12 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerA
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 
 @SpringBootApplication(exclude = { DataSourceAutoConfiguration.class, DataSourceTransactionManagerAutoConfiguration.class, HibernateJpaAutoConfiguration.class, JpaRepositoriesAutoConfiguration.class})
-public class Main {
+public class MigratorApplication {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MigratorApplication.class);
 
   public static void main(String[] args) {
-    var context = SpringApplication.run(Main.class, args);
+    var context = SpringApplication.run(MigratorApplication.class, args);
 
     LOGGER.info("C7 Data Migrator Application Started");
 

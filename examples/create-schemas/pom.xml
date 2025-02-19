@@ -2,17 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>io.camunda</groupId>
-  <artifactId>c7-data-migrator-root</artifactId>
+  <parent>
+    <groupId>io.camunda</groupId>
+    <artifactId>c7-data-migrator-examples</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <relativePath>../</relativePath>
+  </parent>
+
+  <artifactId>c7-data-migrator-example-create-schemas</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
   <packaging>pom</packaging>
 
-  <name>C7 Data Migrator - Root</name>
-
-  <modules>
-    <module>core</module>
-    <module>examples</module>
-  </modules>
+  <name>C7 Data Migrator - Examples - Create Schemas</name>
 
 </project>
