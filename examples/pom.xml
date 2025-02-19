@@ -19,6 +19,7 @@
   <modules>
     <module>create-schemas</module>
     <module>migrate-runtime</module>
+    <module>generate-runtime</module>
     <module>migrate-history</module>
   </modules>
 

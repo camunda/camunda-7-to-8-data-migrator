@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import static io.camunda.migrator.ConverterUtil.getNextKey;
 
-@Component
 public class VariableConverter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VariableConverter.class);

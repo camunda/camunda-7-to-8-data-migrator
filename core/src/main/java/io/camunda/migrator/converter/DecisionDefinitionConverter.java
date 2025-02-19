@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 import static io.camunda.migrator.ConverterUtil.getNextKey;
 
-@Component
 public class DecisionDefinitionConverter {
 
   public DecisionDefinitionDbModel apply(DecisionDefinition legacyDecisionDefinition) {

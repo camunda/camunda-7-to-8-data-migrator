@@ -9,7 +9,6 @@ import static io.camunda.migrator.ConverterUtil.convertDate;
 import static io.camunda.migrator.ConverterUtil.getNextKey;
 import static io.camunda.search.entities.ProcessInstanceEntity.ProcessInstanceState;
 
-@Component
 public class ProcessInstanceConverter {
 
   public ProcessInstanceDbModel apply(HistoricProcessInstance processInstance,

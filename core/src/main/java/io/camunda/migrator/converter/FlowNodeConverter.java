@@ -10,7 +10,6 @@ import static io.camunda.migrator.ConverterUtil.convertDate;
 import static io.camunda.migrator.ConverterUtil.getNextKey;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType;
 
-@Component
 public class FlowNodeConverter {
 
   public FlowNodeInstanceDbModel apply(HistoricActivityInstance flowNode,

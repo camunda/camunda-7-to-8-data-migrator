@@ -16,15 +16,6 @@
 
   <name>C7 Data Migrator – Core</name>
 
-  <properties>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
-
-    <version.camunda-7>7.23.0-SNAPSHOT</version.camunda-7>
-    <version.camunda-8>8.8.0-SNAPSHOT</version.camunda-8>
-    <version.spring-boot>3.4.2</version.spring-boot>
-  </properties>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -60,11 +51,11 @@
       <version>${version.camunda-8}</version>
     </dependency>
 
-    <dependency>
+    <!--<dependency>
       <groupId>io.camunda</groupId>
       <artifactId>camunda-db-rdbms-schema</artifactId>
       <version>${version.camunda-8}</version>
-    </dependency>
+    </dependency>-->
 
     <dependency>
       <groupId>io.camunda</groupId>

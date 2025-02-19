@@ -10,6 +10,7 @@ package io.camunda.migrator.config;
 import java.util.Properties;
 import javax.sql.DataSource;
 import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
+import org.springframework.context.annotation.Configuration;
 
 public class RdbmsDatabaseIdProvider extends VendorDatabaseIdProvider {
 

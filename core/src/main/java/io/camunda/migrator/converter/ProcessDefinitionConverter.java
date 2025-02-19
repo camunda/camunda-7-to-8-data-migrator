@@ -15,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 
 import static io.camunda.migrator.ConverterUtil.getNextKey;
 
-@Component
 public class ProcessDefinitionConverter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ProcessDefinitionConverter.class);

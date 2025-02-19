@@ -3,27 +3,36 @@ package io.camunda.migrator;
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3;
-import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.impl.persistence.entity.ActivityInstanceImpl;
 import org.camunda.bpm.engine.impl.persistence.entity.TransitionInstanceImpl;
 import org.camunda.bpm.engine.runtime.ActivityInstance;
-import org.camunda.bpm.engine.variable.Variables;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static io.camunda.client.api.command.DeployResourceCommandStep1.DeployResourceCommandStep2;
+
 @Component
 public class RuntimeMigrator {
-
-  @Autowired
-  protected RepositoryService repositoryService;
 
   @Autowired
   protected RuntimeService runtimeService;
@@ -31,41 +40,22 @@ public class RuntimeMigrator {
   protected CamundaClient camundaClient = CamundaClient.newClientBuilder().usePlaintext().build();
 
   public void migrate() {
-    // Callback -> when PI started, get activeActivityIds of this PI. Doesn't matter if parent or subprocess instance.
-
-    // Deploy C7 process
-    /*repositoryService.createDeployment()
-        .addClasspathResource("test-processes/complex-process-c7.bpmn")
-        .addClasspathResource("test-processes/complex-child-process-c7.bpmn")
-        .deploy();
-
-    // Generate C7 data
-    String c7ProcessInstanceId = runtimeService.startProcessInstanceByKey("complex-process", Variables.putValue("myGlobalVar", 1234)).getId();
-    taskService.createTaskQuery().processInstanceId(c7ProcessInstanceId).list().stream().map(Task::getId).toList()
-        .forEach(taskService::complete);
-    String generatedDataLegacyChildId = runtimeService.createProcessInstanceQuery().superProcessInstanceId(c7ProcessInstanceId).singleResult().getId();
-    taskService.createTaskQuery().processInstanceId(generatedDataLegacyChildId).list().stream().map(Task::getId).toList()
-        .forEach(taskService::complete);*/
-
-    repositoryService.createDeployment()
-        .addClasspathResource("test-processes/target-complex-process-c7.bpmn")
-        .addClasspathResource("test-processes/complex-child-process-c7.bpmn")
-        .deploy();
-
-    String c7ProcessInstanceId = runtimeService.startProcessInstanceByKey("cornercasesProcess", Variables.putValue("myGlobalVar", 1234)).getId();
-
-    // Migrate to C8
     // Deploy process
-    long processDefinitionKey = camundaClient.newDeployResourceCommand()
-        //.addResourceStream(getClass().getClassLoader().getResourceAsStream("test-processes/complex-process-c8.bpmn"), "complex-process-c8.bpmn")
-        //.addResourceStream(getClass().getClassLoader().getResourceAsStream("test-processes/complex-child-process-c8.bpmn"), "complex-child-process-c8.bpmn")
-        .addResourceFromClasspath("test-processes/target-complex-process-c8.bpmn")
-        .addResourceFromClasspath("test-processes/complex-child-process-c8.bpmn")
-        .send()
-        .join()
-        .getProcesses()
-        .get(0)
-        .getProcessDefinitionKey();
+    var deployResource = camundaClient.newDeployResourceCommand();
+
+    List<Path> models = findResourceFilesWithExtension("bpmn");
+
+    DeployResourceCommandStep2 deployResourceCommandStep2 = null;
+    for (Path model : models) {
+      deployResourceCommandStep2 = deployResource.addResourceFile(model.toFile().getName());
+    }
+
+    if (deployResourceCommandStep2 != null) {
+      deployResourceCommandStep2.send().join();
+    }
+
+    runtimeService.createProcessInstanceQuery().rootProcessInstances().list().forEach(processInstance -> {
+      String c7ProcessInstanceId = processInstance.getProcessInstanceId();
 
     Map<String, Object> globalVariables = new HashMap<>();
 
@@ -77,7 +67,8 @@ public class RuntimeMigrator {
     globalVariables.put("legacyId", c7ProcessInstanceId);
 
     camundaClient.newCreateInstanceCommand()
-        .processDefinitionKey(processDefinitionKey)
+        .bpmnProcessId(processInstance.getProcessDefinitionKey())
+        .latestVersion()
         .variables(globalVariables) // process instance global variables
         .send()
         .join();
@@ -98,8 +89,8 @@ public class RuntimeMigrator {
               .terminateElement(activatedJob.getElementInstanceKey()).and();
 
           ModifyProcessInstanceCommandStep3 modifyInstructions = null;
-          ActivityInstance processInstance = runtimeService.getActivityInstance(legacyId);
-          Map<String, ActInstance> activityInstanceMap = getActiveActivityIdsById(processInstance, new HashMap<>());
+          ActivityInstance activityInstanceTree = runtimeService.getActivityInstance(legacyId);
+          Map<String, ActInstance> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
 
           removeMultiInstances(activityInstanceMap);
 
@@ -123,6 +114,7 @@ public class RuntimeMigrator {
           modifyInstructions.send().join();
           // no need to complete the job since the modification canceled the migrator job in the start event
         });
+    });
   }
 
   /**
@@ -165,6 +157,45 @@ public class RuntimeMigrator {
   }
 
   record ActInstance(String id, String subProcessInstanceId) {
+  }
+
+
+
+  public static List<Path> findResourceFilesWithExtension(String extension)  {
+    List<Path> result = new ArrayList<>();
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    Enumeration<URL> resources = null;
+    try {
+      resources = classLoader.getResources("");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    while (resources.hasMoreElements()) {
+      URL resource = resources.nextElement();
+      if (resource.getProtocol().equals("file")) {
+        File directory = new File(URLDecoder.decode(resource.getPath(), StandardCharsets.UTF_8));
+        if (directory.isDirectory()) {
+          Path resourceFolder = Paths.get(directory.getPath(), "resources");
+          if (Files.exists(resourceFolder) && Files.isDirectory(resourceFolder)) {
+            result.addAll(findFilesInDirectory(resourceFolder.toFile(), extension));
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  public static List<Path> findFilesInDirectory(File directory, String extension) {
+    List<Path> result = new ArrayList<>();
+    try {
+      Files.walk(Paths.get(directory.toURI()))
+          .filter(path -> path.toString().endsWith("." + extension))
+          .forEach(result::add);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return result;
   }
 
 }

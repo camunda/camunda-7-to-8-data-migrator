@@ -12,8 +12,26 @@
   <artifactId>c7-data-migrator-example-migrate-runtime</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
-  <packaging>pom</packaging>
+  <packaging>jar</packaging>
 
   <name>C7 Data Migrator - Examples - Migrate Runtime</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.camunda</groupId>
+      <artifactId>c7-data-migrator-core</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${version.spring-boot}</version>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

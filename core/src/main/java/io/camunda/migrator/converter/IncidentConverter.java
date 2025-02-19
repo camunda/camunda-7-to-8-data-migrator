@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import static io.camunda.migrator.ConverterUtil.*;
 
-@Component
 public class IncidentConverter {
 
   public IncidentDbModel apply(HistoricIncident historicIncident,

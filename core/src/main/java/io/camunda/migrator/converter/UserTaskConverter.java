@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import static io.camunda.migrator.ConverterUtil.convertDate;
 import static io.camunda.migrator.ConverterUtil.getNextKey;
 
-@Component
 public class UserTaskConverter {
 
   public UserTaskDbModel apply(HistoricTaskInstance historicTask,

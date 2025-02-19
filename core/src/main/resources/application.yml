@@ -1,17 +1,4 @@
-migrator:
-  source:
-    jdbc-url: jdbc:h2:~/Downloads/c8_rdbms-source.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-  target:
-    jdbc-url: jdbc:h2:~/Downloads/c8_rdbms-target.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-spring:
-  liquibase:
-    enabled: false
+spring.liquibase.enabled: false
 #    change-log: db/changelog/rdbms-exporter/changelog-master.xml
 mybatis:
   mapper-locations: classpath:mapper/**/*-mapper.xml

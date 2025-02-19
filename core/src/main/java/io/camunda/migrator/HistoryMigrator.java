@@ -43,11 +43,12 @@ import org.camunda.bpm.engine.runtime.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
+@Component
 public class HistoryMigrator {
 
   protected static int BATCH_SIZE = 500;

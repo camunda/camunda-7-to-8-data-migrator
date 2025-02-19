@@ -16,12 +16,17 @@
  */
 package io.camunda.migrator.config;
 
+import io.camunda.migrator.HistoryMigrator;
+import io.camunda.migrator.RuntimeMigrator;
+import io.camunda.migrator.converter.ConverterConfiguration;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.spring.ProcessEngineFactoryBean;
 import org.camunda.bpm.engine.spring.SpringProcessEngineConfiguration;
 import org.camunda.bpm.engine.spring.SpringProcessEngineServicesConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -33,9 +38,16 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.sql.DataSource;
 
 @Import({
-    SpringProcessEngineServicesConfiguration.class
+    SpringProcessEngineServicesConfiguration.class,
+    JacksonConfiguration.class,
+    MyBatisConfiguration.class,
+    RdbmsConfiguration.class,
+    ConverterConfiguration.class,
+    HistoryMigrator.class,
+    RuntimeMigrator.class,
 })
 @Configuration
+@AutoConfigureAfter(HibernateJpaAutoConfiguration.class)
 public class MigratorAutoConfiguration {
 
   @Configuration
