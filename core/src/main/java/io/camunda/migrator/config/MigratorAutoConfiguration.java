@@ -26,6 +26,9 @@ import org.camunda.bpm.engine.spring.SpringProcessEngineServicesConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -46,8 +49,13 @@ import javax.sql.DataSource;
     HistoryMigrator.class,
     RuntimeMigrator.class,
 })
+@AutoConfigureAfter({
+    DataSourceAutoConfiguration.class,
+    DataSourceTransactionManagerAutoConfiguration.class,
+    HibernateJpaAutoConfiguration.class,
+    JpaRepositoriesAutoConfiguration.class
+})
 @Configuration
-@AutoConfigureAfter(HibernateJpaAutoConfiguration.class)
 public class MigratorAutoConfiguration {
 
   @Configuration
