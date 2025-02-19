@@ -20,8 +20,11 @@ public class Main {
     LOGGER.info("C7 Data Migrator Application Started");
 
     try {
-      CamundaMigrator migrationService = context.getBean(CamundaMigrator.class);
-      migrationService.migrateAllHistoricProcessInstances();
+      RuntimeMigrator runtimeMigrator = context.getBean(RuntimeMigrator.class);
+      runtimeMigrator.migrate();
+
+      HistoryMigrator historyMigrator = context.getBean(HistoryMigrator.class);
+      historyMigrator.migrate();
 
       LOGGER.info("C7 Data Migrator Application Ended");
     } catch (Exception e) {

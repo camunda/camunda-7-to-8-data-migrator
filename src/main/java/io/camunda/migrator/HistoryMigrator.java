@@ -39,7 +39,6 @@ import org.camunda.bpm.engine.impl.HistoricProcessInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.HistoricTaskInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.HistoricVariableInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.ProcessDefinitionQueryImpl;
-import org.camunda.bpm.engine.runtime.Execution;
 import org.camunda.bpm.engine.runtime.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,11 +48,11 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class CamundaMigrator {
+public class HistoryMigrator {
 
   protected static int BATCH_SIZE = 500;
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(CamundaMigrator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(HistoryMigrator.class);
 
   // Mappers
 
@@ -115,7 +114,7 @@ public class CamundaMigrator {
   @Autowired
   private DecisionDefinitionConverter decisionDefinitionConverter;
 
-  public void migrateAllHistoricProcessInstances() {
+  public void migrate() {
     LOGGER.info("Migrating C7 data...");
     // Start process instance
     //String processInstanceId = runtimeService.startProcessInstanceByKey("fill_all_tabs", Variables.putValue("targetValue", 5_000_000)).getId();
