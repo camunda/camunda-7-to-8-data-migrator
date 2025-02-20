@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -54,17 +55,26 @@ public class MyBatisConfiguration {
   private static final Logger LOGGER = LoggerFactory.getLogger(MyBatisConfiguration.class);
 
   @Bean
-  public MultiTenantSpringLiquibase migratorLiquibase(@Qualifier("targetDataSource") DataSource dataSource, @Value("${camunda.database.index-prefix:}") String indexPrefix) {
-    final String prefix = StringUtils.trimToEmpty(indexPrefix);
-    LOGGER.info("Initializing Liquibase for Migrator with global table prefix '{}'.", prefix);
+  public MultiTenantSpringLiquibase createMigratorSchema(@Qualifier("targetDataSource") DataSource dataSource, @Value("${camunda.database.index-prefix:}") String tablePrefix) {
+    return createSchema(dataSource, tablePrefix, "db/changelog/db.changelog-master.yaml");
+  }
 
-    final var moduleConfig = new MultiTenantSpringLiquibase();
+  @Bean
+  @ConditionalOnProperty(prefix = "migrator.rdbms-exporter", name = "auto-ddl", havingValue = "true")
+  public MultiTenantSpringLiquibase createRdbmsExporterSchema(@Qualifier("targetDataSource") DataSource dataSource, @Value("${camunda.database.index-prefix:}") String tablePrefix) {
+    return createSchema(dataSource, tablePrefix, "db/changelog/rdbms-exporter/changelog-master.xml");
+  }
+
+  protected MultiTenantSpringLiquibase createSchema(DataSource dataSource, String tablePrefix, String changeLogFile) {
+    String prefix = StringUtils.trimToEmpty(tablePrefix);
+    LOGGER.info("Creating table schema with Liquibase change log file '{}' with table prefix '{}'.", changeLogFile , prefix);
+
+    var moduleConfig = new MultiTenantSpringLiquibase();
     moduleConfig.setDataSource(dataSource);
     moduleConfig.setDatabaseChangeLogTable(prefix + "DATABASECHANGELOG");
     moduleConfig.setDatabaseChangeLogLockTable(prefix + "DATABASECHANGELOGLOCK");
     moduleConfig.setParameters(Map.of("prefix", prefix));
-    // changelog file located in src/main/resources directly in the module
-    moduleConfig.setChangeLog("db/changelog/db.changelog-master.yaml");
+    moduleConfig.setChangeLog(changeLogFile);
 
     return moduleConfig;
   }
