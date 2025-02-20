@@ -17,6 +17,9 @@
     <version.camunda-7>7.23.0-SNAPSHOT</version.camunda-7>
     <version.camunda-8>8.8.0-SNAPSHOT</version.camunda-8>
     <version.spring-boot>3.4.2</version.spring-boot>
+
+    <url.source>jdbc:h2:~/Downloads/c8_rdbms-source.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE</url.source>
+    <url.target>jdbc:h2:~/Downloads/c8_rdbms-target.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE</url.target>
   </properties>
 
   <modules>

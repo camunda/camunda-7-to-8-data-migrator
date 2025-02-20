@@ -22,13 +22,13 @@
       <groupId>org.camunda.bpm.distro</groupId>
       <artifactId>camunda-sql-scripts</artifactId>
       <scope>provided</scope>
-      <version>7.23.0-SNAPSHOT</version>
+      <version>${version.camunda-7}</version>
     </dependency>
 
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>camunda-db-rdbms-schema</artifactId>
-      <version>8.8.0-SNAPSHOT</version>
+      <version>${version.camunda-8}</version>
     </dependency>
 
     <dependency>
@@ -108,7 +108,7 @@
             </goals>
             <configuration>
               <driver>org.h2.Driver</driver>
-              <url>jdbc:h2:~/Downloads/c8_rdbms-source.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE</url>
+              <url>${url.source}</url>
               <username>sa</username>
               <password></password>
               <srcFiles>
@@ -126,7 +126,7 @@
             </goals>
             <configuration>
               <driver>org.h2.Driver</driver>
-              <url>jdbc:h2:~/Downloads/c8_rdbms-target.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE</url>
+              <url>${url.target}</url>
               <username>sa</username>
               <password></password>
               <srcFiles>
