@@ -1,4 +1,4 @@
-package io.camunda.migrator;
+package io.camunda.migrator.history;
 
 import io.camunda.zeebe.protocol.Protocol;
 

@@ -2,14 +2,10 @@ package io.camunda.migrator.converter;
 
 import io.camunda.db.rdbms.write.domain.IncidentDbModel;
 import io.camunda.search.entities.IncidentEntity;
-import io.camunda.search.entities.ProcessInstanceEntity;
 import org.camunda.bpm.engine.history.HistoricIncident;
-import org.camunda.bpm.engine.history.IncidentState;
-import org.camunda.bpm.engine.impl.history.event.HistoricIncidentEventEntity;
-import org.camunda.bpm.engine.impl.persistence.entity.HistoricIncidentEntity;
-import org.springframework.stereotype.Component;
 
-import static io.camunda.migrator.ConverterUtil.*;
+import static io.camunda.migrator.history.ConverterUtil.convertDate;
+import static io.camunda.migrator.history.ConverterUtil.getNextKey;
 
 public class IncidentConverter {
 
@@ -20,10 +16,6 @@ public class IncidentConverter {
                                Long flowNodeInstanceKey) {
     return new IncidentDbModel.Builder()
         .incidentKey(getNextKey())
-
-        .legacyId(historicIncident.getId())
-        .legacyProcessInstanceId(historicIncident.getProcessInstanceId())
-
         .processDefinitionKey(processDefinitionKey)
         .processDefinitionId(historicIncident.getProcessDefinitionKey())
         .processInstanceKey(processInstanceKey)

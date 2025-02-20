@@ -3,11 +3,10 @@ package io.camunda.migrator.converter;
 import io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel;
 import org.camunda.bpm.engine.ActivityTypes;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
-import org.springframework.stereotype.Component;
 
 import static io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel.FlowNodeInstanceDbModelBuilder;
-import static io.camunda.migrator.ConverterUtil.convertDate;
-import static io.camunda.migrator.ConverterUtil.getNextKey;
+import static io.camunda.migrator.history.ConverterUtil.convertDate;
+import static io.camunda.migrator.history.ConverterUtil.getNextKey;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType;
 
 public class FlowNodeConverter {
@@ -17,10 +16,6 @@ public class FlowNodeConverter {
                                        Long processInstanceKey) {
     return new FlowNodeInstanceDbModelBuilder()
         .flowNodeInstanceKey(getNextKey())
-
-        .legacyId(flowNode.getId())
-        .legacyProcessInstanceId(flowNode.getProcessInstanceId())
-
         .flowNodeId(flowNode.getActivityId())
         .processInstanceKey(processInstanceKey)
         .processDefinitionKey(processDefinitionKey)
@@ -37,7 +32,7 @@ public class FlowNodeConverter {
   }
 
   protected FlowNodeType convertType(String activityType) {
-    return  switch (activityType) {
+    return switch (activityType) {
       case ActivityTypes.START_EVENT -> FlowNodeType.START_EVENT;
       case ActivityTypes.END_EVENT_NONE -> FlowNodeType.END_EVENT;
       case ActivityTypes.TASK_SERVICE -> FlowNodeType.SERVICE_TASK;
@@ -48,6 +43,15 @@ public class FlowNodeConverter {
       case ActivityTypes.TASK_BUSINESS_RULE -> FlowNodeType.BUSINESS_RULE_TASK;
       case ActivityTypes.CALL_ACTIVITY -> FlowNodeType.CALL_ACTIVITY;
       case ActivityTypes.TASK_SCRIPT -> FlowNodeType.SCRIPT_TASK;
+      case ActivityTypes.MULTI_INSTANCE_BODY -> FlowNodeType.MULTI_INSTANCE_BODY;
+      case ActivityTypes.START_EVENT_ERROR -> FlowNodeType.START_EVENT;
+      case ActivityTypes.END_EVENT_CANCEL -> FlowNodeType.END_EVENT;
+      case ActivityTypes.END_EVENT_ERROR -> FlowNodeType.END_EVENT;
+      case ActivityTypes.SUB_PROCESS -> FlowNodeType.SUB_PROCESS;
+      case ActivityTypes.INTERMEDIATE_EVENT_COMPENSATION_THROW -> FlowNodeType.INTERMEDIATE_THROW_EVENT;
+      case ActivityTypes.TASK_MANUAL_TASK -> FlowNodeType.MANUAL_TASK;
+      case ActivityTypes.TASK_RECEIVE_TASK -> FlowNodeType.RECEIVE_TASK;
+      case ActivityTypes.TRANSACTION -> FlowNodeType.SUB_PROCESS; // TODO how to handle this?
       default -> throw new IllegalArgumentException("Unknown type: " + activityType);
     };
   }

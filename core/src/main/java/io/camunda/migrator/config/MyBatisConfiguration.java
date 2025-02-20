@@ -27,9 +27,12 @@ import io.camunda.db.rdbms.sql.UserMapper;
 import io.camunda.db.rdbms.sql.UserTaskMapper;
 import io.camunda.db.rdbms.sql.VariableMapper;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 import javax.sql.DataSource;
 
+import io.camunda.migrator.history.IdKeyMapper;
+import liquibase.integration.spring.MultiTenantSpringLiquibase;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -49,6 +52,22 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 public class MyBatisConfiguration {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MyBatisConfiguration.class);
+
+  @Bean
+  public MultiTenantSpringLiquibase migratorLiquibase(@Qualifier("targetDataSource") DataSource dataSource, @Value("${camunda.database.index-prefix:}") String indexPrefix) {
+    final String prefix = StringUtils.trimToEmpty(indexPrefix);
+    LOGGER.info("Initializing Liquibase for Migrator with global table prefix '{}'.", prefix);
+
+    final var moduleConfig = new MultiTenantSpringLiquibase();
+    moduleConfig.setDataSource(dataSource);
+    moduleConfig.setDatabaseChangeLogTable(prefix + "DATABASECHANGELOG");
+    moduleConfig.setDatabaseChangeLogLockTable(prefix + "DATABASECHANGELOGLOCK");
+    moduleConfig.setParameters(Map.of("prefix", prefix));
+    // changelog file located in src/main/resources directly in the module
+    moduleConfig.setChangeLog("db/changelog/db.changelog-master.yaml");
+
+    return moduleConfig;
+  }
 
   @Bean
   public RdbmsDatabaseIdProvider databaseIdProvider(
@@ -203,6 +222,11 @@ public class MyBatisConfiguration {
   @Bean
   public MapperFactoryBean<PurgeMapper> purgeMapper(final SqlSessionFactory sqlSessionFactory) {
     return createMapperFactoryBean(sqlSessionFactory, PurgeMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<IdKeyMapper> idKeyMapper(final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, IdKeyMapper.class);
   }
 
   private <T> MapperFactoryBean<T> createMapperFactoryBean(

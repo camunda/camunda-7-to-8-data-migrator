@@ -10,9 +10,8 @@ import org.camunda.bpm.engine.variable.impl.value.PrimitiveTypeValueImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import static io.camunda.migrator.ConverterUtil.getNextKey;
+import static io.camunda.migrator.history.ConverterUtil.getNextKey;
 
 public class VariableConverter {
 
@@ -25,10 +24,6 @@ public class VariableConverter {
     // TODO currently the VariableDbModelBuilder maps all variables to String type
     return new VariableDbModel.VariableDbModelBuilder()
         .variableKey(getNextKey())
-
-        .legacyId(historicVariable.getId())
-        .legacyProcessInstanceId(historicVariable.getProcessInstanceId())
-
         .name(historicVariable.getName())
         .value(convertValue(historicVariable)) //TODO ?
         .scopeKey(scopeKey) //TODO ?
@@ -61,7 +56,7 @@ public class VariableConverter {
       return getJsonValue(typedValue);
     }
 
-    LOGGER.warn("No existing handling for variable with id= {}, type: {}, returning null.", variableId, variable.getTypeName());
+    LOGGER.warn("No existing handling for variable with id= {}, type: {}, returning null.", variableId, "unknown"/*variable.getTypeName()*/);
     return null;
   }
 

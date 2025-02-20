@@ -6,14 +6,13 @@ import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import static io.camunda.migrator.ConverterUtil.getNextKey;
+import static io.camunda.migrator.history.ConverterUtil.getNextKey;
 
 public class ProcessDefinitionConverter {
 
@@ -27,9 +26,6 @@ public class ProcessDefinitionConverter {
 
     return new ProcessDefinitionDbModel.ProcessDefinitionDbModelBuilder()
         .processDefinitionKey(getNextKey())
-
-        .legacyId(legacyProcessDefinition.getId())
-
         .processDefinitionId(legacyProcessDefinition.getId())
         .resourceName(legacyProcessDefinition.getResourceName())
         .name(legacyProcessDefinition.getName())

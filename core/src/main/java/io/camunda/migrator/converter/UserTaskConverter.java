@@ -1,26 +1,21 @@
 package io.camunda.migrator.converter;
 
-import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
+import io.camunda.search.entities.ProcessInstanceEntity;
 import org.camunda.bpm.engine.history.HistoricTaskInstance;
-import org.springframework.stereotype.Component;
 
-import static io.camunda.migrator.ConverterUtil.convertDate;
-import static io.camunda.migrator.ConverterUtil.getNextKey;
+import static io.camunda.migrator.history.ConverterUtil.convertDate;
+import static io.camunda.migrator.history.ConverterUtil.getNextKey;
 
 public class UserTaskConverter {
 
   public UserTaskDbModel apply(HistoricTaskInstance historicTask,
                                Long processDefinitionKey,
-                               ProcessInstanceDbModel processInstance,
+                               ProcessInstanceEntity processInstance,
                                Long elementInstanceKey) {
 
     return new UserTaskDbModel.Builder()
         .userTaskKey(getNextKey())
-
-        .legacyId(historicTask.getId())
-        .legacyProcessInstanceId(historicTask.getProcessInstanceId())
-
         .elementId(historicTask.getTaskDefinitionKey())
         .processDefinitionId(historicTask.getProcessDefinitionKey())
         .creationDate(convertDate(historicTask.getStartTime()))
@@ -34,7 +29,7 @@ public class UserTaskConverter {
         .dueDate(convertDate(historicTask.getDueDate()))
         .followUpDate(convertDate(historicTask.getFollowUpDate()))
         .priority(historicTask.getPriority())
-        .processDefinitionVersion(processInstance.version())
+        .processDefinitionVersion(processInstance.processDefinitionVersion())
         .formKey(null) //TODO ?
         .candidateGroups(null) //TODO ?
         .candidateUsers(null) //TODO ?

@@ -2,11 +2,10 @@ package io.camunda.migrator.converter;
 
 import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
-import org.springframework.stereotype.Component;
 
 import static io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel.ProcessInstanceDbModelBuilder;
-import static io.camunda.migrator.ConverterUtil.convertDate;
-import static io.camunda.migrator.ConverterUtil.getNextKey;
+import static io.camunda.migrator.history.ConverterUtil.convertDate;
+import static io.camunda.migrator.history.ConverterUtil.getNextKey;
 import static io.camunda.search.entities.ProcessInstanceEntity.ProcessInstanceState;
 
 public class ProcessInstanceConverter {
@@ -16,9 +15,6 @@ public class ProcessInstanceConverter {
                                       Long parentProcessInstanceKey) {
     return new ProcessInstanceDbModelBuilder()
         .processInstanceKey(getNextKey())
-
-        .legacyProcessInstanceId(processInstance.getId())
-
         // Get key from runtime instance/model migration
         .processDefinitionKey(processDefinitionKey)
         .processDefinitionId(processInstance.getProcessDefinitionKey())
