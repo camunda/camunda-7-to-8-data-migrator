@@ -12,8 +12,155 @@
   <artifactId>c7-data-migrator-example-create-schemas</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
-  <packaging>pom</packaging>
+  <packaging>jar</packaging>
 
   <name>C7 Data Migrator - Examples - Create Schemas</name>
 
+
+  <dependencies>
+    <dependency>
+      <groupId>org.camunda.bpm.distro</groupId>
+      <artifactId>camunda-sql-scripts</artifactId>
+      <scope>provided</scope>
+      <version>${version.camunda-7}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.camunda</groupId>
+      <artifactId>camunda-db-rdbms-schema</artifactId>
+      <version>${version.camunda-8}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>2.1.214</version>
+    </dependency>
+
+  </dependencies>
+
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-c7-sql</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.camunda.bpm.distro</groupId>
+                  <artifactId>camunda-sql-scripts</artifactId>
+                  <version>7.23.0-SNAPSHOT</version>
+                  <type>jar</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>target</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+              <includes>**/create/*.sql, **/drop/*.sql, **/upgrade/*.sql, **/liquibase/**/*</includes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>unpack-c8-sql</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>io.camunda</groupId>
+                  <artifactId>camunda-db-rdbms-schema</artifactId>
+                  <version>8.8.0-SNAPSHOT</version>
+                  <type>zip</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>target/c8</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+<!--              <includes>**/h2/*.sql, **/mysql/*.sql, **/oracle/*.sql, **/postgresql/*.sql</includes>-->
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>sql-maven-plugin</artifactId>
+        <version>1.5</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.1.214</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>create-c7-schema</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <driver>org.h2.Driver</driver>
+              <url>${url.source}</url>
+              <username>sa</username>
+              <password></password>
+              <srcFiles>
+                <srcFile>target/sql/create/h2_engine_7.23.0-SNAPSHOT.sql</srcFile>
+                <srcFile>target/sql/create/h2_identity_7.23.0-SNAPSHOT.sql</srcFile>
+                <!--${database.type}_engine_${camunda.version}.sql-->
+              </srcFiles>
+            </configuration>
+          </execution>
+          <execution>
+            <id>create-c8-schema</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <driver>org.h2.Driver</driver>
+              <url>${url.target}</url>
+              <username>sa</username>
+              <password></password>
+              <srcFiles>
+                <srcFile>target/c8/h2/8.8.0.sql</srcFile>
+<!--                <srcFile>target/c8/${database.type}/${camunda.version}.sql</srcFile>-->
+              </srcFiles>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+<!--            <plugin>-->
+<!--              <groupId>org.liquibase</groupId>-->
+<!--              <artifactId>liquibase-maven-plugin</artifactId>-->
+<!--              <executions>-->
+<!--                <execution>-->
+<!--                  <id>initialize-liquibase</id>-->
+<!--                  <phase>test-compile</phase>-->
+<!--                  <goals>-->
+<!--                    <goal>changelogSyncToTag</goal>-->
+<!--                  </goals>-->
+<!--                  <configuration>-->
+<!--                    <changeLogFile>8.8.0.xml</changeLogFile>-->
+<!--                    <changeLogDirectory>-->
+<!--                      camunda-db-rdbms-schema-8.8.0-SNAPSHOT.jar\db\changelog\rdbms-exporter\\8.8.0.xml-->
+<!--                    </changeLogDirectory>-->
+<!--                    <url>jdbc:h2:~/Downloads/test.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE</url>-->
+<!--                    <username>sa</username>-->
+<!--                    <password></password>-->
+<!--                  </configuration>-->
+<!--                </execution>-->
+<!--              </executions>-->
+<!--            </plugin>-->
+
+
+    </plugins>
+  </build>
 </project>
