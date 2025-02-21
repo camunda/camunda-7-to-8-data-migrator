@@ -75,6 +75,7 @@ public class RuntimeMigrator {
 
       globalVariables.put("legacyId", c7ProcessInstanceId);
 
+      // TODO Querying for process variables might be a anti-pattern here since it queries Operate and Zeebe data first needs to be imported to Operate before it’s available.
       Set<String> legacyIds = camundaClient.newVariableQuery()
           .filter(variableFilter -> variableFilter.name("legacyId"))
           .send()
