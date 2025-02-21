@@ -3,6 +3,8 @@ package io.camunda.migrator;
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3;
+import io.camunda.client.api.search.response.SearchQueryResponse;
+import io.camunda.client.api.search.response.Variable;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.impl.persistence.entity.ActivityInstanceImpl;
 import org.camunda.bpm.engine.impl.persistence.entity.TransitionInstanceImpl;
@@ -37,83 +39,102 @@ public class RuntimeMigrator {
   @Autowired
   protected RuntimeService runtimeService;
 
+  // TODO: make it configurable from the application.yml
+  // TODO: Spring Boot Starter that makes configuring the client reusable? https://github.com/camunda/camunda/tree/main/clients/spring-boot-starter-camunda-sdk
   protected CamundaClient camundaClient = CamundaClient.newClientBuilder().usePlaintext().build();
 
   public void migrate() {
     // Deploy process
     var deployResource = camundaClient.newDeployResourceCommand();
 
-    List<Path> models = findResourceFilesWithExtension("bpmn");
+    List<Path> models = findResourceFilesWithExtension("bpmn"); // TODO: forms, decisions
 
     DeployResourceCommandStep2 deployResourceCommandStep2 = null;
     for (Path model : models) {
-      deployResourceCommandStep2 = deployResource.addResourceFile(model.toFile().getName());
+      deployResourceCommandStep2 = deployResource.addResourceFile(model.toFile().getPath());
     }
 
     if (deployResourceCommandStep2 != null) {
       deployResourceCommandStep2.send().join();
     }
 
+    // TODO: pagination otherwise this blows up
     runtimeService.createProcessInstanceQuery().rootProcessInstances().list().forEach(processInstance -> {
       String c7ProcessInstanceId = processInstance.getProcessInstanceId();
 
-    Map<String, Object> globalVariables = new HashMap<>();
+      //TODO: calculate list of all process instances of the call activity hierarchy.
+      // Root process instance -> sub process instance -> sub process instance -> leaf process instance
+      // => list of 4 C7 process instance IDs
 
-    runtimeService.createVariableInstanceQuery()
-        .activityInstanceIdIn(c7ProcessInstanceId)
-        .list()
-        .forEach(variable -> globalVariables.put(variable.getName(), variable.getValue())); // Collectors#toMap cannot handle null values and throws NPE.
+      Map<String, Object> globalVariables = new HashMap<>();
 
-    globalVariables.put("legacyId", c7ProcessInstanceId);
+      runtimeService.createVariableInstanceQuery()
+          .activityInstanceIdIn(c7ProcessInstanceId)
+          .list()
+          .forEach(variable -> globalVariables.put(variable.getName(), variable.getValue())); // Collectors#toMap cannot handle null values and throws NPE.
 
-    camundaClient.newCreateInstanceCommand()
-        .bpmnProcessId(processInstance.getProcessDefinitionKey())
-        .latestVersion()
-        .variables(globalVariables) // process instance global variables
-        .send()
-        .join();
+      globalVariables.put("legacyId", c7ProcessInstanceId);
 
-    camundaClient.newActivateJobsCommand()
-        .jobType("migrator")
-        .maxJobsToActivate(Integer.MAX_VALUE)
-        .timeout(Duration.ofMinutes(1))
-        .send()
-        .join()
-        .getJobs().forEach(activatedJob -> {
+      Set<String> legacyIds = camundaClient.newVariableQuery()
+          .filter(variableFilter -> variableFilter.name("legacyId"))
+          .send()
+          .join()
+          .items()
+          .stream()
+          .map(Variable::getValue)
+          .collect(Collectors.toSet());
 
-          String legacyId = (String) activatedJob.getVariable("legacyId");
+      // TODO: check if process instances have been started already and skip them => fault tolerance.
+      camundaClient.newCreateInstanceCommand()
+          .bpmnProcessId(processInstance.getProcessDefinitionKey())
+          .latestVersion()
+          .variables(globalVariables) // process instance global variables
+          .send()
+          .join();
 
-          ModifyProcessInstanceCommandStep1 modifyProcessInstance = camundaClient.newModifyProcessInstanceCommand(
-                  activatedJob.getProcessInstanceKey())
-              // Cancel start event instance where migrator job sits to avoid executing the activities twice.
-              .terminateElement(activatedJob.getElementInstanceKey()).and();
+    // TODO: calculate the levels of the call hierarchy and execute jobs in multiple loops.
+      camundaClient.newActivateJobsCommand()
+          .jobType("migrator")
+           // TODO: review this
+          .maxJobsToActivate(Integer.MAX_VALUE)
+          .timeout(Duration.ofMinutes(1))
+          .send()
+          .join()
+          .getJobs().forEach(activatedJob -> {
 
-          ModifyProcessInstanceCommandStep3 modifyInstructions = null;
-          ActivityInstance activityInstanceTree = runtimeService.getActivityInstance(legacyId);
-          Map<String, ActInstance> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
+            String legacyId = (String) activatedJob.getVariable("legacyId");
 
-          removeMultiInstances(activityInstanceMap);
+            ModifyProcessInstanceCommandStep1 modifyProcessInstance = camundaClient.newModifyProcessInstanceCommand(activatedJob.getProcessInstanceKey())
+                // Cancel start event instance where migrator job sits to avoid executing the activities twice.
+                .terminateElement(activatedJob.getElementInstanceKey()).and();
 
-          for (String activityInstanceId : activityInstanceMap.keySet()) {
-            ActInstance actInstance = activityInstanceMap.get(activityInstanceId);
-            String activityId = actInstance.id().split("#multiInstanceBody")[0];
+            ModifyProcessInstanceCommandStep3 modifyInstructions = null;
+            ActivityInstance activityInstanceTree = runtimeService.getActivityInstance(legacyId);
+            Map<String, ActInstance> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
 
-            Map<String, Object> localVariables = new HashMap<>();
+            // TODO: remove experiment. We won't support multi-instance at all it in the MVP.
+            removeMultiInstances(activityInstanceMap);
 
-            runtimeService.createVariableInstanceQuery()
-                .activityInstanceIdIn(activityInstanceId)
-                .list()
-                .forEach(variable -> localVariables.put(variable.getName(), variable.getValue())); // Collectors#toMap cannot handle null values and throws NPE.
+            for (String activityInstanceId : activityInstanceMap.keySet()) {
+              ActInstance actInstance = activityInstanceMap.get(activityInstanceId);
+              String activityId = actInstance.id().split("#multiInstanceBody")[0];
 
-            String subProcessInstanceId = actInstance.subProcessInstanceId();
-            if (subProcessInstanceId != null) {
-              localVariables.put("legacyId", subProcessInstanceId);
+              Map<String, Object> localVariables = new HashMap<>();
+
+              runtimeService.createVariableInstanceQuery()
+                  .activityInstanceIdIn(activityInstanceId)
+                  .list()
+                  .forEach(variable -> localVariables.put(variable.getName(), variable.getValue())); // Collectors#toMap cannot handle null values and throws NPE.
+
+              String subProcessInstanceId = actInstance.subProcessInstanceId();
+              if (subProcessInstanceId != null) {
+                localVariables.put("legacyId", subProcessInstanceId);
+              }
+              modifyInstructions = modifyProcessInstance.activateElement(activityId).withVariables(localVariables, activityId);
             }
-            modifyInstructions = modifyProcessInstance.activateElement(activityId).withVariables(localVariables, activityId);
-          }
-          modifyInstructions.send().join();
-          // no need to complete the job since the modification canceled the migrator job in the start event
-        });
+            modifyInstructions.send().join();
+            // no need to complete the job since the modification canceled the migrator job in the start event
+          });
     });
   }
 

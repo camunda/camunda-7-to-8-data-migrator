@@ -21,7 +21,7 @@
     id="insert"
     parameterType="io.camunda.migrator.history.IdKeyDbModel"
     flushCache="true">
-    INSERT INTO ${prefix} MIGRATION_MAPPING (ID, `KEY`, TYPE)
+    INSERT INTO ${prefix}MIGRATION_MAPPING (ID, `KEY`, TYPE)
     VALUES ('${id}', ${key},'${type}')
   </insert>
 

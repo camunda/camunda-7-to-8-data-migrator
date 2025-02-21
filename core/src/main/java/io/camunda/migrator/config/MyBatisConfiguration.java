@@ -33,6 +33,7 @@ import javax.sql.DataSource;
 
 import io.camunda.migrator.history.IdKeyMapper;
 import liquibase.integration.spring.MultiTenantSpringLiquibase;
+import liquibase.integration.spring.SpringLiquibase;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -55,13 +56,20 @@ public class MyBatisConfiguration {
   private static final Logger LOGGER = LoggerFactory.getLogger(MyBatisConfiguration.class);
 
   @Bean
-  public MultiTenantSpringLiquibase createMigratorSchema(@Qualifier("targetDataSource") DataSource dataSource, @Value("${camunda.database.index-prefix:}") String tablePrefix) {
-    return createSchema(dataSource, tablePrefix, "db/changelog/db.changelog-master.yaml");
+  public SpringLiquibase liquibase() {
+    SpringLiquibase liquibase = new SpringLiquibase();
+    liquibase.setShouldRun(false);
+    return liquibase;
+  }
+
+  @Bean
+  public MultiTenantSpringLiquibase createMigratorSchema(@Qualifier("targetDataSource") DataSource dataSource, @Value("${migrator.target.table-prefix:}") String tablePrefix) {
+    return createSchema(dataSource, tablePrefix, "db/changelog/migrator/db.changelog-master.yaml");
   }
 
   @Bean
   @ConditionalOnProperty(prefix = "migrator.rdbms-exporter", name = "auto-ddl", havingValue = "true")
-  public MultiTenantSpringLiquibase createRdbmsExporterSchema(@Qualifier("targetDataSource") DataSource dataSource, @Value("${camunda.database.index-prefix:}") String tablePrefix) {
+  public MultiTenantSpringLiquibase createRdbmsExporterSchema(@Qualifier("targetDataSource") DataSource dataSource, @Value("${migrator.target.table-prefix:}") String tablePrefix) {
     return createSchema(dataSource, tablePrefix, "db/changelog/rdbms-exporter/changelog-master.xml");
   }
 
