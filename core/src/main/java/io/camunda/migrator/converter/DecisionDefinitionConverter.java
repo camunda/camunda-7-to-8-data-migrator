@@ -2,9 +2,8 @@ package io.camunda.migrator.converter;
 
 import io.camunda.db.rdbms.write.domain.DecisionDefinitionDbModel;
 import org.camunda.bpm.engine.repository.DecisionDefinition;
-import org.springframework.stereotype.Component;
 
-import static io.camunda.migrator.ConverterUtil.getNextKey;
+import static io.camunda.migrator.history.ConverterUtil.getNextKey;
 
 public class DecisionDefinitionConverter {
 
@@ -12,9 +11,6 @@ public class DecisionDefinitionConverter {
 
     return new DecisionDefinitionDbModel.DecisionDefinitionDbModelBuilder()
         .decisionDefinitionKey(getNextKey())
-
-        .legacyId(legacyDecisionDefinition.getId())
-
         .name(legacyDecisionDefinition.getName())
         .decisionDefinitionId(legacyDecisionDefinition.getId())
         .tenantId(legacyDecisionDefinition.getTenantId())

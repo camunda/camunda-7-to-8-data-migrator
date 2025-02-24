@@ -51,12 +51,6 @@
       <version>${version.camunda-8}</version>
     </dependency>
 
-    <!--<dependency>
-      <groupId>io.camunda</groupId>
-      <artifactId>camunda-db-rdbms-schema</artifactId>
-      <version>${version.camunda-8}</version>
-    </dependency>-->
-
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>camunda-client-java</artifactId>
@@ -68,6 +62,11 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.liquibase</groupId>
+      <artifactId>liquibase-core</artifactId>
     </dependency>
 
     <dependency>

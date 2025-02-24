@@ -1,6 +1,0 @@
-spring.liquibase.enabled: false
-#    change-log: db/changelog/rdbms-exporter/changelog-master.xml
-mybatis:
-  mapper-locations: classpath:mapper/**/*-mapper.xml
-
-#logging.level."org": DEBUG

@@ -1,4 +1,4 @@
-package io.camunda.migrator;
+package io.camunda.migrator.history;
 
 import io.camunda.zeebe.protocol.Protocol;
 
@@ -7,6 +7,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 
+import static io.camunda.zeebe.protocol.Protocol.KEY_BITS;
+
 public class ConverterUtil {
 
   /* Create data on a partition that doesn't collide with Zeebe */
@@ -14,7 +16,14 @@ public class ConverterUtil {
 
   public static Long getNextKey() {
     SecureRandom secureRandom = new SecureRandom();
-    return Protocol.encodePartitionId(C7_HISTORY_PARTITION_ID, Math.abs(secureRandom.nextLong()));
+    return Protocol.encodePartitionId(C7_HISTORY_PARTITION_ID, secureRandom.nextLong(getUpperBound()));
+  }
+
+  /**
+   * TODO: is this upper bound calculated correctly? A long has 64 bits - 51 bits for Zeebe keys without partition
+   */
+  protected static long getUpperBound() {
+    return Long.MAX_VALUE >> (64-KEY_BITS);
   }
 
   public static OffsetDateTime convertDate(Date date) {
