@@ -44,6 +44,8 @@ import io.camunda.db.rdbms.sql.UserMapper;
 import io.camunda.db.rdbms.sql.UserTaskMapper;
 import io.camunda.db.rdbms.sql.VariableMapper;
 import io.camunda.db.rdbms.write.RdbmsWriterFactory;
+import io.camunda.db.rdbms.write.RdbmsWriterMetrics;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -142,9 +144,25 @@ public class RdbmsConfiguration {
       final SqlSessionFactory sqlSessionFactory,
       final ExporterPositionMapper exporterPositionMapper,
       final VendorDatabaseProperties vendorDatabaseProperties,
-      final PurgeMapper purgeMapper) {
+      final DecisionInstanceMapper decisionInstanceMapper,
+      final FlowNodeInstanceMapper flowNodeInstanceMapper,
+      final IncidentMapper incidentMapper,
+      final ProcessInstanceMapper processInstanceMapper,
+      final PurgeMapper purgeMapper,
+      final UserTaskMapper userTaskMapper,
+      final VariableMapper variableMapper) {
     return new RdbmsWriterFactory(
-        sqlSessionFactory, exporterPositionMapper, vendorDatabaseProperties, purgeMapper, null);
+        sqlSessionFactory,
+        exporterPositionMapper,
+        vendorDatabaseProperties,
+        decisionInstanceMapper,
+        flowNodeInstanceMapper,
+        incidentMapper,
+        processInstanceMapper,
+        purgeMapper,
+        userTaskMapper,
+        variableMapper,
+        null);
   }
 
   @Bean
