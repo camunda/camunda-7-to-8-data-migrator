@@ -16,10 +16,12 @@
 
     <version.camunda-7>7.24.0-SNAPSHOT</version.camunda-7>
     <version.camunda-8>8.8.0-SNAPSHOT</version.camunda-8>
-    <version.spring-boot>3.4.2</version.spring-boot>
+    <version.spring-boot>3.4.4</version.spring-boot>
 
     <url.source>jdbc:h2:~/Downloads/c8_rdbms-source.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE</url.source>
     <url.target>jdbc:h2:~/Downloads/c8_rdbms-target.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE</url.target>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <modules>
@@ -27,4 +29,11 @@
     <module>examples</module>
   </modules>
 
+  <repositories>
+    <repository>
+      <id>snapshots</id>
+      <snapshots />
+      <url>https://artifacts.camunda.com/artifactory/zeebe-io-snapshots/</url>
+    </repository>
+  </repositories>
 </project>

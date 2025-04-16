@@ -10,14 +10,13 @@
   </parent>
 
   <artifactId>c7-data-migrator-examples</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
 
   <packaging>pom</packaging>
 
   <name>C7 Data Migrator - Examples</name>
 
   <modules>
-    <module>create-schemas</module>
+    <!--<module>create-schemas</module>-->
     <module>migrate-runtime</module>
     <module>generate-runtime</module>
     <module>migrate-history</module>

@@ -10,7 +10,6 @@
   </parent>
 
   <artifactId>c7-data-migrator-core</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
 
   <packaging>jar</packaging>
 
@@ -100,33 +99,4 @@
 
 
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>${version.spring-boot}</version>
-        <configuration>
-          <mainClass>io.camunda.migrator.MigratorApplication</mainClass>
-          <layout>JAR</layout>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>repackage</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-
-  <repositories>
-    <repository>
-      <id>snapshots</id>
-      <snapshots />
-      <url>https://artifacts.camunda.com/artifactory/zeebe-io-snapshots/</url>
-    </repository>
-  </repositories>
 </project>

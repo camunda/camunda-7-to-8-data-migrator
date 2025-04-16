@@ -10,7 +10,6 @@
   </parent>
 
   <artifactId>c7-data-migrator-example-migrate-runtime</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
 
   <packaging>jar</packaging>
 
@@ -20,7 +19,7 @@
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>c7-data-migrator-core</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
