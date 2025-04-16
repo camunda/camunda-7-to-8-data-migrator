@@ -10,6 +10,7 @@ package io.camunda.migrator.config;
 import io.camunda.db.rdbms.RdbmsService;
 import io.camunda.db.rdbms.config.VendorDatabaseProperties;
 import io.camunda.db.rdbms.read.service.AuthorizationReader;
+import io.camunda.db.rdbms.read.service.BatchOperationReader;
 import io.camunda.db.rdbms.read.service.DecisionDefinitionReader;
 import io.camunda.db.rdbms.read.service.DecisionInstanceReader;
 import io.camunda.db.rdbms.read.service.DecisionRequirementsReader;
@@ -26,6 +27,7 @@ import io.camunda.db.rdbms.read.service.UserReader;
 import io.camunda.db.rdbms.read.service.UserTaskReader;
 import io.camunda.db.rdbms.read.service.VariableReader;
 import io.camunda.db.rdbms.sql.AuthorizationMapper;
+import io.camunda.db.rdbms.sql.BatchOperationMapper;
 import io.camunda.db.rdbms.sql.DecisionDefinitionMapper;
 import io.camunda.db.rdbms.sql.DecisionInstanceMapper;
 import io.camunda.db.rdbms.sql.DecisionRequirementsMapper;
@@ -34,6 +36,7 @@ import io.camunda.db.rdbms.sql.FlowNodeInstanceMapper;
 import io.camunda.db.rdbms.sql.FormMapper;
 import io.camunda.db.rdbms.sql.GroupMapper;
 import io.camunda.db.rdbms.sql.IncidentMapper;
+import io.camunda.db.rdbms.sql.JobMapper;
 import io.camunda.db.rdbms.sql.MappingMapper;
 import io.camunda.db.rdbms.sql.ProcessDefinitionMapper;
 import io.camunda.db.rdbms.sql.ProcessInstanceMapper;
@@ -50,8 +53,12 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * This is a copy from https://github.com/camunda/camunda/blob/main/dist/src/main/java/io/camunda/application/commons/rdbms/RdbmsConfiguration.java
+ */
 @Configuration
 public class RdbmsConfiguration {
+
 
   @Bean
   public VariableReader variableRdbmsReader(final VariableMapper variableMapper) {
@@ -140,6 +147,12 @@ public class RdbmsConfiguration {
   }
 
   @Bean
+  public BatchOperationReader batchOperationReader(
+      final BatchOperationMapper batchOperationMapper) {
+    return new BatchOperationReader(batchOperationMapper);
+  }
+
+  @Bean
   public RdbmsWriterFactory rdbmsWriterFactory(
       final SqlSessionFactory sqlSessionFactory,
       final ExporterPositionMapper exporterPositionMapper,
@@ -150,7 +163,9 @@ public class RdbmsConfiguration {
       final ProcessInstanceMapper processInstanceMapper,
       final PurgeMapper purgeMapper,
       final UserTaskMapper userTaskMapper,
-      final VariableMapper variableMapper) {
+      final VariableMapper variableMapper,
+      final BatchOperationReader batchOperationReader,
+      final JobMapper jobMapper) {
     return new RdbmsWriterFactory(
         sqlSessionFactory,
         exporterPositionMapper,
@@ -162,7 +177,9 @@ public class RdbmsConfiguration {
         purgeMapper,
         userTaskMapper,
         variableMapper,
-        null);
+        null,
+        batchOperationReader,
+        jobMapper);
   }
 
   @Bean
@@ -183,7 +200,8 @@ public class RdbmsConfiguration {
       final UserReader userReader,
       final UserTaskReader userTaskReader,
       final FormReader formReader,
-      final MappingReader mappingReader) {
+      final MappingReader mappingReader,
+      final BatchOperationReader batchOperationReader) {
     return new RdbmsService(
         rdbmsWriterFactory,
         authorizationReader,
@@ -201,6 +219,7 @@ public class RdbmsConfiguration {
         userReader,
         userTaskReader,
         formReader,
-        mappingReader);
+        mappingReader,
+        batchOperationReader);
   }
 }
