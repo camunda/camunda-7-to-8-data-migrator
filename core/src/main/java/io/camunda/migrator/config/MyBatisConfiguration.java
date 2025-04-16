@@ -9,6 +9,7 @@ package io.camunda.migrator.config;
 
 import io.camunda.db.rdbms.config.VendorDatabaseProperties;
 import io.camunda.db.rdbms.sql.AuthorizationMapper;
+import io.camunda.db.rdbms.sql.BatchOperationMapper;
 import io.camunda.db.rdbms.sql.DecisionDefinitionMapper;
 import io.camunda.db.rdbms.sql.DecisionInstanceMapper;
 import io.camunda.db.rdbms.sql.DecisionRequirementsMapper;
@@ -17,6 +18,7 @@ import io.camunda.db.rdbms.sql.FlowNodeInstanceMapper;
 import io.camunda.db.rdbms.sql.FormMapper;
 import io.camunda.db.rdbms.sql.GroupMapper;
 import io.camunda.db.rdbms.sql.IncidentMapper;
+import io.camunda.db.rdbms.sql.JobMapper;
 import io.camunda.db.rdbms.sql.MappingMapper;
 import io.camunda.db.rdbms.sql.ProcessDefinitionMapper;
 import io.camunda.db.rdbms.sql.ProcessInstanceMapper;
@@ -138,6 +140,18 @@ public class MyBatisConfiguration {
     p.putAll(databaseProperties.properties());
     factoryBean.setConfigurationProperties(p);
     return factoryBean.getObject();
+  }
+
+  @Bean
+  public MapperFactoryBean<JobMapper> jobMapper(
+      final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, JobMapper.class);
+  }
+
+  @Bean
+  public MapperFactoryBean<BatchOperationMapper> batchOperationMapper(
+      final SqlSessionFactory sqlSessionFactory) {
+    return createMapperFactoryBean(sqlSessionFactory, BatchOperationMapper.class);
   }
 
   @Bean

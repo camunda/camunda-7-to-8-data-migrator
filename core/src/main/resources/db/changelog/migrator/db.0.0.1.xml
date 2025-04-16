@@ -14,10 +14,10 @@
 
   <changeSet id="create_migration_mapping_table" author="Camunda">
     <createTable tableName="${prefix}MIGRATION_MAPPING">
-      <column name="KEY" type="BIGINT">
+      <column name="ID" type="VARCHAR(64)">
         <constraints primaryKey="true"/>
       </column>
-      <column name="ID" type="VARCHAR(64)" />
+      <column name="KEY" type="BIGINT" />
       <column name="TYPE" type="VARCHAR(255)" />
     </createTable>
 
