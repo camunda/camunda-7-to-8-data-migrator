@@ -5,10 +5,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ExampleApplication {
+public class RuntimeExampleApplication {
 
   public static void main(String[] args) {
-    var context = SpringApplication.run(ExampleApplication.class, args);
+    var context = SpringApplication.run(RuntimeExampleApplication.class, args);
 
     try {
       RuntimeMigrator runtimeMigrator = context.getBean(RuntimeMigrator.class);

@@ -81,6 +81,7 @@ public class RuntimeMigrator {
       });
     }
 
+    // TODO: paginate this
     idKeyMapper.findProcessInstanceIds().forEach(legacyProcessInstanceId -> {
       Map<String, Object> globalVariables = new HashMap<>();
 

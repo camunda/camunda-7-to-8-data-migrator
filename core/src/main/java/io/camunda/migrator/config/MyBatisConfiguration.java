@@ -52,6 +52,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
+/**
+ * This is a copy from https://github.com/camunda/camunda/blob/main/dist/src/main/java/io/camunda/application/commons/rdbms/MyBatisConfiguration.java
+ */
 @Configuration
 public class MyBatisConfiguration {
 
