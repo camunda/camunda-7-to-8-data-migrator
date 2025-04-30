@@ -1,5 +1,4 @@
 name: C7 Data Migrator CI
-# TODO remove optimize related references
 on:
   push:
     branches:
@@ -21,6 +20,7 @@ jobs:
           method: approle
           roleId: ${{ secrets.VAULT_ROLE_ID }}
           secretId: ${{ secrets.VAULT_SECRET_ID }}
+          # TODO update with cambpm secret
           secrets: |
             secret/data/products/optimize/ci/optimize NEXUS_USERNAME;
             secret/data/products/optimize/ci/optimize NEXUS_PASSWORD;
@@ -29,10 +29,8 @@ jobs:
         uses: ./.github/actions/setup-maven
         with:
           secrets: ${{ toJSON(secrets) }}
-          java-version: 21
-          distribution: zulu
 
-# TODO did not find the issue to link here
+# TODO camunda/camunda-bpm-platform/issues/4993
 # Temp build migrator branch in platform
       - name: Clone Platform
         run: |
