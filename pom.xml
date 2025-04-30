@@ -28,6 +28,7 @@
   <modules>
     <module>core</module>
     <module>examples</module>
+    <module>qa</module>
   </modules>
 
   <repositories>

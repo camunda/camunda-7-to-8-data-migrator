@@ -89,6 +89,7 @@ public class MigratorAutoConfiguration {
     config.setTransactionManager(sourceTransactionManager);
     config.setHistory("auto");
     config.setJobExecutorActivate(false);
+    config.setDatabaseSchemaUpdate("create-drop");
     return config;
   }
 
