@@ -32,5 +32,18 @@ jobs:
           java-version: 21
           distribution: zulu
 
+# TODO did not find the issue to link here
+# Temp build migrator branch in platform
+      - name: Clone Platform
+        run: |
+          git clone https://github.com/camunda/camunda-bpm-platform.git
+
+      - name: Build feature branch
+        run: |
+          cd ./camunda-bpm-platform/engine
+          git checkout poc-data-migrator
+          mvn clean install -DskipTests --batch-mode
+# End of Temp build migrator branch in platform
+
       - name: Build with Maven
         run: mvn clean install --batch-mode
