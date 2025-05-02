@@ -10,6 +10,10 @@ import org.springframework.stereotype.Component;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Clean the .mv.db files if they're present before running the tests
+ * Files are under /target, so this step has no effect if 'mvn clean' is run before the execution
+ */
 @Component
 public class DatabaseFileCleaner {
 
@@ -19,7 +23,7 @@ public class DatabaseFileCleaner {
   @Value("${migrator.target.jdbc-url}")
   protected String targetJdbcUrl;
 
-  protected static final Pattern H2_FILE_URL_PATTERN = Pattern.compile("^jdbc:[^:]+:(?:file:)?([^;]+)");
+  protected static final Pattern DB_FILE_URL_PATTERN = Pattern.compile("^jdbc:[^:]+:(?:file:)?([^;]+)");
 
   @PostConstruct
   public void deleteDatabaseFiles() throws IOException {
@@ -29,7 +33,7 @@ public class DatabaseFileCleaner {
 
   protected static Path extractFilePathFromJdbcUrl(String jdbcUrl) {
     if (jdbcUrl == null) return null;
-    Matcher matcher = H2_FILE_URL_PATTERN.matcher(jdbcUrl);
+    Matcher matcher = DB_FILE_URL_PATTERN.matcher(jdbcUrl);
     String fileName = matcher.find() ? matcher.group(1) : "";
     return Path.of(fileName + ".mv.db");
   }

@@ -3,6 +3,11 @@ package io.camunda.migrator.qa;
 import io.camunda.client.api.response.ProcessInstanceEvent;
 import io.camunda.client.api.search.response.ProcessInstance;
 
+/**
+ * The {@link io.camunda.process.test.api.CamundaAssert} library takes a {@link io.camunda.client.api.response.ProcessInstanceEvent} object.
+ * This class is only returned when creating the process instance, which is done in the migrator,
+ * so we need to wrap the {@link io.camunda.client.api.search.response.ProcessInstance} to do assertions (only the processInstanceKey is used).
+ */
 class CustomProcessInstanceEvent implements ProcessInstanceEvent {
 
   protected ProcessInstance processInstance;

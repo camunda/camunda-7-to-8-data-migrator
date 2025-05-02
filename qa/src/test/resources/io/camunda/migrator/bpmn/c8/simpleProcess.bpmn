@@ -3,11 +3,13 @@
   <bpmn:process id="simpleProcess" name="Simple Process" processType="None" isClosed="false" isExecutable="true">
     <bpmn:extensionElements>
       <conversion:message severity="INFO">Unused attribute 'historyTimeToLive' on 'process' is removed.</conversion:message>
-      <zeebe:executionListeners>
-        <zeebe:executionListener eventType="end" type="migrator" />
-      </zeebe:executionListeners>
     </bpmn:extensionElements>
     <bpmn:startEvent id="startEvent" name="Start Event">
+      <bpmn:extensionElements>
+        <zeebe:executionListeners>
+          <zeebe:executionListener eventType="end" type="migrator" />
+        </zeebe:executionListeners>
+      </bpmn:extensionElements>
       <bpmn:outgoing>Flow_0xme2ti</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="Flow_0xme2ti" sourceRef="startEvent" targetRef="userTask1" />

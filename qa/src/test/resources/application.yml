@@ -11,7 +11,3 @@ migrator:
     username: sa
     password:
     driver-class-name: org.h2.Driver
-#
-#spring:
-#  main:
-#    allow-bean-definition-overriding: true
