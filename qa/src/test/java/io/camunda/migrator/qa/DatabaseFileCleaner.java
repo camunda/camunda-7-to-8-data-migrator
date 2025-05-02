@@ -11,8 +11,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Clean the .mv.db files if they're present before running the tests
- * Files are under /target, so this step has no effect if 'mvn clean' is run before the execution
+ * Clean the .mv.db files if they're present before running the tests.
+ * Files are under /target, so this step has no effect if 'mvn clean' is run before the execution.
  */
 @Component
 public class DatabaseFileCleaner {
