@@ -12,7 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @CamundaSpringProcessTest
-public abstract class MigrationAbstractTest {
+public abstract class RuntimeMigrationAbstractTest {
 
   @Autowired
   protected CamundaClient camundaClient;

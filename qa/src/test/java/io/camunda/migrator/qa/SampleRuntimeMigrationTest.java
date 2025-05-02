@@ -15,7 +15,7 @@ import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class RuntimeMigrationTest extends MigrationAbstractTest {
+class SampleRuntimeMigrationTest extends RuntimeMigrationAbstractTest {
 
   @Autowired
   private RuntimeService runtimeService;
