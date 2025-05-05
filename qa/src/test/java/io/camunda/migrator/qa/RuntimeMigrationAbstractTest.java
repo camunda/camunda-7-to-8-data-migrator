@@ -13,8 +13,11 @@ import io.camunda.client.api.search.response.ProcessInstance;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.history.IdKeyMapper;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
+<<<<<<< HEAD
 import jakarta.annotation.PostConstruct;
 
+=======
+>>>>>>> 005f6c8 (chore(core): loop over 500 migrator jobs by default)
 import java.util.List;
 
 import org.camunda.bpm.engine.RepositoryService;
@@ -85,5 +88,13 @@ public abstract class RuntimeMigrationAbstractTest {
   protected void deployProcessInC7AndC8(String fileName) {
     deployCamunda7Process("io/camunda/migrator/bpmn/c7/" + fileName);
     deployCamunda8Process("io/camunda/migrator/bpmn/c8/" + fileName);
+  }
+
+  protected void configureMaxJobsToActivate(int maxJobsCount) {
+    runtimeMigrator.setMaxJobsToActivate(maxJobsCount);
+  }
+
+  protected void configureMaxProcessInstances(int maxPICount) {
+    runtimeMigrator.setMaxProcessInstance(maxPICount);
   }
 }

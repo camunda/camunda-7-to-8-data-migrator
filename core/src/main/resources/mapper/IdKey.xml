@@ -9,10 +9,22 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.camunda.migrator.history.IdKeyMapper">
 
-  <select id="findProcessInstanceIds">
-    SELECT ID FROM ${prefix}MIGRATION_MAPPING WHERE TYPE = 'runtimeProcessInstance' AND `KEY` IS NULL
+  <select id="findNonProcessInstanceIds">
+    SELECT ID
+    FROM ${prefix}MIGRATION_MAPPING
+    WHERE TYPE = 'runtimeProcessInstance' AND `KEY` IS NULL
+    ORDER BY ID
+    LIMIT #{limit}
+    OFFSET #{offset}
   </select>
-
+  
+  <select id="findAllNonMigratedProcessInstanceIds">
+    SELECT ID
+    FROM ${prefix}MIGRATION_MAPPING
+    WHERE TYPE = 'runtimeProcessInstance' AND `KEY` IS NULL
+    ORDER BY ID
+  </select>
+  
   <select id="findAllProcessInstanceIds">
     SELECT ID
     FROM ${prefix}MIGRATION_MAPPING

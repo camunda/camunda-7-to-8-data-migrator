@@ -8,6 +8,7 @@
 package io.camunda.migrator.history;
 
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 public interface IdKeyMapper {
 
@@ -17,7 +18,10 @@ public interface IdKeyMapper {
 
   void insert(IdKeyDbModel idKeyDbModel);
 
-  List<String> findProcessInstanceIds();
+  List<String> findNonProcessInstanceIds(@Param("limit") int limit, @Param("offset") int offset);
+
+  List<String> findAllNonMigratedProcessInstanceIds();
+
 
   List<String> findAllProcessInstanceIds();
 
