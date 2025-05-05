@@ -1,4 +1,4 @@
-package io.camunda.migrator.qa;
+package io.camunda.migrator.qa.helper;
 
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;

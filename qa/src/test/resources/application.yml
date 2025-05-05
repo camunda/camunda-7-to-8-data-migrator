@@ -14,4 +14,4 @@ migrator:
 
 spring:
   main:
-    allow-bean-definition-overriding: true
+    allow-bean-definition-overriding: true # for allowing the overriding of test auto configuration bean

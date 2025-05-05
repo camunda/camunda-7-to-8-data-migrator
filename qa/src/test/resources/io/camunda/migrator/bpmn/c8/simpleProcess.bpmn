@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:conversion="http://camunda.org/schema/conversion/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_04p2xpi" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.34.0" conversion:converterVersion="0.12.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
   <bpmn:process id="simpleProcess" name="Simple Process" processType="None" isClosed="false" isExecutable="true">
-    <bpmn:extensionElements>
-      <conversion:message severity="INFO">Unused attribute 'historyTimeToLive' on 'process' is removed.</conversion:message>
-    </bpmn:extensionElements>
     <bpmn:startEvent id="startEvent" name="Start Event">
       <bpmn:extensionElements>
         <zeebe:executionListeners>
@@ -13,7 +10,7 @@
       <bpmn:outgoing>Flow_0xme2ti</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="Flow_0xme2ti" sourceRef="startEvent" targetRef="userTask1" />
-    <bpmn:userTask id="userTask1" name="User Task 1" implementation="##unspecified">
+    <bpmn:userTask id="userTask1" name="User Task 1">
       <bpmn:extensionElements>
         <zeebe:userTask />
       </bpmn:extensionElements>

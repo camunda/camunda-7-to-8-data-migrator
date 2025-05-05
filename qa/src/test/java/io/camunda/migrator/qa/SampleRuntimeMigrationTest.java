@@ -1,11 +1,12 @@
 package io.camunda.migrator.qa;
 
 import static io.camunda.process.test.api.assertions.ElementSelectors.byId;
+import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
+import static io.camunda.process.test.api.assertions.UserTaskSelectors.byTaskName;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.camunda.client.api.response.ProcessInstanceEvent;
 import io.camunda.client.api.search.response.ProcessInstance;
 import io.camunda.process.test.api.CamundaAssert;
 import java.util.List;
@@ -26,8 +27,7 @@ class SampleRuntimeMigrationTest extends RuntimeMigrationAbstractTest {
   @Test
   public void simpleProcessMigrationTest() {
     // deploy processes
-    deployCamunda7Process("io/camunda/migrator/bpmn/c7/simpleProcess.bpmn");
-    deployCamunda8Process("io/camunda/migrator/bpmn/c8/simpleProcess.bpmn");
+    deployProcessInC7AndC8("simpleProcess.bpmn");
 
     // given process state in c7
     var simpleProcess = runtimeService.startProcessInstanceByKey("simpleProcess");
@@ -47,11 +47,16 @@ class SampleRuntimeMigrationTest extends RuntimeMigrationAbstractTest {
     assertEquals(simpleProcess.getProcessDefinitionKey(), processInstance.getProcessDefinitionId());
 
     // and the process instance has expected state
-    ProcessInstanceEvent processInstanceEvent = new CustomProcessInstanceEvent(processInstance);
-    CamundaAssert.assertThat(processInstanceEvent)
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
         .isActive()
         .hasActiveElements(byId("userTask2"))
         .hasVariable("legacyId", simpleProcess.getProcessInstanceId());
+
+    // and the user task has expected state
+    CamundaAssert.assertThat(byTaskName("User Task 2"))
+        .isCreated()
+        .hasElementId("userTask2")
+        .hasAssignee(null);
   }
 
 }

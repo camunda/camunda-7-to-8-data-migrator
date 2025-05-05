@@ -29,18 +29,22 @@ public abstract class RuntimeMigrationAbstractTest {
     runtimeMigrator.setAutoDeployment(false);
   }
 
-  public void deployCamunda7Process(String resourcePath) {
+  protected void deployCamunda7Process(String resourcePath) {
     Deployment deployment = repositoryService.createDeployment().addClasspathResource(resourcePath).deploy();
     if (deployment == null) {
       throw new IllegalStateException("Could not deploy process");
     }
   }
 
-  public void deployCamunda8Process(String resourcePath) {
+  protected void deployCamunda8Process(String resourcePath) {
     DeploymentEvent deployment = camundaClient.newDeployResourceCommand().addResourceFromClasspath(resourcePath).send().join();
     if (deployment == null) {
       throw new IllegalStateException("Could not deploy process");
     }
   }
 
+  protected void deployProcessInC7AndC8(String fileName) {
+    deployCamunda7Process("io/camunda/migrator/bpmn/c7/" + fileName);
+    deployCamunda8Process("io/camunda/migrator/bpmn/c8/" + fileName);
+  }
 }

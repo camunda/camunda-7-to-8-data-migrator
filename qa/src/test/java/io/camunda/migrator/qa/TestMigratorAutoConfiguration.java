@@ -11,11 +11,11 @@ import org.springframework.context.annotation.Primary;
 public class TestMigratorAutoConfiguration {
 
   @Autowired
-  protected MigratorAutoConfiguration migratorAutoConfiguration;
+  protected MigratorAutoConfiguration config;
 
   @Bean
   @Primary
   public ProcessEngineConfigurationImpl processEngineConfiguration() {
-    return migratorAutoConfiguration.processEngineConfigurationImpl().setDatabaseSchemaUpdate("create-drop");
+    return config.processEngineConfigurationImpl().setDatabaseSchemaUpdate("create-drop");
   }
 }
