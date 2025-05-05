@@ -24,6 +24,7 @@
       <groupId>io.camunda</groupId>
       <artifactId>camunda-db-rdbms-schema</artifactId>
       <version>${version.camunda-8}</version>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>io.camunda</groupId>
