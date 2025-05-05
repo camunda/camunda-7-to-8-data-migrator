@@ -23,7 +23,7 @@
         <configuration>
           <licenseSets>
             <licenseSet>
-              <header>file://${project.basedir}/../../license/header.txt</header>
+              <header>${project.basedir}/../../license/header.txt</header>
             </licenseSet>
           </licenseSets>
         </configuration>
