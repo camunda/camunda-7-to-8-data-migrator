@@ -53,7 +53,3 @@ runs:
           "password": "${{ steps.secrets.outputs.NEXUS_PASSWORD }}"
         }]
       mirrors: '[{"url": "https://repository.nexus.camunda.cloud/content/groups/internal/", "id": "camunda-nexus", "mirrorOf": "*", "name": "camunda Nexus"}]'
-  - shell: bash
-    run: |
-      sudo rm -rf /etc/localtime
-      sudo ln -s /usr/share/zoneinfo/Europe/Berlin /etc/localtime
