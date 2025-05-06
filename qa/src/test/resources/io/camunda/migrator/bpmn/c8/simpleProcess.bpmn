@@ -22,7 +22,7 @@
       <bpmn:incoming>Flow_1013idc</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_1013idc" sourceRef="userTask2" targetRef="Event_0wud37j" />
-    <bpmn:userTask id="userTask2" name="User Task 2" implementation="##unspecified">
+    <bpmn:userTask id="userTask2" name="User Task 2">
       <bpmn:extensionElements>
         <zeebe:userTask />
       </bpmn:extensionElements>

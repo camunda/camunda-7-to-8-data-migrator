@@ -18,6 +18,7 @@ import org.camunda.bpm.engine.impl.ProcessInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.persistence.entity.ActivityInstanceImpl;
 import org.camunda.bpm.engine.impl.persistence.entity.TransitionInstanceImpl;
 import org.camunda.bpm.engine.runtime.ActivityInstance;
+import org.camunda.bpm.engine.runtime.ProcessInstanceQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -76,9 +77,9 @@ public class RuntimeMigrator {
     }
 
     String latestLegacyId = idKeyMapper.findLatestIdByType("runtimeProcessInstance");
-    ProcessInstanceQueryImpl processInstanceQuery = (ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery()
-        .rootProcessInstances()
-        .idAfter(latestLegacyId);
+    ProcessInstanceQuery processInstanceQuery = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
+        .idAfter(latestLegacyId)
+        .rootProcessInstances();
 
     long maxLegacyProcessInstanceCount = processInstanceQuery.count();
     for (int i = 0; i < maxLegacyProcessInstanceCount; i = i + BATCH_SIZE - 1) {
