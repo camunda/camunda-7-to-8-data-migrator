@@ -35,11 +35,12 @@ jobs:
 # Temp build migrator branch in platform
       - name: Clone Platform
         run: |
+          cd ../
           git clone https://github.com/camunda/camunda-bpm-platform.git
 
       - name: Build feature branch
         run: |
-          cd ./camunda-bpm-platform/engine
+          cd ../camunda-bpm-platform/engine
           git checkout poc-data-migrator
           mvn clean install -DskipTests --batch-mode
 # End of Temp build migrator branch in platform
