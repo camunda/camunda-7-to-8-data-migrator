@@ -5,17 +5,17 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.example;
+package io.camunda.migrator.app;
 
 import io.camunda.migrator.RuntimeMigrator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class RuntimeExampleApplication {
+public class MigratorApp {
 
   public static void main(String[] args) {
-    var context = SpringApplication.run(RuntimeExampleApplication.class, args);
+    var context = SpringApplication.run(MigratorApp.class, args);
 
     try {
       RuntimeMigrator runtimeMigrator = context.getBean(RuntimeMigrator.class);
