@@ -17,8 +17,6 @@
       <outputDirectory>lib</outputDirectory>
       <useProjectArtifact>true</useProjectArtifact>
       <useTransitiveDependencies>false</useTransitiveDependencies>
-      <scope>runtime</scope>
-      <unpack>false</unpack>
     </dependencySet>
   </dependencySets>
 
