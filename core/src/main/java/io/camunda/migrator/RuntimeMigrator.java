@@ -18,6 +18,7 @@ import org.camunda.bpm.engine.impl.ProcessInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.persistence.entity.ActivityInstanceImpl;
 import org.camunda.bpm.engine.impl.persistence.entity.TransitionInstanceImpl;
 import org.camunda.bpm.engine.runtime.ActivityInstance;
+import org.camunda.bpm.engine.runtime.ProcessInstanceQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -55,26 +56,30 @@ public class RuntimeMigrator {
   // TODO: Spring Boot Starter that makes configuring the client reusable? https://github.com/camunda/camunda/tree/main/clients/spring-boot-starter-camunda-sdk
   protected CamundaClient camundaClient = CamundaClient.newClientBuilder().usePlaintext().build();
 
+  protected boolean autoDeployment = true;
+
   public void migrate() {
-    // Deploy process
-    var deployResource = camundaClient.newDeployResourceCommand();
-
     // TODO: remove deploying resources automatically: we expect them to be already deployed in C8.
-    List<Path> models = findResourceFilesWithExtension("bpmn"); // TODO: forms, decisions
+    if (autoDeployment) {
+      // Deploy process
+      var deployResource = camundaClient.newDeployResourceCommand();
 
-    DeployResourceCommandStep2 deployResourceCommandStep2 = null;
-    for (Path model : models) {
-      deployResourceCommandStep2 = deployResource.addResourceFile(model.toFile().getPath());
-    }
+      List<Path> models = findResourceFilesWithExtension("bpmn"); // TODO: forms, decisions
 
-    if (deployResourceCommandStep2 != null) {
-      deployResourceCommandStep2.send().join();
+      DeployResourceCommandStep2 deployResourceCommandStep2 = null;
+      for (Path model : models) {
+        deployResourceCommandStep2 = deployResource.addResourceFile(model.toFile().getPath());
+      }
+
+      if (deployResourceCommandStep2 != null) {
+        deployResourceCommandStep2.send().join();
+      }
     }
 
     String latestLegacyId = idKeyMapper.findLatestIdByType("runtimeProcessInstance");
-    ProcessInstanceQueryImpl processInstanceQuery = (ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery()
-        .rootProcessInstances()
-        .idAfter(latestLegacyId);
+    ProcessInstanceQuery processInstanceQuery = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
+        .idAfter(latestLegacyId)
+        .rootProcessInstances();
 
     long maxLegacyProcessInstanceCount = processInstanceQuery.count();
     for (int i = 0; i < maxLegacyProcessInstanceCount; i = i + BATCH_SIZE - 1) {
@@ -212,8 +217,6 @@ public class RuntimeMigrator {
   record ActInstance(String id, String subProcessInstanceId) {
   }
 
-
-
   public static List<Path> findResourceFilesWithExtension(String extension)  {
     List<Path> result = new ArrayList<>();
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -249,6 +252,14 @@ public class RuntimeMigrator {
       throw new RuntimeException(e);
     }
     return result;
+  }
+
+  public void setCamundaClient(CamundaClient camundaClient) {
+    this.camundaClient = camundaClient;
+  }
+
+  public void setAutoDeployment(boolean autoDeployment) {
+    this.autoDeployment = autoDeployment;
   }
 
 }

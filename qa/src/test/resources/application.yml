@@ -1,0 +1,17 @@
+migrator:
+  rdbms-exporter:
+    auto-ddl: true
+  source:
+    jdbc-url: jdbc:h2:./target/c8_rdbms-source.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  target:
+    jdbc-url: jdbc:h2:./target/c8_rdbms-target.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+spring:
+  main:
+    allow-bean-definition-overriding: true # for allowing the overriding of test auto configuration bean
