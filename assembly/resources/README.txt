@@ -29,23 +29,17 @@ Options
 Contents:
 
   /
-        The root directory contains two start scripts. One for Windows (.bat)
-        and one for Linux/Mac (.sh). After executing it, you can access the 
-        following web applications:
+      Contains two start scripts: one for Windows (`.bat`) and one for Linux/macOS (`.sh`).
 
-        webapps: http://localhost:8080/
-        rest: http://localhost:8080/engine-rest/
-
-  internal/
-        This directory contains the Java application and optional components
-        that Camunda Platform Run consists of.
+  lib/
+      Contains the Java application.
 
   configuration/
-        This directory contains all resources to configure the distro.
-        Find a detailed guide on how to use this directory on the following
-        documentation pages:
-        https://docs.camunda.org/manual/latest/installation/camunda-bpm-run/
-        https://docs.camunda.org/manual/latest/user-guide/camunda-bpm-run/
+      Contains all configuration resources, including `application.yml`.
+
+  userlib/
+      Add custom database drivers, plugins, or other extensions here.
+
 
 ==================
 

@@ -63,4 +63,13 @@
     </file>
   </files>
 
+  <fileSets>
+    <fileSet>
+        <directory>./resources/userlib</directory>
+        <outputDirectory>userlib</outputDirectory>
+        <fileMode>0644</fileMode>
+        <directoryMode>0755</directoryMode>
+    </fileSet>
+  </fileSets>
+
 </assembly>
