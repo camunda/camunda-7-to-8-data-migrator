@@ -1,0 +1,48 @@
+name: C7 Data Migrator CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Import secrets
+        id: secrets
+        uses: hashicorp/vault-action@d1720f055e0635fd932a1d2a48f87a666a57906c # v3.0.0
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          method: approle
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          secrets: |
+            secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_USR;
+            secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
+
+      - name: Setup Maven
+        uses: ./.github/actions/setup-maven
+        with:
+          secrets: ${{ toJSON(secrets) }}
+
+# TODO camunda/camunda-bpm-platform/issues/4993
+# Temp build migrator branch in platform
+      - name: Clone Platform
+        run: |
+          cd ../
+          git clone https://github.com/camunda/camunda-bpm-platform.git
+
+      - name: Build feature branch
+        run: |
+          cd ../camunda-bpm-platform/engine
+          git checkout poc-data-migrator
+          mvn clean install -DskipTests --batch-mode
+# End of Temp build migrator branch in platform
+
+      - name: Build with Maven
+        run: mvn clean install --batch-mode
