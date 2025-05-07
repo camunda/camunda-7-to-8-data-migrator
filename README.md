@@ -17,4 +17,4 @@ Every source file in an open-source repository needs to contain the following li
 
 ## License
 
-The source files in this repository are made available under the  [Camunda License Version 1.0](./CAMUNDA-LICENSE-1.0.txt)
+The source files in this repository are made available under the [Camunda License Version 1.0](./CAMUNDA-LICENSE-1.0.txt)
