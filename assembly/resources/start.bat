@@ -1,27 +1,38 @@
 @echo off
+setlocal
 
-SET BASEDIR=%~dp0
-SET EXECUTABLE=%BASEDIR%internal\run.bat
+REM Get the directory of the script
+set "BASEDIR=%~dp0"
+set "CONFIGURATION=%BASEDIR%configuration\application.yml"
 
-REM Start detached if no arguments
-IF [%~1]==[] GOTO StartDetached
+set OPTIONS_HELP=Options:
+set OPTIONS_HELP=%OPTIONS_HELP%^^^
+  --runtime     - Migrate runtime data only^^^
+  --history     - Migrate history data only
 
-REM Collect arguments to pass to the executable
-SET CMD_LINE_ARGS=
-:setArgs
-IF [%~1]==[] GOTO StartWithArguments
-SET CMD_LINE_ARGS=%CMD_LINE_ARGS% %1
-SHIFT
-GOTO setArgs
+REM Check number of arguments
+if not "%2"=="" (
+  echo Error: Only one flag allowed.
+  echo Usage: %~nx0 [--runtime|--history]
+  exit /b 1
+)
 
-:StartDetached
-call "%EXECUTABLE%" start --detached
-REM open a browser
-timeout /t 10 /nobreak > NUL
-start http://localhost:8080/camunda-welcome/index.html
-GOTO Done
+if not "%1"=="" (
+  if "%1"=="--runtime" (
+    echo Starting migration with flag: %1
+    java -jar .\lib\c7-data-migrator-distro-0.0.1-SNAPSHOT.jar %1 --spring.config.location=file:"%CONFIGURATION%"
+  ) else if "%1"=="--history" (
+    echo Starting migration with flag: %1
+    java -jar .\lib\c7-data-migrator-distro-0.0.1-SNAPSHOT.jar %1 --spring.config.location=file:"%CONFIGURATION%"
+  ) else (
+    echo Invalid flag: %1
+    echo Usage: run.bat [--runtime|--history]
+    echo %OPTIONS_HELP%
+    exit /b 1
+  )
+) else (
+  echo Starting application without migration flag.
+  java -jar .\lib\c7-data-migrator-distro-0.0.1-SNAPSHOT.jar --spring.config.location=file:"%CONFIGURATION%"
+)
 
-:StartWithArguments
-call "%EXECUTABLE%" start %CMD_LINE_ARGS%
-
-:Done
+endlocal
