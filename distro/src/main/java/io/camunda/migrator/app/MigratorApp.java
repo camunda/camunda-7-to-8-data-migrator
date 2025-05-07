@@ -7,23 +7,48 @@
  */
 package io.camunda.migrator.app;
 
+import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.RuntimeMigrator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.DefaultApplicationArguments;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 @SpringBootApplication
 public class MigratorApp {
 
-  public static void main(String[] args) {
-    var context = SpringApplication.run(MigratorApp.class, args);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MigratorApp.class);
 
+  public static void main(String[] args) {
+    ConfigurableApplicationContext context = SpringApplication.run(MigratorApp.class, args);
+    ApplicationArguments appArgs = new DefaultApplicationArguments(args);
     try {
-      RuntimeMigrator runtimeMigrator = context.getBean(RuntimeMigrator.class);
-      runtimeMigrator.migrate();
+      if (appArgs.containsOption("runtime")) {
+        migrateRuntime(context);
+      } else if (appArgs.containsOption("history")) {
+        migrateHistory(context);
+      } else {
+        LOGGER.info("Migrating both runtime and history.");
+        migrateRuntime(context);
+        migrateHistory(context);
+      }
     } finally {
       SpringApplication.exit(context);
     }
-
   }
 
+  public static void migrateRuntime(ConfigurableApplicationContext context) {
+    LOGGER.info("Migrating runtime data...");
+    RuntimeMigrator runtimeMigrator = context.getBean(RuntimeMigrator.class);
+    runtimeMigrator.migrate();
+  }
+
+  public static void migrateHistory(ConfigurableApplicationContext context) {
+    LOGGER.info("Migrating history data...");
+    HistoryMigrator historyMigrator = context.getBean(HistoryMigrator.class);
+    historyMigrator.migrate();
+  }
 }
