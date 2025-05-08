@@ -20,6 +20,12 @@
       <groupId>io.camunda</groupId>
       <artifactId>c7-data-migrator-core</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.h2database</groupId>
+          <artifactId>h2</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -40,6 +46,9 @@
             <goals>
               <goal>repackage</goal>
             </goals>
+            <configuration>
+              <layout>ZIP</layout>
+            </configuration>
           </execution>
         </executions>      
     </plugin>

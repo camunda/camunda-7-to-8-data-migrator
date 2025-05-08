@@ -17,17 +17,22 @@
       <outputDirectory>lib</outputDirectory>
       <useProjectArtifact>true</useProjectArtifact>
       <useTransitiveDependencies>false</useTransitiveDependencies>
+      <excludes>
+        <exclude>com.h2database:h2</exclude>
+      </excludes>    
     </dependencySet>
+        <dependencySet>
+        <outputDirectory>userlib/</outputDirectory>
+        <includes>
+          <include>com.h2database:h2</include>
+        </includes>
+      </dependencySet>
   </dependencySets>
 
    <files>
     <file>
       <source>resources/application.yml</source>
       <outputDirectory>configuration/</outputDirectory>
-    </file>
-    <file>
-      <source>resources/keystore.p12</source>
-      <outputDirectory>configuration/keystore/</outputDirectory>
     </file>
     <file>
       <source>resources/start.sh</source>
@@ -61,13 +66,5 @@
     </file>
   </files>
 
-  <fileSets>
-    <fileSet>
-        <directory>./resources/userlib</directory>
-        <outputDirectory>userlib</outputDirectory>
-        <fileMode>0644</fileMode>
-        <directoryMode>0755</directoryMode>
-    </fileSet>
-  </fileSets>
 
 </assembly>
