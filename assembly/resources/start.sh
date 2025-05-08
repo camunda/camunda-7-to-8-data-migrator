@@ -3,7 +3,7 @@ BASEDIR=$(dirname "$0")
 CONFIGURATION="$BASEDIR/configuration/application.yml"
 classPath="$BASEDIR/userlib"
 
-JAR_PATH="./lib/c7-data-migrator-distro-0.0.1-SNAPSHOT.jar"
+JAR_PATH="./lib/c7-data-migrator.jar"
 COMMON_OPTS="-Dloader.path=$classPath -Dspring.config.location=file:$CONFIGURATION"
 
 OPTIONS_HELP="Options:

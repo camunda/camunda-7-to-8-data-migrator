@@ -15,21 +15,28 @@
   <dependencySets>
     <dependencySet>
       <outputDirectory>lib</outputDirectory>
-      <useProjectArtifact>true</useProjectArtifact>
+      <useProjectArtifact>false</useProjectArtifact>
       <useTransitiveDependencies>false</useTransitiveDependencies>
       <excludes>
+        <exclude>io.camunda:c7-data-migrator-distro</exclude>
         <exclude>com.h2database:h2</exclude>
-      </excludes>    
+      </excludes> 
     </dependencySet>
-        <dependencySet>
-        <outputDirectory>userlib/</outputDirectory>
-        <includes>
-          <include>com.h2database:h2</include>
-        </includes>
-      </dependencySet>
+    <dependencySet>
+      <outputDirectory>userlib/</outputDirectory>
+      <includes>
+        <include>com.h2database:h2</include>
+      </includes>
+    </dependencySet>
   </dependencySets>
 
    <files>
+  <file>
+    <source>${project.build.directory}/dependency/c7-data-migrator-distro-${project.version}.jar</source>
+    <outputDirectory>lib</outputDirectory>
+    <destName>c7-data-migrator.jar</destName>
+    <fileMode>0644</fileMode>
+  </file>
     <file>
       <source>resources/application.yml</source>
       <outputDirectory>configuration/</outputDirectory>
