@@ -22,13 +22,16 @@ public class MigratorApp {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MigratorApp.class);
 
+  protected static final String RUN_HISTORY_MIGRATION = "history";
+  protected static final String RUN_RUNTIME_MIGRATION = "runtime";
+
   public static void main(String[] args) {
     ConfigurableApplicationContext context = SpringApplication.run(MigratorApp.class, args);
     ApplicationArguments appArgs = new DefaultApplicationArguments(args);
     try {
-      if (appArgs.containsOption("runtime")) {
+      if (appArgs.containsOption(RUN_RUNTIME_MIGRATION)) {
         migrateRuntime(context);
-      } else if (appArgs.containsOption("history")) {
+      } else if (appArgs.containsOption(RUN_HISTORY_MIGRATION)) {
         migrateHistory(context);
       } else {
         LOGGER.info("Migrating both runtime and history.");
