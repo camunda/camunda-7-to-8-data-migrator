@@ -3,12 +3,13 @@ This is a distribution of
        Camunda 7 Data Migrator v${project.version}
 
 visit
-       http://docs.camunda.org/
+       https://github.com/camunda/c7-data-migrator/blob/main/README.md
 
 ==================
 
 Usage
 
+Before running the migrator, some setup steps are required for both Camunda 7 and Camunda 8. Please refer to the [project README](https://github.com/camunda/c7-data-migrator/blob/main/README.md) for details.
 To run the Camunda 7 Data Migrator:
 
 1. Adjust `./configuration/application.yml`  
