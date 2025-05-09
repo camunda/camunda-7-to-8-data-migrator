@@ -6,7 +6,7 @@ set "BASEDIR=%~dp0"
 set "CONFIGURATION=%BASEDIR%configuration\application.yml"
 set "CLASSPATH=%BASEDIR%userlib"
 
-set "JAR_PATH=.\lib\c7-data-migrator.jar"
+set "JAR_PATH=.\internal\c7-data-migrator.jar"
 set "COMMON_OPTS=-Dloader.path=%CLASSPATH% -Dspring.config.location=file:%CONFIGURATION%"
 
 set OPTIONS_HELP=Options:

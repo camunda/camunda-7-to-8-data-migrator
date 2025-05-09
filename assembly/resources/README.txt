@@ -32,7 +32,7 @@ Contents:
   /
       Contains two start scripts: one for Windows (`.bat`) and one for Linux/macOS (`.sh`).
 
-  lib/
+  internal/
       Contains the Java application.
 
   configuration/
