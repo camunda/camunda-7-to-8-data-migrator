@@ -4,7 +4,7 @@ setlocal
 REM Get the directory of the script
 set "BASEDIR=%~dp0"
 set "CONFIGURATION=%BASEDIR%configuration\application.yml"
-set "CLASSPATH=%BASEDIR%userlib"
+set "CLASSPATH=%BASEDIR%configuration\userlib"
 
 set "JAR_PATH=.\internal\c7-data-migrator.jar"
 set "COMMON_OPTS=-Dloader.path=%CLASSPATH% -Dspring.config.location=file:%CONFIGURATION%"

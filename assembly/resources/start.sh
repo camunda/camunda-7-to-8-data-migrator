@@ -1,7 +1,7 @@
 #!/bin/bash
 BASEDIR=$(dirname "$0")
 CONFIGURATION="$BASEDIR/configuration/application.yml"
-classPath="$BASEDIR/userlib"
+classPath="$BASEDIR/configuration/userlib"
 
 JAR_PATH="./internal/c7-data-migrator.jar"
 COMMON_OPTS="-Dloader.path=$classPath -Dspring.config.location=file:$CONFIGURATION"
