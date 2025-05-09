@@ -70,6 +70,24 @@
           </execution>
         </executions>
       </plugin>
+        <plugin>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>copy-renamed-license</id>
+              <phase>prepare-package</phase>
+              <configuration>
+                <target>
+                  <copy file="${basedir}/../CAMUNDA-LICENSE-1.0.txt"
+                        tofile="${project.build.directory}/LICENSE.TXT" />
+                </target>
+              </configuration>
+              <goals>
+                <goal>run</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
