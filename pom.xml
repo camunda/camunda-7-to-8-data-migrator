@@ -29,6 +29,8 @@
     <module>core</module>
     <module>examples</module>
     <module>qa</module>
+    <module>distro</module>
+    <module>assembly</module>
   </modules>
 
   <repositories>
