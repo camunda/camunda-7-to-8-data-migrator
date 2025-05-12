@@ -14,13 +14,13 @@
 
 ## Development Setup
 1. Prerequisites: Use Java 21
-1. Clone and build the [Camunda 7 platform](https://github.com/camunda/camunda-bpm-platform)
+1. Clone and build the [Camunda 7 process engine](https://github.com/camunda/camunda-bpm-platform/tree/master/engine)
 1. Set up Camunda 8
    1. Download Camunda [c8run-8.8](https://github.com/camunda/camunda/releases/tag/c8run-8.8)
    1. Extract files
-   1. Start from distribution root by running `./start.sh`
+   1. Start from distribution root by running `./start.sh` (or `c8run.exe start`)
 1. Clone this repository
-1. Build from root with `mvn clean install`
+1. Build from root with `mvn clean install` (add `-DskipTests` to skip the tests)
 1. (Optional) Run the [example data generator](./examples/generate-runtime/src/main/java/io/camunda/migrator/example/ExampleApplication.java)
 1. (Optional) Run the migrator
    1. Either using [the example](./examples/migrate-runtime/src/main/java/io/camunda/migrator/example/RuntimeExampleApplication.java)
