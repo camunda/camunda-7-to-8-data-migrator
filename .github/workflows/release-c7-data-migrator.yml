@@ -1,7 +1,6 @@
 name: Release C7 Data Migrator
 
 on:
-  pull_request:
   workflow_dispatch:
     inputs:
       RELEASE_VERSION:
@@ -12,9 +11,10 @@ on:
         required: true
         description: "Next development version"
         default: "0.1.0-SNAPSHOT"
-#      RELEASE_BRANCH:
-#        required: true
-#        default: "release/0.0.0"
+      RELEASE_BRANCH:
+        description: "The branch to be used for this release."
+        required: true
+        default: "release/0.0.0"
       IS_DRY_RUN:
         description: "Whether to perform a dry release where no changes or artifacts are pushed, defaults to true."
         required: true
@@ -25,7 +25,7 @@ defaults:
     shell: bash
 
 env:
-#  RELEASE_BRANCH: ${{ inputs.releaseBranch != '' && inputs.releaseBranch || format('release-{0}', inputs.releaseVersion) }}
+  RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH != '' && inputs.RELEASE_BRANCH || format('release-{0}', inputs.RELEASE_VERSION) }}
   RELEASE_VERSION: ${{ inputs.RELEASE_VERSION }}
   IS_DRY_RUN: ${{ inputs.IS_DRY_RUN }}
   DEVELOPMENT_VERSION: ${{ inputs.DEVELOPMENT_VERSION }}
@@ -41,7 +41,7 @@ jobs:
       - name: Output Inputs
         run: echo "${{ toJSON(github.event.inputs) }}"
 
-      # This step generates a GitHub App token to be used in Git operations as a workaround  for
+      # This step generates a GitHub App token to be used in Git operations as a workaround for
       # the known GitHub issue described in https://github.com/camunda/camunda/issues/28522
       - name: Generate GitHub token
         id: github-token
@@ -59,9 +59,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: 4990-add-release-workflow
-#          TODO adjust branch after testing
-#          ref: ${{ RELEASE_BRANCH }}
+          ref: ${{ RELEASE_BRANCH }}
           # Overriding the default GITHUB_TOKEN with a GitHub App token in order to workaround
           # the known GitHub issue described in https://github.com/camunda/camunda/issues/28522
           # NOTES:
@@ -126,66 +124,40 @@ jobs:
           # Preparing the maven release
           # https://maven.apache.org/maven-release/maven-release-plugin/prepare-mojo.html
           # https://maven.apache.org/maven-release/maven-release-plugin/usage/prepare-release.html
-          #
-          # -DpreparationGoals
-          #   Goals to run as part of the preparation step, after transformation but before committing. Space delimited.
-          #   Default is 'clean verify'; We want to skip all the checks and packaging (as it will be done again later) so we set it to empty
-          #
-          # -Darguments
-          #   Additional arguments to pass to the Maven executions, separated by spaces.
-          #   Per default it is not required, but the release plugin is configured in the camunda release plugin (and this property is used)
-          #   This is the reason why we have to set it at least as empty string.
           mvn release:prepare -B \
             -Dresume=false \
-            -Dtag="0.1.0-alpha1-rc1" \
-            -DreleaseVersion="0.1.0-alpha1-rc1" \
-            -DdevelopmentVersion="0.1.0-SNAPSHOT" \
-            -DpushChanges=false \
-            -DremoteTagging=false \
+            -Dtag=${RELEASE_VERSION} \
+            -DreleaseVersion=${RELEASE_VERSION} \
+            -DdevelopmentVersion=${DEVELOPMENT_VERSION} \
+            -DpushChanges=${PUSH_CHANGES} \
+            -DremoteTagging=${PUSH_CHANGES} \
             -DignoreSnapshots=true \
-            -Darguments='-DskipTests=true -Dgpg.passphrase="${{ steps.secrets.outputs
-          .MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}'
+            -Darguments='-Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}"'
 
-      - name: Collect Release artifacts
+      - name: Collect Release Artifacts
         id: release-artifacts
         run: |
           ARTIFACT_DIR=$(mktemp -d)
-          cp assembly/target/c7-data-migrator-assembly-0.1.0-alpha1-rc1.tar.gz "${ARTIFACT_DIR}/"
-          cp assembly/target/c7-data-migrator-assembly-0.1.0-alpha1-rc1.zip "${ARTIFACT_DIR}/"
+          cp assembly/target/c7-data-migrator-assembly-${RELEASE_VERSION}.tar.gz "${ARTIFACT_DIR}/"
+          cp assembly/target/c7-data-migrator-assembly-${RELEASE_VERSION}.zip "${ARTIFACT_DIR}/"
           echo "dir=${ARTIFACT_DIR}" >> $GITHUB_OUTPUT
-          #          TODO adjust after testing
-          #          cp assembly/target/c7-data-migrator-assembly-${RELEASE_VERSION}.tar.gz "${ARTIFACT_DIR}/"
-          #          cp assembly/target/c7-data-migrator-assembly-${RELEASE_VERSION}.zip "${ARTIFACT_DIR}/"
-          
+
       - name: Upload Release Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: release-artifacts-0.1.0-alpha1-rc1 # TODO adjust after testing  name: release-artifacts-${{ inputs.releaseVersion }}
+          name: release-artifacts-${{ RELEASE_VERSION }}
           path: ${{ steps.release-artifacts.outputs.dir }}
-          retention-days: 5 # TODO clarify retention policy
+          retention-days: 14
 
-#          TODO undo changes after testing
-#          mvn release:prepare -B \
-#            -Dresume=false \
-#            -Dtag=${RELEASE_VERSION} \
-#            -DreleaseVersion=${RELEASE_VERSION} \
-#            -DdevelopmentVersion=${DEVELOPMENT_VERSION} \
-#            -DpushChanges=${PUSH_CHANGES} \
-#            -DremoteTagging=${PUSH_CHANGES} \
-#            -DignoreSnapshots=true \
-#            -DpreparationGoals="" \
-#            -Darguments='-Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}'
-
-#      - name: Maven Perform Release
-#        id: maven-perform-release
-#        env:
-#          SKIP_REPO_DEPLOY: ${{ IS_DRY_RUN }}
-#        run: |
-#          # Perform a maven release
-#          # https://maven.apache.org/maven-release/maven-release-plugin/perform-mojo.html
-#          # https://maven.apache.org/maven-release/maven-release-plugin/usage/perform-release.html
-#
-#          mvn release:perform -B \
-#            -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" \
-#            -DlocalCheckout=${{ IS_DRY_RUN }} \
-#            -Darguments='-DskipTests=true -Dskip.central.release=${SKIP_REPO_DEPLOY} -Dskip.camunda.release=${SKIP_REPO_DEPLOY} -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}"
+      - name: Maven Perform Release
+        id: maven-perform-release
+        env:
+          SKIP_REPO_DEPLOY: ${{ IS_DRY_RUN }}
+        run: |
+          # Perform a maven release
+          # https://maven.apache.org/maven-release/maven-release-plugin/perform-mojo.html
+          # https://maven.apache.org/maven-release/maven-release-plugin/usage/perform-release.html
+          mvn release:perform -B \
+            -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" \
+            -DlocalCheckout=${{ IS_DRY_RUN }} \
+            -Darguments='-DskipTests=true -Dskip.central.release=${SKIP_REPO_DEPLOY} -Dskip.camunda.release=${SKIP_REPO_DEPLOY} -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}"'
