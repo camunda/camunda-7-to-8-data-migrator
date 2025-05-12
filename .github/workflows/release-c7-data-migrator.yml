@@ -104,20 +104,6 @@ jobs:
         with:
           secrets: ${{ toJSON(secrets) }}
 
-      # TODO camunda/camunda-bpm-platform/issues/4993
-      # Temp build migrator branch in platform
-      - name: Clone Platform
-        run: |
-          cd ../
-          git clone https://github.com/camunda/camunda-bpm-platform.git
-
-      - name: Build feature branch
-        run: |
-          cd ../camunda-bpm-platform/engine
-          git checkout poc-data-migrator
-          mvn clean install -DskipTests --batch-mode
-      # End of Temp build migrator branch in platform
-      
       - name: Maven Prepare Release
         id: maven-prepare-release
         run: |
