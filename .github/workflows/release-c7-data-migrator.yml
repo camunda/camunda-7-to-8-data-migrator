@@ -133,12 +133,12 @@ jobs:
       - name: Maven Perform Release
         id: maven-perform-release
         env:
-          SKIP_REPO_DEPLOY: ${{ IS_DRY_RUN }}
+          SKIP_REPO_DEPLOY: env.IS_DRY_RUN
         run: |
           # Perform a maven release
           # https://maven.apache.org/maven-release/maven-release-plugin/perform-mojo.html
           # https://maven.apache.org/maven-release/maven-release-plugin/usage/perform-release.html
           mvn release:perform -B \
             -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" \
-            -DlocalCheckout=${{ IS_DRY_RUN }} \
+            -DlocalCheckout=env.IS_DRY_RUN \
             -Darguments='-DskipTests=true -Dskip.central.release=${SKIP_REPO_DEPLOY} -Dskip.camunda.release=${SKIP_REPO_DEPLOY} -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}"'
