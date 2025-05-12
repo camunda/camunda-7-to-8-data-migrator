@@ -60,7 +60,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: ${{ RELEASE_BRANCH }}
+          ref: 4990-add-release-workflow-test
           # Overriding the default GITHUB_TOKEN with a GitHub App token in order to workaround
           # the known GitHub issue described in https://github.com/camunda/camunda/issues/28522
           # NOTES:
