@@ -28,7 +28,9 @@ jobs:
       - name: Setup Maven
         uses: ./.github/actions/setup-maven
         with:
-          secrets: ${{ toJSON(secrets) }}
+          vault-address: ${{ secrets.VAULT_ADDR }}
+          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
+          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
 
       - name: Build with Maven
         run: mvn clean install --batch-mode

@@ -97,7 +97,6 @@ jobs:
       - name: Setup Build Tooling
         uses: ./.github/actions/setup-maven
         with:
-          secrets: ${{ toJSON(secrets) }}
           maven-servers: |
             [{
                 "id": "central",

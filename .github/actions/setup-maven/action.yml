@@ -26,9 +26,15 @@ inputs:
     description: Maven version to be used
     required: false
     default: '3.8.6'
-  secrets:
-    description: JSON wrapped secrets for easier secret passing
-    required: true
+  vault-address:
+    description: Vault URL to retrieve secrets from
+    required: false
+  vault-role-id:
+    description: Vault Role ID to use
+    required: false
+  vault-secret-id:
+    description: Vault Secret ID to use
+    required: false
 runs:
   using: composite
   steps:
@@ -36,10 +42,10 @@ runs:
     id: secrets
     uses: hashicorp/vault-action@7709c609789c5e27b757a85817483caadbb5939a
     with:
-      url: ${{ fromJSON(inputs.secrets).VAULT_ADDR }}
+      url: ${{ inputs.vault-address }}
       method: approle
-      roleId: ${{ fromJSON(inputs.secrets).VAULT_ROLE_ID }}
-      secretId: ${{ fromJSON(inputs.secrets).VAULT_SECRET_ID }}
+      roleId: ${{ inputs.vault-role-id }}
+      secretId: ${{ inputs.vault-secret-id }}
       secrets: |
         secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_USR;
         secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
