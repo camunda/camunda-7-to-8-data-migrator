@@ -11,10 +11,6 @@ on:
         required: true
         description: "Next development version"
         default: "0.1.0-SNAPSHOT"
-      RELEASE_BRANCH:
-        description: "The branch to be used for this release."
-        required: true
-        default: "release/0.0.0"
       IS_DRY_RUN:
         description: "Whether to perform a dry release where no changes or artifacts are pushed, defaults to true."
         required: true
@@ -25,7 +21,6 @@ defaults:
     shell: bash
 
 env:
-  RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH != '' && inputs.RELEASE_BRANCH || format('release-{0}', inputs.RELEASE_VERSION) }}
   RELEASE_VERSION: ${{ inputs.RELEASE_VERSION }}
   IS_DRY_RUN: ${{ inputs.IS_DRY_RUN }}
   DEVELOPMENT_VERSION: ${{ inputs.DEVELOPMENT_VERSION }}
@@ -59,7 +54,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: ${{ RELEASE_BRANCH }}
+          ref: ${{ github.ref }}
           # Overriding the default GITHUB_TOKEN with a GitHub App token in order to workaround
           # the known GitHub issue described in https://github.com/camunda/camunda/issues/28522
           # NOTES:
