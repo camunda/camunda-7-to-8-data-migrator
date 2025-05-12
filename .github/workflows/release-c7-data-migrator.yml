@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       RELEASE_VERSION:
-        description: "The version to be built and released. Defaults to 0.0.0."
+        description: "RELEASE_VERSION"
         required: true
         default: "0.0.0"
       DEVELOPMENT_VERSION:
         required: true
-        description: "Next development version"
+        description: "DEVELOPMENT_VERSION"
         default: "0.1.0-SNAPSHOT"
       IS_DRY_RUN:
-        description: "Whether to perform a dry release where no changes or artifacts are pushed, defaults to true."
+        description: "DRY_RUN"
         required: true
         type: boolean
         default: true
@@ -98,6 +98,15 @@ jobs:
         uses: ./.github/actions/setup-maven
         with:
           secrets: ${{ toJSON(secrets) }}
+          maven-servers: |
+            [{
+                "id": "central",
+                "username": "${{ steps.secrets.outputs.MAVEN_CENTRAL_DEPLOYMENT_USR }}",
+                "password": "${{ steps.secrets.outputs.MAVEN_CENTRAL_DEPLOYMENT_PSW }}"
+            }]
+          vault-address: ${{ secrets.VAULT_ADDR }}
+          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
+          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
 
       - name: Maven Prepare Release
         id: maven-prepare-release
@@ -113,7 +122,7 @@ jobs:
             -DpushChanges=${PUSH_CHANGES} \
             -DremoteTagging=${PUSH_CHANGES} \
             -DignoreSnapshots=true \
-            -Darguments='-Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}"'
+            -Darguments='-Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" -DskipTests=true'
 
       - name: Collect Release Artifacts
         id: release-artifacts
@@ -133,12 +142,12 @@ jobs:
       - name: Maven Perform Release
         id: maven-perform-release
         env:
-          SKIP_REPO_DEPLOY: env.IS_DRY_RUN
+          SKIP_REPO_DEPLOY: ${{ inputs.IS_DRY_RUN }}
         run: |
           # Perform a maven release
           # https://maven.apache.org/maven-release/maven-release-plugin/perform-mojo.html
           # https://maven.apache.org/maven-release/maven-release-plugin/usage/perform-release.html
           mvn release:perform -B \
             -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" \
-            -DlocalCheckout=env.IS_DRY_RUN \
+            -DlocalCheckout=${{ inputs.IS_DRY_RUN }} \
             -Darguments='-DskipTests=true -Dskip.central.release=${SKIP_REPO_DEPLOY} -Dskip.camunda.release=${SKIP_REPO_DEPLOY} -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}"'
