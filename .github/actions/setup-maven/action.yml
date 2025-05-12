@@ -60,7 +60,7 @@ runs:
     with:
       maven-version: ${{ inputs.maven-version }}
  # Camunda Nexus and extra mirrors/servers must be merged on ids (extra values have precedence).
-   - name: Get Maven mirrors and servers to use
+  - name: Get Maven mirrors and servers to use
     id: maven
     env:
       # Camunda Nexus is disabled for fork PRs
