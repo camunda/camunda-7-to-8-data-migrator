@@ -1,6 +1,7 @@
 name: Release C7 Data Migrator
 
 on:
+  pull_request:
   workflow_dispatch:
     inputs:
       RELEASE_VERSION:
@@ -114,7 +115,7 @@ jobs:
       - name: Build feature branch
         run: |
           cd ../camunda-bpm-platform/engine
-          git checkout poc-data-migrator
+          git checkout master
           mvn clean install -DskipTests --batch-mode
       # End of Temp build migrator branch in platform
       
@@ -160,4 +161,4 @@ jobs:
           mvn release:perform -B \
             -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" \
             -DlocalCheckout=${{ IS_DRY_RUN }} \
-            -Darguments='-DskipTests=true -Dskip.central.release=${SKIP_REPO_DEPLOY} -Dskip.camunda.release=${SKIP_REPO_DEPLOY} -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}"'
+            -Darguments='-DskipTests=true -Dskip.central.release=true -Dskip.camunda.release=true -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}"'
