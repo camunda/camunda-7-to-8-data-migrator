@@ -126,7 +126,7 @@ jobs:
       - name: Upload Release Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: release-artifacts-${{ RELEASE_VERSION }}
+          name: release-artifacts-${RELEASE_VERSION}
           path: ${{ steps.release-artifacts.outputs.dir }}
           retention-days: 14
 
