@@ -66,6 +66,11 @@
       <snapshots />
       <url>https://artifacts.camunda.com/artifactory/camunda-bpm-snapshots/</url>
     </repository>
+    <repository>
+      <id>camunda-bpm-ee-snapshots</id>
+      <snapshots />
+      <url>https://artifacts.camunda.com/artifactory/camunda-bpm-ee-snapshots/</url>
+    </repository>
   </repositories>
 
   <build>
