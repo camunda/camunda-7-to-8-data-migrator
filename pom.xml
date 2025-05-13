@@ -93,10 +93,6 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${plugin.version.compiler}</version>
-          <configuration>
-            <parameters>true</parameters>
-            <release>${version.java}</release>
-          </configuration>
         </plugin>
         <plugin>
           <groupId>org.sonatype.plugins</groupId>
