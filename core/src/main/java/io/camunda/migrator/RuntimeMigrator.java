@@ -19,6 +19,8 @@ import org.camunda.bpm.engine.impl.persistence.entity.ActivityInstanceImpl;
 import org.camunda.bpm.engine.impl.persistence.entity.TransitionInstanceImpl;
 import org.camunda.bpm.engine.runtime.ActivityInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstanceQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -55,11 +57,14 @@ public class RuntimeMigrator {
   @Autowired
   protected CamundaClient camundaClient;
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(RuntimeMigrator.class);
+
   protected boolean autoDeployment = true;
 
   public void migrate() {
     // TODO: remove deploying resources automatically: we expect them to be already deployed in C8.
     if (autoDeployment) {
+      LOGGER.debug("Starting auto deployment.");
       // Deploy process
       var deployResource = camundaClient.newDeployResourceCommand();
 
@@ -73,14 +78,18 @@ public class RuntimeMigrator {
       if (deployResourceCommandStep2 != null) {
         deployResourceCommandStep2.send().join();
       }
+      LOGGER.debug("Completed auto deployment.");
     }
 
     String latestLegacyId = idKeyMapper.findLatestIdByType("runtimeProcessInstance");
+    LOGGER.debug("Latest legacy id is {}", latestLegacyId);
     ProcessInstanceQuery processInstanceQuery = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
         .idAfter(latestLegacyId)
         .rootProcessInstances();
 
     long maxLegacyProcessInstanceCount = processInstanceQuery.count();
+    LOGGER.debug("Number of legacy process instances to migrate is {}", maxLegacyProcessInstanceCount);
+
     for (int i = 0; i < maxLegacyProcessInstanceCount; i = i + BATCH_SIZE - 1) {
       processInstanceQuery.listPage(i, BATCH_SIZE).forEach(legacyProcessInstance -> {
         String legacyId = legacyProcessInstance.getId();
@@ -94,8 +103,10 @@ public class RuntimeMigrator {
 
     // TODO: paginate this
     idKeyMapper.findProcessInstanceIds().forEach(legacyProcessInstanceId -> {
+      LOGGER.info("Migrating Process instance with legacyId {}", legacyProcessInstanceId);
       Map<String, Object> globalVariables = new HashMap<>();
 
+      LOGGER.debug("Loading legacy global process instance variables.");
       runtimeService.createVariableInstanceQuery()
           .activityInstanceIdIn(legacyProcessInstanceId)
           .list()
@@ -108,6 +119,7 @@ public class RuntimeMigrator {
           .singleResult()
           .getProcessDefinitionKey();
 
+      LOGGER.debug("Creating new process instance");
       long processInstanceKey = camundaClient.newCreateInstanceCommand()
           .bpmnProcessId(bpmnProcessId)
           .latestVersion()
@@ -116,11 +128,14 @@ public class RuntimeMigrator {
           .join()
           .getProcessInstanceKey();
 
+      LOGGER.debug("Created new process instance with key {} for legacyProcessInstanceId {}", processInstanceKey,
+          legacyProcessInstanceId);
       var keyIdDbModel = new IdKeyDbModel();
       keyIdDbModel.setId(legacyProcessInstanceId);
       keyIdDbModel.setKey(processInstanceKey);
       idKeyMapper.updateKeyById(keyIdDbModel);
 
+      LOGGER.debug("Activating jobs.");
       List<ActivatedJob> migratorJobs = null;
       do {
         migratorJobs = camundaClient.newActivateJobsCommand()
@@ -131,7 +146,7 @@ public class RuntimeMigrator {
             .send()
             .join()
             .getJobs();
-            migratorJobs.forEach(activatedJob -> {
+        migratorJobs.forEach(activatedJob -> {
 
               String legacyId = (String) activatedJob.getVariable("legacyId");
 
@@ -171,6 +186,8 @@ public class RuntimeMigrator {
               // no need to complete the job since the modification canceled the migrator job in the start event
             });
       } while (!migratorJobs.isEmpty());
+      LOGGER.info("Migration completed for Process instance with legacyId {}, the key of the migrated process is {}",
+          legacyProcessInstanceId, processInstanceKey);
     });
   }
 
