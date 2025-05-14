@@ -2,6 +2,12 @@ name: Setup Maven
 description: |
   Maven wrapper to abstract defaults for setting maven up
 inputs:
+  camunda-nexus:
+    description: |
+      If enabled, Camunda Nexus will be configured and used as a mirror for Maven repositories
+      Camunda Nexus is automatically disabled for fork PRs.
+    required: false
+    default: "true"
   java-version:
     description: Java version to be used
     required: false
