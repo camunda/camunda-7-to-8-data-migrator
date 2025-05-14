@@ -2,6 +2,12 @@ name: Setup Maven
 description: |
   Maven wrapper to abstract defaults for setting maven up
 inputs:
+  camunda-nexus:
+    description: |
+      If enabled, Camunda Nexus will be configured and used as a mirror for Maven repositories
+      Camunda Nexus is automatically disabled for fork PRs.
+    required: false
+    default: "true"
   java-version:
     description: Java version to be used
     required: false
@@ -47,8 +53,8 @@ runs:
       roleId: ${{ inputs.vault-role-id }}
       secretId: ${{ inputs.vault-secret-id }}
       secrets: |
-        secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_USR | ci-account-password;
-        secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW | ci-account-username;
+        secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_USR;
+        secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
   - name: Setup Java
     uses: actions/setup-java@v4
     with:
@@ -79,8 +85,8 @@ runs:
       CAMUNDA_NEXUS_MAVEN_SERVER: >-
         [{
           "id": "camunda-nexus",
-          "username": "${{ steps.secrets.outputs.ci-account-username }}",
-          "password": "${{ steps.secrets.outputs.ci-account-password }}"
+          "username": "${{ steps.secrets.outputs.NEXUS_APP_CAMUNDA_COM_USR }}",
+          "password": "${{ steps.secrets.outputs.NEXUS_APP_CAMUNDA_COM_PSW }}"
         }]
       EXTRA_MAVEN_MIRRORS: ${{ inputs.maven-mirrors }}
       EXTRA_MAVEN_SERVERS: ${{ inputs.maven-servers }}
