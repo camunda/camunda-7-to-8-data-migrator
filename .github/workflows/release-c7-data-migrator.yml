@@ -163,4 +163,5 @@ jobs:
           mvn release:perform -B \
             -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" \
             -DlocalCheckout=${{ inputs.IS_DRY_RUN }} \
+            -Psonatype-oss-release,distro
             -Darguments='-DskipTests=true -Dskip.central.release=true -Dskip.camunda.release=false -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}"'
