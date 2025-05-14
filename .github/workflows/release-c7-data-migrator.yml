@@ -97,12 +97,12 @@ jobs:
       - name: Setup Build Tooling
         uses: ./.github/actions/setup-maven
         with:
-          maven-servers: |
-            [{
-                "id": "central",
-                "username": "${{ steps.secrets.outputs.MAVEN_CENTRAL_DEPLOYMENT_USR }}",
-                "password": "${{ steps.secrets.outputs.MAVEN_CENTRAL_DEPLOYMENT_PSW }}"
-            }]
+         # maven-servers: |
+         #   [{
+         #       "id": "central",
+         #       "username": "${{ steps.secrets.outputs.MAVEN_CENTRAL_DEPLOYMENT_USR }}",
+         #       "password": "${{ steps.secrets.outputs.MAVEN_CENTRAL_DEPLOYMENT_PSW }}"
+         #   }]
           vault-address: ${{ secrets.VAULT_ADDR }}
           vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
@@ -139,19 +139,19 @@ jobs:
           path: ${{ steps.release-artifacts.outputs.dir }}
           retention-days: 14
 
-      - name: Maven Perform Release - Maven Central
-        id: maven-perform-release-maven-central
-        env:
-          SKIP_REPO_DEPLOY: ${{ inputs.IS_DRY_RUN }}
-        run: |
-          # Perform a maven release
-          # https://maven.apache.org/maven-release/maven-release-plugin/perform-mojo.html
-          # https://maven.apache.org/maven-release/maven-release-plugin/usage/perform-release.html
-          mvn release:perform -B \
-            -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" \
-            -DlocalCheckout=${{ inputs.IS_DRY_RUN }} \
-            -Pcentral-release \
-            -Darguments='-DskipTests=true -Dskip.central.release=${SKIP_REPO_DEPLOY} -Dskip.camunda.release=true -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}"'
+      #- name: Maven Perform Release - Maven Central
+      #  id: maven-perform-release-maven-central
+      #  env:
+      #    SKIP_REPO_DEPLOY: ${{ inputs.IS_DRY_RUN }}
+      #  run: |
+      #    # Perform a maven release
+      #    # https://maven.apache.org/maven-release/maven-release-plugin/perform-mojo.html
+      #    # https://maven.apache.org/maven-release/maven-release-plugin/usage/perform-release.html
+      #    mvn release:perform -B \
+      #      -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" \
+      #      -DlocalCheckout=${{ inputs.IS_DRY_RUN }} \
+      #      -Pcentral-release \
+      #      -Darguments='-DskipTests=true -Dskip.central.release=${SKIP_REPO_DEPLOY} -Dskip.camunda.release=true -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}"'
 
       - name: Maven Perform Release - Artifactory
         id: maven-perform-release-camunda
@@ -165,4 +165,4 @@ jobs:
             -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" \
             -DlocalCheckout=${{ inputs.IS_DRY_RUN }} \
             -Psonatype-oss-release,distro
-            -Darguments='-DskipTests=true -Dskip.central.release=true -Dskip.camunda.release=false -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}"'
+            -Darguments='-DskipTests=true -Dskip.central.release=true -Dskip.camunda.release=false'
