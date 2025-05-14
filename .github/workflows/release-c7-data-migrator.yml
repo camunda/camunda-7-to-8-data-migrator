@@ -97,12 +97,12 @@ jobs:
       - name: Setup Build Tooling
         uses: ./.github/actions/setup-maven
         with:
-         # maven-servers: |
-         #   [{
-         #       "id": "central",
-         #       "username": "${{ steps.secrets.outputs.MAVEN_CENTRAL_DEPLOYMENT_USR }}",
-         #       "password": "${{ steps.secrets.outputs.MAVEN_CENTRAL_DEPLOYMENT_PSW }}"
-         #   }]
+          maven-servers: |
+            [{
+                "id": "central",
+                "username": "${{ steps.secrets.outputs.MAVEN_CENTRAL_DEPLOYMENT_USR }}",
+                "password": "${{ steps.secrets.outputs.MAVEN_CENTRAL_DEPLOYMENT_PSW }}"
+            }]
           vault-address: ${{ secrets.VAULT_ADDR }}
           vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
@@ -159,11 +159,8 @@ jobs:
         env:
           SKIP_REPO_DEPLOY: ${{ inputs.IS_DRY_RUN }}
         run: |
-          # Perform a maven release
-          # https://maven.apache.org/maven-release/maven-release-plugin/perform-mojo.html
-          # https://maven.apache.org/maven-release/maven-release-plugin/usage/perform-release.html
-          mvn release:perform -B \
+          mvn deploy -B \
             -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" \
             -DlocalCheckout=${{ inputs.IS_DRY_RUN }} \
             -Psonatype-oss-release,central-release \
-            -Darguments='-DskipTests=true -Dskip.central.release=${SKIP_REPO_DEPLOY} -Dskip.camunda.release=true -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}"'
+            -DskipTests=true -Dskip.central.release=${SKIP_REPO_DEPLOY} -Dskip.camunda.release=true
