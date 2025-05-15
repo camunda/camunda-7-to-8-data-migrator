@@ -1,13 +1,20 @@
+#camunda.client:
+# mode: self-managed
+# grpc-address: http://localhost:26500
+# rest-address: http://localhost:8088
+
 migrator:
   rdbms-exporter:
     auto-ddl: true
+  c7:
+    auto-ddl: true
   source:
-    jdbc-url: jdbc:h2:~/Downloads/c8_rdbms-source.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
+    jdbc-url: jdbc:h2:./h2/data-migrator-source.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
     username: sa
     password:
     driver-class-name: org.h2.Driver
   target:
-    jdbc-url: jdbc:h2:~/Downloads/c8_rdbms-target.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
+    jdbc-url: jdbc:h2:./h2/data-migrator-target.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
     username: sa
     password:
     driver-class-name: org.h2.Driver

@@ -62,7 +62,7 @@
 
     <dependency>
       <groupId>io.camunda</groupId>
-      <artifactId>camunda-client-java</artifactId>
+      <artifactId>spring-boot-starter-camunda-sdk</artifactId>
       <version>${version.camunda-8}</version>
     </dependency>
 
@@ -96,7 +96,35 @@
     </dependency>
 
     <!-- Test Dependencies -->
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+    </dependency>
 
+    <dependency>
+      <groupId>io.camunda</groupId>
+      <artifactId>camunda-db-rdbms-schema</artifactId>
+      <version>${version.camunda-8}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 

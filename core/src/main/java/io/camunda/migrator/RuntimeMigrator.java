@@ -52,9 +52,8 @@ public class RuntimeMigrator {
   @Autowired
   private IdKeyMapper idKeyMapper;
 
-  // TODO: make it configurable from the application.yml
-  // TODO: Spring Boot Starter that makes configuring the client reusable? https://github.com/camunda/camunda/tree/main/clients/spring-boot-starter-camunda-sdk
-  protected CamundaClient camundaClient = CamundaClient.newClientBuilder().usePlaintext().build();
+  @Autowired
+  protected CamundaClient camundaClient;
 
   protected boolean autoDeployment = true;
 
@@ -254,8 +253,8 @@ public class RuntimeMigrator {
     return result;
   }
 
-  public void setCamundaClient(CamundaClient camundaClient) {
-    this.camundaClient = camundaClient;
+  public CamundaClient getCamundaClient() {
+    return camundaClient;
   }
 
   public void setAutoDeployment(boolean autoDeployment) {
