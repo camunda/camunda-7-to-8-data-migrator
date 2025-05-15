@@ -39,15 +39,31 @@
     <nexus.sonatype.url>https://s01.oss.sonatype.org</nexus.sonatype.url>
   </properties>
 
-
-  <modules>
-    <module>core</module>
-    <module>examples</module>
-    <module>qa</module>
-    <module>distro</module>
-    <module>assembly</module>
-  </modules>
-
+  <profiles>
+    <!-- distro profile is default and builds the complete distribution. -->
+    <profile>
+      <id>distro</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <modules>
+        <module>core</module>
+        <module>examples</module>
+        <module>qa</module>
+        <module>distro</module>
+        <module>assembly</module>
+      </modules>
+    </profile>
+    <profile>
+      <!-- central-release profile to publish only core module to Maven Central. -->
+      <!-- We don't want to publish complete distribution there. -->
+      <!-- Used in release workflow. -->
+      <id>central-release</id>
+      <modules>
+        <module>core</module>
+      </modules>
+    </profile>
+  </profiles>
 
   <scm>
     <connection>scm:git:https://${env.GITHUB_TOKEN_USR}:${env.GITHUB_TOKEN_PSW}@github.com/camunda/c7-data-migrator
