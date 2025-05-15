@@ -36,7 +36,7 @@
               <goals>
                 <goal>deploy</goal>
               </goals>
-              <configuration>
+              <configuration combine.self="override">
                 <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
               </configuration>
             </execution>
