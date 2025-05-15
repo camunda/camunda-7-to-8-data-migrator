@@ -44,7 +44,7 @@
               <goals>
                 <goal>deploy</goal>
               </goals>
-              <configuration combine.self="override">
+              <configuration>
                 <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
               </configuration>
             </execution>
