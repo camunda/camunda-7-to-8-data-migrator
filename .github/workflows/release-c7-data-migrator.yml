@@ -156,12 +156,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
+          # Checkout the release tag to perform a second deployment 
           ref: ${{ env.RELEASE_VERSION }}
-          # Overriding the default GITHUB_TOKEN with a GitHub App token in order to workaround
-          # the known GitHub issue described in https://github.com/camunda/camunda/issues/28522
-          # NOTES:
-          # - This token will be used for all git operations in this job
-          # - This token expires after 1 hour (https://github.com/actions/create-github-app-token?tab=readme-ov-file#create-github-app-token)
           token: ${{ steps.github-token.outputs.token }}
 
       - name: Maven Perform Release - Maven Central
