@@ -179,7 +179,8 @@ public class RdbmsConfiguration {
         variableMapper,
         null,
         batchOperationReader,
-        jobMapper);
+        jobMapper,
+        null);
   }
 
   @Bean
@@ -220,6 +221,8 @@ public class RdbmsConfiguration {
         userTaskReader,
         formReader,
         mappingReader,
-        batchOperationReader);
+        batchOperationReader,
+        null,
+        null);
   }
 }
