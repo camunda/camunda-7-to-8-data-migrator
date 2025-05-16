@@ -9,8 +9,8 @@ package io.camunda.migrator.config;
 
 import static org.camunda.bpm.engine.ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE;
 import static org.camunda.bpm.engine.ProcessEngineConfiguration.HISTORY_AUTO;
-import static org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl.DB_SCHEMA_UPDATE_CREATE;
 
+import io.camunda.migrator.AutoDeployer;
 import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.converter.ConverterConfiguration;
@@ -43,8 +43,9 @@ import javax.sql.DataSource;
     MyBatisConfiguration.class,
     RdbmsConfiguration.class,
     ConverterConfiguration.class,
+    AutoDeployer.class,
     HistoryMigrator.class,
-    RuntimeMigrator.class,
+    RuntimeMigrator.class
 })
 @AutoConfigureAfter({
     DataSourceAutoConfiguration.class,

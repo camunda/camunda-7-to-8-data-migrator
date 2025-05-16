@@ -1,10 +1,11 @@
 #!/bin/bash
 BASEDIR=$(dirname "$0")
 CONFIGURATION="$BASEDIR/configuration/application.yml"
+DEPLOYMENT_DIR="$BASEDIR/configuration/resources"
 classPath="$BASEDIR/configuration/userlib"
 
 JAR_PATH="$BASEDIR/internal/c7-data-migrator.jar"
-COMMON_OPTS="-Dloader.path=$classPath -Dspring.config.location=file:$CONFIGURATION"
+COMMON_OPTS="-Dloader.path=$classPath -Dmigrator.deployment-dir=$DEPLOYMENT_DIR -Dspring.config.location=file:$CONFIGURATION"
 
 OPTIONS_HELP="Options:
   --runtime     - Migrate runtime data only

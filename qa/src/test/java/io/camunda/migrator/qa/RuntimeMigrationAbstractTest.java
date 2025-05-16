@@ -11,7 +11,6 @@ import io.camunda.client.CamundaClient;
 import io.camunda.client.api.response.DeploymentEvent;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
-import jakarta.annotation.PostConstruct;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.repository.Deployment;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +28,6 @@ public abstract class RuntimeMigrationAbstractTest {
 
   @Autowired
   protected CamundaClient camundaClient;
-
-  @PostConstruct
-  public void init() {
-    runtimeMigrator.setAutoDeployment(false);
-  }
 
   protected void deployCamunda7Process(String resourcePath) {
     Deployment deployment = repositoryService.createDeployment().addClasspathResource(resourcePath).deploy();
