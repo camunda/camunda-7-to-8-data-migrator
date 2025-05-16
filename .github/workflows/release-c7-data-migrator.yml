@@ -106,6 +106,7 @@ jobs:
           vault-address: ${{ secrets.VAULT_ADDR }}
           vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+          camunda-nexus: true
 
       - name: Maven Prepare Release
         id: maven-prepare-release
@@ -138,8 +139,8 @@ jobs:
           path: ${{ steps.release-artifacts.outputs.dir }}
           retention-days: 14
 
-      - name: Maven Perform Release
-        id: maven-perform-release
+      - name: Maven Perform Release - Artifactory
+        id: maven-perform-release-camunda
         env:
           SKIP_REPO_DEPLOY: ${{ inputs.IS_DRY_RUN }}
         run: |
@@ -149,4 +150,23 @@ jobs:
           mvn release:perform -B \
             -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" \
             -DlocalCheckout=${{ inputs.IS_DRY_RUN }} \
-            -Darguments='-DskipTests=true -Dskip.central.release=${SKIP_REPO_DEPLOY} -Dskip.camunda.release=${SKIP_REPO_DEPLOY} -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}"'
+            -Psonatype-oss-release,distro \
+            -Darguments='-DskipTests=true -Dskip.central.release=true -Dskip.camunda.release=${SKIP_REPO_DEPLOY}'
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          # Checkout the release tag to perform a second deployment 
+          ref: ${{ env.RELEASE_VERSION }}
+          token: ${{ steps.github-token.outputs.token }}
+
+      - name: Maven Perform Release - Maven Central
+        id: maven-perform-release-maven-central
+        env:
+          SKIP_REPO_DEPLOY: ${{ inputs.IS_DRY_RUN }}
+        run: |
+          mvn deploy -B \
+            -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" \
+            -DlocalCheckout=${{ inputs.IS_DRY_RUN }} \
+            -Psonatype-oss-release,central-release \
+            -DskipTests=true -Dskip.central.release=${SKIP_REPO_DEPLOY} -Dskip.camunda.release=true
