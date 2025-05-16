@@ -11,15 +11,11 @@ import io.camunda.client.CamundaClient;
 import io.camunda.client.api.response.DeploymentEvent;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
-import io.camunda.spring.client.properties.CamundaClientPropertiesPostProcessor;
 import jakarta.annotation.PostConstruct;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.repository.Deployment;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @CamundaSpringProcessTest
@@ -31,11 +27,11 @@ public abstract class RuntimeMigrationAbstractTest {
   @Autowired
   protected RepositoryService repositoryService;
 
+  @Autowired
   protected CamundaClient camundaClient;
 
   @PostConstruct
   public void init() {
-    camundaClient = runtimeMigrator.getCamundaClient();
     runtimeMigrator.setAutoDeployment(false);
   }
 
