@@ -7,6 +7,7 @@
  */
 package io.camunda.migrator;
 
+import io.camunda.client.CamundaClient;
 import io.camunda.client.CamundaClientConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,14 +24,14 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class CamundaClientConfigurationIT {
 
   @Autowired
-  protected RuntimeMigrator runtimeMigrator;
+  protected CamundaClient camundaClient;
 
   @Test
   public void shouldConfigureCamundaClient() {
     // given
 
     // when
-    CamundaClientConfiguration configuration = runtimeMigrator.getCamundaClient().getConfiguration();
+    CamundaClientConfiguration configuration = camundaClient.getConfiguration();
 
     // then
     assertThat(configuration.getGrpcAddress()).isEqualTo(URI.create("http://helloworld:33333"));

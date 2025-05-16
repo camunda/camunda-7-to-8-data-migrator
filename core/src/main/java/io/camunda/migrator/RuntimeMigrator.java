@@ -253,10 +253,6 @@ public class RuntimeMigrator {
     return result;
   }
 
-  public CamundaClient getCamundaClient() {
-    return camundaClient;
-  }
-
   public void setAutoDeployment(boolean autoDeployment) {
     this.autoDeployment = autoDeployment;
   }
