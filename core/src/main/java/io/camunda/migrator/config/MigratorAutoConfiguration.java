@@ -7,6 +7,10 @@
  */
 package io.camunda.migrator.config;
 
+import static org.camunda.bpm.engine.ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE;
+import static org.camunda.bpm.engine.ProcessEngineConfiguration.HISTORY_AUTO;
+import static org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl.DB_SCHEMA_UPDATE_CREATE;
+
 import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.converter.ConverterConfiguration;
@@ -16,7 +20,7 @@ import org.camunda.bpm.engine.spring.SpringProcessEngineConfiguration;
 import org.camunda.bpm.engine.spring.SpringProcessEngineServicesConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -27,6 +31,7 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -53,10 +58,17 @@ public class MigratorAutoConfiguration {
   @Configuration
   static class DataSourcesConfiguration {
 
+    protected DataSourceBuilder<?> defaultDataSource = DataSourceBuilder.create()
+        .url("jdbc:h2:mem:migrator")
+        .username("sa")
+        .password("sa")
+        .driverClassName("org.h2.Driver");
+
     @Bean
     @ConfigurationProperties("migrator.source")
+    @Primary
     public DataSource sourceDataSource() {
-      return DataSourceBuilder.create().build();
+      return defaultDataSource.build();
     }
 
     @Bean
@@ -67,7 +79,7 @@ public class MigratorAutoConfiguration {
     @Bean
     @ConfigurationProperties("migrator.target")
     public DataSource targetDataSource() {
-      return DataSourceBuilder.create().build();
+      return defaultDataSource.build();
     }
 
     @Bean
@@ -83,12 +95,17 @@ public class MigratorAutoConfiguration {
   protected PlatformTransactionManager sourceTransactionManager;
 
   @Bean
-  public ProcessEngineConfigurationImpl processEngineConfigurationImpl() {
+  public ProcessEngineConfigurationImpl processEngineConfiguration(@Value("${migrator.c7.auto-ddl:false}") final boolean autoDdl) {
     var config = new SpringProcessEngineConfiguration();
     config.setDataSource(sourceDataSource);
     config.setTransactionManager(sourceTransactionManager);
-    config.setHistory("auto");
+    config.setHistory(HISTORY_AUTO);
     config.setJobExecutorActivate(false);
+
+    if (autoDdl) {
+      config.setDatabaseSchemaUpdate(DB_SCHEMA_UPDATE_TRUE);
+    }
+
     return config;
   }
 
@@ -96,12 +113,12 @@ public class MigratorAutoConfiguration {
   static class PecConfiguration {
 
     @Autowired
-    protected ProcessEngineConfigurationImpl processEngineConfigurationImpl;
+    protected ProcessEngineConfigurationImpl processEngineConfiguration;
 
     @Bean
     public ProcessEngineFactoryBean processEngineFactoryBean() {
       final ProcessEngineFactoryBean factoryBean = new ProcessEngineFactoryBean();
-      factoryBean.setProcessEngineConfiguration(processEngineConfigurationImpl);
+      factoryBean.setProcessEngineConfiguration(processEngineConfiguration);
 
       return factoryBean;
     }

@@ -5,12 +5,16 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.config;
+package io.camunda.migrator;
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@Configuration
-@ComponentScan(basePackages = "io.camunda.migrator")
-public class TestConfig {
+@SpringBootApplication
+public class TestApp {
+
+  public static void main(String[] args) {
+    SpringApplication.run(TestApp.class, args);
+  }
+
 }

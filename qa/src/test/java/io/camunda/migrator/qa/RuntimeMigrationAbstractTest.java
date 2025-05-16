@@ -22,17 +22,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 public abstract class RuntimeMigrationAbstractTest {
 
   @Autowired
-  protected CamundaClient camundaClient;
-
-  @Autowired
   protected RuntimeMigrator runtimeMigrator;
 
   @Autowired
   protected RepositoryService repositoryService;
 
+  @Autowired
+  protected CamundaClient camundaClient;
+
   @PostConstruct
   public void init() {
-    runtimeMigrator.setCamundaClient(camundaClient);
     runtimeMigrator.setAutoDeployment(false);
   }
 
