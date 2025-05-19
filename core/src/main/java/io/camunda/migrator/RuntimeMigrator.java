@@ -106,14 +106,13 @@ public class RuntimeMigrator {
       LOGGER.info("Migrating process instance with legacyId [{}]", legacyProcessInstanceId);
       Map<String, Object> globalVariables = new HashMap<>();
 
-      LOGGER.debug("Loading legacy global process instance variables");
       runtimeService.createVariableInstanceQuery()
           .activityInstanceIdIn(legacyProcessInstanceId)
           .list()
           .forEach(variable -> globalVariables.put(variable.getName(), variable.getValue())); // Collectors#toMap cannot handle null values and throws NPE.
 
       globalVariables.put("legacyId", legacyProcessInstanceId);
-
+      LOGGER.debug("Global variables for process  instance [{}] set to [{}]", legacyProcessInstanceId, globalVariables);
       String bpmnProcessId = runtimeService.createProcessInstanceQuery()
           .processInstanceId(legacyProcessInstanceId)
           .singleResult()
@@ -128,7 +127,7 @@ public class RuntimeMigrator {
           .join()
           .getProcessInstanceKey();
 
-      LOGGER.debug("Created new process instance with key {} for legacyProcessInstanceId {}", processInstanceKey,
+      LOGGER.info("Created new process instance with key {} for legacyProcessInstanceId {}", processInstanceKey,
           legacyProcessInstanceId);
       var keyIdDbModel = new IdKeyDbModel();
       keyIdDbModel.setId(legacyProcessInstanceId);
@@ -146,6 +145,8 @@ public class RuntimeMigrator {
             .send()
             .join()
             .getJobs();
+
+        LOGGER.debug("Preparing to migrate {} jobs", migratorJobs.size());
         migratorJobs.forEach(activatedJob -> {
 
               String legacyId = (String) activatedJob.getVariable("legacyId");
