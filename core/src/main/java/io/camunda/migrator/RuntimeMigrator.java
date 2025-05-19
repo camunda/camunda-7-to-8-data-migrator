@@ -106,10 +106,15 @@ public class RuntimeMigrator {
       LOGGER.info("Migrating process instance with legacyId [{}]", legacyProcessInstanceId);
       Map<String, Object> globalVariables = new HashMap<>();
 
-      runtimeService.createVariableInstanceQuery()
-          .activityInstanceIdIn(legacyProcessInstanceId)
-          .list()
-          .forEach(variable -> globalVariables.put(variable.getName(), variable.getValue())); // Collectors#toMap cannot handle null values and throws NPE.
+      try {
+        runtimeService.createVariableInstanceQuery()
+            .activityInstanceIdIn(legacyProcessInstanceId)
+            .list()
+            .forEach(variable -> globalVariables.put(variable.getName(), variable.getValue())); // Collectors#toMap cannot handle null values and throws NPE.
+      } catch (Exception e) {
+        LOGGER.error("Error while querying legacy global variables {}", e.getMessage());
+        throw new RuntimeException(e);
+      }
 
       globalVariables.put("legacyId", legacyProcessInstanceId);
       LOGGER.debug("Global variables for process  instance [{}] set to [{}]", legacyProcessInstanceId, globalVariables);
@@ -137,14 +142,19 @@ public class RuntimeMigrator {
       LOGGER.debug("Activating jobs");
       List<ActivatedJob> migratorJobs = null;
       do {
-        migratorJobs = camundaClient.newActivateJobsCommand()
-            .jobType("migrator")
-            // TODO: review #maxJobsToActivate and #timeout
-            .maxJobsToActivate(Integer.MAX_VALUE)
-            .timeout(Duration.ofMinutes(1))
-            .send()
-            .join()
-            .getJobs();
+        try {
+          migratorJobs = camundaClient.newActivateJobsCommand()
+              .jobType("migrator")
+              // TODO: review #maxJobsToActivate and #timeout
+              .maxJobsToActivate(Integer.MAX_VALUE)
+              .timeout(Duration.ofMinutes(1))
+              .send()
+              .join()
+              .getJobs();
+        } catch (Exception e) {
+          LOGGER.error("Error while activating jobs {}", e.getMessage());
+          throw new RuntimeException(e);
+        }
 
         LOGGER.debug("Preparing to migrate {} jobs", migratorJobs.size());
         migratorJobs.forEach(activatedJob -> {
@@ -183,8 +193,14 @@ public class RuntimeMigrator {
                 modifyInstructions = modifyProcessInstance.activateElement(activityId)
                     .withVariables(localVariables, activityId);
               }
-              modifyInstructions.send().join();
-              // no need to complete the job since the modification canceled the migrator job in the start event
+
+              try {
+                modifyInstructions.send().join();
+                // no need to complete the job since the modification canceled the migrator job in the start event
+              } catch (Exception e) {
+                LOGGER.error("Error while modifying jobs {}", e.getMessage());
+                throw new RuntimeException(e);
+              }
             });
       } while (!migratorJobs.isEmpty());
       LOGGER.info("Migration completed for process instance with migrated key [{}] and legacyId [{}]",
