@@ -82,13 +82,13 @@ public class RuntimeMigrator {
     }
 
     String latestLegacyId = idKeyMapper.findLatestIdByType("runtimeProcessInstance");
-    LOGGER.debug("Latest legacy id is {}", latestLegacyId);
+    LOGGER.debug("Legacy ID of latest migrated process instance: [{}]", latestLegacyId);
     ProcessInstanceQuery processInstanceQuery = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
         .idAfter(latestLegacyId)
         .rootProcessInstances();
 
     long maxLegacyProcessInstanceCount = processInstanceQuery.count();
-    LOGGER.debug("Number of legacy process instances to migrate is {}", maxLegacyProcessInstanceCount);
+    LOGGER.debug("{} process instances are scheduled for migration", maxLegacyProcessInstanceCount);
 
     for (int i = 0; i < maxLegacyProcessInstanceCount; i = i + BATCH_SIZE - 1) {
       processInstanceQuery.listPage(i, BATCH_SIZE).forEach(legacyProcessInstance -> {
@@ -103,7 +103,7 @@ public class RuntimeMigrator {
 
     // TODO: paginate this
     idKeyMapper.findProcessInstanceIds().forEach(legacyProcessInstanceId -> {
-      LOGGER.info("Migrating Process instance with legacyId {}", legacyProcessInstanceId);
+      LOGGER.info("Migrating process instance with legacyId [{}]", legacyProcessInstanceId);
       Map<String, Object> globalVariables = new HashMap<>();
 
       LOGGER.debug("Loading legacy global process instance variables.");
@@ -186,7 +186,7 @@ public class RuntimeMigrator {
               // no need to complete the job since the modification canceled the migrator job in the start event
             });
       } while (!migratorJobs.isEmpty());
-      LOGGER.info("Migration completed for Process instance with legacyId {}, the key of the migrated process is {}",
+      LOGGER.info("Migration completed for process instance with migrated key [{}] and legacyId [{}]",
           legacyProcessInstanceId, processInstanceKey);
     });
   }
