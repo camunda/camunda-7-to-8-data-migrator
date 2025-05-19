@@ -64,7 +64,7 @@ public class RuntimeMigrator {
   public void migrate() {
     // TODO: remove deploying resources automatically: we expect them to be already deployed in C8.
     if (autoDeployment) {
-      LOGGER.debug("Starting auto deployment.");
+      LOGGER.debug("Starting auto deployment");
       // Deploy process
       var deployResource = camundaClient.newDeployResourceCommand();
 
@@ -78,7 +78,7 @@ public class RuntimeMigrator {
       if (deployResourceCommandStep2 != null) {
         deployResourceCommandStep2.send().join();
       }
-      LOGGER.debug("Completed auto deployment.");
+      LOGGER.debug("Completed auto deployment");
     }
 
     String latestLegacyId = idKeyMapper.findLatestIdByType("runtimeProcessInstance");
@@ -106,7 +106,7 @@ public class RuntimeMigrator {
       LOGGER.info("Migrating process instance with legacyId [{}]", legacyProcessInstanceId);
       Map<String, Object> globalVariables = new HashMap<>();
 
-      LOGGER.debug("Loading legacy global process instance variables.");
+      LOGGER.debug("Loading legacy global process instance variables");
       runtimeService.createVariableInstanceQuery()
           .activityInstanceIdIn(legacyProcessInstanceId)
           .list()
@@ -135,7 +135,7 @@ public class RuntimeMigrator {
       keyIdDbModel.setKey(processInstanceKey);
       idKeyMapper.updateKeyById(keyIdDbModel);
 
-      LOGGER.debug("Activating jobs.");
+      LOGGER.debug("Activating jobs");
       List<ActivatedJob> migratorJobs = null;
       do {
         migratorJobs = camundaClient.newActivateJobsCommand()
