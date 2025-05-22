@@ -18,7 +18,7 @@ import org.camunda.bpm.engine.impl.ProcessInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.persistence.entity.ActivityInstanceImpl;
 import org.camunda.bpm.engine.impl.persistence.entity.TransitionInstanceImpl;
 import org.camunda.bpm.engine.runtime.ActivityInstance;
-import org.camunda.bpm.engine.runtime.ProcessInstanceQuery;
+import org.camunda.bpm.engine.runtime.Execution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,52 +42,37 @@ public class RuntimeMigrator {
   @Autowired
   protected CamundaClient camundaClient;
 
-  public void migrate() {
-    String latestLegacyId = idKeyMapper.findLatestIdByType("runtimeProcessInstance");
-    ProcessInstanceQuery processInstanceQuery = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
-        .idAfter(latestLegacyId)
-        .rootProcessInstances();
+  protected boolean retryMode = false;
 
-    long maxLegacyProcessInstanceCount = processInstanceQuery.count();
-    for (int i = 0; i < maxLegacyProcessInstanceCount; i = i + BATCH_SIZE - 1) {
-      processInstanceQuery.listPage(i, BATCH_SIZE).forEach(legacyProcessInstance -> {
-        String legacyId = legacyProcessInstance.getId();
-        var idKeyDbModel = new IdKeyDbModel();
-        idKeyDbModel.setId(legacyId);
-        idKeyDbModel.setKey(null);
-        idKeyDbModel.setType("runtimeProcessInstance");
-        idKeyMapper.insert(idKeyDbModel);
-      });
+  private boolean validateProcessInstanceMigration(String legacyProcessInstanceId) {
+    return true; // TODO: check for multi-instance
+  }
+
+  public void migrate() {
+    List<String> processInstanceIds;
+
+    if (retryMode) {
+      processInstanceIds = idKeyMapper.findSkippedProcessInstanceIds();
+    } else {
+      String latestLegacyId = idKeyMapper.findLatestIdByType("runtimeProcessInstance"); // null key or not, we don't care, we need the latest attempted instance, not necessarily successful
+      processInstanceIds = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
+          .idAfter(latestLegacyId)
+          .rootProcessInstances()
+          .list()
+          .stream()
+          .map(Execution::getId).toList();
     }
 
     // TODO: paginate this
-    idKeyMapper.findProcessInstanceIds().forEach(legacyProcessInstanceId -> {
-      Map<String, Object> globalVariables = new HashMap<>();
+      processInstanceIds.forEach(legacyProcessInstanceId -> {
 
-      runtimeService.createVariableInstanceQuery()
-          .activityInstanceIdIn(legacyProcessInstanceId)
-          .list()
-          .forEach(variable -> globalVariables.put(variable.getName(), variable.getValue())); // Collectors#toMap cannot handle null values and throws NPE.
-
-      globalVariables.put("legacyId", legacyProcessInstanceId);
-
-      String bpmnProcessId = runtimeService.createProcessInstanceQuery()
-          .processInstanceId(legacyProcessInstanceId)
-          .singleResult()
-          .getProcessDefinitionKey();
-
-      long processInstanceKey = camundaClient.newCreateInstanceCommand()
-          .bpmnProcessId(bpmnProcessId)
-          .latestVersion()
-          .variables(globalVariables) // process instance global variables
-          .send()
-          .join()
-          .getProcessInstanceKey();
-
-      var keyIdDbModel = new IdKeyDbModel();
-      keyIdDbModel.setId(legacyProcessInstanceId);
-      keyIdDbModel.setKey(processInstanceKey);
-      idKeyMapper.updateKeyById(keyIdDbModel);
+        if(validateProcessInstanceMigration(legacyProcessInstanceId)) {
+          long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
+          insertRuntimeProcessInstanceEntity(legacyProcessInstanceId, processInstanceKey);
+        } else {
+          System.out.println("Skipping process instance id " + legacyProcessInstanceId); // TODO: proper logging
+          insertRuntimeProcessInstanceEntity(legacyProcessInstanceId, null);
+        }
 
       List<ActivatedJob> migratorJobs = null;
       do {
@@ -139,6 +124,43 @@ public class RuntimeMigrator {
     });
   }
 
+  private void insertRuntimeProcessInstanceEntity(String legacyProcessInstanceId, Long processInstanceKey) {
+    var keyIdDbModel = new IdKeyDbModel();
+    keyIdDbModel.setId(legacyProcessInstanceId);
+    keyIdDbModel.setKey(processInstanceKey);
+    keyIdDbModel.setType("runtimeProcessInstance");
+    idKeyMapper.insert(keyIdDbModel);
+  }
+
+  private long startNewProcessInstance(String legacyProcessInstanceId) {
+    Map<String, Object> globalVariables = generateGlobalVariables(legacyProcessInstanceId);
+
+    String bpmnProcessId = runtimeService.createProcessInstanceQuery()
+      .processInstanceId(legacyProcessInstanceId)
+      .singleResult()
+      .getProcessDefinitionKey();
+
+    return camundaClient.newCreateInstanceCommand()
+        .bpmnProcessId(bpmnProcessId)
+        .latestVersion()
+        .variables(globalVariables) // process instance global variables
+        .send()
+        .join()
+        .getProcessInstanceKey();
+  }
+
+  private Map<String, Object> generateGlobalVariables(String legacyProcessInstanceId) {
+    Map<String, Object> globalVariables = new HashMap<>();
+
+    runtimeService.createVariableInstanceQuery()
+        .activityInstanceIdIn(legacyProcessInstanceId)
+        .list()
+        .forEach(variable -> globalVariables.put(variable.getName(), variable.getValue())); // Collectors#toMap cannot handle null values and throws NPE.
+
+    globalVariables.put("legacyId", legacyProcessInstanceId);
+    return globalVariables;
+  }
+
   public Map<String, ActInstance> getActiveActivityIdsById(ActivityInstance activityInstance, Map<String, ActInstance> activeActivities) {
     Arrays.asList(activityInstance.getChildActivityInstances()).forEach(actInst -> {
       activeActivities.putAll(getActiveActivityIdsById(actInst, activeActivities));
@@ -165,4 +187,7 @@ public class RuntimeMigrator {
   record ActInstance(String id, String subProcessInstanceId) {
   }
 
+  public void setRetryMode(boolean retryMode) {
+    this.retryMode = retryMode;
+  }
 }
