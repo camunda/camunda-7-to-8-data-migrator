@@ -7,6 +7,7 @@
  */
 package io.camunda.migrator.app;
 
+import io.camunda.migrator.AutoDeployer;
 import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.RuntimeMigrator;
 import org.slf4j.Logger;
@@ -29,6 +30,9 @@ public class MigratorApp {
     ConfigurableApplicationContext context = SpringApplication.run(MigratorApp.class, args);
     ApplicationArguments appArgs = new DefaultApplicationArguments(args);
     try {
+      AutoDeployer autoDeployer = context.getBean(AutoDeployer.class);
+      autoDeployer.deploy();
+
       if (appArgs.containsOption(RUN_RUNTIME_MIGRATION)) {
         migrateRuntime(context);
       } else if (appArgs.containsOption(RUN_HISTORY_MIGRATION)) {

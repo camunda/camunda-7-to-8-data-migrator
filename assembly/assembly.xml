@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
 
   <id>assembly</id>
 
@@ -20,7 +20,7 @@
       <excludes>
         <exclude>io.camunda:c7-data-migrator-distro</exclude>
         <exclude>com.h2database:h2</exclude>
-      </excludes> 
+      </excludes>
     </dependencySet>
     <dependencySet>
       <outputDirectory>configuration/userlib/</outputDirectory>
@@ -30,20 +30,24 @@
     </dependencySet>
   </dependencySets>
 
-   <files>
-   <file>
-    <source>${project.parent.basedir}/CAMUNDA-LICENSE-1.0.txt</source>
-    <outputDirectory></outputDirectory>
-    <destName>LICENSE.TXT</destName>
-    <filtered>false</filtered>
-    <lineEnding>crlf</lineEnding>
-  </file>
-  <file>
-    <source>${project.build.directory}/dependency/c7-data-migrator-distro-${project.version}.jar</source>
-    <outputDirectory>internal</outputDirectory>
-    <destName>c7-data-migrator.jar</destName>
-    <fileMode>0644</fileMode>
-  </file>
+  <files>
+    <file>
+      <source>${project.parent.basedir}/CAMUNDA-LICENSE-1.0.txt</source>
+      <outputDirectory/>
+      <destName>LICENSE.TXT</destName>
+      <filtered>false</filtered>
+      <lineEnding>crlf</lineEnding>
+    </file>
+    <file>
+      <source>${project.build.directory}/dependency/c7-data-migrator-distro-${project.version}.jar</source>
+      <outputDirectory>internal</outputDirectory>
+      <destName>c7-data-migrator.jar</destName>
+      <fileMode>0644</fileMode>
+    </file>
+    <file>
+      <source/>
+      <outputDirectory>configuration/resources</outputDirectory>
+    </file>
     <file>
       <source>resources/application.yml</source>
       <outputDirectory>configuration/</outputDirectory>
@@ -51,26 +55,26 @@
     <file>
       <source>resources/start.sh</source>
       <filtered>true</filtered>
-      <outputDirectory />
+      <outputDirectory/>
       <fileMode>0755</fileMode>
     </file>
     <file>
       <source>resources/start.bat</source>
       <filtered>true</filtered>
-      <outputDirectory />
+      <outputDirectory/>
       <fileMode>0755</fileMode>
     </file>
     <file>
       <source>resources/README.txt</source>
       <filtered>true</filtered>
-      <outputDirectory></outputDirectory>
+      <outputDirectory/>
       <fileMode>0755</fileMode>
     </file>
     <file>
       <source>../NOTICE.txt</source>
       <filtered>true</filtered>
       <lineEnding>crlf</lineEnding>
-      <outputDirectory></outputDirectory>
+      <outputDirectory/>
     </file>
   </files>
 

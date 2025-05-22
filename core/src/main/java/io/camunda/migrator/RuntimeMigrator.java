@@ -22,25 +22,14 @@ import org.camunda.bpm.engine.runtime.ProcessInstanceQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.camunda.client.api.command.DeployResourceCommandStep1.DeployResourceCommandStep2;
 import static io.camunda.migrator.HistoryMigrator.BATCH_SIZE;
 
 @Component
@@ -55,26 +44,7 @@ public class RuntimeMigrator {
   @Autowired
   protected CamundaClient camundaClient;
 
-  protected boolean autoDeployment = true;
-
   public void migrate() {
-    // TODO: remove deploying resources automatically: we expect them to be already deployed in C8.
-    if (autoDeployment) {
-      // Deploy process
-      var deployResource = camundaClient.newDeployResourceCommand();
-
-      List<Path> models = findResourceFilesWithExtension("bpmn"); // TODO: forms, decisions
-
-      DeployResourceCommandStep2 deployResourceCommandStep2 = null;
-      for (Path model : models) {
-        deployResourceCommandStep2 = deployResource.addResourceFile(model.toFile().getPath());
-      }
-
-      if (deployResourceCommandStep2 != null) {
-        deployResourceCommandStep2.send().join();
-      }
-    }
-
     String latestLegacyId = idKeyMapper.findLatestIdByType("runtimeProcessInstance");
     ProcessInstanceQuery processInstanceQuery = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
         .idAfter(latestLegacyId)
@@ -214,47 +184,6 @@ public class RuntimeMigrator {
   }
 
   record ActInstance(String id, String subProcessInstanceId) {
-  }
-
-  public static List<Path> findResourceFilesWithExtension(String extension)  {
-    List<Path> result = new ArrayList<>();
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    Enumeration<URL> resources = null;
-    try {
-      resources = classLoader.getResources("");
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
-    while (resources.hasMoreElements()) {
-      URL resource = resources.nextElement();
-      if (resource.getProtocol().equals("file")) {
-        File directory = new File(URLDecoder.decode(resource.getPath(), StandardCharsets.UTF_8));
-        if (directory.isDirectory()) {
-          Path resourceFolder = Paths.get(directory.getPath(), "resources");
-          if (Files.exists(resourceFolder) && Files.isDirectory(resourceFolder)) {
-            result.addAll(findFilesInDirectory(resourceFolder.toFile(), extension));
-          }
-        }
-      }
-    }
-    return result;
-  }
-
-  public static List<Path> findFilesInDirectory(File directory, String extension) {
-    List<Path> result = new ArrayList<>();
-    try {
-      Files.walk(Paths.get(directory.toURI()))
-          .filter(path -> path.toString().endsWith("." + extension))
-          .forEach(result::add);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return result;
-  }
-
-  public void setAutoDeployment(boolean autoDeployment) {
-    this.autoDeployment = autoDeployment;
   }
 
 }
