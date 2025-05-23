@@ -28,8 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.camunda.migrator.HistoryMigrator.BATCH_SIZE;
-
 @Component
 public class RuntimeMigrator {
 
@@ -44,109 +42,73 @@ public class RuntimeMigrator {
 
   protected boolean retryMode = false;
 
-  private boolean validateProcessInstanceMigration(String legacyProcessInstanceId) {
-    return true; // TODO: check for multi-instance
-  }
-
   public void migrate() {
     List<String> processInstanceIds;
 
     if (retryMode) {
       processInstanceIds = idKeyMapper.findSkippedProcessInstanceIds();
     } else {
-      String latestLegacyId = idKeyMapper.findLatestIdByType("runtimeProcessInstance"); // null key or not, we don't care, we need the latest attempted instance, not necessarily successful
+      String latestLegacyId = idKeyMapper.findLatestIdByType("runtimeProcessInstance");
       processInstanceIds = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
           .idAfter(latestLegacyId)
           .rootProcessInstances()
+          .orderByProcessInstanceId()
+          .asc()
           .list()
           .stream()
           .map(Execution::getId).toList();
     }
 
     // TODO: paginate this
-      processInstanceIds.forEach(legacyProcessInstanceId -> {
+    processInstanceIds.forEach(legacyProcessInstanceId -> {
 
-        if(validateProcessInstanceMigration(legacyProcessInstanceId)) {
-          long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
-          insertRuntimeProcessInstanceEntity(legacyProcessInstanceId, processInstanceKey);
-        } else {
-          System.out.println("Skipping process instance id " + legacyProcessInstanceId); // TODO: proper logging
-          insertRuntimeProcessInstanceEntity(legacyProcessInstanceId, null);
-        }
-
-      List<ActivatedJob> migratorJobs = null;
-      do {
-        migratorJobs = camundaClient.newActivateJobsCommand()
-            .jobType("migrator")
-            // TODO: review #maxJobsToActivate and #timeout
-            .maxJobsToActivate(Integer.MAX_VALUE)
-            .timeout(Duration.ofMinutes(1))
-            .send()
-            .join()
-            .getJobs();
-            migratorJobs.forEach(activatedJob -> {
-
-              String legacyId = (String) activatedJob.getVariable("legacyId");
-
-              ModifyProcessInstanceCommandStep1 modifyProcessInstance = camundaClient.newModifyProcessInstanceCommand(
-                      activatedJob.getProcessInstanceKey())
-                  // Cancel start event instance where migrator job sits to avoid executing the activities twice.
-                  .terminateElement(activatedJob.getElementInstanceKey()).and();
-
-              ModifyProcessInstanceCommandStep3 modifyInstructions = null;
-              ActivityInstance activityInstanceTree = runtimeService.getActivityInstance(legacyId);
-              Map<String, ActInstance> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree,
-                  new HashMap<>());
-
-              for (String activityInstanceId : activityInstanceMap.keySet()) {
-                ActInstance actInstance = activityInstanceMap.get(activityInstanceId);
-                String activityId = actInstance.id();
-
-                Map<String, Object> localVariables = new HashMap<>();
-
-                runtimeService.createVariableInstanceQuery()
-                    .activityInstanceIdIn(activityInstanceId)
-                    .list()
-                    .forEach(variable -> localVariables.put(variable.getName(),
-                        variable.getValue())); // Collectors#toMap cannot handle null values and throws NPE.
-
-                String subProcessInstanceId = actInstance.subProcessInstanceId();
-                if (subProcessInstanceId != null) {
-                  localVariables.put("legacyId", subProcessInstanceId);
-                }
-                modifyInstructions = modifyProcessInstance.activateElement(activityId)
-                    .withVariables(localVariables, activityId);
-              }
-              modifyInstructions.send().join();
-              // no need to complete the job since the modification canceled the migrator job in the start event
-            });
-      } while (!migratorJobs.isEmpty());
+      if (validateProcessInstanceMigration(legacyProcessInstanceId)) {
+        long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
+        insertRuntimeProcessInstanceEntity(legacyProcessInstanceId, processInstanceKey);
+      } else {
+        System.out.println("Skipping process instance with legacyId " + legacyProcessInstanceId); // TODO log
+        insertRuntimeProcessInstanceEntity(legacyProcessInstanceId, null);
+      }
     });
+
+    activateMigratorJobs();
   }
 
   private void insertRuntimeProcessInstanceEntity(String legacyProcessInstanceId, Long processInstanceKey) {
-    var keyIdDbModel = new IdKeyDbModel();
-    keyIdDbModel.setId(legacyProcessInstanceId);
-    keyIdDbModel.setKey(processInstanceKey);
-    keyIdDbModel.setType("runtimeProcessInstance");
-    idKeyMapper.insert(keyIdDbModel);
+    try {
+      var keyIdDbModel = new IdKeyDbModel();
+      keyIdDbModel.setId(legacyProcessInstanceId);
+      keyIdDbModel.setKey(processInstanceKey);
+      keyIdDbModel.setType("runtimeProcessInstance");
+      idKeyMapper.insert(keyIdDbModel);
+    } catch (Exception e) {
+      System.out.println("An error occurred while inserting runtimeProcessInstance entity with id " + legacyProcessInstanceId + " in the database, the migration will halt"); // TODO log
+      throw new MigratorException("Error while inserting runtimeProcessInstance entity with id " + legacyProcessInstanceId, e);
+    }
+
   }
 
   private long startNewProcessInstance(String legacyProcessInstanceId) {
-    Map<String, Object> globalVariables = generateGlobalVariables(legacyProcessInstanceId);
+    try {
+      Map<String, Object> globalVariables = generateGlobalVariables(legacyProcessInstanceId);
 
-    String bpmnProcessId = runtimeService.createProcessInstanceQuery()
-      .processInstanceId(legacyProcessInstanceId)
-      .singleResult()
-      .getProcessDefinitionKey();
+      String bpmnProcessId = runtimeService.createProcessInstanceQuery()
+          .processInstanceId(legacyProcessInstanceId)
+          .singleResult()
+          .getProcessDefinitionKey();
 
-    return camundaClient.newCreateInstanceCommand()
-        .bpmnProcessId(bpmnProcessId)
-        .latestVersion()
-        .variables(globalVariables) // process instance global variables
-        .send()
-        .join()
-        .getProcessInstanceKey();
+      return camundaClient.newCreateInstanceCommand()
+          .bpmnProcessId(bpmnProcessId)
+          .latestVersion()
+          .variables(globalVariables)
+          .send()
+          .join()
+          .getProcessInstanceKey();
+    } catch (Exception e) {
+      System.out.println("An error occurred while starting new process instance with legacyId " + legacyProcessInstanceId + ", the migration will halt"); // TODO log
+      throw new MigratorException("Error while migrating process instance with legacyId " + legacyProcessInstanceId, e);
+    }
+
   }
 
   private Map<String, Object> generateGlobalVariables(String legacyProcessInstanceId) {
@@ -159,6 +121,60 @@ public class RuntimeMigrator {
 
     globalVariables.put("legacyId", legacyProcessInstanceId);
     return globalVariables;
+  }
+
+  private boolean validateProcessInstanceMigration(String legacyProcessInstanceId) {
+    return true; // TODO: check for multi-instance
+  }
+
+  private void activateMigratorJobs() {
+    List<ActivatedJob> migratorJobs;
+    do {
+      migratorJobs = camundaClient.newActivateJobsCommand()
+          .jobType("migrator")
+          // TODO: review #maxJobsToActivate and #timeout
+          .maxJobsToActivate(Integer.MAX_VALUE)
+          .timeout(Duration.ofMinutes(1))
+          .send()
+          .join()
+          .getJobs();
+      migratorJobs.forEach(activatedJob -> {
+
+        String legacyId = (String) activatedJob.getVariable("legacyId");
+
+        ModifyProcessInstanceCommandStep1 modifyProcessInstance = camundaClient.newModifyProcessInstanceCommand(
+                activatedJob.getProcessInstanceKey())
+            // Cancel start event instance where migrator job sits to avoid executing the activities twice.
+            .terminateElement(activatedJob.getElementInstanceKey()).and();
+
+        ModifyProcessInstanceCommandStep3 modifyInstructions = null;
+        ActivityInstance activityInstanceTree = runtimeService.getActivityInstance(legacyId);
+        Map<String, ActInstance> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree,
+            new HashMap<>());
+
+        for (String activityInstanceId : activityInstanceMap.keySet()) {
+          ActInstance actInstance = activityInstanceMap.get(activityInstanceId);
+          String activityId = actInstance.id();
+
+          Map<String, Object> localVariables = new HashMap<>();
+
+          runtimeService.createVariableInstanceQuery()
+              .activityInstanceIdIn(activityInstanceId)
+              .list()
+              .forEach(variable -> localVariables.put(variable.getName(),
+                  variable.getValue())); // Collectors#toMap cannot handle null values and throws NPE.
+
+          String subProcessInstanceId = actInstance.subProcessInstanceId();
+          if (subProcessInstanceId != null) {
+            localVariables.put("legacyId", subProcessInstanceId);
+          }
+          modifyInstructions = modifyProcessInstance.activateElement(activityId)
+              .withVariables(localVariables, activityId);
+        }
+        modifyInstructions.send().join();
+        // no need to complete the job since the modification canceled the migrator job in the start event
+      });
+    } while (!migratorJobs.isEmpty());
   }
 
   public Map<String, ActInstance> getActiveActivityIdsById(ActivityInstance activityInstance, Map<String, ActInstance> activeActivities) {
