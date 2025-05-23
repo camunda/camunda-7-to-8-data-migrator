@@ -27,8 +27,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static io.camunda.migrator.HistoryMigrator.BATCH_SIZE;
 
@@ -115,12 +113,9 @@ public class RuntimeMigrator {
               Map<String, ActInstance> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree,
                   new HashMap<>());
 
-              // TODO: remove experiment. We won't support multi-instance at all it in the MVP.
-              removeMultiInstances(activityInstanceMap);
-
               for (String activityInstanceId : activityInstanceMap.keySet()) {
                 ActInstance actInstance = activityInstanceMap.get(activityInstanceId);
-                String activityId = actInstance.id().split("#multiInstanceBody")[0];
+                String activityId = actInstance.id();
 
                 Map<String, Object> localVariables = new HashMap<>();
 
@@ -142,22 +137,6 @@ public class RuntimeMigrator {
             });
       } while (!migratorJobs.isEmpty());
     });
-  }
-
-  /**
-   * This removes multi-instances from the active activity instance map and only keeps the #multiInstanceBody activity.
-   * Like this, the C8 process model takes care of instantiating X instances.
-   * TODO: how would this work for multi-instance call activities?
-   */
-  protected void removeMultiInstances(Map<String, ActInstance> activityInstanceMap) {
-    Set<String> multiInstanceBodies = activityInstanceMap.values()
-        .stream()
-        .map(ActInstance::id)
-        .filter(activityId -> activityId.endsWith("#multiInstanceBody"))
-        .map(activityId -> activityId.substring(0, activityId.length() - "#multiInstanceBody".length()))
-        .collect(Collectors.toSet());
-
-    activityInstanceMap.entrySet().removeIf(entry -> multiInstanceBodies.contains(entry.getValue().id()));
   }
 
   public Map<String, ActInstance> getActiveActivityIdsById(ActivityInstance activityInstance, Map<String, ActInstance> activeActivities) {
