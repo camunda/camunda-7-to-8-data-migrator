@@ -1,0 +1,76 @@
+/*
+ * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH under
+ * one or more contributor license agreements. See the NOTICE file distributed
+ * with this work for additional information regarding copyright ownership.
+ * Licensed under the Camunda License 1.0. You may not use this file
+ * except in compliance with the Camunda License 1.0.
+ */
+
+package io.camunda.migrator.qa;
+
+import static io.camunda.migrator.qa.MigrationTestConstants.LEGACY_ID_VAR_NAME;
+import static io.camunda.process.test.api.CamundaAssert.assertThat;
+import static io.camunda.process.test.api.assertions.ElementSelectors.byId;
+import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
+
+import java.util.stream.Stream;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public abstract class AbstractElementMigrationTest extends RuntimeMigrationAbstractTest {
+
+  @MethodSource("elementScenarios_activeElementPostMigration")
+  @ParameterizedTest
+  public void migrateSimpleElementScenarios_expectActiveElement(final String processFile,
+                                                                final String processId,
+                                                                final String elementId) {
+    // given
+    deployProcessInC7AndC8(processFile);
+    ProcessInstance instance = runtimeService.startProcessInstanceByKey(processId);
+
+    // when
+    runtimeMigrator.migrate();
+
+    // then
+    assertThat(byProcessId(processId)).isActive()
+        .hasActiveElements(byId(elementId))
+        .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
+  }
+
+  @MethodSource("elementScenarios_completedElementPostMigration")
+  @ParameterizedTest
+  public void migrateSimpleElementScenarios_expectCompletedElement(final String processFile,
+                                                                   final String processId,
+                                                                   final String elementId) {
+    // given
+    deployProcessInC7AndC8(processFile);
+    ProcessInstance instance = runtimeService.startProcessInstanceByKey(processId);
+
+    // when
+    runtimeMigrator.migrate();
+
+    // then
+    assertThat(byProcessId(processId)).hasCompletedElement(elementId, 1)
+        .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
+  }
+
+  /**
+   * Test cases for elements with a natural wait state in C7 and C8.
+   * Post migration we expect an active process instance in the same element.
+   *
+   * @return Stream of 3 String arguments: processFile, processId, elementId
+   */
+  protected abstract Stream<Arguments> elementScenarios_activeElementPostMigration();
+
+  /**
+   * Test cases for elements with an async wait state in C7 and/or no natural wait state in C8.
+   * Post migration we expect the process instance to have completed the element.
+   *
+   * @return Stream of 3 String arguments: processFile, processId, elementId
+   */
+  protected abstract Stream<Arguments> elementScenarios_completedElementPostMigration();
+}

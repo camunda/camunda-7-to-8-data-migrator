@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:conversion="http://camunda.org/schema/conversion/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1vtbrm7" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.24.0" conversion:converterVersion="0.12.4" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <bpmn:process id="receiveTaskProcessId" name="ReceiveTaskProcess" processType="None" isClosed="false" isExecutable="true">
+    <bpmn:extensionElements>
+      <conversion:message severity="INFO">Unused attribute 'historyTimeToLive' on 'process' is removed.</conversion:message>
+    </bpmn:extensionElements>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:extensionElements>
+        <zeebe:executionListeners>
+          <zeebe:executionListener eventType="end" type="migrator" />
+        </zeebe:executionListeners>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_0qdmebf</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_0qdmebf" sourceRef="StartEvent_1" targetRef="receiveTaskId" />
+    <bpmn:endEvent id="Event_0ht1z4d">
+      <bpmn:incoming>Flow_028h01d</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_028h01d" sourceRef="receiveTaskId" targetRef="Event_0ht1z4d" />
+    <bpmn:receiveTask id="receiveTaskId" name="ReceiveTaskName" implementation="##WebService" messageRef="Message_0jeqqv0">
+      <bpmn:extensionElements>
+        <conversion:reference>Message_0jeqqv0</conversion:reference>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0qdmebf</bpmn:incoming>
+      <bpmn:outgoing>Flow_028h01d</bpmn:outgoing>
+    </bpmn:receiveTask>
+  </bpmn:process>
+  <bpmn:message id="Message_0jeqqv0" name="messageRef">
+    <bpmn:extensionElements>
+      <conversion:message severity="TASK">Please define a correlation key if the message is used in a message catch event.</conversion:message>
+      <conversion:referencedBy>receiveTaskId</conversion:referencedBy>
+      <zeebe:subscription correlationKey="=correlationKey = &#34;aKey&#34;" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="receiveTaskProcessId">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0ht1z4d_di" bpmnElement="Event_0ht1z4d">
+        <dc:Bounds x="432" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_07rndu7_di" bpmnElement="receiveTaskId">
+        <dc:Bounds x="270" y="77" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0qdmebf_di" bpmnElement="Flow_0qdmebf">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="270" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_028h01d_di" bpmnElement="Flow_028h01d">
+        <di:waypoint x="370" y="117" />
+        <di:waypoint x="432" y="117" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
