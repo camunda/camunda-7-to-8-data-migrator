@@ -92,8 +92,8 @@ public class RuntimeMigrator {
     try {
       idKeyMapper.insert(keyIdDbModel);
     } catch (PersistenceException e) {
-      System.out.println("An error occurred while inserting runtimeProcessInstance entity with id " + legacyProcessInstanceId + " in the database, the migration will halt"); // TODO log
-      throw new MigratorException("Error while inserting runtimeProcessInstance entity with id " + legacyProcessInstanceId, e);
+      System.out.println("An error occurred while inserting runtimeProcessInstance entity with activityId " + legacyProcessInstanceId + " in the database, the migration will halt"); // TODO log
+      throw new MigratorException("Error while inserting runtimeProcessInstance entity with activityId " + legacyProcessInstanceId, e);
     }
   }
 
@@ -155,7 +155,7 @@ public class RuntimeMigrator {
 
         for (String activityInstanceId : activityInstanceMap.keySet()) {
           ActInstance actInstance = activityInstanceMap.get(activityInstanceId);
-          String activityId = actInstance.id();
+          String activityId = actInstance.activityId();
 
           Map<String, Object> localVariables = new HashMap<>();
 
@@ -201,7 +201,7 @@ public class RuntimeMigrator {
     return activeActivities;
   }
 
-  record ActInstance(String id, String subProcessInstanceId) {
+  record ActInstance(String activityId, String subProcessInstanceId) {
   }
 
   public void setRetryMode(boolean retryMode) {

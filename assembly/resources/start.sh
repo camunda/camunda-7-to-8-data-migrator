@@ -8,7 +8,7 @@ JAR_PATH="$BASEDIR/internal/c7-data-migrator.jar"
 COMMON_OPTS="-Dloader.path=$classPath -Dmigrator.deployment-dir=$DEPLOYMENT_DIR -Dspring.config.location=file:$CONFIGURATION"
 
 print_usage() {
-  echo "Usage: run.sh [--runtime] [--history] [--retry]"
+  echo "Usage: start.sh [--runtime] [--history] [--retry]"
   echo "Options:"
   echo "  --runtime     - Migrate runtime data only"
   echo "  --history     - Migrate history data only"
@@ -34,8 +34,8 @@ for arg in "$@"; do
 done
 
 if [[ $# -eq 0 ]]; then
-  echo "Starting application without migration flag"
-  java $COMMON_OPTS -jar "$JAR_PATH" --runtime --history
+  echo "Starting application without migration flags"
+  java $COMMON_OPTS -jar "$JAR_PATH"
 else
   echo "Starting migration with flags: $*"
   java $COMMON_OPTS -jar "$JAR_PATH" "$@"
