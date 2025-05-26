@@ -18,7 +18,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 @SpringBootTest
-class AutoDeploymentIT extends RuntimeMigrationAbstractTest {
+class AutoDeploymentTest extends RuntimeMigrationAbstractTest {
 
   @DynamicPropertySource
   static void registerProperties(DynamicPropertyRegistry registry) {

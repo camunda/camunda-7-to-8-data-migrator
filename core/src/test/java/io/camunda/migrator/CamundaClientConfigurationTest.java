@@ -21,7 +21,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
     "camunda.client.grpc-address=http://helloworld:33333",
     "camunda.client.rest-address=http://helloworld:44444"
 })
-public class CamundaClientConfigurationIT {
+public class CamundaClientConfigurationTest {
 
   @Autowired
   protected CamundaClient camundaClient;
