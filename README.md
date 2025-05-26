@@ -3,14 +3,24 @@
 ### How to use the Migrator
 
 1. Prerequisites: Use Java 21
+2. Consider whether any of the [migration limitations](#migration-limitations) apply to your current C7 models and apply any changes necessary.
 1. Stop C7 process execution. I.e., shut down your engines.
+2. Migrate your models 
+   1. Can use https://migration-analyzer.consulting-sandbox.camunda.cloud/ to migrate your C7 models.
+   2. If required, make any manual adjustments required in the C8 models. Note the migrator tool will leave hints in your diagram.
+   3. Add "migrator" End Execution listener of the start event of each C8 model. Example: [link](./qa/src/test/resources/io/camunda/migrator/bpmn/c8/simpleProcess.bpmn).
 1. Start C8.
 1. Deploy migrated C8 process models.
-   1. Can use https://migration-analyzer.consulting-sandbox.camunda.cloud/ to migrate your C7 models.
-   1. Add "migrator" End Execution listener of the start event of each C8 model. Example: [link](./qa/src/test/resources/io/camunda/migrator/bpmn/c8/simpleProcess.bpmn). 
 1. Build or download the distribution.
 1. Start Migrator (start.sh/start.bat) and wait to finish.
 1. Navigate to Operate and check result.
+
+#### Migration Limitations
+- Message events:
+  - only message catch events are supported for migration
+  - depending on your implementation, you may need to add a correlation variable to the instance pre migration
+- Boundary events:
+  - currently not supported
 
 ## Development Setup
 1. Prerequisites: Use Java 21
