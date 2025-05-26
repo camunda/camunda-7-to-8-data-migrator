@@ -8,11 +8,14 @@
 package io.camunda.migrator;
 
 import io.camunda.client.CamundaClient;
+import io.camunda.client.api.command.ClientException;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.migrator.history.IdKeyDbModel;
 import io.camunda.migrator.history.IdKeyMapper;
+import org.apache.ibatis.exceptions.PersistenceException;
+import org.camunda.bpm.engine.ProcessEngineException;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.impl.ProcessInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.persistence.entity.ActivityInstanceImpl;
@@ -43,25 +46,9 @@ public class RuntimeMigrator {
   protected boolean retryMode = false;
 
   public void migrate() {
-    List<String> processInstanceIds;
+    List<String> processInstanceIds = fetchProcessInstancesToMigrate();
 
-    if (retryMode) {
-      processInstanceIds = idKeyMapper.findSkippedProcessInstanceIds();
-    } else {
-      String latestLegacyId = idKeyMapper.findLatestIdByType("runtimeProcessInstance");
-      processInstanceIds = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
-          .idAfter(latestLegacyId)
-          .rootProcessInstances()
-          .orderByProcessInstanceId()
-          .asc()
-          .list()
-          .stream()
-          .map(Execution::getId).toList();
-    }
-
-    // TODO: paginate this
     processInstanceIds.forEach(legacyProcessInstanceId -> {
-
       if (validateProcessInstanceMigration(legacyProcessInstanceId)) {
         long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
         insertRuntimeProcessInstanceEntity(legacyProcessInstanceId, processInstanceKey);
@@ -74,29 +61,46 @@ public class RuntimeMigrator {
     activateMigratorJobs();
   }
 
-  private void insertRuntimeProcessInstanceEntity(String legacyProcessInstanceId, Long processInstanceKey) {
+  private List<String> fetchProcessInstancesToMigrate() {
+    List<String> processInstanceIds;
     try {
-      var keyIdDbModel = new IdKeyDbModel();
-      keyIdDbModel.setId(legacyProcessInstanceId);
-      keyIdDbModel.setKey(processInstanceKey);
-      keyIdDbModel.setType("runtimeProcessInstance");
+      if (retryMode) {
+        processInstanceIds = idKeyMapper.findSkippedProcessInstanceIds();
+      } else {
+        String latestLegacyId = idKeyMapper.findLatestIdByType("runtimeProcessInstance");
+        processInstanceIds = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
+            .idAfter(latestLegacyId)
+            .rootProcessInstances()
+            .orderByProcessInstanceId()
+            .asc()
+            .list()
+            .stream()
+            .map(Execution::getId).toList();
+      }
+    } catch(PersistenceException | ProcessEngineException e) {
+      System.out.println("An error occurred while fetching instances to migrate, the migration will halt"); // TODO log
+      throw new MigratorException("Error while fetching instances to migrate", e);
+    }
+    return processInstanceIds;
+  }
+
+  private void insertRuntimeProcessInstanceEntity(String legacyProcessInstanceId, Long processInstanceKey) {
+    var keyIdDbModel = new IdKeyDbModel();
+    keyIdDbModel.setId(legacyProcessInstanceId);
+    keyIdDbModel.setKey(processInstanceKey);
+    keyIdDbModel.setType("runtimeProcessInstance");
+    try {
       idKeyMapper.insert(keyIdDbModel);
-    } catch (Exception e) {
+    } catch (PersistenceException e) {
       System.out.println("An error occurred while inserting runtimeProcessInstance entity with id " + legacyProcessInstanceId + " in the database, the migration will halt"); // TODO log
       throw new MigratorException("Error while inserting runtimeProcessInstance entity with id " + legacyProcessInstanceId, e);
     }
-
   }
 
   private long startNewProcessInstance(String legacyProcessInstanceId) {
     try {
       Map<String, Object> globalVariables = generateGlobalVariables(legacyProcessInstanceId);
-
-      String bpmnProcessId = runtimeService.createProcessInstanceQuery()
-          .processInstanceId(legacyProcessInstanceId)
-          .singleResult()
-          .getProcessDefinitionKey();
-
+      String bpmnProcessId = runtimeService.createProcessInstanceQuery().processInstanceId(legacyProcessInstanceId).singleResult().getProcessDefinitionKey();
       return camundaClient.newCreateInstanceCommand()
           .bpmnProcessId(bpmnProcessId)
           .latestVersion()
@@ -104,21 +108,18 @@ public class RuntimeMigrator {
           .send()
           .join()
           .getProcessInstanceKey();
-    } catch (Exception e) {
+    } catch (ProcessEngineException | ClientException e) {
       System.out.println("An error occurred while starting new process instance with legacyId " + legacyProcessInstanceId + ", the migration will halt"); // TODO log
       throw new MigratorException("Error while migrating process instance with legacyId " + legacyProcessInstanceId, e);
     }
-
   }
 
   private Map<String, Object> generateGlobalVariables(String legacyProcessInstanceId) {
     Map<String, Object> globalVariables = new HashMap<>();
-
     runtimeService.createVariableInstanceQuery()
         .activityInstanceIdIn(legacyProcessInstanceId)
         .list()
         .forEach(variable -> globalVariables.put(variable.getName(), variable.getValue())); // Collectors#toMap cannot handle null values and throws NPE.
-
     globalVariables.put("legacyId", legacyProcessInstanceId);
     return globalVariables;
   }
