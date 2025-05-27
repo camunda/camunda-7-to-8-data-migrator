@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.camunda.client.CamundaClient;
-import io.camunda.client.api.command.DeployResourceCommandStep1.DeployResourceCommandStep2;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3;
 import io.camunda.client.api.response.ActivatedJob;
@@ -71,7 +70,6 @@ public class RuntimeMigrator {
     this.maxProcessInstance = maxProcessInstance;
   }
 
->>>>>>> 7c75d83 (chore(core): loop over 500 migrator jobs by default)
   public void migrate() {
     String latestLegacyId = idKeyMapper.findLatestIdByType("runtimeProcessInstance");
     ProcessInstanceQuery processInstanceQuery = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
@@ -152,9 +150,6 @@ public class RuntimeMigrator {
       ModifyProcessInstanceCommandStep3 modifyInstructions = null;
       ActivityInstance activityInstanceTree = runtimeService.getActivityInstance(legacyId);
       Map<String, ActInstance> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
-
-      // TODO: remove experiment. We won't support multi-instance at all it in the MVP.
-      removeMultiInstances(activityInstanceMap);
 
     for (String activityInstanceId : activityInstanceMap.keySet()) {
       ActInstance actInstance = activityInstanceMap.get(activityInstanceId);
