@@ -13,6 +13,13 @@
     SELECT ID FROM ${prefix}MIGRATION_MAPPING WHERE TYPE = 'runtimeProcessInstance' AND `KEY` IS NULL
   </select>
 
+  <select id="findAllProcessInstanceIds">
+    SELECT ID
+    FROM ${prefix}MIGRATION_MAPPING
+    WHERE TYPE = 'runtimeProcessInstance'
+    ORDER BY ID
+  </select>
+
   <update id="updateKeyById" parameterType="io.camunda.migrator.history.IdKeyDbModel">
     UPDATE ${prefix}MIGRATION_MAPPING
     SET `KEY` = #{key, jdbcType=BIGINT}
@@ -34,5 +41,10 @@
     INSERT INTO ${prefix}MIGRATION_MAPPING (ID, `KEY`, TYPE)
     VALUES (#{id, jdbcType=VARCHAR}, #{key, jdbcType=BIGINT}, #{type, jdbcType=VARCHAR})
   </insert>
+
+  <delete id="delete">
+    DELETE FROM ${prefix}MIGRATION_MAPPING
+    WHERE ID = '${id}'
+  </delete>
 
 </mapper>

@@ -19,6 +19,10 @@ public interface IdKeyMapper {
 
   List<String> findProcessInstanceIds();
 
+  List<String> findAllProcessInstanceIds();
+
   void updateKeyById(IdKeyDbModel idKeyDbModel);
+
+  void delete(String id);
 
 }
