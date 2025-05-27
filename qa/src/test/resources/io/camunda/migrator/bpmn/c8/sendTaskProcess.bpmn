@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:conversion="http://camunda.org/schema/conversion/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" conversion:converterVersion="0.12.4" exporter="Camunda Modeler" exporterVersion="5.24.0" expressionLanguage="http://www.w3.org/1999/XPath" id="Definitions_1msvyx4" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0" targetNamespace="http://bpmn.io/schema/bpmn" typeLanguage="http://www.w3.org/2001/XMLSchema">
+  <bpmn:process id="sendTaskProcessId" isClosed="false" isExecutable="true" name="SendTaskProcess" processType="None">
+    <bpmn:extensionElements>
+      <conversion:message severity="INFO">Unused attribute 'historyTimeToLive' on 'process' is removed.</conversion:message>
+    </bpmn:extensionElements>
+    <bpmn:startEvent id="StartEvent_1" isInterrupting="true" parallelMultiple="false">
+      <bpmn:extensionElements>
+        <zeebe:executionListeners>
+          <zeebe:executionListener eventType="end" type="migrator" />
+        </zeebe:executionListeners>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_1j5vq16</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1j5vq16" sourceRef="StartEvent_1" targetRef="sendTaskId"/>
+    <bpmn:endEvent id="Event_1a5lhhi">
+      <bpmn:incoming>Flow_1xer10b</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1xer10b" sourceRef="sendTaskId" targetRef="Event_1a5lhhi"/>
+    <bpmn:sendTask completionQuantity="1" id="sendTaskId" implementation="##WebService" isForCompensation="false" name="SendTaskName" startQuantity="1">
+      <bpmn:extensionElements>
+        <conversion:message severity="REVIEW">Attribute 'topic' on 'sendTask' was mapped. Is set as job type.</conversion:message>
+        <conversion:message severity="INFO">Unused attribute 'type' on 'sendTask' is removed.</conversion:message>
+        <zeebe:taskDefinition type="&quot;aTopic&quot;"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1j5vq16</bpmn:incoming>
+      <bpmn:outgoing>Flow_1xer10b</bpmn:outgoing>
+    </bpmn:sendTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane bpmnElement="sendTaskProcessId" id="BPMNPlane_1">
+      <bpmndi:BPMNShape bpmnElement="StartEvent_1" id="_BPMNShape_StartEvent_2">
+        <dc:Bounds height="36" width="36" x="179" y="99"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="Event_1a5lhhi" id="Event_1a5lhhi_di">
+        <dc:Bounds height="36" width="36" x="432" y="99"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sendTaskId" id="Activity_0ykhmo6_di">
+        <dc:Bounds height="80" width="100" x="270" y="77"/>
+        <bpmndi:BPMNLabel/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="Flow_1j5vq16" id="Flow_1j5vq16_di">
+        <di:waypoint x="215" y="117"/>
+        <di:waypoint x="270" y="117"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="Flow_1xer10b" id="Flow_1xer10b_di">
+        <di:waypoint x="370" y="117"/>
+        <di:waypoint x="432" y="117"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:conversion="http://camunda.org/schema/conversion/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" conversion:converterVersion="0.12.4" exporter="Camunda Modeler" exporterVersion="5.24.0" expressionLanguage="http://www.w3.org/1999/XPath" id="Definitions_1a10piy" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0" targetNamespace="http://bpmn.io/schema/bpmn" typeLanguage="http://www.w3.org/2001/XMLSchema">
+  <bpmn:process id="userTaskProcessId" isClosed="false" isExecutable="true" name="UserTaskProcess" processType="None">
+    <bpmn:extensionElements>
+      <conversion:message severity="INFO">Unused attribute 'historyTimeToLive' on 'process' is removed.</conversion:message>
+    </bpmn:extensionElements>
+    <bpmn:startEvent id="StartEvent_1" isInterrupting="true" name="Start" parallelMultiple="false">
+      <bpmn:extensionElements>
+        <zeebe:executionListeners>
+          <zeebe:executionListener eventType="end" type="migrator" />
+        </zeebe:executionListeners>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_0xg7od7</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_0xg7od7" sourceRef="StartEvent_1" targetRef="userTaskId"/>
+    <bpmn:endEvent id="Event_0togu4y" name="End">
+      <bpmn:incoming>Flow_1ur86ut</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1ur86ut" sourceRef="userTaskId" targetRef="Event_0togu4y"/>
+    <bpmn:userTask completionQuantity="1" id="userTaskId" implementation="##unspecified" isForCompensation="false" name="UserTaskName" startQuantity="1">
+      <bpmn:extensionElements>
+        <zeebe:userTask/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0xg7od7</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ur86ut</bpmn:outgoing>
+    </bpmn:userTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane bpmnElement="userTaskProcessId" id="BPMNPlane_1">
+      <bpmndi:BPMNShape bpmnElement="StartEvent_1" id="_BPMNShape_StartEvent_2">
+        <dc:Bounds height="36" width="36" x="179" y="99"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="14" width="24" x="186" y="142"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="Event_0togu4y" id="Event_0togu4y_di">
+        <dc:Bounds height="36" width="36" x="432" y="99"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="14" width="20" x="440" y="142"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="userTaskId" id="Activity_0yurv1b_di">
+        <dc:Bounds height="80" width="100" x="270" y="77"/>
+        <bpmndi:BPMNLabel/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="Flow_0xg7od7" id="Flow_0xg7od7_di">
+        <di:waypoint x="215" y="117"/>
+        <di:waypoint x="270" y="117"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="Flow_1ur86ut" id="Flow_1ur86ut_di">
+        <di:waypoint x="370" y="117"/>
+        <di:waypoint x="432" y="117"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
