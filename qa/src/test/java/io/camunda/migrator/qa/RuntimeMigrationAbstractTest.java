@@ -13,11 +13,8 @@ import io.camunda.client.api.search.response.ProcessInstance;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.history.IdKeyMapper;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
-<<<<<<< HEAD
 import jakarta.annotation.PostConstruct;
 
-=======
->>>>>>> 005f6c8 (chore(core): loop over 500 migrator jobs by default)
 import java.util.List;
 
 import org.camunda.bpm.engine.RepositoryService;
