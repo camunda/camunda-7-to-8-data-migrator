@@ -41,12 +41,7 @@ public class TaskMigrationTest extends AbstractElementMigrationTest {
   protected Stream<Arguments> elementScenarios_activeElementPostMigration() {
     return Stream.of(Arguments.of("sendTaskProcess.bpmn", "sendTaskProcessId", "sendTaskId"),
         Arguments.of("receiveTaskProcess.bpmn", "receiveTaskProcessId", "receiveTaskId"),
-        Arguments.of("userTaskProcess.bpmn", "userTaskProcessId", "userTaskId"));
+        Arguments.of("userTaskProcess.bpmn", "userTaskProcessId", "userTaskId"),
+        Arguments.of("serviceTaskProcess.bpmn", "serviceTaskProcessId", "serviceTaskId"));
   }
-
-  @Override
-  protected Stream<Arguments> elementScenarios_completedElementPostMigration() {
-    return Stream.of(Arguments.of("manualTaskProcess.bpmn", "manualTaskProcessId", "manualTaskId"));
-  }
-
 }

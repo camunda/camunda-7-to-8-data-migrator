@@ -16,6 +16,7 @@ import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.by
 import java.util.stream.Stream;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -23,6 +24,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractElementMigrationTest extends RuntimeMigrationAbstractTest {
 
+  @EnabledIf("hasScenarios_activeElementPostMigration")
   @MethodSource("elementScenarios_activeElementPostMigration")
   @ParameterizedTest
   public void migrateSimpleElementScenarios_expectActiveElement(final String processFile,
@@ -41,6 +43,7 @@ public abstract class AbstractElementMigrationTest extends RuntimeMigrationAbstr
         .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
   }
 
+  @EnabledIf("hasScenarios_completedElementPostMigration")
   @MethodSource("elementScenarios_completedElementPostMigration")
   @ParameterizedTest
   public void migrateSimpleElementScenarios_expectCompletedElement(final String processFile,
@@ -64,13 +67,25 @@ public abstract class AbstractElementMigrationTest extends RuntimeMigrationAbstr
    *
    * @return Stream of 3 String arguments: processFile, processId, elementId
    */
-  protected abstract Stream<Arguments> elementScenarios_activeElementPostMigration();
+  protected Stream<Arguments> elementScenarios_activeElementPostMigration() {
+    return Stream.empty();
+  }
 
   /**
-   * Test cases for elements with an async wait state in C7 and/or no natural wait state in C8.
+   * Test cases for elements with a wait state in C7 but no wait state in C8.
    * Post migration we expect the process instance to have completed the element.
    *
    * @return Stream of 3 String arguments: processFile, processId, elementId
    */
-  protected abstract Stream<Arguments> elementScenarios_completedElementPostMigration();
+  protected Stream<Arguments> elementScenarios_completedElementPostMigration() {
+    return Stream.empty();
+  }
+
+  private boolean hasScenarios_activeElementPostMigration(){
+    return elementScenarios_activeElementPostMigration().findAny().isPresent();
+  }
+
+  private boolean hasScenarios_completedElementPostMigration(){
+    return elementScenarios_completedElementPostMigration().findAny().isPresent();
+  }
 }
