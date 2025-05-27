@@ -43,6 +43,7 @@ public class RuntimeMigrator {
   protected int maxJobsToActivate = DEFAULT_MAX_JOB_COUNT;
   protected int maxProcessInstance = DEFAULT_MAX_PROCESS_INSTANCE;
   protected final Duration migratorJobsTimeout = Duration.ofMinutes(1);
+
   @Autowired
   protected RuntimeService runtimeService;
 
@@ -52,7 +53,6 @@ public class RuntimeMigrator {
   @Autowired
   protected CamundaClient camundaClient;
 
-  protected boolean autoDeployment = true;
 
   public int getMaxJobsToActivate() {
     return maxJobsToActivate;
