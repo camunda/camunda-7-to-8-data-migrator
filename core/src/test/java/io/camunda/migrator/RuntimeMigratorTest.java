@@ -115,6 +115,11 @@ class RuntimeMigratorTest {
     when(runtimeService.createVariableInstanceQuery()).thenReturn(variableInstanceQuery);
     when(variableInstanceQuery.activityInstanceIdIn(anyString())).thenReturn(variableInstanceQuery);
     when(variableInstanceQuery.list()).thenReturn(Collections.emptyList());
+
+    // Mock call to avoid validation
+    ProcessInstanceQueryImpl mockQuery = mock(ProcessInstanceQueryImpl.class);
+    when(mockQuery.list()).thenReturn(Collections.emptyList());
+    when(processInstanceQuery.rootProcessInstanceId(anyString())).thenReturn(mockQuery);
   }
 
 }

@@ -16,12 +16,18 @@ import io.camunda.migrator.history.IdKeyDbModel;
 import io.camunda.migrator.history.IdKeyMapper;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.camunda.bpm.engine.ProcessEngineException;
+import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.impl.ProcessInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.persistence.entity.ActivityInstanceImpl;
 import org.camunda.bpm.engine.impl.persistence.entity.TransitionInstanceImpl;
 import org.camunda.bpm.engine.runtime.ActivityInstance;
 import org.camunda.bpm.engine.runtime.Execution;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.camunda.bpm.model.bpmn.BpmnModelInstance;
+import org.camunda.bpm.model.bpmn.instance.Activity;
+import org.camunda.bpm.model.bpmn.instance.FlowElement;
+import org.camunda.bpm.model.bpmn.instance.MultiInstanceLoopCharacteristics;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +42,9 @@ public class RuntimeMigrator {
 
   @Autowired
   protected RuntimeService runtimeService;
+
+  @Autowired
+  protected RepositoryService repositoryService;
 
   @Autowired
   protected IdKeyMapper idKeyMapper;
@@ -128,8 +137,30 @@ public class RuntimeMigrator {
     return globalVariables;
   }
 
+  /**
+   * This method iterates over all the activity instances of the root process instance and its
+   * children until it either finds an activityInstance that cannot be migrated or the iteration ends.
+   * For now, only multi-instance activities will fail validation.
+   * @param legacyProcessInstanceId the legacy id of the root process instance.
+   * @return true if all of the process hierarchy can be migrated, false otherwise.
+   */
   protected boolean validateProcessInstanceMigration(String legacyProcessInstanceId) {
-    return true; // TODO: check for multi-instance
+    // WIP (this method is likely to be discarded in favor of issue 4994).
+    List<ProcessInstance> processInstances = runtimeService.createProcessInstanceQuery().rootProcessInstanceId(legacyProcessInstanceId).list();
+
+    for (ProcessInstance processInstance : processInstances) {
+      ActivityInstance activityInstanceTree = runtimeService.getActivityInstance(processInstance.getId());
+      Map<String, ActInstance> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
+      BpmnModelInstance bpmnModelInstance = repositoryService.getBpmnModelInstance(processInstance.getProcessDefinitionId());
+
+      for (ActInstance actInstance : activityInstanceMap.values()) {
+        FlowElement element = bpmnModelInstance.getModelElementById(actInstance.activityId());
+        if (element instanceof Activity activity && activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics) {
+          return false;
+        }
+      }
+     }
+    return true;
   }
 
   protected void activateMigratorJobs() {
