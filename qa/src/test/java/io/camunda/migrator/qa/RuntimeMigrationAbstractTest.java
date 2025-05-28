@@ -64,6 +64,10 @@ public abstract class RuntimeMigrationAbstractTest {
 
     // Migrator table
     idKeyMapper.findAllProcessInstanceIds().forEach(id -> idKeyMapper.delete(id));
+
+    // reset runtime migrator
+    runtimeMigrator.setRetryMode(false);
+
   }
 
   protected void deployCamunda7Process(String resourcePath) {
