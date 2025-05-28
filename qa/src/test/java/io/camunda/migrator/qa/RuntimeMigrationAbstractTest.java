@@ -89,4 +89,5 @@ public abstract class RuntimeMigrationAbstractTest {
     deployCamunda7Process("io/camunda/migrator/bpmn/c7/" + fileName);
     deployCamunda8Process("io/camunda/migrator/bpmn/c8/" + fileName);
   }
+
 }
