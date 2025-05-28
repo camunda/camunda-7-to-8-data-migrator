@@ -17,11 +17,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import io.camunda.client.api.search.response.ProcessInstance;
 import io.camunda.process.test.api.CamundaAssert;
 import java.util.List;
-import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 class SampleRuntimeMigrationTest extends RuntimeMigrationAbstractTest {
 
