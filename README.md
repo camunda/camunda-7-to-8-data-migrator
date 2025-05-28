@@ -17,8 +17,8 @@
 
 #### Migration Limitations
 - Message events:
-  - only message catch events are supported for migration
-  - depending on your implementation, you may need to add a correlation variable to the instance pre migration
+  - only message catch and throw events are supported for migration
+  - depending on your implementation, you may need to add [a correlation variable](https://docs.camunda.io/docs/components/modeler/bpmn/message-events/#messages) to the instance pre migration
 - Boundary events:
   - currently not supported
 

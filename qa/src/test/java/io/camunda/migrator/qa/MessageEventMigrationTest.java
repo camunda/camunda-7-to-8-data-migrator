@@ -7,14 +7,30 @@
  */
 package io.camunda.migrator.qa;
 
-import java.util.stream.Stream;
-import org.junit.jupiter.params.provider.Arguments;
+import static io.camunda.migrator.qa.MigrationTestConstants.LEGACY_ID_VAR_NAME;
+import static io.camunda.process.test.api.CamundaAssert.assertThat;
+import static io.camunda.process.test.api.assertions.ElementSelectors.byId;
+import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
+
+import java.util.Map;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.junit.jupiter.api.Test;
 
 public class MessageEventMigrationTest extends AbstractElementMigrationTest {
 
-  @Override
-  protected Stream<Arguments> elementScenarios_activeElementPostMigration() {
-    return Stream.of(
-        Arguments.of("messageCatchEventProcess.bpmn", "messageCatchEventProcessId", "messageCatchEventId"));
+  @Test
+  public void messageCatchEventMigration() {
+    // given
+    deployProcessInC7AndC8("messageCatchEventProcess.bpmn");
+    ProcessInstance instance = runtimeService.startProcessInstanceByKey("messageCatchEventProcessId");
+    runtimeService.setVariable(instance.getId(), "messageRef", "aMessageRef");
+
+    // when
+    runtimeMigrator.migrate();
+
+    // then
+    assertThat(byProcessId("messageCatchEventProcessId")).isActive()
+        .hasActiveElements(byId("messageCatchEventId"))
+        .hasVariables(Map.of(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId(), "messageRef", "aMessageRef"));
   }
 }
