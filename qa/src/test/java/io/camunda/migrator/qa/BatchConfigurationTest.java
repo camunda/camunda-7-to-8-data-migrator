@@ -20,7 +20,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import io.camunda.client.api.search.response.ProcessInstance;
 
 @ExtendWith(OutputCaptureExtension.class)
-class MaxConfigurationTest extends RuntimeMigrationAbstractTest {
+class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
 
   @Test
   public void shouldPerformPaginationForProcessInstances(CapturedOutput output) {

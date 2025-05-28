@@ -89,34 +89,34 @@ class SampleRuntimeMigrationTest extends RuntimeMigrationAbstractTest {
     String level1Id = "level1";
     String level2Id = "level2";
     // C7
-    org.camunda.bpm.model.bpmn.BpmnModelInstance c7rootModel = org.camunda.bpm.model.bpmn.Bpmn.createExecutableProcess(rootId)
+    var c7rootModel = org.camunda.bpm.model.bpmn.Bpmn.createExecutableProcess(rootId)
         .startEvent("start_1")
         .callActivity("ca_level_1")
         .camundaIn(level1Id, level2Id)
           .calledElement(level1Id)
         .endEvent("end_1").done();
-    org.camunda.bpm.model.bpmn.BpmnModelInstance c7level1Model = org.camunda.bpm.model.bpmn.Bpmn.createExecutableProcess(level1Id)
+    var c7level1Model = org.camunda.bpm.model.bpmn.Bpmn.createExecutableProcess(level1Id)
         .startEvent("start_2")
         .callActivity("ca_level_2")
           .calledElement(level2Id)
         .endEvent("end_2").done();
-    org.camunda.bpm.model.bpmn.BpmnModelInstance c7level2Model = org.camunda.bpm.model.bpmn.Bpmn.createExecutableProcess(level2Id)
+    var c7level2Model = org.camunda.bpm.model.bpmn.Bpmn.createExecutableProcess(level2Id)
         .startEvent("start_3")
         .userTask("userTask_1")
         .endEvent("end_3").done();
 
     // C8
-    io.camunda.zeebe.model.bpmn.BpmnModelInstance c8rootModel = io.camunda.zeebe.model.bpmn.Bpmn.createExecutableProcess(rootId)
+    var c8rootModel = io.camunda.zeebe.model.bpmn.Bpmn.createExecutableProcess(rootId)
         .startEvent("start_1")
         .zeebeEndExecutionListener("migrator")
         .callActivity("ca_level_1", c -> c.zeebeProcessId(level1Id))
         .endEvent("end_1").done();
-    io.camunda.zeebe.model.bpmn.BpmnModelInstance c8level1Model = io.camunda.zeebe.model.bpmn.Bpmn.createExecutableProcess(level1Id)
+    var c8level1Model = io.camunda.zeebe.model.bpmn.Bpmn.createExecutableProcess(level1Id)
         .startEvent("start_2")
         .zeebeEndExecutionListener("migrator")
         .callActivity("ca_level_2", c -> c.zeebeProcessId(level2Id))
         .endEvent("end_2").done();
-    io.camunda.zeebe.model.bpmn.BpmnModelInstance c8level2Model = io.camunda.zeebe.model.bpmn.Bpmn.createExecutableProcess(level2Id)
+    var c8level2Model = io.camunda.zeebe.model.bpmn.Bpmn.createExecutableProcess(level2Id)
         .startEvent("start_3")
         .zeebeEndExecutionListener("migrator")
         .userTask("userTask_1")
