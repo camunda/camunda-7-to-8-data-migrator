@@ -17,7 +17,7 @@ public interface IdKeyMapper {
 
   void insert(IdKeyDbModel idKeyDbModel);
 
-  List<String> findProcessInstanceIds();
+  List<String> findSkippedProcessInstanceIds();
 
   List<String> findAllProcessInstanceIds();
 
