@@ -7,9 +7,8 @@
  */
 package io.camunda.migrator.qa;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.camunda.client.api.search.response.ProcessInstance;
 import io.camunda.migrator.history.IdKeyMapper;
@@ -44,10 +43,10 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
 
     // then the instance was not migrated and marked as skipped
     List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().send().join().items();
-    assertEquals(0, processInstances.size());
+    assertThat(processInstances.size()).isEqualTo(0);
     List<String> skippedProcessInstanceIds = idKeyMapper.findSkippedProcessInstanceIds();
-    assertEquals(1, skippedProcessInstanceIds.size());
-    assertEquals(process.getId(), skippedProcessInstanceIds.getFirst());
+    assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
+    assertThat(skippedProcessInstanceIds.getFirst()).isEqualTo(process.getId());
   }
 
   @Test
@@ -64,10 +63,10 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
 
     // then the instance was not migrated and marked as skipped
     List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().send().join().items();
-    assertEquals(0, processInstances.size());
+    assertThat(processInstances.size()).isEqualTo(0);
     List<String> skippedProcessInstanceIds = idKeyMapper.findSkippedProcessInstanceIds();
-    assertEquals(1, skippedProcessInstanceIds.size());
-    assertEquals(process.getId(), skippedProcessInstanceIds.getFirst());
+    assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
+    assertThat(skippedProcessInstanceIds.getFirst()).isEqualTo(process.getId());
   }
 
   @Test
@@ -84,10 +83,10 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
 
     // then the instance was not migrated and still marked as skipped
     List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().send().join().items();
-    assertEquals(0, processInstances.size());
+    assertThat(processInstances.size()).isEqualTo(0);
     List<String> skippedProcessInstanceIds = idKeyMapper.findSkippedProcessInstanceIds();
-    assertEquals(1, skippedProcessInstanceIds.size());
-    assertEquals(process.getId(), skippedProcessInstanceIds.getFirst());
+    assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
+    assertThat(skippedProcessInstanceIds.getFirst()).isEqualTo(process.getId());
   }
 
   @Test
@@ -110,12 +109,12 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
 
     // then the instance was migrated
     List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().send().join().items();
-    assertEquals(1, processInstances.size());
+    assertThat(processInstances.size()).isEqualTo(1);
     ProcessInstance processInstance = processInstances.getFirst();
-    assertEquals(process.getProcessDefinitionKey(), processInstance.getProcessDefinitionId());
+    assertThat(processInstance.getProcessDefinitionId()).isEqualTo(process.getProcessDefinitionKey());
 
     // and the key updated
-    assertNotNull(idKeyMapper.findKeyById(process.getId()));
+    assertThat(idKeyMapper.findKeyById(process.getId())).isNotNull();
   }
 
 }

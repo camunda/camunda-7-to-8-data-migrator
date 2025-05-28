@@ -145,7 +145,6 @@ public class RuntimeMigrator {
    * @return true if all of the process hierarchy can be migrated, false otherwise.
    */
   protected boolean validateProcessInstanceMigration(String legacyProcessInstanceId) {
-    // WIP (this method is likely to be discarded in favor of issue 4994).
     List<ProcessInstance> processInstances = runtimeService.createProcessInstanceQuery().rootProcessInstanceId(legacyProcessInstanceId).list();
 
     for (ProcessInstance processInstance : processInstances) {
@@ -155,7 +154,7 @@ public class RuntimeMigrator {
 
       for (ActInstance actInstance : activityInstanceMap.values()) {
         FlowElement element = bpmnModelInstance.getModelElementById(actInstance.activityId());
-        if (element instanceof Activity activity && activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics) {
+        if ((element instanceof Activity activity) && (activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics)) {
           return false;
         }
       }
