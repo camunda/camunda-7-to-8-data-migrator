@@ -52,10 +52,6 @@ class RuntimeMigratorTest {
   @Mock
   private ProcessInstanceQueryImpl processInstanceQuery;
 
-  @BeforeEach
-  void setUp() {
-  }
-
   @Test
   public void shouldMigrationExceptionBeThrownOnPersistenceException() {
     // given exception is thrown by idKeyMapper

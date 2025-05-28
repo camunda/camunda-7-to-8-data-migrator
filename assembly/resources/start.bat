@@ -12,7 +12,6 @@ set "COMMON_OPTS=-Dloader.path=%CLASSPATH% -Dspring.config.location=file:%CONFIG
 REM Count the arguments
 set /a argCount=0
 for %%A in (%*) do set /a argCount+=1
-echo %argCount%
 
 REM Check number of arguments
 if "%argCount%" GTR "3" (

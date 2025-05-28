@@ -38,7 +38,7 @@ public class RuntimeMigrator {
   protected RuntimeService runtimeService;
 
   @Autowired
-  private IdKeyMapper idKeyMapper;
+  protected IdKeyMapper idKeyMapper;
 
   @Autowired
   protected CamundaClient camundaClient;
@@ -51,17 +51,17 @@ public class RuntimeMigrator {
     processInstanceIds.forEach(legacyProcessInstanceId -> {
       if (validateProcessInstanceMigration(legacyProcessInstanceId)) {
         long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
-        insertRuntimeProcessInstanceEntity(legacyProcessInstanceId, processInstanceKey);
+        insertKeyForRuntimeProcessInstanceEntity(legacyProcessInstanceId, processInstanceKey);
       } else {
         System.out.println("Skipping process instance with legacyId " + legacyProcessInstanceId); // TODO log
-        insertRuntimeProcessInstanceEntity(legacyProcessInstanceId, null);
+        insertKeyForRuntimeProcessInstanceEntity(legacyProcessInstanceId, null);
       }
     });
 
     activateMigratorJobs();
   }
 
-  private List<String> fetchProcessInstancesToMigrate() {
+  protected List<String> fetchProcessInstancesToMigrate() {
     List<String> processInstanceIds;
     try {
       if (retryMode) {
@@ -84,20 +84,7 @@ public class RuntimeMigrator {
     return processInstanceIds;
   }
 
-  private void insertRuntimeProcessInstanceEntity(String legacyProcessInstanceId, Long processInstanceKey) {
-    var keyIdDbModel = new IdKeyDbModel();
-    keyIdDbModel.setId(legacyProcessInstanceId);
-    keyIdDbModel.setKey(processInstanceKey);
-    keyIdDbModel.setType("runtimeProcessInstance");
-    try {
-      idKeyMapper.insert(keyIdDbModel);
-    } catch (PersistenceException e) {
-      System.out.println("An error occurred while inserting runtimeProcessInstance entity with activityId " + legacyProcessInstanceId + " in the database, the migration will halt"); // TODO log
-      throw new MigratorException("Error while inserting runtimeProcessInstance entity with activityId " + legacyProcessInstanceId, e);
-    }
-  }
-
-  private long startNewProcessInstance(String legacyProcessInstanceId) {
+  protected long startNewProcessInstance(String legacyProcessInstanceId) {
     try {
       Map<String, Object> globalVariables = generateGlobalVariables(legacyProcessInstanceId);
       String bpmnProcessId = runtimeService.createProcessInstanceQuery().processInstanceId(legacyProcessInstanceId).singleResult().getProcessDefinitionKey();
@@ -114,7 +101,24 @@ public class RuntimeMigrator {
     }
   }
 
-  private Map<String, Object> generateGlobalVariables(String legacyProcessInstanceId) {
+  protected void insertKeyForRuntimeProcessInstanceEntity(String legacyProcessInstanceId, Long processInstanceKey) {
+    var keyIdDbModel = new IdKeyDbModel();
+    keyIdDbModel.setId(legacyProcessInstanceId);
+    keyIdDbModel.setKey(processInstanceKey);
+    keyIdDbModel.setType("runtimeProcessInstance"); // Unused for update, necessary for insert
+    try {
+      if (retryMode) {
+        idKeyMapper.updateKeyById(keyIdDbModel);
+      } else {
+        idKeyMapper.insert(keyIdDbModel);
+      }
+    } catch (PersistenceException e) {
+      System.out.println("An error occurred while inserting or updating runtimeProcessInstance entity with id " + legacyProcessInstanceId + " in the database, the migration will halt"); // TODO log
+      throw new MigratorException("Error while inserting or updating runtimeProcessInstance entity with id " + legacyProcessInstanceId, e);
+    }
+  }
+
+  protected Map<String, Object> generateGlobalVariables(String legacyProcessInstanceId) {
     Map<String, Object> globalVariables = new HashMap<>();
     runtimeService.createVariableInstanceQuery()
         .activityInstanceIdIn(legacyProcessInstanceId)
@@ -124,11 +128,11 @@ public class RuntimeMigrator {
     return globalVariables;
   }
 
-  private boolean validateProcessInstanceMigration(String legacyProcessInstanceId) {
+  protected boolean validateProcessInstanceMigration(String legacyProcessInstanceId) {
     return true; // TODO: check for multi-instance
   }
 
-  private void activateMigratorJobs() {
+  protected void activateMigratorJobs() {
     List<ActivatedJob> migratorJobs;
     do {
       migratorJobs = camundaClient.newActivateJobsCommand()
