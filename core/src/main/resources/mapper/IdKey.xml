@@ -27,7 +27,7 @@
   <select id="findAllProcessInstanceIds">
     SELECT ID
     FROM ${prefix}MIGRATION_MAPPING
-    WHERE TYPE = 'runtimeProcessInstance'
+    WHERE TYPE = 'RUNTIME_PROCESS_INSTANCE'
     ORDER BY ID
   </select>
 
