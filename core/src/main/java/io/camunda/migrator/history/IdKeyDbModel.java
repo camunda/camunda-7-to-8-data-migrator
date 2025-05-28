@@ -13,7 +13,7 @@ public class IdKeyDbModel {
 
   protected Long key;
   protected String id;
-  protected String type;
+  protected IdKeyMapper.TYPE type;
 
   public Long key() {
     return key;
@@ -23,7 +23,7 @@ public class IdKeyDbModel {
     return id;
   }
 
-  public String type() {
+  public IdKeyMapper.TYPE type() {
     return type;
   }
 
@@ -35,7 +35,7 @@ public class IdKeyDbModel {
     this.id = id;
   }
 
-  public void setType(String type) {
+  public void setType(IdKeyMapper.TYPE type) {
     this.type = type;
   }
 

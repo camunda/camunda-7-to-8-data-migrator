@@ -11,7 +11,7 @@ package io.camunda.migrator.qa;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.provider.Arguments;
 
-public class SignalMigrationTest extends AbstractElementMigrationTest{
+public class SignalMigrationTest extends AbstractElementMigrationTest {
 
   @Override
   protected Stream<Arguments> elementScenarios_activeElementPostMigration() {

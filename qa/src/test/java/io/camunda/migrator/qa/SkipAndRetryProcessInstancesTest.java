@@ -44,7 +44,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     // then the instance was not migrated and marked as skipped
     List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().send().join().items();
     assertThat(processInstances.size()).isEqualTo(0);
-    List<String> skippedProcessInstanceIds = idKeyMapper.findSkippedProcessInstanceIds();
+    List<String> skippedProcessInstanceIds = idKeyMapper.findSkippedProcessInstanceIds().stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
     assertThat(skippedProcessInstanceIds.getFirst()).isEqualTo(process.getId());
   }
@@ -64,7 +64,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     // then the instance was not migrated and marked as skipped
     List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().send().join().items();
     assertThat(processInstances.size()).isEqualTo(0);
-    List<String> skippedProcessInstanceIds = idKeyMapper.findSkippedProcessInstanceIds();
+    List<String> skippedProcessInstanceIds = idKeyMapper.findSkippedProcessInstanceIds().stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
     assertThat(skippedProcessInstanceIds.getFirst()).isEqualTo(process.getId());
   }
@@ -84,7 +84,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     // then the instance was not migrated and still marked as skipped
     List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().send().join().items();
     assertThat(processInstances.size()).isEqualTo(0);
-    List<String> skippedProcessInstanceIds = idKeyMapper.findSkippedProcessInstanceIds();
+    List<String> skippedProcessInstanceIds = idKeyMapper.findSkippedProcessInstanceIds().stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
     assertThat(skippedProcessInstanceIds.getFirst()).isEqualTo(process.getId());
   }

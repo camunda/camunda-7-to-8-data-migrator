@@ -1,37 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:conversion="http://camunda.org/schema/conversion/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_04p2xpi" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.35.0" conversion:converterVersion="0.12.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
-  <bpmn:process id="simpleProcess" name="Simple Process" processType="None" isClosed="false" isExecutable="true">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_04p2xpi" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.35.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.23.0">
+  <bpmn:process id="miProcess" name="Multi Instance Process" isExecutable="true" camunda:historyTimeToLive="999">
     <bpmn:startEvent id="startEvent" name="Start Event">
-      <bpmn:extensionElements>
-        <zeebe:executionListeners>
-          <zeebe:executionListener eventType="end" type="migrator" />
-        </zeebe:executionListeners>
-      </bpmn:extensionElements>
       <bpmn:outgoing>Flow_0xme2ti</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="Flow_0xme2ti" sourceRef="startEvent" targetRef="userTask1" />
     <bpmn:userTask id="userTask1" name="User Task 1">
-      <bpmn:extensionElements>
-        <zeebe:userTask />
-      </bpmn:extensionElements>
       <bpmn:incoming>Flow_0xme2ti</bpmn:incoming>
       <bpmn:outgoing>Flow_0ca24oh</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics>
+        <bpmn:loopCardinality xsi:type="bpmn:tFormalExpression">2</bpmn:loopCardinality>
+      </bpmn:multiInstanceLoopCharacteristics>
     </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_0ca24oh" sourceRef="userTask1" targetRef="userTask2" />
     <bpmn:endEvent id="Event_0wud37j">
       <bpmn:incoming>Flow_1013idc</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_1013idc" sourceRef="userTask2" targetRef="Event_0wud37j" />
     <bpmn:userTask id="userTask2" name="User Task 2">
-      <bpmn:extensionElements>
-        <zeebe:userTask />
-      </bpmn:extensionElements>
       <bpmn:incoming>Flow_0ca24oh</bpmn:incoming>
       <bpmn:outgoing>Flow_1013idc</bpmn:outgoing>
     </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_1013idc" sourceRef="userTask2" targetRef="Event_0wud37j" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="simpleProcess">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="miProcess">
       <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="startEvent">
         <dc:Bounds x="162" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>

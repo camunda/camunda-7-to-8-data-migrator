@@ -142,7 +142,7 @@ public class HistoryMigrator {
       LOGGER.info("Migration of legacy decision definition with id '{}' completed", legacyId);
       DecisionDefinitionDbModel dbModel = decisionDefinitionConverter.apply(legacyDecisionDefinition);
       decisionDefinitionMapper.insert(dbModel);
-      insertKeyIdMapping(legacyId, dbModel.decisionDefinitionKey(), "decisionDefinition");
+      insertKeyIdMapping(legacyId, dbModel.decisionDefinitionKey(), IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
     });
   }
 
@@ -159,7 +159,7 @@ public class HistoryMigrator {
         .orderByProcessDefinitionId()
         .asc();
 
-    String latestLegacyId = idKeyMapper.findLatestIdByType("processDefinition");
+    String latestLegacyId = idKeyMapper.findLatestIdByType(IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION);
     if (latestLegacyId != null) {
       legacyProcessDefinitionQuery.idAfter(latestLegacyId);
     }
@@ -171,7 +171,7 @@ public class HistoryMigrator {
         LOGGER.info("Migration of legacy process definition with id '{}' completed", legacyId);
         ProcessDefinitionDbModel dbModel = processDefinitionConverter.apply(legacyProcessDefinition);
         processDefinitionMapper.insert(dbModel);
-        insertKeyIdMapping(legacyId, dbModel.processDefinitionKey(), "processDefinition");
+        insertKeyIdMapping(legacyId, dbModel.processDefinitionKey(), IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION);
       });
     }
   }
@@ -181,7 +181,7 @@ public class HistoryMigrator {
         .orderByProcessInstanceId()
         .asc();
 
-    String latestLegacyId = idKeyMapper.findLatestIdByType("processInstance");
+    String latestLegacyId = idKeyMapper.findLatestIdByType(IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE);
     if (latestLegacyId != null) {
       legacyProcessInstanceQuery.idAfter(latestLegacyId);
     }
@@ -205,7 +205,7 @@ public class HistoryMigrator {
             LOGGER.info("Migration of legacy process instances with id '{}' completed", legacyProcessInstanceId);
             ProcessInstanceDbModel dbModel = processInstanceConverter.apply(legacyProcessInstance, processDefinitionKey, parentProcessInstanceKey);
             processInstanceMapper.insert(dbModel);
-            insertKeyIdMapping(legacyProcessInstanceId, dbModel.processInstanceKey(), "processInstance");
+            insertKeyIdMapping(legacyProcessInstanceId, dbModel.processInstanceKey(), IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE);
           } else {
             LOGGER.info(
                 "Migration of legacy process instance with id '{}' skipped. Parent process instance not yet available.", legacyProcessInstanceId);
@@ -224,7 +224,7 @@ public class HistoryMigrator {
         .orderByIncidentId()
         .asc();
 
-    String latestLegacyId = idKeyMapper.findLatestIdByType("incident");
+    String latestLegacyId = idKeyMapper.findLatestIdByType(IdKeyMapper.TYPE.HISTORY_INCIDENT);
     if (latestLegacyId != null) {
       legacyIncidentQuery.idAfter(latestLegacyId);
     }
@@ -243,7 +243,7 @@ public class HistoryMigrator {
             Long jobDefinitionKey = null; // TODO Job table doesn't exist yet.
             IncidentDbModel dbModel = incidentConverter.apply(legacyIncident, processDefinitionKey, processInstanceKey, jobDefinitionKey, flowNodeInstanceKey);
             incidentMapper.insert(dbModel);
-            insertKeyIdMapping(legacyIncidentId, dbModel.incidentKey(), "incident");
+            insertKeyIdMapping(legacyIncidentId, dbModel.incidentKey(), IdKeyMapper.TYPE.HISTORY_INCIDENT);
           } else {
             LOGGER.info("Migration of legacy incident with id '{}' skipped. Process instance not yet available.",
                 legacyIncidentId);
@@ -258,7 +258,7 @@ public class HistoryMigrator {
         .orderByVariableId()
         .asc();
 
-    String latestLegacyId = idKeyMapper.findLatestIdByType("variable");
+    String latestLegacyId = idKeyMapper.findLatestIdByType(IdKeyMapper.TYPE.HISTORY_VARIABLE);
     if (latestLegacyId != null) {
       legacyVariableQuery.idAfter(latestLegacyId);
     }
@@ -276,7 +276,7 @@ public class HistoryMigrator {
             LOGGER.info("Migration of legacy variable with id '{}' completed.", legacyVariableId);
             VariableDbModel dbModel = variableConverter.apply(legacyVariable, processInstanceKey, scopeKey);
             variableMapper.insert(dbModel);
-            insertKeyIdMapping(legacyVariableId, dbModel.variableKey(), "variable");
+            insertKeyIdMapping(legacyVariableId, dbModel.variableKey(), IdKeyMapper.TYPE.HISTORY_VARIABLE);
           } else {
             LOGGER.info("Migration of legacy variable with id '{}' skipped. Activity instance not yet available.",
                 legacyVariableId);
@@ -294,7 +294,7 @@ public class HistoryMigrator {
         .orderByTaskId()
         .asc();
 
-    String latestLegacyId = idKeyMapper.findLatestIdByType("userTask");
+    String latestLegacyId = idKeyMapper.findLatestIdByType(IdKeyMapper.TYPE.HISTORY_USER_TASK);
     if (latestLegacyId != null) {
       legacyTaskQuery.idAfter(latestLegacyId);
     }
@@ -312,7 +312,7 @@ public class HistoryMigrator {
             UserTaskDbModel dbModel = userTaskConverter.apply(legacyUserTask, processDefinitionKey, processInstance,
                 elementInstanceKey);
             userTaskMapper.insert(dbModel);
-            insertKeyIdMapping(legacyUserTaskId, dbModel.userTaskKey(), "userTask");
+            insertKeyIdMapping(legacyUserTaskId, dbModel.userTaskKey(), IdKeyMapper.TYPE.HISTORY_USER_TASK);
           } else {
             LOGGER.info("Migration of legacy user task with id '{}' skipped. Flow node instance yet not available.",
                 legacyUserTaskId);
@@ -330,7 +330,7 @@ public class HistoryMigrator {
         .orderByHistoricActivityInstanceId()
         .asc();
 
-    String latestLegacyId = idKeyMapper.findLatestIdByType("flowNode");
+    String latestLegacyId = idKeyMapper.findLatestIdByType(IdKeyMapper.TYPE.HISTORY_FLOW_NODE);
     if (latestLegacyId != null) {
       legacyFlowNodeQuery.idAfter(latestLegacyId);
     }
@@ -346,7 +346,7 @@ public class HistoryMigrator {
           Long processDefinitionKey = findProcessDefinitionKey(legacyFlowNode.getProcessDefinitionId());
           FlowNodeInstanceDbModel dbModel = flowNodeConverter.apply(legacyFlowNode, processDefinitionKey, processInstanceKey);
           flowNodeMapper.insert(dbModel);
-          insertKeyIdMapping(legacyFlowNodeId, dbModel.flowNodeInstanceKey(), "flowNode");
+          insertKeyIdMapping(legacyFlowNodeId, dbModel.flowNodeInstanceKey(), IdKeyMapper.TYPE.HISTORY_FLOW_NODE);
         } else {
           LOGGER.info("Migration of legacy flow node with id '{}' skipped. Process instance not yet available.",
               legacyFlowNodeId);
@@ -355,7 +355,7 @@ public class HistoryMigrator {
     }
   }
 
-  protected void insertKeyIdMapping(String id, Long key, String type) {
+  protected void insertKeyIdMapping(String id, Long key, IdKeyMapper.TYPE type) {
     var idKeyDbModel = new IdKeyDbModel();
     idKeyDbModel.setId(id);
     idKeyDbModel.setKey(key);

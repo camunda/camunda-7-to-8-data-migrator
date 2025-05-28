@@ -7,19 +7,36 @@
  */
 package io.camunda.migrator.history;
 
-import java.util.List;
+import java.util.Set;
+import org.apache.ibatis.annotations.Param;
 
 public interface IdKeyMapper {
 
-  String findLatestIdByType(String type);
+  enum TYPE {
+    HISTORY_PROCESS_DEFINITION,
+    HISTORY_PROCESS_INSTANCE,
+    HISTORY_INCIDENT,
+    HISTORY_VARIABLE,
+    HISTORY_USER_TASK,
+    HISTORY_FLOW_NODE,
+    HISTORY_DECISION_INSTANCE,
+
+    RUNTIME_PROCESS_INSTANCE
+  }
+
+  String findLatestIdByType(TYPE type);
 
   Long findKeyById(String id);
 
   void insert(IdKeyDbModel idKeyDbModel);
 
-  List<String> findSkippedProcessInstanceIds();
+  Set<String> findSkippedProcessInstanceIds(@Param("offset") int offset, @Param("limit") int limit);
 
-  List<String> findAllProcessInstanceIds();
+  Set<String> findSkippedProcessInstanceIds();
+
+  long findSkippedProcessInstanceIdsCount();
+
+  Set<String> findAllProcessInstanceIds();
 
   void updateKeyById(IdKeyDbModel idKeyDbModel);
 

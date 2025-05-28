@@ -13,7 +13,6 @@ import io.camunda.client.api.search.response.ProcessInstance;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.history.IdKeyMapper;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
-import jakarta.annotation.PostConstruct;
 
 import java.util.List;
 
@@ -67,7 +66,7 @@ public abstract class RuntimeMigrationAbstractTest {
 
     // reset runtime migrator
     runtimeMigrator.setRetryMode(false);
-
+    runtimeMigrator.setBatchSize(RuntimeMigrator.MAX_BATCH_SIZE);
   }
 
   protected void deployCamunda7Process(String resourcePath) {
