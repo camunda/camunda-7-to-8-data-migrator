@@ -68,10 +68,5 @@ public class GatewayMigrationTests extends RuntimeMigrationAbstractTest {
     assertThat(byProcessId("ParallelGatewayProcess")).isActive()
         .hasActiveElementsExactly(byId("usertaskActivity"))
         .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
-
-    //    if <zeebe:executionListener eventType="end" type="migrator" /> is part of the bpmn, the following assert fails,
-    //    otherwise it passes
-    //    assertThat(byProcessId("ParallelGatewayProcess")).hasCompletedElement("noOpActivity", 1)
-    //        .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
   }
 }
