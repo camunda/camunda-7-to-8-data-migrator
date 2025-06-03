@@ -5,23 +5,24 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.config;
+package io.camunda.migrator.config.property;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(MigratorProperties.PREFIX)
-public class MigratorProperties {
+@ConfigurationProperties(RdbmsExporterProperties.PREFIX)
+public class RdbmsExporterProperties {
 
-  public static final String PREFIX = "migrator";
-  public static final int MAX_BATCH_SIZE = 500;
+  public static final String PREFIX = "rdbms-exporter";
 
-  protected Integer batchSize = MAX_BATCH_SIZE;
-
-  public int getBatchSize() {
-    return batchSize;
+  public Boolean getAutoDdl() {
+    return autoDdl;
   }
-  public void setBatchSize(int batchSize) {
-    this.batchSize = batchSize;
+
+  public void setAutoDdl(Boolean autoDdl) {
+    this.autoDdl = autoDdl;
   }
+
+  protected Boolean autoDdl;
+
 
 }
