@@ -42,6 +42,8 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
     assertThat(output.getOut()).contains("Method: #fetchProcessInstancesToMigrate, max count: 5, offset: 0, batch size: 2");
     assertThat(output.getOut()).contains("Method: #fetchProcessInstancesToMigrate, max count: 5, offset: 2, batch size: 2");
     assertThat(output.getOut()).contains("Method: #fetchProcessInstancesToMigrate, max count: 5, offset: 4, batch size: 2");
+    Matcher matcher = Pattern.compile("Method: #validateProcessInstanceState, max count: 1, offset: 0, batch size: 2").matcher(output.getOut());
+    assertThat(matcher.results().count()).isEqualTo(5);
   }
 
   @Test
