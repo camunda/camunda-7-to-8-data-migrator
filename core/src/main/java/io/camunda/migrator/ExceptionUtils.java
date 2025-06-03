@@ -29,9 +29,7 @@ public class ExceptionUtils {
     try {
       return supplier.get();
     } catch (ClientException | ProcessEngineException | PersistenceException e) {
-      var exception = new RuntimeMigratorException(message, e);
-      LOGGER.error(message, exception);
-      throw exception;
+      throw wrapException(message, e);
     }
   }
 
@@ -46,10 +44,14 @@ public class ExceptionUtils {
     try {
       runnable.run();
     } catch (ClientException | ProcessEngineException | PersistenceException e) {
-      var exception = new RuntimeMigratorException(message, e);
-      LOGGER.error(message, exception);
-      throw exception;
+      throw wrapException(message, e);
     }
+  }
+
+  protected static RuntimeMigratorException wrapException(String message, RuntimeException e) {
+    var exception = new RuntimeMigratorException(message, e);
+    LOGGER.error(message, exception);
+    return exception;
   }
 
 }
