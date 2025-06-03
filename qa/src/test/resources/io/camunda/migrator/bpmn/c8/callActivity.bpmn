@@ -14,7 +14,12 @@
     <bpmn:sequenceFlow id="SequenceFlow_1vu8eag" sourceRef="StartEvent_1" targetRef="callActivityId"/>
     <bpmn:callActivity calledElement="calledProcessInstanceId" completionQuantity="1" id="callActivityId" isForCompensation="false" name="callActivityName" startQuantity="1">
       <bpmn:extensionElements>
-        <zeebe:calledElement processId="calledProcessInstanceId" propagateAllChildVariables="true" propagateAllParentVariables="true"/>
+        <zeebe:calledElement processId="calledProcessInstanceId" propagateAllChildVariables="true"
+        propagateAllParentVariables="true"/>
+<!--          if `propagateAllParentVariables` is set to `false`, provide an explicit input mapping-->
+<!--         <zeebe:ioMapping> -->
+<!--              <zeebe:input source="=legacyId" target="legacyId" /> -->
+<!--         </zeebe:ioMapping> -->
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1vu8eag</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1603viu</bpmn:outgoing>
