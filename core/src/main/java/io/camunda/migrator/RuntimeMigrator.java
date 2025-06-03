@@ -7,22 +7,16 @@
  */
 package io.camunda.migrator;
 
+import static io.camunda.migrator.ExceptionUtils.callApi;
 import static io.camunda.migrator.history.IdKeyMapper.TYPE;
 
 import io.camunda.client.CamundaClient;
-import io.camunda.client.api.command.ClientException;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
-import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.migrator.history.IdKeyDbModel;
 import io.camunda.migrator.history.IdKeyMapper;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.apache.ibatis.exceptions.PersistenceException;
-import org.camunda.bpm.engine.ProcessEngineException;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.impl.ProcessInstanceQueryImpl;
@@ -31,6 +25,7 @@ import org.camunda.bpm.engine.impl.persistence.entity.TransitionInstanceImpl;
 import org.camunda.bpm.engine.runtime.ActivityInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstanceQuery;
+import org.camunda.bpm.engine.runtime.VariableInstance;
 import org.camunda.bpm.engine.runtime.VariableInstanceQuery;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.Activity;
@@ -40,6 +35,7 @@ import org.camunda.bpm.model.bpmn.instance.MultiInstanceLoopCharacteristics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -52,7 +48,7 @@ public class RuntimeMigrator {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(RuntimeMigrator.class);
 
-  public final static int MAX_BATCH_SIZE = 500;
+  public final static int DEFAULT_BATCH_SIZE = 500;
 
   @Autowired
   private RepositoryService repositoryService;
@@ -66,9 +62,10 @@ public class RuntimeMigrator {
   @Autowired
   protected CamundaClient camundaClient;
 
-  protected boolean retryMode = false;
+  @Value("${migrator.batch-size:" + DEFAULT_BATCH_SIZE + "}")
+  protected int batchSize;
 
-  protected int batchSize = MAX_BATCH_SIZE;
+  protected boolean retryMode = false;
 
   public void migrate() {
     fetchProcessInstancesToMigrate(legacyProcessInstanceId -> {
@@ -98,30 +95,30 @@ public class RuntimeMigrator {
   }
 
   protected void fetchProcessInstancesToMigrate(Consumer<String> storeMappingConsumer) {
-    try {
-      if (retryMode) {
-        long maxResultsCount = idKeyMapper.findSkippedProcessInstanceIdsCount();
-        // Hardcode offset to 0 since each callback updates the database and leads to fresh results.
-        paginate(maxResultsCount, i -> idKeyMapper.findSkippedProcessInstanceIds(0, batchSize), storeMappingConsumer);
+    if (retryMode) {
+      new Pagination<String>()
+          .batchSize(batchSize)
+          .maxCount(idKeyMapper::findSkippedProcessInstanceIdsCount)
+          // Hardcode offset to 0 since each callback updates the database and leads to fresh results.
+          .page(offset -> idKeyMapper.findSkippedProcessInstanceIds(0, batchSize))
+          .callback(storeMappingConsumer);
+    } else {
+      String latestLegacyId = callApi(() -> idKeyMapper.findLatestIdByType(TYPE.RUNTIME_PROCESS_INSTANCE));
 
-      } else {
-        String latestLegacyId = idKeyMapper.findLatestIdByType(TYPE.RUNTIME_PROCESS_INSTANCE);
+      ProcessInstanceQuery processInstanceQuery = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
+          .idAfter(latestLegacyId)
+          .rootProcessInstances()
+          .orderByProcessInstanceId()
+          .asc();
 
-        ProcessInstanceQuery processInstanceQuery = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
-            .idAfter(latestLegacyId)
-            .rootProcessInstances()
-            .orderByProcessInstanceId()
-            .asc();
-
-        long maxResultsCount = processInstanceQuery.count();
-        paginate(maxResultsCount, i -> processInstanceQuery.listPage(i, batchSize)
-            .stream()
-            .map(ProcessInstance::getId)
-            .collect(Collectors.toSet()), storeMappingConsumer);
-      }
-    } catch (PersistenceException | ProcessEngineException e) {
-      LOGGER.error("An error occurred while fetching instances to migrate, the migration will halt");
-      throw new MigratorException("Error while fetching instances to migrate", e);
+      new Pagination<String>()
+          .batchSize(batchSize)
+          .maxCount(processInstanceQuery::count)
+          .page(offset -> processInstanceQuery.listPage(offset, batchSize)
+              .stream()
+              .map(ProcessInstance::getId)
+              .collect(Collectors.toSet()))
+          .callback(storeMappingConsumer);
     }
   }
 
@@ -131,49 +128,33 @@ public class RuntimeMigrator {
     keyIdDbModel.setKey(processInstanceKey);
     keyIdDbModel.setType(TYPE.RUNTIME_PROCESS_INSTANCE);
 
-    try {
-      if (retryMode) {
-        idKeyMapper.updateKeyById(keyIdDbModel);
-      } else {
-        idKeyMapper.insert(keyIdDbModel);
-      }
-    } catch (PersistenceException e) {
-      LOGGER.error("An error occurred while inserting runtimeProcessInstance entity with id {} in the database, the migration will halt", legacyProcessInstanceId);
-      throw new MigratorException("Error while inserting runtimeProcessInstance entity with id " + legacyProcessInstanceId, e);
+    if (retryMode) {
+      callApi(() -> idKeyMapper.updateKeyById(keyIdDbModel));
+    } else {
+      callApi(() -> idKeyMapper.insert(keyIdDbModel));
     }
   }
 
-  private long startNewProcessInstance(String legacyProcessInstanceId) {
-    try {
-      Map<String, Object> globalVariables = getGlobalVariables(legacyProcessInstanceId);
+  protected long startNewProcessInstance(String legacyProcessInstanceId) {
+    var processInstanceQuery = runtimeService.createProcessInstanceQuery().processInstanceId(legacyProcessInstanceId);
+    String bpmnProcessId = callApi(processInstanceQuery::singleResult).getProcessDefinitionKey();
 
-      String bpmnProcessId = runtimeService.createProcessInstanceQuery()
-          .processInstanceId(legacyProcessInstanceId)
-          .singleResult()
-          .getProcessDefinitionKey();
+    var createProcessInstance = camundaClient.newCreateInstanceCommand()
+        .bpmnProcessId(bpmnProcessId)
+        .latestVersion()
+        .variables(getGlobalVariables(legacyProcessInstanceId));
 
-      return camundaClient.newCreateInstanceCommand()
-          .bpmnProcessId(bpmnProcessId)
-          .latestVersion()
-          .variables(globalVariables)
-          .send()
-          .join()
-          .getProcessInstanceKey();
-    } catch (ProcessEngineException | ClientException e) {
-      LOGGER.error("An error occurred while starting new process instance with legacyId {}, the migration will halt", legacyProcessInstanceId);
-      throw new MigratorException("Error while migrating process instance with legacyId " + legacyProcessInstanceId, e);
-    }
+    return callApi(() -> createProcessInstance.send().join()).getProcessInstanceKey();
   }
 
   protected Map<String, Object> getGlobalVariables(String legacyProcessInstanceId) {
-    Map<String, Object> globalVariables = new HashMap<>();
-
     VariableInstanceQuery variableQuery = runtimeService.createVariableInstanceQuery()
         .activityInstanceIdIn(legacyProcessInstanceId);
 
-    long maxVariablesCount = variableQuery.count();
-    paginate(maxVariablesCount, i -> new HashSet<>(variableQuery.listPage(i, batchSize)),
-        var -> globalVariables.put(var.getName(), var.getValue()));
+    Map<String, Object> globalVariables = new Pagination<VariableInstance>()
+        .batchSize(batchSize)
+        .query(variableQuery)
+        .toMap(VariableInstance::getName, VariableInstance::getValue);
 
     globalVariables.put("legacyId", legacyProcessInstanceId);
     return globalVariables;
@@ -189,31 +170,35 @@ public class RuntimeMigrator {
     ProcessInstanceQuery processInstanceQuery = runtimeService.createProcessInstanceQuery()
         .rootProcessInstanceId(legacyProcessInstanceId);
 
-    long maxProcessInstancesCount = processInstanceQuery.count();
-    paginate(maxProcessInstancesCount, i -> new HashSet<>(processInstanceQuery.list()), processInstance -> {
-      ActivityInstance activityInstanceTree = runtimeService.getActivityInstance(processInstance.getId());
-      Map<String, ActInstance> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
-      BpmnModelInstance bpmnModelInstance = repositoryService.getBpmnModelInstance(processInstance.getProcessDefinitionId());
+    new Pagination<ProcessInstance>()
+        .batchSize(batchSize)
+        .query(processInstanceQuery)
+        .callback(processInstance -> {
+          String processInstanceId = processInstance.getId();
+          ActivityInstance activityInstanceTree = callApi(() -> runtimeService.getActivityInstance(processInstanceId));
 
-      for (ActInstance actInstance : activityInstanceMap.values()) {
-        FlowElement element = bpmnModelInstance.getModelElementById(actInstance.activityId());
-        if ((element instanceof Activity activity) && (activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics)) {
-          throw new IllegalStateException("Found multi-instance loop characteristics for " + element.getName() +
-              " in C7 process instance " + processInstance.getId() + ".");
-        }
-      }
-    });
+          String processDefinitionId = processInstance.getProcessDefinitionId();
+          BpmnModelInstance bpmnModelInstance = callApi(() -> repositoryService.getBpmnModelInstance(processDefinitionId));
+
+          Map<String, FlowNode> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
+          for (FlowNode flowNode : activityInstanceMap.values()) {
+            FlowElement element = bpmnModelInstance.getModelElementById(flowNode.activityId());
+            if ((element instanceof Activity activity) && (activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics)) {
+              throw new IllegalStateException("Found multi-instance loop characteristics for " + element.getName() +
+                  " in C7 process instance " + processInstance.getId() + ".");
+            }
+          }
+        });
   }
 
   protected void activateMigratorJobs() {
     List<ActivatedJob> migratorJobs = null;
     do {
-      migratorJobs = camundaClient.newActivateJobsCommand()
+      var jobQuery = camundaClient.newActivateJobsCommand()
           .jobType("migrator")
-          .maxJobsToActivate(batchSize)
-          .send()
-          .join()
-          .getJobs();
+          .maxJobsToActivate(batchSize);
+
+      migratorJobs = callApi(() -> jobQuery.send().join().getJobs());
 
       if (migratorJobs.isEmpty()) {
         LOGGER.debug("No more migrator jobs available.");
@@ -222,50 +207,46 @@ public class RuntimeMigrator {
       }
 
       migratorJobs.forEach(activatedJob -> {
+        String legacyId = (String) callApi(() -> activatedJob.getVariable("legacyId"));
+        long processInstanceKey = activatedJob.getProcessInstanceKey();
 
-        String legacyId = (String) activatedJob.getVariable("legacyId");
+        var modifyProcessInstance = camundaClient.newModifyProcessInstanceCommand(processInstanceKey);
 
-        ModifyProcessInstanceCommandStep1 modifyProcessInstance = camundaClient.newModifyProcessInstanceCommand(
-                activatedJob.getProcessInstanceKey())
-            // Cancel start event instance where migrator job sits to avoid executing the activities twice.
-            .terminateElement(activatedJob.getElementInstanceKey()).and();
+        // Cancel start event instance where migrator job sits to avoid executing the activities twice.
+        long elementInstanceKey = activatedJob.getElementInstanceKey();
+        modifyProcessInstance.terminateElement(elementInstanceKey).and();
 
-        ModifyProcessInstanceCommandStep3 modifyInstructions = null;
-        ActivityInstance activityInstanceTree = runtimeService.getActivityInstance(legacyId);
-        Map<String, ActInstance> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
+        ActivityInstance activityInstanceTree = callApi(() -> runtimeService.getActivityInstance(legacyId));
+        Map<String, FlowNode> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
 
-        for (String activityInstanceId : activityInstanceMap.keySet()) {
-          ActInstance actInstance = activityInstanceMap.get(activityInstanceId);
-          String activityId = actInstance.activityId();
+        activityInstanceMap.forEach((activityInstanceId, flowNode) -> {
+          String activityId = flowNode.activityId();
+          var variableQuery = runtimeService.createVariableInstanceQuery().activityInstanceIdIn(activityInstanceId);
 
-          Map<String, Object> localVariables = new HashMap<>();
+          Map<String, Object> localVariables = new Pagination<VariableInstance>().batchSize(batchSize)
+              .query(variableQuery)
+              .toMap(VariableInstance::getName, VariableInstance::getValue);
 
-          VariableInstanceQuery variableQuery = runtimeService.createVariableInstanceQuery()
-              .activityInstanceIdIn(activityInstanceId);
-
-          paginate(variableQuery.count(), i -> new HashSet<>(variableQuery.list()),
-              variable -> localVariables.put(variable.getName(), variable.getValue()));
-
-          String subProcessInstanceId = actInstance.subProcessInstanceId();
+          String subProcessInstanceId = flowNode.subProcessInstanceId();
           if (subProcessInstanceId != null) {
             localVariables.put("legacyId", subProcessInstanceId);
           }
-          modifyInstructions = modifyProcessInstance.activateElement(activityId)
-              .withVariables(localVariables, activityId);
-        }
-        modifyInstructions.send().join();
+
+          modifyProcessInstance.activateElement(activityId).withVariables(localVariables, activityId);
+        });
+
+        callApi(() -> ((ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3) modifyProcessInstance).send().join());
         // no need to complete the job since the modification canceled the migrator job in the start event
       });
     } while (!migratorJobs.isEmpty());
   }
 
-  public Map<String, ActInstance> getActiveActivityIdsById(ActivityInstance activityInstance, Map<String, ActInstance> activeActivities) {
+  public Map<String, FlowNode> getActiveActivityIdsById(ActivityInstance activityInstance, Map<String, FlowNode> activeActivities) {
     Arrays.asList(activityInstance.getChildActivityInstances()).forEach(actInst -> {
       activeActivities.putAll(getActiveActivityIdsById(actInst, activeActivities));
 
       if (!"subProcess".equals(actInst.getActivityType())) {
-        // TODO skip migration of process instance when multi-instance is active
-        activeActivities.put(actInst.getId(), new ActInstance(actInst.getActivityId(), ((ActivityInstanceImpl) actInst).getSubProcessInstanceId()));
+        activeActivities.put(actInst.getId(), new FlowNode(actInst.getActivityId(), ((ActivityInstanceImpl) actInst).getSubProcessInstanceId()));
       }
     });
 
@@ -275,8 +256,7 @@ public class RuntimeMigrator {
     Arrays.asList(activityInstance.getChildTransitionInstances()).forEach(ti -> {
       var transitionInstance = ((TransitionInstanceImpl) ti);
       if (!"subProcess".equals(transitionInstance.getActivityType())) {
-        // TODO skip migration of process instance when multi-instance is active
-        activeActivities.put(transitionInstance.getId(), new ActInstance(transitionInstance.getActivityId(), transitionInstance.getSubProcessInstanceId()));
+        activeActivities.put(transitionInstance.getId(), new FlowNode(transitionInstance.getActivityId(), transitionInstance.getSubProcessInstanceId()));
       }
     });
     return activeActivities;
@@ -286,18 +266,11 @@ public class RuntimeMigrator {
     this.batchSize = batchSize;
   }
 
-  record ActInstance(String activityId, String subProcessInstanceId) {
+  public record FlowNode(String activityId, String subProcessInstanceId) {
   }
 
   public void setRetryMode(boolean retryMode) {
     this.retryMode = retryMode;
-  }
-
-  protected <T> void paginate(Long maxCount, Function<Integer, Set<T>> query, Consumer<T> callback) {
-    for (int offset = 0; offset < maxCount; offset = offset + batchSize) {
-      LOGGER.debug("Max count: {}, offset: {}, batch size: {}", maxCount, offset, batchSize);
-      query.apply(offset).forEach(callback);
-    }
   }
 
 }

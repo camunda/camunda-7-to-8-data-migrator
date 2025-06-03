@@ -39,9 +39,9 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
     // then
     List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().send().join().items();
     assertThat(processInstances.size()).isEqualTo(5);
-    assertThat(output.getOut()).contains("Max count: 5, offset: 0, batch size: 2");
-    assertThat(output.getOut()).contains("Max count: 5, offset: 2, batch size: 2");
-    assertThat(output.getOut()).contains("Max count: 5, offset: 4, batch size: 2");
+    assertThat(output.getOut()).contains("Method: #fetchProcessInstancesToMigrate, max count: 5, offset: 0, batch size: 2");
+    assertThat(output.getOut()).contains("Method: #fetchProcessInstancesToMigrate, max count: 5, offset: 2, batch size: 2");
+    assertThat(output.getOut()).contains("Method: #fetchProcessInstancesToMigrate, max count: 5, offset: 4, batch size: 2");
   }
 
   @Test
