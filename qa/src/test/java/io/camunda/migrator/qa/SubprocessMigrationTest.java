@@ -22,7 +22,7 @@ import org.junit.jupiter.params.provider.Arguments;
 public class SubprocessMigrationTest extends RuntimeMigrationAbstractTest{
 
   @Test
-  public void migrateUserTaskInstance() {
+  public void migrateCallActivityAndSubprocess() {
     // given
     deployProcessInC7AndC8("calledProcessInstance.bpmn");
     deployProcessInC7AndC8("callActivity.bpmn");
