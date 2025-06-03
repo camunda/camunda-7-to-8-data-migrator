@@ -22,6 +22,11 @@
 - Boundary events:
   - currently not supported
 
+#### Configuration
+
+* migrator.batch-size - configure number of items (process instances, jobs) to be processed per iteration. Default: 500
+
+
 ## Development Setup
 1. Prerequisites: Use Java 21
 1. Set up Camunda 8
