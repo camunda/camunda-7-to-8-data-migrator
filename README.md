@@ -35,7 +35,6 @@
    1. Either using [the example](./examples/migrate-runtime/src/main/java/io/camunda/migrator/example/RuntimeExampleApplication.java)
    1. Or by building, extracting and running [the distribution](./assembly)
 
-
 ## Contributing
 
 Read the [Contributions Guide](https://github.com/camunda/camunda-bpm-platform/blob/master/CONTRIBUTING.md).
