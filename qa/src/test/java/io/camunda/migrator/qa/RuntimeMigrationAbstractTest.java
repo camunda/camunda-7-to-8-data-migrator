@@ -66,7 +66,7 @@ public abstract class RuntimeMigrationAbstractTest {
 
     // reset runtime migrator
     runtimeMigrator.setRetryMode(false);
-    runtimeMigrator.setBatchSize(RuntimeMigrator.MAX_BATCH_SIZE);
+    runtimeMigrator.setBatchSize(RuntimeMigrator.DEFAULT_BATCH_SIZE);
   }
 
   protected void deployCamunda7Process(String resourcePath) {
