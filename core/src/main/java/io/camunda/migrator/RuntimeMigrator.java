@@ -74,9 +74,10 @@ public class RuntimeMigrator {
         storeMapping(legacyProcessInstanceId, null);
 
       } else {
-        long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
-        storeMapping(legacyProcessInstanceId, processInstanceKey);
-
+        Long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
+        if (processInstanceKey != null) {
+          storeMapping(legacyProcessInstanceId, processInstanceKey);
+        }
       }
     });
 
@@ -135,16 +136,23 @@ public class RuntimeMigrator {
     }
   }
 
-  protected long startNewProcessInstance(String legacyProcessInstanceId) {
+  protected Long startNewProcessInstance(String legacyProcessInstanceId) {
     var processInstanceQuery = runtimeService.createProcessInstanceQuery().processInstanceId(legacyProcessInstanceId);
-    String bpmnProcessId = callApi(processInstanceQuery::singleResult).getProcessDefinitionKey();
 
-    var createProcessInstance = camundaClient.newCreateInstanceCommand()
-        .bpmnProcessId(bpmnProcessId)
-        .latestVersion()
-        .variables(getGlobalVariables(legacyProcessInstanceId));
+    ProcessInstance processInstance = callApi(processInstanceQuery::singleResult);
+    if (processInstance != null) {
+      String bpmnProcessId = processInstance.getProcessDefinitionKey();
 
-    return callApi(() -> createProcessInstance.send().join()).getProcessInstanceKey();
+      var createProcessInstance = camundaClient.newCreateInstanceCommand()
+          .bpmnProcessId(bpmnProcessId)
+          .latestVersion()
+          .variables(getGlobalVariables(legacyProcessInstanceId));
+
+      return callApi(() -> createProcessInstance.send().join()).getProcessInstanceKey();
+    } else {
+      LOGGER.warn("Process instance with legacyId {} doesn't exist anymore. Has it been completed or cancelled in the meantime?", legacyProcessInstanceId);
+      return null;
+    }
   }
 
   protected Map<String, Object> getGlobalVariables(String legacyProcessInstanceId) {

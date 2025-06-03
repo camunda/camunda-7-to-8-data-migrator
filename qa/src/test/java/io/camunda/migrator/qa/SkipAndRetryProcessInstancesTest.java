@@ -17,8 +17,12 @@ import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 
+@ExtendWith(OutputCaptureExtension.class)
 class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
 
   @Autowired
@@ -115,6 +119,25 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
 
     // and the key updated
     assertThat(idKeyMapper.findKeyById(process.getId())).isNotNull();
+  }
+
+  @Test
+  public void shouldLogWarningWhenProcessInstanceHasBeenCompleted(CapturedOutput output) {
+    // given skipped process instance
+    deployProcessInC7AndC8("multiInstanceProcess.bpmn");
+    var process = runtimeService.startProcessInstanceByKey("multiInstanceProcess");
+    runtimeMigrator.migrate();
+    ensureTrue("Unexpected state: one process instance should be skipped", idKeyMapper.findSkippedProcessInstanceIds().size() == 1);
+
+    runtimeService.deleteProcessInstance(process.getId(), "State cannot be fixed!");
+
+    // when running retrying runtime migration
+    runtimeMigrator.setRetryMode(true);
+    runtimeMigrator.migrate();
+
+    // then
+    assertThat(output.getOut())
+        .containsPattern("WARN(.*)Process instance with legacyId [a-f0-9-]+ doesn't exist anymore. Has it been completed or cancelled in the meantime\\?");
   }
 
 }
