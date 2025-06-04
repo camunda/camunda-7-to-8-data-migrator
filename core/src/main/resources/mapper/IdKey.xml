@@ -18,7 +18,7 @@
   <select id="findSkippedProcessInstanceIds">
     <include refid="findSkippedProcessInstanceIdsByQueryCriteriaSql"/>
   </select>
-reuse
+
   <sql id="findSkippedProcessInstanceIdsByQueryCriteriaSql">
     SELECT ID FROM ${prefix}MIGRATION_MAPPING WHERE TYPE = 'RUNTIME_PROCESS_INSTANCE' AND `KEY` IS NULL
     <if test="limit != null &amp;&amp; offset != null">
