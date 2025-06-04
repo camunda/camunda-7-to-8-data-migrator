@@ -19,8 +19,12 @@
 - Message events:
   - only message catch and throw events are supported for migration
   - depending on your implementation, you may need to add [a correlation variable](https://docs.camunda.io/docs/components/modeler/bpmn/message-events/#messages) to the instance pre migration
-- Boundary events:
-  - currently not supported
+- Triggered Boundary events:
+  - C7 boundary events do not have a natural wait state
+  - If the process instance to be migrated is currently at a triggered boundary event in Camunda 7, there may still be a job associated with that event, either waiting to be executed or currently running. In this state, the token is considered to be at the element where the job is created: typically the first activity of the boundary event’s handler flow, or technically the point after the boundary event if asyncAfter is used.
+  - During migration to Camunda 8, the token will be mapped to the corresponding target element. However, if that element expects input data that is normally produced by the boundary event’s job (e.g. setting variables), this data may be missing in the migrated instance.
+  - Recommendation: To ensure a consistent migration, allow boundary event executions to complete before initiating the migration.
+- There are elements that are supported in C7 but not supported in C8. Please refer to the [documentation](https://docs.camunda.io/docs/next/components/modeler/bpmn/bpmn-coverage/) for more details on element support in C8 and adjust your models accordingly before migration.
 
 ## Development Setup
 1. Prerequisites: Use Java 21
