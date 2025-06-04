@@ -30,6 +30,5 @@ class DefaultPropertiesTest {
   @Test
   public void shouldHaveDisabledJobExecutor() {
     Assertions.assertThat(processEngineConfiguration.getJobExecutor().isActive()).isEqualTo(false);
-    Assertions.assertThat(processEngineConfiguration.getJobExecutor().isActive()).isEqualTo(false);
   }
 }

@@ -14,6 +14,8 @@ public class RdbmsExporterProperties {
 
   public static final String PREFIX = "rdbms-exporter";
 
+  protected Boolean autoDdl;
+
   public Boolean getAutoDdl() {
     return autoDdl;
   }
@@ -21,8 +23,6 @@ public class RdbmsExporterProperties {
   public void setAutoDdl(Boolean autoDdl) {
     this.autoDdl = autoDdl;
   }
-
-  protected Boolean autoDdl;
 
 
 }

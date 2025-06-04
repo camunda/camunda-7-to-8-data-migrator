@@ -14,6 +14,8 @@ public class C7Properties {
 
   public static final String PREFIX = "c7";
 
+  protected Boolean autoDdl;
+
   public Boolean getAutoDdl() {
     return autoDdl;
   }
@@ -21,8 +23,6 @@ public class C7Properties {
   public void setAutoDdl(Boolean autoDdl) {
     this.autoDdl = autoDdl;
   }
-
-  protected Boolean autoDdl;
 
 
 }
