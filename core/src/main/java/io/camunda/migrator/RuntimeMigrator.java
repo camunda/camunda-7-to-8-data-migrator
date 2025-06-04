@@ -74,7 +74,9 @@ public class RuntimeMigrator {
         storeMapping(legacyProcessInstanceId, null);
 
       } else {
+        LOGGER.debug("Starting new C8 process instance with legacyId: [{}]", legacyProcessInstanceId);
         Long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
+        LOGGER.debug("Started C8 process instance with processInstanceKey: [{}]", processInstanceKey);
         if (processInstanceKey != null) {
           storeMapping(legacyProcessInstanceId, processInstanceKey);
         }
@@ -88,7 +90,7 @@ public class RuntimeMigrator {
     try {
       validateProcessInstanceState(legacyProcessInstanceId);
     } catch (IllegalStateException e) {
-      LOGGER.warn(e.getMessage());
+      LOGGER.warn("Process instance with legacyId [{}] can't be migrated: {}", legacyProcessInstanceId, e.getMessage());
       return true;
     }
 
@@ -96,6 +98,7 @@ public class RuntimeMigrator {
   }
 
   protected void fetchProcessInstancesToMigrate(Consumer<String> storeMappingConsumer) {
+    LOGGER.info("Fetching process instances to migrate");
     if (retryMode) {
       new Pagination<String>()
           .batchSize(batchSize)
@@ -104,7 +107,9 @@ public class RuntimeMigrator {
           .page(offset -> idKeyMapper.findSkippedProcessInstanceIds(0, batchSize))
           .callback(storeMappingConsumer);
     } else {
+      LOGGER.debug("Fetching Legacy ID for latest Process Instance");
       String latestLegacyId = callApi(() -> idKeyMapper.findLatestIdByType(TYPE.RUNTIME_PROCESS_INSTANCE));
+      LOGGER.debug("Legacy ID of latest migrated process instance: [{}]", latestLegacyId);
 
       ProcessInstanceQuery processInstanceQuery = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
           .idAfter(latestLegacyId)
@@ -130,8 +135,10 @@ public class RuntimeMigrator {
     keyIdDbModel.setType(TYPE.RUNTIME_PROCESS_INSTANCE);
 
     if (retryMode) {
+      LOGGER.debug("Updating key for legacyId [{}] with value [{}]", legacyProcessInstanceId, processInstanceKey);
       callApi(() -> idKeyMapper.updateKeyById(keyIdDbModel));
     } else {
+      LOGGER.debug("Inserting record [{}]", keyIdDbModel);
       callApi(() -> idKeyMapper.insert(keyIdDbModel));
     }
   }
@@ -139,7 +146,8 @@ public class RuntimeMigrator {
   protected Long startNewProcessInstance(String legacyProcessInstanceId) {
     var processInstanceQuery = runtimeService.createProcessInstanceQuery().processInstanceId(legacyProcessInstanceId);
 
-    ProcessInstance processInstance = callApi(processInstanceQuery::singleResult);
+    String fetchProcessIdError = "Process instance fetching failed for legacyId: " + legacyProcessInstanceId;
+    ProcessInstance processInstance = callApi(processInstanceQuery::singleResult, fetchProcessIdError);
     if (processInstance != null) {
       String bpmnProcessId = processInstance.getProcessDefinitionKey();
 
@@ -148,7 +156,8 @@ public class RuntimeMigrator {
           .latestVersion()
           .variables(getGlobalVariables(legacyProcessInstanceId));
 
-      return callApi(() -> createProcessInstance.send().join()).getProcessInstanceKey();
+      String createProcessInstanceErrorMessage = "Creating process instance failed for legacyId: " + legacyProcessInstanceId;
+      return callApi(() -> createProcessInstance.send().join(), createProcessInstanceErrorMessage).getProcessInstanceKey();
     } else {
       LOGGER.warn("Process instance with legacyId {} doesn't exist anymore. Has it been completed or cancelled in the meantime?", legacyProcessInstanceId);
       return null;
@@ -188,7 +197,10 @@ public class RuntimeMigrator {
           String processDefinitionId = processInstance.getProcessDefinitionId();
           BpmnModelInstance bpmnModelInstance = callApi(() -> repositoryService.getBpmnModelInstance(processDefinitionId));
 
+          LOGGER.debug("Collecting active descendant activity instances for legacyId [{}]", processInstanceId);
           Map<String, FlowNode> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
+          LOGGER.debug("Found {} active activity instances to validate", activityInstanceMap.size());
+
           for (FlowNode flowNode : activityInstanceMap.values()) {
             FlowElement element = bpmnModelInstance.getModelElementById(flowNode.activityId());
             if ((element instanceof Activity activity) && (activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics)) {
@@ -200,32 +212,36 @@ public class RuntimeMigrator {
   }
 
   protected void activateMigratorJobs() {
+    LOGGER.debug("Activating migrator jobs");
     List<ActivatedJob> migratorJobs = null;
     do {
       var jobQuery = camundaClient.newActivateJobsCommand()
           .jobType("migrator")
           .maxJobsToActivate(batchSize);
 
-      migratorJobs = callApi(() -> jobQuery.send().join().getJobs());
+      String fetchMigratorJobsErrorMessage = "Error while fetching migrator jobs";
+      migratorJobs = callApi(() -> jobQuery.send().join().getJobs(), fetchMigratorJobsErrorMessage);
 
-      if (migratorJobs.isEmpty()) {
-        LOGGER.debug("No more migrator jobs available.");
-      } else {
-        LOGGER.debug("Migrator jobs found: {}", migratorJobs.size());
-      }
+      LOGGER.debug("Migrator jobs found: {}", migratorJobs.size());
 
       migratorJobs.forEach(activatedJob -> {
-        String legacyId = (String) callApi(() -> activatedJob.getVariable("legacyId"));
+        String fetchLegacyIdErrorMessage =
+            String.format("Error while fetching legacyId for job with key:" + activatedJob.getProcessInstanceKey());
+        String legacyId = (String) callApi(() -> activatedJob.getVariable("legacyId"), fetchLegacyIdErrorMessage);
         long processInstanceKey = activatedJob.getProcessInstanceKey();
 
         var modifyProcessInstance = camundaClient.newModifyProcessInstanceCommand(processInstanceKey);
 
         // Cancel start event instance where migrator job sits to avoid executing the activities twice.
         long elementInstanceKey = activatedJob.getElementInstanceKey();
-        modifyProcessInstance.terminateElement(elementInstanceKey).and();
+        modifyProcessInstance.terminateElement(elementInstanceKey);
 
-        ActivityInstance activityInstanceTree = callApi(() -> runtimeService.getActivityInstance(legacyId));
+        String fetchActivityErrorMessage = "Error while fetching activity for job with legacyId:" + legacyId;
+        ActivityInstance activityInstanceTree = callApi(() -> runtimeService.getActivityInstance(legacyId), fetchActivityErrorMessage);
+
+        LOGGER.debug("Collecting active descendant activity instances for activityId [{}]", activityInstanceTree.getActivityId());
         Map<String, FlowNode> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
+        LOGGER.debug("Found {} active activity instances to activate", activityInstanceMap.size());
 
         activityInstanceMap.forEach((activityInstanceId, flowNode) -> {
           String activityId = flowNode.activityId();
@@ -243,7 +259,8 @@ public class RuntimeMigrator {
           modifyProcessInstance.activateElement(activityId).withVariables(localVariables, activityId);
         });
 
-        callApi(() -> ((ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3) modifyProcessInstance).send().join());
+        String batchUpdatedActivitiesErrorMessage = "Error while activating jobs";
+        callApi(() -> ((ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3) modifyProcessInstance).send().join(), batchUpdatedActivitiesErrorMessage);
         // no need to complete the job since the modification canceled the migrator job in the start event
       });
     } while (!migratorJobs.isEmpty());
