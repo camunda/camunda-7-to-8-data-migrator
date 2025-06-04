@@ -11,18 +11,21 @@
 
   <select id="findSkippedProcessInstanceIdsCount" resultType="long">
     SELECT COUNT(ID) FROM (
-        <!--TODO: use <include refid="findSkippedProcessInstanceIds"/>-->
-        SELECT ID FROM ${prefix}MIGRATION_MAPPING WHERE TYPE = 'RUNTIME_PROCESS_INSTANCE' AND `KEY` IS NULL
+      <include refid="findSkippedProcessInstanceIdsByQueryCriteriaSql"/>
     )
   </select>
 
   <select id="findSkippedProcessInstanceIds">
+    <include refid="findSkippedProcessInstanceIdsByQueryCriteriaSql"/>
+  </select>
+reuse
+  <sql id="findSkippedProcessInstanceIdsByQueryCriteriaSql">
     SELECT ID FROM ${prefix}MIGRATION_MAPPING WHERE TYPE = 'RUNTIME_PROCESS_INSTANCE' AND `KEY` IS NULL
     <if test="limit != null &amp;&amp; offset != null">
       LIMIT #{limit, jdbcType=BIGINT}
       OFFSET #{offset, jdbcType=BIGINT}
     </if>
-  </select>
+  </sql>
 
   <select id="findAllProcessInstanceIds">
     SELECT ID
