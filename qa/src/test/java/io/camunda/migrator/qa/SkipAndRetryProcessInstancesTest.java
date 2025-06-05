@@ -171,7 +171,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     final String capturedIds = matcher.find() ? matcher.group(1) : "";
     processInstancesIds.forEach(processInstanceId -> assertThat(capturedIds).contains(processInstanceId));
 
-    // and no migration was done
+    // and skipped instances were not migrated
     assertThat(idKeyMapper.findSkippedProcessInstanceIds().size()).isEqualTo(10);
   }
 
@@ -185,6 +185,9 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
 
     // then expected message is printed
     assertThat(output.getOut()).endsWith(NO_SKIPPED_INSTANCES_MESSAGE + "\n");
+
+    // and no migration was done
+    assertThat(idKeyMapper.findAllProcessInstanceIds().size()).isEqualTo(0);
   }
 
 }
