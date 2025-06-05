@@ -24,8 +24,8 @@ public class SubprocessMigrationTest extends RuntimeMigrationAbstractTest{
   @Test
   public void migrateCallActivityAndSubprocess() {
     // given
-    deployProcessInC7AndC8("calledProcessInstance.bpmn");
-    deployProcessInC7AndC8("callActivity.bpmn");
+    deployProcessInC7AndC8("calledActivitySubprocess.bpmn");
+    deployProcessInC7AndC8("callActivityProcess.bpmn");
     ProcessInstance instance = runtimeService.startProcessInstanceByKey("callingProcessId");
     ProcessInstance calledInstance = runtimeService
         .createProcessInstanceQuery()
@@ -37,7 +37,7 @@ public class SubprocessMigrationTest extends RuntimeMigrationAbstractTest{
     // then
     assertThat(byProcessId("callingProcessId")).isActive()
         .hasActiveElements(byId("callActivityId"))
-        .hasVariable("legacyId", instance.getProcessInstanceId());
+        .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
     assertThat(byProcessId("calledProcessInstanceId")).isActive()
         .hasActiveElements(byId("userTaskId"))
         .hasVariable(LEGACY_ID_VAR_NAME, calledInstance.getProcessInstanceId());
