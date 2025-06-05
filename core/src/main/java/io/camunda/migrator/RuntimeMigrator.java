@@ -212,7 +212,7 @@ public class RuntimeMigrator {
   }
 
   protected void activateMigratorJobs() {
-    LOGGER.debug("Activating migrator jobs");
+    LOGGER.info("Activating migrator jobs");
     List<ActivatedJob> migratorJobs = null;
     do {
       var jobQuery = camundaClient.newActivateJobsCommand()
