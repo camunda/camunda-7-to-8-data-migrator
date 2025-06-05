@@ -13,6 +13,7 @@ import static org.camunda.bpm.engine.ProcessEngineConfiguration.HISTORY_AUTO;
 import io.camunda.migrator.AutoDeployer;
 import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.RuntimeMigrator;
+import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.converter.ConverterConfiguration;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.persistence.StrongUuidGenerator;
@@ -28,6 +29,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,6 +56,7 @@ import javax.sql.DataSource;
     HibernateJpaAutoConfiguration.class,
     JpaRepositoriesAutoConfiguration.class
 })
+@EnableConfigurationProperties({ MigratorProperties.class })
 @Configuration
 public class MigratorAutoConfiguration {
 

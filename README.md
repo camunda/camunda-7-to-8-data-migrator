@@ -26,6 +26,11 @@
   - Recommendation: To ensure a consistent migration, allow boundary event executions to complete before initiating the migration.
 - There are elements that are supported in C7 but not supported in C8. Please refer to the [documentation](https://docs.camunda.io/docs/next/components/modeler/bpmn/bpmn-coverage/) for more details on element support in C8 and adjust your models accordingly before migration.
 
+#### Configuration
+
+* migrator.batch-size - configure number of items (process instances, jobs) to be processed per iteration. Default: 500
+
+
 ## Development Setup
 1. Prerequisites: Use Java 21
 1. Set up Camunda 8
