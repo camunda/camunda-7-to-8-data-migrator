@@ -18,6 +18,8 @@ migrator:
     username: sa
     password:
     driver-class-name: org.h2.Driver
+    
+  # batch-size: 500
 logging:
   level:
     root: INFO
@@ -27,4 +29,5 @@ logging:
     # org.camunda.bpm: INFO  # C7
   file:
     name: logs/c7-data-migrator.log
+  
   
