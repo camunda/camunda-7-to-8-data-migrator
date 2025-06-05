@@ -22,8 +22,8 @@ To run the Camunda 7 Data Migrator:
 
 Options
 
-- `--runtime` – Migrate runtime data only  
-- `--history` – Migrate history data only 
+- `--runtime` – Migrate runtime data
+- `--history` – Migrate history data
 
 ==================
 
@@ -41,6 +41,8 @@ Contents:
   userlib/
       Add custom database drivers, plugins, or other extensions here.
 
+  logs/
+      Created during run time and contains the log outputs
 
 ==================
 

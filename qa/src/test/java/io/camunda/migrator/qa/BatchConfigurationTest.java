@@ -69,7 +69,7 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
     Matcher matcher = Pattern.compile("Migrator jobs found: 2").matcher(output.getOut());
     assertThat(matcher.results().count()).isEqualTo(2);
     assertThat(output.getOut()).contains("Migrator jobs found: 1");
-    assertThat(output.getOut()).contains("No more migrator jobs available.");
+    assertThat(output.getOut()).contains("Migrator jobs found: 0");
   }
 
   @Test
