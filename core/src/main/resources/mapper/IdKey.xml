@@ -21,10 +21,7 @@
 
   <sql id="findSkippedProcessInstanceIdsByQueryCriteriaSql">
     SELECT ID FROM ${prefix}MIGRATION_MAPPING WHERE TYPE = 'RUNTIME_PROCESS_INSTANCE' AND `KEY` IS NULL
-    <if test="limit != null &amp;&amp; offset != null">
-      LIMIT #{limit, jdbcType=BIGINT}
-      OFFSET #{offset, jdbcType=BIGINT}
-    </if>
+    <include refid="io.camunda.migrator.Commons.pageSql"/>
   </sql>
 
   <select id="findAllProcessInstanceIds">
