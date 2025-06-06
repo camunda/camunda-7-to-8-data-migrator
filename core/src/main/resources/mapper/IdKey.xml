@@ -39,7 +39,7 @@
 
   <select id="findLatestIdByType" parameterType="java.lang.String">
     SELECT ID FROM ${prefix}MIGRATION_MAPPING WHERE TYPE = '${type}' ORDER BY ID DESC
-    LIMIT 1
+    <include refid="io.camunda.migrator.Commons.singlePageSql"/>
   </select>
 
   <select id="findKeyById" parameterType="java.lang.String">

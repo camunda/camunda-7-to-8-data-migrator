@@ -16,4 +16,10 @@
   </if>
 </sql>
 
+  <sql id="singlePageSql">
+    <if test="limit != null">
+      ${paging.first}
+    </if>
+  </sql>
+
 </mapper>
