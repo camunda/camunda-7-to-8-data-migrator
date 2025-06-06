@@ -106,8 +106,8 @@ public class MyBatisConfiguration {
     LOGGER.info("Detected databaseId: {}", databaseId);
 
     final Properties properties = new Properties();
-    final var c8File = "db/vendor-properties/" + databaseId + ".properties";
     final var migratorFile = "db/properties/" + databaseId + ".properties";
+    final var c8File = "db/vendor-properties/" + databaseId + ".properties";
     loadPropertiesFile(databaseId, properties, c8File);
     loadPropertiesFile(databaseId, properties, migratorFile);
 
