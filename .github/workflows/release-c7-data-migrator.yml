@@ -154,6 +154,8 @@ jobs:
             -Darguments='-DskipTests=true -Dskip.central.release=true -Dskip.camunda.release=${SKIP_REPO_DEPLOY}'
 
       - name: Checkout Code
+        # Tag does not exist if dry run
+        if: ${{ !inputs.IS_DRY_RUN }}
         uses: actions/checkout@v4
         with:
           # Checkout the release tag to perform a second deployment 
