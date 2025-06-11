@@ -25,7 +25,7 @@ Options
 - `--runtime` – Migrate runtime data
 - `--history` – Migrate history data
 - `--list-skipped` – List previously skipped data
-- `--retry-skipped` – Retry previously skipped data
+- `--retry-skipped` – Only retry the migration of previously skipped data
 
 ==================
 
