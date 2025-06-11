@@ -4,10 +4,11 @@ setlocal
 REM Get the directory of the script
 set "BASEDIR=%~dp0"
 set "CONFIGURATION=%BASEDIR%configuration\application.yml"
+set "DEPLOYMENT_DIR=%BASEDIR%\configuration\resources"
 set "CLASSPATH=%BASEDIR%configuration\userlib"
 
 set "JAR_PATH=%BASEDIR%internal\c7-data-migrator.jar"
-set "COMMON_OPTS=-Dloader.path=%CLASSPATH% -Dspring.config.location=file:%CONFIGURATION%"
+set "COMMON_OPTS=-Dloader.path=%CLASSPATH% -Dmigrator.deployment-dir=%DEPLOYMENT_DIR% -Dspring.config.location=file:%CONFIGURATION%"
 
 REM Count the arguments
 set /a argCount=0
