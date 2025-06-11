@@ -156,8 +156,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
       processInstancesIds.add(runtimeService.startProcessInstanceByKey("multiInstanceProcess").getProcessInstanceId());
     }
     runtimeMigrator.start();
-    ensureTrue("Unexpected state: one process instance should be skipped", idKeyMapper.findSkippedProcessInstanceIds().size() == 10);
-
+    ensureTrue("Unexpected state: 10 process instances should be skipped", idKeyMapper.findSkippedProcessInstanceIdsCount() == 10);
     // when running migration with list skipped mode
     runtimeMigrator.setMode(LIST_SKIPPED);
     runtimeMigrator.start();
@@ -172,7 +171,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     processInstancesIds.forEach(processInstanceId -> assertThat(capturedIds).contains(processInstanceId));
 
     // and skipped instances were not migrated
-    assertThat(idKeyMapper.findSkippedProcessInstanceIds().size()).isEqualTo(10);
+    assertThat(idKeyMapper.findSkippedProcessInstanceIdsCount()).isEqualTo(10);
   }
 
   @Test
