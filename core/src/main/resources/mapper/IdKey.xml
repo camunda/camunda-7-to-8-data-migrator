@@ -7,7 +7,7 @@
   ~ except in compliance with the Camunda License 1.0.
   -->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="io.camunda.migrator.history.IdKeyMapper">
+<mapper namespace="io.camunda.migrator.mapper.IdKeyMapper">
 
   <select id="findSkippedProcessInstanceIdsCount" resultType="long">
     SELECT COUNT(ID) FROM (

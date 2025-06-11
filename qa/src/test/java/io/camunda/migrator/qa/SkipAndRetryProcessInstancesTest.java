@@ -11,7 +11,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureTrue;
 
 import io.camunda.client.api.search.response.ProcessInstance;
-import io.camunda.migrator.history.IdKeyMapper;
+import io.camunda.migrator.mapper.IdKeyMapper;
 import java.util.List;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;

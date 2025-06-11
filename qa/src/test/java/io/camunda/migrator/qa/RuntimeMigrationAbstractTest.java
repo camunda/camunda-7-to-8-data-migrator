@@ -11,7 +11,7 @@ import io.camunda.client.CamundaClient;
 import io.camunda.client.api.response.DeploymentEvent;
 import io.camunda.client.api.search.response.ProcessInstance;
 import io.camunda.migrator.RuntimeMigrator;
-import io.camunda.migrator.history.IdKeyMapper;
+import io.camunda.migrator.mapper.IdKeyMapper;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
 
 import java.util.List;

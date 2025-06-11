@@ -32,7 +32,7 @@ import io.camunda.migrator.converter.ProcessInstanceConverter;
 import io.camunda.migrator.converter.UserTaskConverter;
 import io.camunda.migrator.converter.VariableConverter;
 import io.camunda.migrator.history.IdKeyDbModel;
-import io.camunda.migrator.history.IdKeyMapper;
+import io.camunda.migrator.mapper.IdKeyMapper;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;

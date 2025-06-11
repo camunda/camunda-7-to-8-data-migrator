@@ -8,13 +8,13 @@
 package io.camunda.migrator;
 
 import static io.camunda.migrator.ExceptionUtils.callApi;
-import static io.camunda.migrator.history.IdKeyMapper.TYPE;
+import static io.camunda.migrator.mapper.IdKeyMapper.TYPE;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.migrator.history.IdKeyDbModel;
-import io.camunda.migrator.history.IdKeyMapper;
+import io.camunda.migrator.mapper.IdKeyMapper;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.camunda.bpm.engine.RepositoryService;

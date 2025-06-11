@@ -7,6 +7,7 @@
  */
 package io.camunda.migrator.history;
 
+import io.camunda.migrator.mapper.IdKeyMapper;
 import java.util.Objects;
 
 public class IdKeyDbModel {
