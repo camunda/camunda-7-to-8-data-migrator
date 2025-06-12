@@ -188,7 +188,7 @@ public class RuntimeMigrator {
     Map<String, Object> globalVariables = new Pagination<VariableInstance>()
         .batchSize(batchSize)
         .query(variableQuery)
-        .toMap(VariableInstance::getName, VariableInstance::getValue);
+        .toVariableMap();
 
     globalVariables.put("legacyId", legacyProcessInstanceId);
     return globalVariables;
@@ -266,7 +266,7 @@ public class RuntimeMigrator {
 
           Map<String, Object> localVariables = new Pagination<VariableInstance>().batchSize(batchSize)
               .query(variableQuery)
-              .toMap(VariableInstance::getName, VariableInstance::getValue);
+              .toVariableMap();
 
           String subProcessInstanceId = flowNode.subProcessInstanceId();
           if (subProcessInstanceId != null) {
