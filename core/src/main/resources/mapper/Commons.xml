@@ -16,9 +16,9 @@
     </if>
   </sql>
 
-  <sql id="singlePageSql">
+  <sql id="singleResultSql">
     <if test="limit != null">
-      ${paging.first}
+      ${paging.singleResult}
     </if>
   </sql>
 
