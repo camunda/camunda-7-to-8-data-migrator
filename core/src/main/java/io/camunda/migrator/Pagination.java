@@ -10,14 +10,15 @@ package io.camunda.migrator;
 import static io.camunda.migrator.ExceptionUtils.callApi;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import org.camunda.bpm.engine.query.Query;
+import org.camunda.bpm.engine.runtime.VariableInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,9 +83,17 @@ public class Pagination<T> {
     return list;
   }
 
-  public <K, U> Map<K, U> toMap(Function<? super T, ? extends K> keyMapper,
-                                Function<? super T, ? extends U> valueMapper) {
-    return toList().stream().collect(Collectors.toMap(keyMapper, valueMapper));
+  /**
+   * Heads-up: this implementation needs to be null safe for the variable value.
+   * Using streams might lead to undesired {@link NullPointerException}s.
+   */
+  public Map<String, Object> toVariableMap() {
+    Map<String, Object> result = new HashMap<>();
+    toList().forEach(e -> {
+      VariableInstance var = (VariableInstance) e;
+      result.put(var.getName(), var.getValue());
+    });
+    return result;
   }
 
 }
