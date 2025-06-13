@@ -32,7 +32,7 @@ public class SubprocessMigrationTest extends RuntimeMigrationAbstractTest{
         .superProcessInstanceId(instance.getProcessInstanceId())
         .singleResult();
     // when
-    runtimeMigrator.migrate();
+    runtimeMigrator.start();
 
     // then
     assertThat(byProcessId("callingProcessId")).isActive()
