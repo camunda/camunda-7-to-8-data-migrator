@@ -54,7 +54,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          # Updated to current release tag
+          ref: 0.1.0-alpha2
           # Overriding the default GITHUB_TOKEN with a GitHub App token in order to workaround
           # the known GitHub issue described in https://github.com/camunda/camunda/issues/28522
           # NOTES:
@@ -109,6 +110,8 @@ jobs:
           camunda-nexus: true
 
       - name: Maven Prepare Release
+        #  Skip for this run
+        if: false
         id: maven-prepare-release
         run: |
           # Preparing the maven release
@@ -125,6 +128,8 @@ jobs:
             -Darguments='-Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" -DskipTests=true'
 
       - name: Collect Release Artifacts
+        #  Skip for this run
+        if: false
         id: release-artifacts
         run: |
           ARTIFACT_DIR=$(mktemp -d)
@@ -133,6 +138,8 @@ jobs:
           echo "dir=${ARTIFACT_DIR}" >> $GITHUB_OUTPUT
 
       - name: Upload Release Artifacts
+        #  Skip for this run
+        if: false
         uses: actions/upload-artifact@v4
         with:
           name: release-artifacts-${RELEASE_VERSION}
