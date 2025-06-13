@@ -242,13 +242,9 @@ public class RuntimeMigrator {
       LOGGER.debug("Migrator jobs found: {}", migratorJobs.size());
 
       migratorJobs.forEach(activatedJob -> {
-        // only exists if the job's process is started from a call activity
-        String subProcessLegacyId = loadLegacyProcessInstanceId(activatedJob);
         String fetchLegacyIdErrorMessage =
             String.format("Error while fetching legacyId for job with key:" + activatedJob.getProcessInstanceKey());
-        String legacyId = subProcessLegacyId != null ? subProcessLegacyId
-            : (String) callApi(() -> activatedJob.getVariable("legacyId"), fetchLegacyIdErrorMessage);
-
+        String legacyId = (String) callApi(() -> activatedJob.getVariable("legacyId"), fetchLegacyIdErrorMessage);
         long processInstanceKey = activatedJob.getProcessInstanceKey();
 
         var modifyProcessInstance = camundaClient.newModifyProcessInstanceCommand(processInstanceKey);
@@ -274,11 +270,7 @@ public class RuntimeMigrator {
 
           String subProcessInstanceId = flowNode.subProcessInstanceId();
           if (subProcessInstanceId != null) {
-            localVariables.put("subProcessLegacyId", subProcessInstanceId);
-          }
-
-          if (subProcessLegacyId != null) {
-            localVariables.put("legacyId", subProcessLegacyId);
+            localVariables.put("legacyId", subProcessInstanceId);
           }
 
           modifyProcessInstance.activateElement(activityId).withVariables(localVariables, activityId);
@@ -289,17 +281,6 @@ public class RuntimeMigrator {
         // no need to complete the job since the modification canceled the migrator job in the start event
       });
     } while (!migratorJobs.isEmpty());
-  }
-
-  protected String loadLegacyProcessInstanceId(ActivatedJob job) {
-    String subProcessLegacyId = null;
-    try {
-      subProcessLegacyId = (String) callApi(() -> job.getVariable("subProcessLegacyId"));
-    } catch (Exception e) {
-      // Fetching variable that does not exists throws error, the only other way is to fetch all variables
-      LOGGER.debug("Could not fetch subProcessLegacyId for job with key:" + job.getProcessInstanceKey());
-    }
-    return subProcessLegacyId;
   }
 
   public Map<String, FlowNode> getActiveActivityIdsById(ActivityInstance activityInstance, Map<String, FlowNode> activeActivities) {
