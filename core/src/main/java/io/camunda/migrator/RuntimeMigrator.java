@@ -8,16 +8,17 @@
 package io.camunda.migrator;
 
 import static io.camunda.migrator.ExceptionUtils.callApi;
+
+import static io.camunda.migrator.mapper.IdKeyMapper.TYPE;
 import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
-import static io.camunda.migrator.history.IdKeyMapper.TYPE;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.migrator.history.IdKeyDbModel;
-import io.camunda.migrator.history.IdKeyMapper;
+import io.camunda.migrator.mapper.IdKeyMapper;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.camunda.bpm.engine.RepositoryService;
@@ -148,7 +149,7 @@ public class RuntimeMigrator {
   protected void storeMapping(String legacyProcessInstanceId, Long processInstanceKey) {
     var keyIdDbModel = new IdKeyDbModel();
     keyIdDbModel.setId(legacyProcessInstanceId);
-    keyIdDbModel.setKey(processInstanceKey);
+    keyIdDbModel.setItemKey(processInstanceKey);
     keyIdDbModel.setType(TYPE.RUNTIME_PROCESS_INSTANCE);
 
     if (RETRY_SKIPPED.equals(mode)) {
