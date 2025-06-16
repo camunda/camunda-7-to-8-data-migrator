@@ -34,10 +34,9 @@ public class SubprocessMigrationTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-//    TODO https://github.com/camunda/camunda-bpm-platform/issues/5167
-//    assertThat(byProcessId("callingProcessId")).isActive()
-//        .hasActiveElements(byId("callActivityId"))
-//        .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
+    assertThat(byProcessId("callingProcessId")).isActive()
+        .hasActiveElements(byId("callActivityId"))
+        .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
     assertThat(byProcessId("calledProcessInstanceId")).isActive()
         .hasActiveElements(byId("userTaskId"))
         .hasVariable(LEGACY_ID_VAR_NAME, calledInstance.getProcessInstanceId());
