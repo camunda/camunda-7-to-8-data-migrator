@@ -31,8 +31,8 @@ import io.camunda.migrator.converter.ProcessDefinitionConverter;
 import io.camunda.migrator.converter.ProcessInstanceConverter;
 import io.camunda.migrator.converter.UserTaskConverter;
 import io.camunda.migrator.converter.VariableConverter;
-import io.camunda.migrator.history.IdKeyDbModel;
-import io.camunda.migrator.mapper.IdKeyMapper;
+import io.camunda.migrator.persistence.IdKeyDbModel;
+import io.camunda.migrator.persistence.IdKeyMapper;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
@@ -358,7 +358,7 @@ public class HistoryMigrator {
   protected void insertKeyIdMapping(String id, Long key, IdKeyMapper.TYPE type) {
     var idKeyDbModel = new IdKeyDbModel();
     idKeyDbModel.setId(id);
-    idKeyDbModel.setItemKey(key);
+    idKeyDbModel.setInstanceKey(key);
     idKeyDbModel.setType(type);
     idKeyMapper.insert(idKeyDbModel);
   }
