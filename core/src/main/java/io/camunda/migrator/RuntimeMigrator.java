@@ -72,7 +72,8 @@ public class RuntimeMigrator {
 
   public void start() {
     if (LIST_SKIPPED.equals(mode)) {
-      PrintUtils.printSkippedInstances(listSkippedProcessInstances());
+      PrintUtils.printSkippedInstancesHeader(idKeyMapper.findSkippedProcessInstanceIdsCount());
+      listSkippedProcessInstances();
     } else {
       migrate();
     }
@@ -96,12 +97,12 @@ public class RuntimeMigrator {
     activateMigratorJobs();
   }
 
-  protected List<String> listSkippedProcessInstances() {
-   return new Pagination<String>()
+  protected void listSkippedProcessInstances() {
+   new Pagination<String>()
         .batchSize(batchSize)
         .maxCount(idKeyMapper::findSkippedProcessInstanceIdsCount)
-        .page(offset -> idKeyMapper.findSkippedProcessInstanceIds(0, batchSize))
-        .toList();
+        .page(offset -> idKeyMapper.findSkippedProcessInstanceIds(offset, batchSize))
+        .callback(PrintUtils::print);
   }
 
   protected boolean skipProcessInstance(String legacyProcessInstanceId) {
