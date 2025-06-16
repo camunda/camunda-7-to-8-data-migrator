@@ -26,7 +26,7 @@ public class UnsupportedStartEventMigrationTest extends RuntimeMigrationAbstract
     // when/then
     assertThatThrownBy(() -> runtimeMigrator.start()).isInstanceOf(MigratorException.class)
         .hasMessageContaining(
-            "Error occurred: shutting down Data Migrator gracefully.")
+            "Creating process instance failed for legacyId: ")
         .hasRootCauseMessage("FAILED_PRECONDITION: Command 'CREATE' rejected with code 'INVALID_STATE': Expected to "
             + "create instance of process with none start event, but there is no such event");
   }
