@@ -1,14 +1,17 @@
-name: C7 Data Migrator CI
+name: CI
 on:
   push:
     branches:
       - main
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 1-5"
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -34,3 +37,20 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean install --batch-mode
+
+      - name: Collect distro
+        id: distro
+        # if: github.ref == 'refs/heads/main'
+        run: |
+          ARTIFACT_DIR=$(mktemp -d)
+          cp assembly/target/c7-data-migrator-assembly-*.tar.gz "${ARTIFACT_DIR}/"
+          cp assembly/target/c7-data-migrator-assembly-*.zip "${ARTIFACT_DIR}/"
+          echo "dir=${ARTIFACT_DIR}" >> $GITHUB_OUTPUT
+
+      - name: Upload distro
+        uses: actions/upload-artifact@v4
+        # if: github.ref == 'refs/heads/main'
+        with:
+          name: distro
+          path: ${{ steps.distro.outputs.dir }}
+          retention-days: 7
