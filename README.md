@@ -1,5 +1,10 @@
 # C7 Data Migrator
 
+> [!WARNING]  
+> The C7 Data Migrator is still in development and not yet ready for production use. 
+
+However, even though the C7 Data Migrator is not yet ready for production, we encourage users to try it out, play around with the current functionality and provide feedback.
+
 ### How to use the Migrator
 
 1. Prerequisites: Use Java 21
@@ -40,6 +45,8 @@
    </zeebe:ioMapping>
 - Multi-instance:
   - Processes with active multi-instance elements can currently not be migrated. We recommend to finish the execution of any multi-instance elements prior to migration.
+- Timer events:
+  - Processes with active tokens in [timer events](https://docs.camunda.org/manual/latest/reference/bpmn20/events/timer-events/) are not yet supported for migration. We have [this ticket](https://github.com/camunda/camunda-bpm-platform/issues/5173) to address this limitation in the future. 
 
 #### Configuration
 
