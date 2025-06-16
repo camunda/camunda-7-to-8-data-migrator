@@ -19,7 +19,7 @@
 - Async before/after wait states:
   - C8 does not support [asynchronous continuation (before/after)](https://docs.camunda.org/manual/latest/user-guide/process-engine/transactions-in-processes/#asynchronous-continuations) wait states. Therefore, if you were to migrate an instance currently waiting asynchronously at an element in a C7 model, this instance would just continue without waiting in the equivalent C8 model. Please adjust your model's logic accordingly prior to migration
 - Data changed via user operations
-  - Data set via user operations like setting a due date to a user task cannot be migrated currently.
+  - Data set via user operations like setting a due date to a user task cannot be migrated currently. We plan to address this limitation with [this [ticket](https://github.com/camunda/camunda-bpm-platform/issues/5182).
 - Message events:
   - only message catch and throw events are supported for migration
   - depending on your implementation, you may need to add [a correlation variable](https://docs.camunda.io/docs/components/modeler/bpmn/message-events/#messages) to the instance pre migration
