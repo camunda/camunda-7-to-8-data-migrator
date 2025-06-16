@@ -6,15 +6,17 @@
  * except in compliance with the Camunda License 1.0.
  */
 
-package io.camunda.migrator.qa;
+package io.camunda.migrator.qa.element;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.camunda.migrator.MigratorException;
+import io.camunda.migrator.qa.RuntimeMigrationAbstractTest;
 import org.junit.jupiter.api.Test;
 
-public class UnsupportedMigrationTest extends RuntimeMigrationAbstractTest {
+public class UnsupportedStartEventMigrationTest extends RuntimeMigrationAbstractTest {
 
+  // To be addressed with https://github.com/camunda/camunda-bpm-platform/issues/5195
   @Test
   public void migrateProcessWithUnsupportedStartEvent() {
     // given
@@ -22,7 +24,7 @@ public class UnsupportedMigrationTest extends RuntimeMigrationAbstractTest {
     runtimeService.correlateMessage("msgRef");
 
     // when/then
-    assertThatThrownBy(() -> runtimeMigrator.migrate()).isInstanceOf(MigratorException.class)
+    assertThatThrownBy(() -> runtimeMigrator.start()).isInstanceOf(MigratorException.class)
         .hasMessageContaining(
             "Error occurred: shutting down Data Migrator gracefully.")
         .hasRootCauseMessage("FAILED_PRECONDITION: Command 'CREATE' rejected with code 'INVALID_STATE': Expected to "

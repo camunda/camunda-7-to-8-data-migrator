@@ -36,6 +36,8 @@
    <zeebe:ioMapping>
      <zeebe:input source="=legacyId" target="legacyId" />
    </zeebe:ioMapping>
+- Multi-instance:
+  - Processes with active multi-instance elements can currently not be migrated. We recommend to finish the execution of any multi-instance elements prior to migration.
 
 #### Configuration
 
