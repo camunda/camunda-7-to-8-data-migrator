@@ -6,7 +6,7 @@
  * except in compliance with the Camunda License 1.0.
  */
 
-package io.camunda.migrator.qa;
+package io.camunda.migrator.qa.element;
 
 import static io.camunda.migrator.qa.MigrationTestConstants.LEGACY_ID_VAR_NAME;
 import static io.camunda.process.test.api.CamundaAssert.assertThat;
@@ -14,12 +14,11 @@ import static io.camunda.process.test.api.assertions.ElementSelectors.byId;
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
 import static io.camunda.process.test.api.assertions.UserTaskSelectors.byTaskName;
 
-import java.util.stream.Stream;
+import io.camunda.migrator.qa.RuntimeMigrationAbstractTest;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.provider.Arguments;
 
-public class SubprocessMigrationTest extends RuntimeMigrationAbstractTest{
+public class SubprocessMigrationTest extends RuntimeMigrationAbstractTest {
 
   @Test
   public void migrateCallActivityAndSubprocess() {

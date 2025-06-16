@@ -6,7 +6,7 @@
  * except in compliance with the Camunda License 1.0.
  */
 
-package io.camunda.migrator.qa;
+package io.camunda.migrator.qa.element;
 
 import java.util.stream.Stream;
 import org.junit.jupiter.params.provider.Arguments;

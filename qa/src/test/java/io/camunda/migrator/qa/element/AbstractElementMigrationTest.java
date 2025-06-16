@@ -6,13 +6,14 @@
  * except in compliance with the Camunda License 1.0.
  */
 
-package io.camunda.migrator.qa;
+package io.camunda.migrator.qa.element;
 
 import static io.camunda.migrator.qa.MigrationTestConstants.LEGACY_ID_VAR_NAME;
 import static io.camunda.process.test.api.CamundaAssert.assertThat;
 import static io.camunda.process.test.api.assertions.ElementSelectors.byId;
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
 
+import io.camunda.migrator.qa.RuntimeMigrationAbstractTest;
 import java.util.stream.Stream;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.junit.jupiter.api.TestInstance;
