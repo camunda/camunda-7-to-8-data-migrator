@@ -94,7 +94,7 @@ public abstract class RuntimeMigrationAbstractTest {
     deployCamunda8Process("io/camunda/migrator/bpmn/c8/" + fileName);
   }
 
-  protected Optional<Variable> getVariableByScope(Long processInstanceKey , Long scopeKey, String variableName) {
+  protected Optional<Variable> getVariableByScope(Long processInstanceKey, Long scopeKey, String variableName) {
     List<Variable> variables = camundaClient.newVariableSearchRequest().send().join().items();
 
     return variables.stream()
