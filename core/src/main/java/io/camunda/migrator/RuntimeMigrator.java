@@ -87,21 +87,19 @@ public class RuntimeMigrator {
     fetchProcessInstancesToMigrate(legacyProcessInstance -> {
 
       String legacyProcessInstanceId = legacyProcessInstance.id();
-      if (legacyProcessInstanceId != null) {
-        Date startDate = legacyProcessInstance.startDate();
-        if (skipProcessInstance(legacyProcessInstanceId)) {
-          LOGGER.info("Skipping process instance with legacyId: {}", legacyProcessInstanceId);
-          if (!legacyProcessInstance.skippedPreviously()) {
-            storeMapping(legacyProcessInstanceId, startDate, null);
-          }
+      Date startDate = legacyProcessInstance.startDate();
+      if (skipProcessInstance(legacyProcessInstanceId)) {
+        LOGGER.info("Skipping process instance with legacyId: {}", legacyProcessInstanceId);
+        if (!legacyProcessInstance.skippedPreviously()) {
+          storeMapping(legacyProcessInstanceId, startDate, null);
+        }
 
-        } else if (legacyProcessInstance.skippedPreviously() || !idKeyMapper.checkExists(legacyProcessInstanceId)) {
-          LOGGER.debug("Starting new C8 process instance with legacyId: [{}]", legacyProcessInstanceId);
-          Long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
-          LOGGER.debug("Started C8 process instance with processInstanceKey: [{}]", processInstanceKey);
-          if (processInstanceKey != null) {
-            storeMapping(legacyProcessInstanceId, startDate, processInstanceKey);
-          }
+      } else if (legacyProcessInstance.skippedPreviously() || !idKeyMapper.checkExists(legacyProcessInstanceId)) {
+        LOGGER.debug("Starting new C8 process instance with legacyId: [{}]", legacyProcessInstanceId);
+        Long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
+        LOGGER.debug("Started C8 process instance with processInstanceKey: [{}]", processInstanceKey);
+        if (processInstanceKey != null) {
+          storeMapping(legacyProcessInstanceId, startDate, processInstanceKey);
         }
       }
     });
