@@ -16,7 +16,6 @@ import static io.camunda.process.test.api.assertions.UserTaskSelectors.byTaskNam
 
 import io.camunda.migrator.qa.RuntimeMigrationAbstractTest;
 import io.camunda.client.api.search.response.Variable;
-import java.util.List;
 import java.util.Optional;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.junit.jupiter.api.Test;
@@ -37,12 +36,12 @@ public class SubprocessMigrationTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    List<io.camunda.client.api.search.response.ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().send().join().items();
-    Optional<io.camunda.client.api.search.response.ProcessInstance> c8ParentInstance = processInstances.stream()
-        .filter(pi -> pi.getProcessDefinitionId().equals("callingProcessId")).findFirst();
+    io.camunda.client.api.search.response.ProcessInstance c8ParentInstance =
+        camundaClient.newProcessInstanceSearchRequest().filter(processInstanceFilter -> {
+          processInstanceFilter.processDefinitionId("callingProcessId");
+        }).send().join().items().getFirst();
 
-    assert c8ParentInstance.isPresent();
-    Long c8ParentInstanceKey = c8ParentInstance.get().getProcessInstanceKey();
+    Long c8ParentInstanceKey = c8ParentInstance.getProcessInstanceKey();
     Optional<Variable> variable = getVariableByScope(c8ParentInstanceKey, c8ParentInstanceKey, LEGACY_ID_VAR_NAME);
     assert variable.isPresent();
     assert variable.get().getValue().equals("\""+parentInstance.getProcessInstanceId()+"\"");
