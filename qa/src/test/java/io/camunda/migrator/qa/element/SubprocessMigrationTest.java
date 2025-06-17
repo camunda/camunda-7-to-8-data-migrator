@@ -15,6 +15,9 @@ import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.by
 import static io.camunda.process.test.api.assertions.UserTaskSelectors.byTaskName;
 
 import io.camunda.migrator.qa.RuntimeMigrationAbstractTest;
+import io.camunda.client.api.search.response.Variable;
+import java.util.List;
+import java.util.Optional;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.junit.jupiter.api.Test;
 
@@ -25,21 +28,28 @@ public class SubprocessMigrationTest extends RuntimeMigrationAbstractTest {
     // given
     deployProcessInC7AndC8("calledActivitySubprocess.bpmn");
     deployProcessInC7AndC8("callActivityProcess.bpmn");
-    ProcessInstance instance = runtimeService.startProcessInstanceByKey("callingProcessId");
-    ProcessInstance calledInstance = runtimeService
+    ProcessInstance parentInstance = runtimeService.startProcessInstanceByKey("callingProcessId");
+    ProcessInstance subProcessInstance = runtimeService
         .createProcessInstanceQuery()
-        .superProcessInstanceId(instance.getProcessInstanceId())
+        .superProcessInstanceId(parentInstance.getProcessInstanceId())
         .singleResult();
     // when
     runtimeMigrator.start();
 
     // then
-    assertThat(byProcessId("callingProcessId")).isActive()
-        .hasActiveElements(byId("callActivityId"))
-        .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
+    List<io.camunda.client.api.search.response.ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().send().join().items();
+    Optional<io.camunda.client.api.search.response.ProcessInstance> c8ParentInstance = processInstances.stream()
+        .filter(pi -> pi.getProcessDefinitionId().equals("callingProcessId")).findFirst();
+
+    assert c8ParentInstance.isPresent();
+    Long c8ParentInstanceKey = c8ParentInstance.get().getProcessInstanceKey();
+    Optional<Variable> variable = getVariableByScope(c8ParentInstanceKey, c8ParentInstanceKey, LEGACY_ID_VAR_NAME);
+    assert variable.isPresent();
+    assert variable.get().getValue().equals("\""+parentInstance.getProcessInstanceId()+"\"");
+
     assertThat(byProcessId("calledProcessInstanceId")).isActive()
         .hasActiveElements(byId("userTaskId"))
-        .hasVariable(LEGACY_ID_VAR_NAME, calledInstance.getProcessInstanceId());
+        .hasVariable(LEGACY_ID_VAR_NAME, subProcessInstance.getProcessInstanceId());
     assertThat(byTaskName("userTaskName")).isCreated().hasElementId("userTaskId");
   }
 }
