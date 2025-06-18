@@ -1,6 +1,8 @@
-name: Release C7 Data Migrator
+name: Release
 
 on:
+  schedule:
+    - cron: "0 4 * * 1-5"
   workflow_dispatch:
     inputs:
       RELEASE_VERSION:
@@ -38,6 +40,7 @@ jobs:
   release:
     name: Maven Release
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
       - name: Output Inputs
