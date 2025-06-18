@@ -8,8 +8,7 @@
 package io.camunda.migrator;
 
 import static io.camunda.migrator.ExceptionUtils.callApi;
-
-import static io.camunda.migrator.mapper.IdKeyMapper.TYPE;
+import static io.camunda.migrator.persistence.IdKeyMapper.TYPE;
 import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
@@ -17,13 +16,15 @@ import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
 import io.camunda.client.api.response.ActivatedJob;
-import io.camunda.migrator.history.IdKeyDbModel;
-import io.camunda.migrator.mapper.IdKeyMapper;
+import io.camunda.migrator.persistence.IdKeyDbModel;
+import io.camunda.migrator.persistence.IdKeyMapper;
+import java.util.Date;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.impl.ProcessInstanceQueryImpl;
+import org.camunda.bpm.engine.history.HistoricProcessInstanceQuery;
 import org.camunda.bpm.engine.impl.persistence.entity.ActivityInstanceImpl;
 import org.camunda.bpm.engine.impl.persistence.entity.TransitionInstanceImpl;
 import org.camunda.bpm.engine.runtime.ActivityInstance;
@@ -54,10 +55,13 @@ public class RuntimeMigrator {
   public final static int DEFAULT_BATCH_SIZE = 500;
 
   @Autowired
-  private RepositoryService repositoryService;
+  protected RepositoryService repositoryService;
 
   @Autowired
   protected RuntimeService runtimeService;
+
+  @Autowired
+  protected HistoryService historyService;
 
   @Autowired
   protected IdKeyMapper idKeyMapper;
@@ -72,24 +76,30 @@ public class RuntimeMigrator {
 
   public void start() {
     if (LIST_SKIPPED.equals(mode)) {
-      PrintUtils.printSkippedInstancesHeader(idKeyMapper.findSkippedProcessInstanceIdsCount());
+      PrintUtils.printSkippedInstancesHeader(idKeyMapper.findSkippedCount());
       listSkippedProcessInstances();
     } else {
       migrate();
     }
   }
 
-  protected void migrate() {
-    fetchProcessInstancesToMigrate(legacyProcessInstanceId -> {
+  public void migrate() {
+    fetchProcessInstancesToMigrate(legacyProcessInstance -> {
+
+      String legacyProcessInstanceId = legacyProcessInstance.id();
+      Date startDate = legacyProcessInstance.startDate();
       if (skipProcessInstance(legacyProcessInstanceId)) {
         LOGGER.info("Skipping process instance with legacyId: {}", legacyProcessInstanceId);
-        storeMapping(legacyProcessInstanceId, null);
-      } else {
+        if (!legacyProcessInstance.skippedPreviously()) {
+          storeMapping(legacyProcessInstanceId, startDate, null);
+        }
+
+      } else if (legacyProcessInstance.skippedPreviously() || !idKeyMapper.checkExists(legacyProcessInstanceId)) {
         LOGGER.debug("Starting new C8 process instance with legacyId: [{}]", legacyProcessInstanceId);
         Long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
         LOGGER.debug("Started C8 process instance with processInstanceKey: [{}]", processInstanceKey);
         if (processInstanceKey != null) {
-          storeMapping(legacyProcessInstanceId, processInstanceKey);
+          storeMapping(legacyProcessInstanceId, startDate, processInstanceKey);
         }
       }
     });
@@ -100,8 +110,11 @@ public class RuntimeMigrator {
   protected void listSkippedProcessInstances() {
    new Pagination<String>()
         .batchSize(batchSize)
-        .maxCount(idKeyMapper::findSkippedProcessInstanceIdsCount)
-        .page(offset -> idKeyMapper.findSkippedProcessInstanceIds(offset, batchSize))
+        .maxCount(idKeyMapper::findSkippedCount)
+        .page(offset -> idKeyMapper.findSkipped(offset, batchSize)
+            .stream()
+            .map(IdKeyDbModel::id)
+            .collect(Collectors.toList()))
         .callback(PrintUtils::print);
   }
 
@@ -116,41 +129,49 @@ public class RuntimeMigrator {
     return false;
   }
 
-  protected void fetchProcessInstancesToMigrate(Consumer<String> storeMappingConsumer) {
+  protected void fetchProcessInstancesToMigrate(Consumer<IdKeyDbModel> storeMappingConsumer) {
     LOGGER.info("Fetching process instances to migrate");
-    if (RETRY_SKIPPED.equals(mode)) {
-      new Pagination<String>()
-          .batchSize(batchSize)
-          .maxCount(idKeyMapper::findSkippedProcessInstanceIdsCount)
-          // Hardcode offset to 0 since each callback updates the database and leads to fresh results.
-          .page(offset -> idKeyMapper.findSkippedProcessInstanceIds(0, batchSize))
-          .callback(storeMappingConsumer);
-    } else {
-      LOGGER.debug("Fetching Legacy ID for latest Process Instance");
-      String latestLegacyId = callApi(() -> idKeyMapper.findLatestIdByType(TYPE.RUNTIME_PROCESS_INSTANCE));
-      LOGGER.debug("Legacy ID of latest migrated process instance: [{}]", latestLegacyId);
 
-      ProcessInstanceQuery processInstanceQuery = ((ProcessInstanceQueryImpl) runtimeService.createProcessInstanceQuery())
-          .idAfter(latestLegacyId)
+    if (RETRY_SKIPPED.equals(mode)) {
+      new Pagination<IdKeyDbModel>()
+          .batchSize(batchSize)
+          .maxCount(idKeyMapper::findSkippedCount)
+          // Hardcode offset to 0 since each callback updates the database and leads to fresh results.
+          .page(offset -> idKeyMapper.findSkipped(0, batchSize))
+          .callback(storeMappingConsumer);
+
+    } else {
+      LOGGER.debug("Fetching latest start date of process instances");
+      Date latestStartDate = callApi(() -> idKeyMapper.findLatestStartDateByType(TYPE.RUNTIME_PROCESS_INSTANCE));
+      LOGGER.debug("Latest start date: {}", latestStartDate);
+
+      HistoricProcessInstanceQuery processInstanceQuery = historyService.createHistoricProcessInstanceQuery()
+          .startedAfter(latestStartDate)
           .rootProcessInstances()
+          .unfinished()
+          .orderByProcessInstanceStartTime()
+          .asc()
+          // Ensure order is predictable with two order criteria:
+          // Without second criteria and PIs have same start time, order is non-deterministic.
           .orderByProcessInstanceId()
           .asc();
 
-      new Pagination<String>()
+      new Pagination<IdKeyDbModel>()
           .batchSize(batchSize)
           .maxCount(processInstanceQuery::count)
           .page(offset -> processInstanceQuery.listPage(offset, batchSize)
               .stream()
-              .map(ProcessInstance::getId)
-              .collect(Collectors.toSet()))
+              .map(hpi -> new IdKeyDbModel(hpi.getId(), hpi.getStartTime()))
+              .collect(Collectors.toList()))
           .callback(storeMappingConsumer);
     }
   }
 
-  protected void storeMapping(String legacyProcessInstanceId, Long processInstanceKey) {
+  protected void storeMapping(String legacyProcessInstanceId, Date startDate, Long processInstanceKey) {
     var keyIdDbModel = new IdKeyDbModel();
     keyIdDbModel.setId(legacyProcessInstanceId);
-    keyIdDbModel.setItemKey(processInstanceKey);
+    keyIdDbModel.setStartDate(startDate);
+    keyIdDbModel.setInstanceKey(processInstanceKey);
     keyIdDbModel.setType(TYPE.RUNTIME_PROCESS_INSTANCE);
 
     if (RETRY_SKIPPED.equals(mode)) {
@@ -203,6 +224,7 @@ public class RuntimeMigrator {
    * @param legacyProcessInstanceId the legacy id of the root process instance.
    */
   protected void validateProcessInstanceState(String legacyProcessInstanceId) {
+    LOGGER.debug("Validate legacy process instance by ID: {}", legacyProcessInstanceId);
     ProcessInstanceQuery processInstanceQuery = runtimeService.createProcessInstanceQuery()
         .rootProcessInstanceId(legacyProcessInstanceId);
 

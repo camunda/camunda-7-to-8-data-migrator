@@ -14,7 +14,7 @@ import io.camunda.client.api.response.DeploymentEvent;
 import io.camunda.client.api.search.response.ProcessInstance;
 import io.camunda.client.api.search.response.Variable;
 import io.camunda.migrator.RuntimeMigrator;
-import io.camunda.migrator.mapper.IdKeyMapper;
+import io.camunda.migrator.persistence.IdKeyMapper;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
 
 import java.util.List;
@@ -23,6 +23,7 @@ import java.util.Optional;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.impl.util.ClockUtil;
 import org.camunda.bpm.engine.repository.Deployment;
 import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +60,7 @@ public abstract class RuntimeMigrationAbstractTest {
   @AfterEach
   public void cleanup() {
     // C7
+    ClockUtil.reset();
     repositoryService.createDeploymentQuery().list().forEach(d -> repositoryService.deleteDeployment(d.getId(), true));
 
     // C8
@@ -66,7 +68,7 @@ public abstract class RuntimeMigrationAbstractTest {
     items.forEach(i -> camundaClient.newDeleteResourceCommand(i.getProcessInstanceKey()));
 
     // Migrator table
-    idKeyMapper.findAllProcessInstanceIds().forEach(id -> idKeyMapper.delete(id));
+    idKeyMapper.findAllIds().forEach(id -> idKeyMapper.delete(id));
 
     // reset runtime migrator
     runtimeMigrator.setMode(MIGRATE);

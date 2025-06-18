@@ -17,9 +17,7 @@
   </sql>
 
   <sql id="singleResultSql">
-    <if test="limit != null">
-      ${paging.singleResult}
-    </if>
+    ${paging.singleResult}
   </sql>
 
 </mapper>
