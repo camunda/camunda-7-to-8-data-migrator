@@ -12,12 +12,14 @@ import static io.camunda.migrator.MigratorMode.MIGRATE;
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.response.DeploymentEvent;
 import io.camunda.client.api.search.response.ProcessInstance;
+import io.camunda.client.api.search.response.Variable;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.mapper.IdKeyMapper;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
 
 import java.util.List;
 
+import java.util.Optional;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
@@ -90,6 +92,16 @@ public abstract class RuntimeMigrationAbstractTest {
   protected void deployProcessInC7AndC8(String fileName) {
     deployCamunda7Process("io/camunda/migrator/bpmn/c7/" + fileName);
     deployCamunda8Process("io/camunda/migrator/bpmn/c8/" + fileName);
+  }
+
+  protected Optional<Variable> getVariableByScope(Long processInstanceKey, Long scopeKey, String variableName) {
+    List<Variable> variables = camundaClient.newVariableSearchRequest().send().join().items();
+
+    return variables.stream()
+        .filter(v -> v.getProcessInstanceKey().equals(processInstanceKey))
+        .filter(v -> v.getScopeKey().equals(scopeKey))
+        .filter(v -> v.getName().equals(variableName))
+        .findFirst();
   }
 
 }
