@@ -306,6 +306,42 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
+  public void shouldSetTaskVariable() {
+    // deploy processes
+    deployParallelModels();
+    Map<String, Object> vars = new HashMap<>();
+    vars.put("variable1", "value1");
+
+    // given
+    runtimeService.startProcessInstanceByKey(PARALLEL, vars);
+    Task currentTask = taskService.createTaskQuery().taskDefinitionKey("userTask_1").singleResult();
+    taskService.setVariableLocal(currentTask.getId(), "localVariable", "local value");
+
+    // when running runtime migration
+    runtimeMigrator.start();
+
+    // then
+    // TODO assert local variable when this ticket is completed https://github.com/camunda/camunda/issues/32648
+    List<Variable> c8vars = camundaClient.newVariableSearchRequest()
+        .filter(f -> f.name("localVariable"))
+        .send()
+        .join()
+        .items();
+
+    List<ElementInstance> elements = camundaClient.newElementInstanceSearchRequest()
+        .filter(f -> f.elementId("userTask_1"))
+        .send()
+        .join()
+        .items();
+
+    assertThat(c8vars.size()).isEqualTo(1);
+    var c8Var = c8vars.get(0);
+    assertThat(c8Var.getValue().contains("local value")).isTrue();
+    assertThat(c8Var.getScopeKey()).isNotEqualTo(elements.get(0).getProcessInstanceKey());
+    assertThat(c8Var.getScopeKey()).isEqualTo(elements.get(0).getElementInstanceKey());
+  }
+
+  @Test
   @Disabled
   public void shouldSetVariableIntoSubprocess() {
     // deploy processes
