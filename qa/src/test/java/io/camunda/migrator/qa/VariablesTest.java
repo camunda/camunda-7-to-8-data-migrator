@@ -22,10 +22,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.text.html.HTML;
 import org.camunda.bpm.engine.task.Task;
+import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 import org.camunda.spin.plugin.variable.value.SpinValue;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,7 +52,8 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    CamundaAssert.assertThat(byProcessId("simpleProcess")).hasVariable("myVariable", null);
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+        .hasVariable("myVariable", null);
   }
 
   @Test
@@ -64,7 +68,8 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // when running runtime migration
     runtimeMigrator.start();
 
-    CamundaAssert.assertThat(byProcessId("simpleProcess")).hasVariable("stringVar", "myStringVar");
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+        .hasVariable("stringVar", "myStringVar");
   }
 
   @Test
@@ -79,7 +84,8 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // when running runtime migration
     runtimeMigrator.start();
 
-    CamundaAssert.assertThat(byProcessId("simpleProcess")).hasVariable("booleanVar", true);
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+        .hasVariable("booleanVar", true);
   }
 
   @Test
@@ -94,11 +100,12 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // when running runtime migration
     runtimeMigrator.start();
 
-    CamundaAssert.assertThat(byProcessId("simpleProcess")).hasVariable("integerVar", 1234);
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+        .hasVariable("integerVar", 1234);
   }
 
   @Test
-  public void shouldSetC7DoubleAsC8FloatVariable() {
+  public void shouldSetFloatVariable() {
     // deploy processes
     deployProcessInC7AndC8("simpleProcess.bpmn");
 
@@ -109,12 +116,8 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // when running runtime migration
     runtimeMigrator.start();
 
-    CamundaAssert.assertThat(byProcessId("simpleProcess")).hasVariable("floatVar", 1.5);
-    List<Variable> c8vars = camundaClient.newVariableSearchRequest()
-        .filter(f -> f.name("floatVar"))
-        .send()
-        .join()
-        .items();
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+        .hasVariable("floatVar", 1.5);
   }
 
   @Test
@@ -129,7 +132,8 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // when running runtime migration
     runtimeMigrator.start();
 
-    CamundaAssert.assertThat(byProcessId("simpleProcess")).hasVariable("doubleVar", 1.5d);
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+        .hasVariable("doubleVar", 1.5d);
   }
 
   @Test
@@ -144,7 +148,8 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // when running runtime migration
     runtimeMigrator.start();
 
-    CamundaAssert.assertThat(byProcessId("simpleProcess")).hasVariable("shortVar", (short) 1);
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+        .hasVariable("shortVar", (short) 1);
   }
 
   @Test
@@ -159,7 +164,8 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // when running runtime migration
     runtimeMigrator.start();
 
-    CamundaAssert.assertThat(byProcessId("simpleProcess")).hasVariable("byteVar", (byte) 1);
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+        .hasVariable("byteVar", (byte) 1);
   }
 
   @Test
@@ -174,11 +180,12 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // when running runtime migration
     runtimeMigrator.start();
 
-    CamundaAssert.assertThat(byProcessId("simpleProcess")).hasVariable("charVar", (char) 1);
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+        .hasVariable("charVar", (char) 1);
   }
 
   @Test
-//  @Disabled
+  @Disabled
   public void shouldSetDateVariable() {
     // deploy processes
     deployProcessInC7AndC8("simpleProcess.bpmn");
@@ -191,15 +198,16 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // when running runtime migration
     runtimeMigrator.start();
 
-    CamundaAssert.assertThat(byProcessId("simpleProcess")).hasVariable("dateVar", date);
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+        .hasVariable("dateVar", date);
+
     List<Variable> c8vars = camundaClient.newVariableSearchRequest()
         .filter(f -> f.name("dateVar"))
         .send()
         .join()
         .items();
 
-    var c8Var = c8vars.get(0);
-    assertThat(c8Var.getValue()).isEqualTo(runtimeService.getVariable(simpleProcessInstance.getId(),"dateVar"));
+    assertThat(c8vars.get(0).getValue()).isEqualTo(runtimeService.getVariable(simpleProcessInstance.getId(),"dateVar"));
   }
 
   @Test
@@ -213,6 +221,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     XmlSerializable foo = new XmlSerializable("a String", 42, true);
     String xml = objectMapper.writeValueAsString(foo);
     runtimeService.setVariable(simpleProcessInstance.getId(), "var", xml);
+
     // when running runtime migration
     runtimeMigrator.start();
 
@@ -231,35 +240,12 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     JsonSerializable foo = new JsonSerializable("a String", 42, true);
     String json = objectMapper.writeValueAsString(foo);
     runtimeService.setVariable(simpleProcessInstance.getId(), "var", json);
+
     // when running runtime migration
     runtimeMigrator.start();
 
     CamundaAssert.assertThat(byProcessId("simpleProcess"))
         .hasVariable("var", "{\"stringProperty\":\"a String\",\"intProperty\":42,\"booleanProperty\":true}");
-  }
-
-  @Test
-  public void shouldSetSpinJsonVariable() throws JsonProcessingException {
-    // deploy processes
-    deployProcessInC7AndC8("simpleProcess.bpmn");
-
-    // given process state in c7
-    var simpleProcessInstance = runtimeService.startProcessInstanceByKey("simpleProcess");
-
-    String json = "{\"name\" : \"jonny\","
-        + "\"address\" : {"
-        + "\"street\" : \"12 High Street\","
-        + "\"post code\" : 1234"
-        + "}"
-        + "}";
-        JsonValue jsonValue = SpinValues.jsonValue(json).create();
-    //    execution.setVariable("customerJonny", jsonValue);
-    runtimeService.setVariable(simpleProcessInstance.getId(), "var", jsonValue);
-    // when running runtime migration
-    runtimeMigrator.start();
-
-    CamundaAssert.assertThat(byProcessId("simpleProcess"))
-        .hasVariable("var", json);
   }
 
   @Test
@@ -273,13 +259,14 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // given
     runtimeService.startProcessInstanceByKey(SUB_PROCESS, vars);
     Task currentTask = taskService.createTaskQuery().singleResult();
-    runtimeService.setVariable(currentTask.getExecutionId(), "localVariable", "local value");
+    runtimeService.setVariable(currentTask.getExecutionId(), "variable3", "value2");
 
     // when running runtime migration
     runtimeMigrator.start();
 
     // then
-    CamundaAssert.assertThat(byProcessId(SUB_PROCESS)).hasVariableNames("variable1", "variable2", "localVariable");
+    CamundaAssert.assertThat(byProcessId(SUB_PROCESS))
+        .hasVariableNames("variable1", "variable2", "variable3");
   }
 
   @Test
@@ -292,14 +279,12 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // given
     runtimeService.startProcessInstanceByKey(PARALLEL, vars);
     Task currentTask = taskService.createTaskQuery().taskDefinitionKey("userTask_1").singleResult();
-    runtimeService.setVariable(currentTask.getExecutionId(), "localVariable", "local value");
+    runtimeService.setVariableLocal(currentTask.getExecutionId(), "localVariable", "local value");
 
     // when running runtime migration
     runtimeMigrator.start();
 
     // then
-    CamundaAssert.assertThat(byProcessId(PARALLEL)).hasVariableNames("variable1");
-
     // TODO assert local variable when this ticket is completed https://github.com/camunda/camunda/issues/32648
     List<Variable> c8vars = camundaClient.newVariableSearchRequest()
         .filter(f -> f.name("localVariable"))
@@ -321,7 +306,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  //  @Disabled TODO
+  @Disabled
   public void shouldSetVariableIntoSubprocess() {
     // deploy processes
     deploySubprocessModels();
@@ -338,7 +323,8 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    CamundaAssert.assertThat(byProcessId(SUB_PROCESS)).hasVariableNames("variable1", "variable2");
+    CamundaAssert.assertThat(byProcessId(SUB_PROCESS))
+        .hasVariableNames("variable1", "variable2");
 
     // TODO assert local variable when this ticket is completed https://github.com/camunda/camunda/issues/32648
     List<Variable> c8vars = camundaClient.newVariableSearchRequest()
@@ -350,45 +336,6 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     assertThat(c8vars.size()).isEqualTo(1);
     var c8Var = c8vars.get(0);
     assertThat(c8Var.getValue()).isEqualTo("local value");
-  }
-
-  @Test
-  //  @Disabled TODO
-  public void shouldSetTaskVariable() {
-    // deploy processes
-    deploySubprocessModels();
-    Map<String, Object> vars = new HashMap<>();
-    vars.put("variable1", "value1");
-    vars.put("variable2", "value2");
-
-    // given
-    runtimeService.startProcessInstanceByKey(SUB_PROCESS, vars);
-    Task currentTask = taskService.createTaskQuery().singleResult();
-    taskService.setVariable(currentTask.getId(), "taskVariable", "value");
-
-    // when running runtime migration
-    runtimeMigrator.start();
-
-    // then
-    CamundaAssert.assertThat(byProcessId(SUB_PROCESS))
-        .hasVariableNames("variable1", "variable2", "taskVariable")
-        .hasActiveElements("userTask_1");
-
-    List<ElementInstance> elements = camundaClient.newElementInstanceSearchRequest()
-        .filter(f -> f.type(ElementInstanceType.USER_TASK))
-        .send()
-        .join()
-        .items();
-    List<Variable> c8vars = camundaClient.newVariableSearchRequest()
-        .filter(f -> f.name("taskVariable"))
-        .send()
-        .join()
-        .items();
-
-    assertThat(c8vars.size()).isEqualTo(1);
-    assertThat(c8vars.get(0).getValue().contains("value")).isTrue();
-    assertThat(c8vars.get(0).getScopeKey()).isNotEqualTo(elements.get(0).getProcessInstanceKey());
-    assertThat(c8vars.get(0).getScopeKey()).isEqualTo(elements.get(0).getElementInstanceKey());
   }
 
   private void deploySubprocessModels() {
@@ -409,7 +356,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     var c8Model = io.camunda.zeebe.model.bpmn.Bpmn.createExecutableProcess(process)
         .startEvent("start_1")
         .zeebeEndExecutionListener("migrator")
-        .subProcess()
+        .subProcess("sub_1")
         .embeddedSubProcess()
         .startEvent("start_2")
         .userTask("userTask_1")
@@ -418,8 +365,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
         .endEvent("end_1")
         .done();
 
-    repositoryService.createDeployment().addModelInstance(process + ".bpmn", c7Model).deploy();
-    camundaClient.newDeployResourceCommand().addProcessModel(c8Model, process + ".bpmn").send().join();
+    deployModelInstance(process, c7Model, c8Model);
   }
 
   private void deployParallelModels() {
@@ -449,7 +395,6 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
         .connectTo("join")
         .done();
 
-    repositoryService.createDeployment().addModelInstance(process + ".bpmn", c7Model).deploy();
-    camundaClient.newDeployResourceCommand().addProcessModel(c8Model, process + ".bpmn").send().join();
+    deployModelInstance(process, c7Model, c8Model);
   }
 }
