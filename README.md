@@ -62,7 +62,12 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
   - Processes with active tokens in [timer events](https://docs.camunda.org/manual/latest/reference/bpmn20/events/timer-events/) are not yet supported for migration. We have [this ticket](https://github.com/camunda/camunda-bpm-platform/issues/5173) to address this limitation in the future. 
 - Variables
     - A XML variable will be migrated to a JSON variable.
+    - Spin XML variable will be migrated to String variable.
     - A Float variable will be created as a Number variable in C8.
+    - A Date variable will be available in ms in C8.
+    - Deserialization: c7 application classes should be available during Migrator run?
+    - Variables not migrated for subprocess? 
+    - User task variables are not supported- 
 
 ## Configuration
 
