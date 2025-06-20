@@ -8,30 +8,26 @@
 package io.camunda.migrator.qa;
 
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.camunda.client.api.search.enums.ElementInstanceType;
-import io.camunda.client.api.search.response.ElementInstance;
-import io.camunda.client.api.search.response.Variable;
-import io.camunda.migrator.qa.variables.JsonSerializable;
-import io.camunda.migrator.qa.variables.XmlSerializable;
+import io.camunda.migrator.qa.variables.TestConfig;
 import io.camunda.process.test.api.CamundaAssert;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import org.camunda.bpm.engine.task.Task;
-import org.camunda.spin.plugin.impl.SpinProcessEnginePlugin;
+import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin;
+import org.camunda.bpm.engine.impl.variable.serializer.TypedValueSerializer;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 import org.camunda.spin.plugin.variable.value.XmlValue;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 
+@Import(TestConfig.class)
 public class SpinVariablesTest extends RuntimeMigrationAbstractTest {
+
+  @Autowired
+  ProcessEngineConfigurationImpl pec;
 
   @Test
   public void shouldSetSpinJsonVariable() throws JsonProcessingException {
@@ -48,6 +44,9 @@ public class SpinVariablesTest extends RuntimeMigrationAbstractTest {
         + "}"
         + "}";
         JsonValue jsonValue = SpinValues.jsonValue(json).create();
+
+    List<ProcessEnginePlugin> plugins = pec.getProcessEnginePlugins();
+    List<TypedValueSerializer<?>> serializers = pec.getVariableSerializers().getSerializers();
     runtimeService.setVariable(simpleProcessInstance.getId(), "var", jsonValue);
     // when running runtime migration
     runtimeMigrator.start();
