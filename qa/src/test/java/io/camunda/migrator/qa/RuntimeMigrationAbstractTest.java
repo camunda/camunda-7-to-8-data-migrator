@@ -8,9 +8,12 @@
 package io.camunda.migrator.qa;
 
 import static io.camunda.migrator.MigratorMode.MIGRATE;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.client.CamundaClient;
+import io.camunda.client.api.command.ClientException;
 import io.camunda.client.api.response.DeploymentEvent;
+import io.camunda.client.api.search.response.ProcessDefinition;
 import io.camunda.client.api.search.response.ProcessInstance;
 import io.camunda.client.api.search.response.Variable;
 import io.camunda.migrator.RuntimeMigrator;
@@ -20,6 +23,7 @@ import io.camunda.process.test.api.CamundaSpringProcessTest;
 import java.util.List;
 
 import java.util.Optional;
+import org.awaitility.Awaitility;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
@@ -89,6 +93,17 @@ public abstract class RuntimeMigrationAbstractTest {
     if (deployment == null) {
       throw new IllegalStateException("Could not deploy process");
     }
+
+    Awaitility.await().ignoreException(ClientException.class).untilAsserted(() -> {
+      List<ProcessDefinition> items = camundaClient.newProcessDefinitionSearchRequest()
+          .filter(filter -> filter.resourceName(resourcePath))
+          .send()
+          .join()
+          .items();
+
+      // assume
+      assertThat(items).hasSize(1);
+    });
   }
 
   protected void deployProcessInC7AndC8(String fileName) {

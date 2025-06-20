@@ -10,14 +10,15 @@ package io.camunda.migrator.qa;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.camunda.migrator.RuntimeMigrator;
+import io.camunda.client.api.command.ClientException;
+import io.camunda.client.api.search.response.ProcessDefinition;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
@@ -139,6 +140,17 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
     camundaClient.newDeployResourceCommand().addProcessModel(c8rootModel, rootId+".bpmn").send().join();
     camundaClient.newDeployResourceCommand().addProcessModel(c8level1Model, level1Id+".bpmn").send().join();
     camundaClient.newDeployResourceCommand().addProcessModel(c8level2Model, level2Id+".bpmn").send().join();
+
+    Awaitility.await().ignoreException(ClientException.class).untilAsserted(() -> {
+      List<ProcessDefinition> items = camundaClient.newProcessDefinitionSearchRequest()
+          .filter(filter -> filter.resourceName(rootId + ".bpmn"))
+          .send()
+          .join()
+          .items();
+
+      // assume
+      assertThat(items).hasSize(1);
+    });
   }
 
 }
