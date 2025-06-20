@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.task.Task;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +47,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
   @Test
   public void shouldSkipMultiInstanceProcessMigration() {
     // given process state in c7
-    deployProcessInC7AndC8("multiInstanceProcess.bpmn");
+    deployCamunda7Process("io/camunda/migrator/bpmn/c7/multiInstanceProcess.bpmn");
     var process = runtimeService.startProcessInstanceByKey("multiInstanceProcess");
     long taskCount = taskService.createTaskQuery().count();
     ensureTrue("Unexpected process state: one task and three parallel tasks should be created", taskCount == 4);
@@ -65,11 +64,10 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  @Disabled("callMultiInstanceProcess.bpmn doesn't exist as C8 process")
   public void shouldSkipMultiLevelMultiInstanceProcessMigration() {
     // given process state in c7
-    deployProcessInC7AndC8("multiInstanceProcess.bpmn");
-    deployProcessInC7AndC8("callMultiInstanceProcess.bpmn");
+    deployCamunda7Process("io/camunda/migrator/bpmn/c7/multiInstanceProcess.bpmn");
+    deployCamunda7Process("io/camunda/migrator/bpmn/c7/callMultiInstanceProcess.bpmn");
     var process = runtimeService.startProcessInstanceByKey("callMultiInstanceProcess");
     long taskCount = taskService.createTaskQuery().count();
     ensureTrue("Unexpected process state: one task and three parallel tasks should be created", taskCount == 4);
@@ -88,7 +86,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
   @Test
   public void shouldSkipAgainAProcessInstanceThatWasSkipped() {
     // given skipped process instance
-    deployProcessInC7AndC8("multiInstanceProcess.bpmn");
+    deployCamunda7Process("io/camunda/migrator/bpmn/c7/multiInstanceProcess.bpmn");
     var process = runtimeService.startProcessInstanceByKey("multiInstanceProcess");
     runtimeMigrator.start();
     ensureTrue("Unexpected state: one process instance should be skipped", idKeyMapper.findSkipped().size() == 1);
