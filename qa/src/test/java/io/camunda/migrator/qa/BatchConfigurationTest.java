@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import io.camunda.client.api.command.ClientException;
 import io.camunda.client.api.search.response.ProcessDefinition;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -86,8 +87,18 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().send().join().items();
-    assertEquals(3, processInstances.size());
+    Awaitility.await().ignoreException(ClientException.class)
+        .timeout(10, TimeUnit.SECONDS)
+        .untilAsserted(() -> {
+          List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest()
+              .send()
+              .join()
+              .items();
+
+          // assume
+          assertThat(processInstances).hasSize(3);
+    });
+
 
     Matcher matcher = Pattern.compile("Migrator jobs found: 1").matcher(output.getOut());
     assertThat(matcher.results().count()).isEqualTo(3);
