@@ -246,7 +246,7 @@ public class RuntimeMigrator {
           List<ProcessDefinition> c8Definitions = callApi(c8DefinitionSearchRequest::execute).items();
           if (c8Definitions.isEmpty()) {
             throw new IllegalStateException(
-                String.format("No C8 deployment found for process ID [%s] required for instance with legacyID [%s].",
+                String.format("No C8 process found for process ID [%s] required for instance with legacyID [%s].",
                     c8DefinitionId, legacyProcessInstanceId));
           }
 
@@ -273,7 +273,7 @@ public class RuntimeMigrator {
             // validate element exists in C8 deployment
             if (c8BpmnModelInstance.getModelElementById(flowNode.activityId()) == null) {
               throw new IllegalStateException(String.format(
-                  "C7 instance detected which is currently in a C7 model element which does not exist in the equivalent deployed C8 model. "
+                  "C7 instance detected which is currently in a C7 flow node which does not exist in the equivalent deployed C8 model. "
                       + "Instance legacyId: [%s], Model legacyId: [%s], Element Id: [%s].",
                   legacyProcessInstanceId, c8DefinitionId, flowNode.activityId));
             }

@@ -8,11 +8,8 @@
 package io.camunda.migrator.qa;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
-import io.camunda.client.api.command.ClientStatusException;
 import io.camunda.migrator.RuntimeMigrator;
-import io.camunda.migrator.RuntimeMigratorException;
 import io.camunda.migrator.persistence.IdKeyDbModel;
 import io.camunda.migrator.persistence.IdKeyMapper;
 import io.github.netmikey.logunit.api.LogCapturer;
@@ -30,6 +27,10 @@ class ProcessDefinitionNotFoundTest extends RuntimeMigrationAbstractTest {
   @Autowired
   private IdKeyMapper idKeyMapper;
 
+  private final String MISSING_DEFINITION_LOG = "Process instance with legacyId [%s] can't be migrated: "
+      + "No C8 process found for process ID [%s] required for instance with "
+      + "legacyID [%s].";
+
   @Test
   public void shouldSkipOnMissingC8Deployment() {
     // given
@@ -40,10 +41,7 @@ class ProcessDefinitionNotFoundTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    logs.assertContains(String.format(
-        "Process instance with legacyId [%s] can't be migrated: "
-            + "No C8 deployment found for process ID [%s] required for instance with "
-            + "legacyID [%s].",  c7Instance.getId(), "simpleProcess", c7Instance.getId()));
+    logs.assertContains(String.format(MISSING_DEFINITION_LOG,  c7Instance.getId(), "simpleProcess", c7Instance.getId()));
     assertThat(camundaClient.newProcessInstanceSearchRequest().send().join().items().size()).isEqualTo(0);
     List<IdKeyDbModel> skippedProcessInstanceIds = idKeyMapper.findSkipped().stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
@@ -64,10 +62,7 @@ class ProcessDefinitionNotFoundTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    String missingDefinitionLog = String.format(
-        "Process instance with legacyId [%s] can't be migrated: "
-            + "No C8 deployment found for process ID [%s] required for instance with "
-            + "legacyID [%s].",  c7Instance.getId(), "simpleProcess", c7Instance.getId());
+    String missingDefinitionLog = String.format(MISSING_DEFINITION_LOG,  c7Instance.getId(), "simpleProcess", c7Instance.getId());
     long logCountAfterFirstRun = logs.getEvents().stream()
         .filter(event -> event.getMessage().contains(missingDefinitionLog))
         .count();
