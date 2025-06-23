@@ -63,9 +63,10 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
 - Variables
     - A Date variable (2025-06-20T11:32:06.868) is migrated to C8 in `ms` format (1750419126868). [ticket](https://github.com/camunda/camunda-bpm-platform/issues/5244)
     - Variables are serialized. (to be changed)
-    - XML variable will be migrated to XML string variable. [ticket](https://github.com/camunda/camunda-bpm-platform/issues/5246)
+    - XML variable is migrated to XML string variable. [ticket](https://github.com/camunda/camunda-bpm-platform/issues/5246)
       - Including Spin XML variables.
-    - Variables set into the scope of embedded sub-processes will not be migrated. [ticket](https://github.com/camunda/camunda-bpm-platform/issues/5235)
+    - Variables set into the scope of embedded sub-processes are not supported yet and will be ignored. Will be implemented in this [ticket](https://github.com/camunda/camunda-bpm-platform/issues/5235).
+    - Please refer to C8 variable limitations: [documentation](https://docs.camunda.io/docs/next/components/concepts/variables/#variable-values).
 
 ## Configuration
 

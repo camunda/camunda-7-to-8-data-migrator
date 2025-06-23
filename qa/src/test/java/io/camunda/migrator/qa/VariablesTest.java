@@ -248,7 +248,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  @Disabled
+  @Disabled // To be adjusted or removed with https://github.com/camunda/camunda-bpm-platform/issues/4989
   public void shouldSetFileVariable() throws JsonProcessingException {
     // deploy processes
     deployProcessInC7AndC8("simpleProcess.bpmn");
@@ -270,9 +270,8 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // when running runtime migration
     runtimeMigrator.start();
 
-//    var c8var = TODO;
-//    CamundaAssert.assertThat(byProcessId("simpleProcess"))
-//        .hasVariable("fileVar", c8var);
+    // then
+    // assert c8 variable value
   }
 
   @Test
@@ -286,7 +285,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // given
     runtimeService.startProcessInstanceByKey(SUB_PROCESS, vars);
     Task currentTask = taskService.createTaskQuery().singleResult();
-    runtimeService.setVariable(currentTask.getExecutionId(), "variable3", "value2");
+    runtimeService.setVariable(currentTask.getExecutionId(), "variable3", "value3");
 
     // when running runtime migration
     runtimeMigrator.start();
@@ -312,7 +311,8 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    // TODO assert local variable when this ticket is completed https://github.com/camunda/camunda/issues/32648
+    // TODO switch to CPT
+    // https://github.com/camunda/camunda-bpm-platform/issues/5251
     List<Variable> c8vars = camundaClient.newVariableSearchRequest()
         .filter(f -> f.name("localVariable"))
         .send()
