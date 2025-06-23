@@ -56,130 +56,34 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  public void shouldSetStringVariable() {
+  public void shouldSetPrimitiveVariables() {
     // deploy processes
     deployProcessInC7AndC8("simpleProcess.bpmn");
 
     // given process state in c7
-    var simpleProcessInstance = runtimeService.startProcessInstanceByKey("simpleProcess");
-    runtimeService.setVariable(simpleProcessInstance.getId(), "stringVar", "myStringVar");
+    VariableMap variables = Variables.createVariables();
+    variables.putValue("stringVar", "myStringVar");
+    variables.putValue("booleanVar", true);
+    variables.putValue("integerVar", 1234);
+    variables.putValue("floatVar", 1.5f);
+    variables.putValue("doubleVar", 1.5d);
+    variables.putValue("shortVar", (short) 1);
+    variables.putValue("byteVar", (byte) 1);
+    variables.putValue("charVar", (char) 1);
+
+    var simpleProcessInstance = runtimeService.startProcessInstanceByKey("simpleProcess", variables);
 
     // when running runtime migration
     runtimeMigrator.start();
 
     CamundaAssert.assertThat(byProcessId("simpleProcess"))
-        .hasVariable("stringVar", "myStringVar");
-  }
-
-  @Test
-  public void shouldSetBooleanVariable() {
-    // deploy processes
-    deployProcessInC7AndC8("simpleProcess.bpmn");
-
-    // given process state in c7
-    var simpleProcessInstance = runtimeService.startProcessInstanceByKey("simpleProcess");
-    runtimeService.setVariable(simpleProcessInstance.getId(), "booleanVar", true);
-
-    // when running runtime migration
-    runtimeMigrator.start();
-
-    CamundaAssert.assertThat(byProcessId("simpleProcess"))
-        .hasVariable("booleanVar", true);
-  }
-
-  @Test
-  public void shouldSetIntegerVariable() {
-    // deploy processes
-    deployProcessInC7AndC8("simpleProcess.bpmn");
-
-    // given process state in c7
-    var simpleProcessInstance = runtimeService.startProcessInstanceByKey("simpleProcess");
-    runtimeService.setVariable(simpleProcessInstance.getId(), "integerVar", 1234);
-
-    // when running runtime migration
-    runtimeMigrator.start();
-
-    CamundaAssert.assertThat(byProcessId("simpleProcess"))
-        .hasVariable("integerVar", 1234);
-  }
-
-  @Test
-  public void shouldSetFloatVariable() {
-    // deploy processes
-    deployProcessInC7AndC8("simpleProcess.bpmn");
-
-    // given process state in c7
-    var simpleProcessInstance = runtimeService.startProcessInstanceByKey("simpleProcess");
-    runtimeService.setVariable(simpleProcessInstance.getId(), "floatVar", 1.5f);
-
-    // when running runtime migration
-    runtimeMigrator.start();
-
-    CamundaAssert.assertThat(byProcessId("simpleProcess"))
-        .hasVariable("floatVar", 1.5);
-  }
-
-  @Test
-  public void shouldSetDoubleVariable() {
-    // deploy processes
-    deployProcessInC7AndC8("simpleProcess.bpmn");
-
-    // given process state in c7
-    var simpleProcessInstance = runtimeService.startProcessInstanceByKey("simpleProcess");
-    runtimeService.setVariable(simpleProcessInstance.getId(), "doubleVar", 1.5d);
-
-    // when running runtime migration
-    runtimeMigrator.start();
-
-    CamundaAssert.assertThat(byProcessId("simpleProcess"))
-        .hasVariable("doubleVar", 1.5d);
-  }
-
-  @Test
-  public void shouldSetShortVariable() {
-    // deploy processes
-    deployProcessInC7AndC8("simpleProcess.bpmn");
-
-    // given process state in c7
-    var simpleProcessInstance = runtimeService.startProcessInstanceByKey("simpleProcess");
-    runtimeService.setVariable(simpleProcessInstance.getId(), "shortVar", (short) 1);
-
-    // when running runtime migration
-    runtimeMigrator.start();
-
-    CamundaAssert.assertThat(byProcessId("simpleProcess"))
-        .hasVariable("shortVar", (short) 1);
-  }
-
-  @Test
-  public void shouldSetByteVariable() {
-    // deploy processes
-    deployProcessInC7AndC8("simpleProcess.bpmn");
-
-    // given process state in c7
-    var simpleProcessInstance = runtimeService.startProcessInstanceByKey("simpleProcess");
-    runtimeService.setVariable(simpleProcessInstance.getId(), "byteVar", (byte) 1);
-
-    // when running runtime migration
-    runtimeMigrator.start();
-
-    CamundaAssert.assertThat(byProcessId("simpleProcess"))
-        .hasVariable("byteVar", (byte) 1);
-  }
-
-  @Test
-  public void shouldSetCharVariable() {
-    // deploy processes
-    deployProcessInC7AndC8("simpleProcess.bpmn");
-
-    // given process state in c7
-    var simpleProcessInstance = runtimeService.startProcessInstanceByKey("simpleProcess");
-    runtimeService.setVariable(simpleProcessInstance.getId(), "charVar", (char) 1);
-
-    // when running runtime migration
-    runtimeMigrator.start();
-
-    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+        .hasVariable("stringVar", "myStringVar")
+        .hasVariable("booleanVar", true)
+        .hasVariable("integerVar", 1234)
+        .hasVariable("floatVar", 1.5)
+        .hasVariable("doubleVar", 1.5d)
+        .hasVariable("shortVar", (short) 1)
+        .hasVariable("byteVar", (byte) 1)
         .hasVariable("charVar", (char) 1);
   }
 
