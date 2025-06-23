@@ -15,11 +15,13 @@ import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.converter.ConverterConfiguration;
+
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.persistence.StrongUuidGenerator;
 import org.camunda.bpm.engine.spring.ProcessEngineFactoryBean;
 import org.camunda.bpm.engine.spring.SpringProcessEngineConfiguration;
 import org.camunda.bpm.engine.spring.SpringProcessEngineServicesConfiguration;
+import org.camunda.spin.plugin.impl.SpinProcessEnginePlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -107,6 +109,7 @@ public class MigratorAutoConfiguration {
     config.setHistory(HISTORY_AUTO);
     config.setJobExecutorActivate(false);
     config.setIdGenerator(new StrongUuidGenerator());
+    config.getProcessEnginePlugins().add(new SpinProcessEnginePlugin());
 
     if (autoDdl) {
       config.setDatabaseSchemaUpdate(DB_SCHEMA_UPDATE_TRUE);

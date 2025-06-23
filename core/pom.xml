@@ -41,6 +41,16 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.camunda.bpm</groupId>
+      <artifactId>camunda-engine-plugin-spin</artifactId>
+      <version>${version.camunda-7}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.camunda.spin</groupId>
+      <artifactId>camunda-spin-dataformat-all</artifactId>
+      <version>${version.camunda-7}</version>
+    </dependency>
 
     <!-- C8 Dependencies -->
 
