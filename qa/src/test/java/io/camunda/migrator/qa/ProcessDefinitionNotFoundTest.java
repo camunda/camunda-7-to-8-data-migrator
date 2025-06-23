@@ -11,39 +11,73 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 import io.camunda.client.api.command.ClientStatusException;
+import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.RuntimeMigratorException;
+import io.camunda.migrator.persistence.IdKeyDbModel;
+import io.camunda.migrator.persistence.IdKeyMapper;
+import io.github.netmikey.logunit.api.LogCapturer;
+import java.util.List;
 import org.camunda.bpm.engine.impl.util.ClockUtil;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class ProcessDefinitionNotFoundTest extends RuntimeMigrationAbstractTest {
+
+  @RegisterExtension
+  protected final LogCapturer logs = LogCapturer.create().captureForType(RuntimeMigrator.class);
+
+  @Autowired
+  private IdKeyMapper idKeyMapper;
+
+  @Test
+  public void shouldSkipOnMissingC8Deployment() {
+    // given
+    deployCamunda7Process("io/camunda/migrator/bpmn/c7/simpleProcess.bpmn");
+    var c7Instance = runtimeService.startProcessInstanceByKey("simpleProcess");
+
+    // when
+    runtimeMigrator.start();
+
+    // then
+    logs.assertContains(String.format(
+        "Process instance with legacyId [%s] can't be migrated: "
+            + "No C8 deployment found for process ID [%s] required for instance with "
+            + "legacyID [%s].",  c7Instance.getId(), "simpleProcess", c7Instance.getId()));
+    assertThat(camundaClient.newProcessInstanceSearchRequest().send().join().items().size()).isEqualTo(0);
+    List<IdKeyDbModel> skippedProcessInstanceIds = idKeyMapper.findSkipped().stream().toList();
+    assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
+    assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(c7Instance.getId());
+  }
 
   @Test
   public void shouldSkipNotExistingProcessIdempotently() {
     // given
     deployCamunda7Process("io/camunda/migrator/bpmn/c7/simpleProcess.bpmn");
-    deployProcessInC7AndC8("userTaskProcess.bpmn");
+   deployProcessInC7AndC8("userTaskProcess.bpmn");
 
-    runtimeService.startProcessInstanceByKey("simpleProcess");
+    var c7Instance = runtimeService.startProcessInstanceByKey("simpleProcess");
     ClockUtil.offset(50_000L);
     runtimeService.startProcessInstanceByKey("userTaskProcessId");
 
-    // assume
-    assertThatExceptionOfType(RuntimeMigratorException.class)
-        .isThrownBy(() -> runtimeMigrator.migrate())
-        .withCauseInstanceOf(ClientStatusException.class)
-        .satisfies(exception ->
-            assertThat(exception.getCause())
-                .hasMessage("Command 'CREATE' rejected with code 'NOT_FOUND': "
-                    + "Expected to find process definition with process ID 'simpleProcess', but none found"));
+    // when
+    runtimeMigrator.start();
 
-    // when repeating the migration, migrator still fails in the same instance.
-    assertThatExceptionOfType(RuntimeMigratorException.class)
-        .isThrownBy(() -> runtimeMigrator.migrate())
-        .withCauseInstanceOf(ClientStatusException.class)
-        .satisfies(exception ->
-            assertThat(exception.getCause())
-                .hasMessage("Command 'CREATE' rejected with code 'NOT_FOUND': "
-                    + "Expected to find process definition with process ID 'simpleProcess', but none found"));
+    // then
+    logs.assertContains(String.format(
+        "Process instance with legacyId [%s] can't be migrated: "
+            + "No C8 deployment found for process ID [%s] required for instance with "
+            + "legacyID [%s].",  c7Instance.getId(), "simpleProcess", c7Instance.getId()));
+    logs.getEvents().clear();
+
+    // when
+    runtimeMigrator.start();
+
+    // then
+    logs.assertContains(String.format(
+        "Process instance with legacyId [%s] can't be migrated: "
+            + "No C8 deployment found for process ID [%s] required for instance with "
+            + "legacyID [%s].",  c7Instance.getId(), "simpleProcess", c7Instance.getId()));
   }
 
 }
