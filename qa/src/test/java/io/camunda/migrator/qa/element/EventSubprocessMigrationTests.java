@@ -13,13 +13,9 @@ import static io.camunda.process.test.api.CamundaAssert.assertThat;
 import static io.camunda.process.test.api.assertions.ElementSelectors.byId;
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
 import static io.camunda.process.test.api.assertions.UserTaskSelectors.byTaskName;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.util.Date;
 import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.impl.util.ClockUtil;
-import org.camunda.bpm.engine.runtime.Job;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,18 +30,16 @@ public class EventSubprocessMigrationTests extends AbstractElementMigrationTest 
   @Test
   public void shouldMigrateNonInterruptingEventSubprocess() {
     // given
-    deployProcessInC7AndC8("timerEventSubprocess.bpmn");
-    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("timerEventSubprocessId");
-    runtimeService
-        .createProcessInstanceModification(processInstance.getId())
-        .startBeforeActivity("subprocessUserTaskId")
-        .execute();
+    deployProcessInC7AndC8("eventSubprocess.bpmn");
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("eventSubprocessId");
+    // Send signal event, to trigger the eventSubprocess in C7
+    runtimeService.signalEventReceived("SignalEventName");
 
     // when
     runtimeMigrator.start();
 
     // then both user tasks exist in C8
-    assertThat(byProcessId("timerEventSubprocessId")).isActive()
+    assertThat(byProcessId("eventSubprocessId")).isActive()
         .hasActiveElements(byId("userTaskId"))
         .hasActiveElements(byId("subprocessUserTaskId"))
         .hasVariable(LEGACY_ID_VAR_NAME, processInstance.getProcessInstanceId());
@@ -56,19 +50,16 @@ public class EventSubprocessMigrationTests extends AbstractElementMigrationTest 
   @Test
   public void migrateInterruptingEventSubprocess() {
     // given
-    deployProcessInC7AndC8("interruptingTimerEventSubprocess.bpmn");
-    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("timerEventSubprocessId");
-    ClockUtil.setCurrentTime(new Date(System.currentTimeMillis() + 1000 * 60 * 20));
-
-    Job job = managementService.createJobQuery().processInstanceId(processInstance.getId()).singleResult();
-    assertNotNull(job);
-    managementService.executeJob(job.getId());
+    deployProcessInC7AndC8("interruptingEventSubprocess.bpmn");
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("eventSubprocessId");
+    // Send signal event, to trigger the eventSubprocess in C7
+    runtimeService.signalEventReceived("SignalEventName");
 
     // when
     runtimeMigrator.start();
 
     // then canceled user task does not exist in C8
-    assertThat(byProcessId("timerEventSubprocessId")).isActive()
+    assertThat(byProcessId("eventSubprocessId")).isActive()
         .hasNoActiveElements(byId("userTaskId"))
         .hasActiveElements(byId("subprocessUserTaskId"))
         .hasVariable(LEGACY_ID_VAR_NAME, processInstance.getProcessInstanceId());

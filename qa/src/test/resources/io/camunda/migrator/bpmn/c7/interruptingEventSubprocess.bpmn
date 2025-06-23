@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1kxdzze" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.31.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.22.0">
-  <bpmn:process id="timerEventSubprocessId" isExecutable="true" camunda:historyTimeToLive="180">
+  <bpmn:process id="eventSubprocessId" isExecutable="true" camunda:historyTimeToLive="180">
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:outgoing>Flow_0e9ze0g</bpmn:outgoing>
     </bpmn:startEvent>
@@ -25,22 +25,21 @@
       </bpmn:userTask>
       <bpmn:startEvent id="Event_17uan4q">
         <bpmn:outgoing>Flow_1ruy16u</bpmn:outgoing>
-        <bpmn:timerEventDefinition id="TimerEventDefinition_00mr6yv">
-          <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT10M</bpmn:timeDuration>
-        </bpmn:timerEventDefinition>
+        <bpmn:signalEventDefinition id="SignalEventDefinition_081a4d4" signalRef="Signal_3fpuupo" />
       </bpmn:startEvent>
     </bpmn:subProcess>
   </bpmn:process>
+  <bpmn:signal id="Signal_3fpuupo" name="SignalEventName" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="timerEventSubprocessId">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="eventSubprocessId">
       <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
         <dc:Bounds x="182" y="102" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1j5jkpj_di" bpmnElement="Event_1j5jkpj">
-        <dc:Bounds x="402" y="102" width="36" height="36" />
+        <dc:Bounds x="532" y="102" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1xgag4l_di" bpmnElement="userTaskId">
-        <dc:Bounds x="260" y="80" width="100" height="80" />
+        <dc:Bounds x="350" y="80" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0o0rtq8_di" bpmnElement="Activity_0o0rtq8" isExpanded="true">
@@ -53,7 +52,7 @@
         <dc:Bounds x="260" y="310" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1ibgqa7_di" bpmnElement="Event_17uan4q">
+      <bpmndi:BPMNShape id="Event_16s6tzk_di" bpmnElement="Event_17uan4q">
         <dc:Bounds x="182" y="332" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_1ruy16u_di" bpmnElement="Flow_1ruy16u">
@@ -66,11 +65,11 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0e9ze0g_di" bpmnElement="Flow_0e9ze0g">
         <di:waypoint x="218" y="120" />
-        <di:waypoint x="260" y="120" />
+        <di:waypoint x="350" y="120" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1kz6ftg_di" bpmnElement="Flow_1kz6ftg">
-        <di:waypoint x="360" y="120" />
-        <di:waypoint x="402" y="120" />
+        <di:waypoint x="450" y="120" />
+        <di:waypoint x="532" y="120" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
