@@ -12,25 +12,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.camunda.client.api.search.enums.ElementInstanceType;
 import io.camunda.client.api.search.response.ElementInstance;
 import io.camunda.client.api.search.response.Variable;
 import io.camunda.migrator.qa.variables.JsonSerializable;
 import io.camunda.migrator.qa.variables.XmlSerializable;
 import io.camunda.process.test.api.CamundaAssert;
+
+import org.camunda.bpm.engine.task.Task;
+import org.camunda.bpm.engine.variable.VariableMap;
+import org.camunda.bpm.engine.variable.Variables;
+import org.camunda.bpm.engine.variable.value.FileValue;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.text.html.HTML;
-import org.camunda.bpm.engine.task.Task;
-import org.camunda.bpm.model.bpmn.BpmnModelInstance;
-import org.camunda.spin.plugin.variable.SpinValues;
-import org.camunda.spin.plugin.variable.value.JsonValue;
-import org.camunda.spin.plugin.variable.value.SpinValue;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class VariablesTest extends RuntimeMigrationAbstractTest {
 
@@ -246,6 +245,34 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
 
     CamundaAssert.assertThat(byProcessId("simpleProcess"))
         .hasVariable("var", "{\"stringProperty\":\"a String\",\"intProperty\":42,\"booleanProperty\":true}");
+  }
+
+  @Test
+  @Disabled
+  public void shouldSetFileVariable() throws JsonProcessingException {
+    // deploy processes
+    deployProcessInC7AndC8("simpleProcess.bpmn");
+
+    // given process state in c7
+    String fileName = "text.txt";
+    String encoding = "crazy-encoding";
+    String mimeType = "martini/dry";
+    FileValue fileValue = Variables
+        .fileValue(fileName)
+        .file("ABC".getBytes())
+        .encoding(encoding)
+        .mimeType(mimeType)
+        .create();
+
+    VariableMap fileVar = Variables.createVariables().putValueTyped("fileVar", fileValue);
+    var simpleProcessInstance = runtimeService.startProcessInstanceByKey("simpleProcess",Variables.createVariables().putValueTyped("fileVar", fileValue));
+
+    // when running runtime migration
+    runtimeMigrator.start();
+
+//    var c8var = TODO;
+//    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+//        .hasVariable("fileVar", c8var);
   }
 
   @Test

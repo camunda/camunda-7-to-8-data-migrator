@@ -11,22 +11,14 @@ import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.by
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.camunda.process.test.api.CamundaAssert;
-import java.util.List;
-import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
-import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin;
-import org.camunda.bpm.engine.impl.variable.serializer.TypedValueSerializer;
 import org.camunda.bpm.engine.variable.value.TypedValue;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 import org.camunda.spin.plugin.variable.value.XmlValue;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class SpinVariablesTest extends RuntimeMigrationAbstractTest {
-
-  @Autowired
-  ProcessEngineConfigurationImpl pec;
 
   @Test
   @Disabled
@@ -51,12 +43,12 @@ public class SpinVariablesTest extends RuntimeMigrationAbstractTest {
     // when running runtime migration
     runtimeMigrator.start();
 
+    // then
     CamundaAssert.assertThat(byProcessId("simpleProcess"))
         .hasVariable("var", c7var.getValue().toString());
   }
 
   @Test
-  @Disabled
   public void shouldSetXmlVariable() throws JsonProcessingException {
     // deploy processes
     deployProcessInC7AndC8("simpleProcess.bpmn");
@@ -72,9 +64,11 @@ public class SpinVariablesTest extends RuntimeMigrationAbstractTest {
         + "</customer>";
     XmlValue xmlValue = SpinValues.xmlValue(xml).create();
     runtimeService.setVariable(simpleProcessInstance.getId(), "var", xml);
+
     // when running runtime migration
     runtimeMigrator.start();
 
+    // then
     CamundaAssert.assertThat(byProcessId("simpleProcess"))
         .hasVariable("var", xml);
   }
