@@ -13,8 +13,6 @@ import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
 import io.camunda.client.api.response.ActivatedJob;
@@ -79,9 +77,6 @@ public class RuntimeMigrator {
   protected int batchSize;
 
   protected MigratorMode mode = MIGRATE;
-
-  private final Cache<Long, BpmnModelInstance> c8DefinitionKeyToModelCache =
-      Caffeine.newBuilder().maximumSize(50).build();
 
   public void start() {
     if (LIST_SKIPPED.equals(mode)) {
@@ -257,7 +252,8 @@ public class RuntimeMigrator {
           ActivityInstance activityInstanceTree = callApi(() -> runtimeService.getActivityInstance(processInstanceId));
           BpmnModelInstance c7BpmnModelInstance = callApi(
               () -> repositoryService.getBpmnModelInstance(c7DefinitionId));
-          BpmnModelInstance c8BpmnModelInstance = getC8ModelInstance(c8DefinitionIdToDefinitionKey.get(c8DefinitionId));
+          String c8XmlString = camundaClient.newProcessDefinitionGetXmlRequest(c8DefinitionIdToDefinitionKey.get(c8DefinitionId)).execute();
+          BpmnModelInstance c8BpmnModelInstance = Bpmn.readModelFromStream(new ByteArrayInputStream(c8XmlString.getBytes(StandardCharsets.UTF_8)));
 
           LOGGER.debug("Collecting active descendant activity instances for legacyId [{}]", processInstanceId);
           Map<String, FlowNode> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
@@ -388,13 +384,6 @@ public class RuntimeMigrator {
     } while (c8Deployments.size() == batchSize);
 
     return idToKey;
-  }
-
-  private BpmnModelInstance getC8ModelInstance(Long c8DefinitionKey) {
-    return c8DefinitionKeyToModelCache.get(c8DefinitionKey, key -> {
-      String c8XmlString = camundaClient.newProcessDefinitionGetXmlRequest(key).execute();
-      return Bpmn.readModelFromStream(new ByteArrayInputStream(c8XmlString.getBytes(StandardCharsets.UTF_8)));
-    });
   }
 
 }
