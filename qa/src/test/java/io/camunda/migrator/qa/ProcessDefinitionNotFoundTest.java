@@ -64,20 +64,23 @@ class ProcessDefinitionNotFoundTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    logs.assertContains(String.format(
+    String missingDefinitionLog = String.format(
         "Process instance with legacyId [%s] can't be migrated: "
             + "No C8 deployment found for process ID [%s] required for instance with "
-            + "legacyID [%s].",  c7Instance.getId(), "simpleProcess", c7Instance.getId()));
-    logs.getEvents().clear();
+            + "legacyID [%s].",  c7Instance.getId(), "simpleProcess", c7Instance.getId());
+    long logCountAfterFirstRun = logs.getEvents().stream()
+        .filter(event -> event.getMessage().contains(missingDefinitionLog))
+        .count();
+    assertThat(logCountAfterFirstRun).isEqualTo(1);
 
     // when
     runtimeMigrator.start();
 
-    // then
-    logs.assertContains(String.format(
-        "Process instance with legacyId [%s] can't be migrated: "
-            + "No C8 deployment found for process ID [%s] required for instance with "
-            + "legacyID [%s].",  c7Instance.getId(), "simpleProcess", c7Instance.getId()));
+    // then no additional log entry is created
+    long logCountAfterSecondRun = logs.getEvents().stream()
+        .filter(event -> event.getMessage().contains(missingDefinitionLog))
+        .count();
+    assertThat(logCountAfterSecondRun).isEqualTo(1);
   }
 
 }
