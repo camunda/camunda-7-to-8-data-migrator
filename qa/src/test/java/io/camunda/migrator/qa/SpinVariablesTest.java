@@ -16,6 +16,7 @@ import io.camunda.client.api.search.response.Variable;
 import io.camunda.process.test.api.CamundaAssert;
 import java.util.List;
 import org.awaitility.Awaitility;
+import org.camunda.bpm.engine.variable.value.TypedValue;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
@@ -27,7 +28,6 @@ import org.junit.jupiter.api.Test;
 public class SpinVariablesTest extends RuntimeMigrationAbstractTest {
 
   @Test
-  @Disabled // https://github.com/camunda/c7-data-migrator/pull/79/
   public void shouldSetSpinJsonVariable() throws JsonProcessingException {
     // deploy processes
     deployProcessInC7AndC8("simpleProcess.bpmn");

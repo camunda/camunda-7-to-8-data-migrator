@@ -16,8 +16,14 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.camunda.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
 import org.camunda.bpm.engine.query.Query;
 import org.camunda.bpm.engine.runtime.VariableInstance;
+import org.camunda.bpm.engine.variable.type.ValueType;
+import org.camunda.bpm.engine.variable.value.TypedValue;
+import org.camunda.spin.json.SpinJsonNode;
+import org.camunda.spin.plugin.variable.type.JsonValueType;
+import org.camunda.spin.plugin.variable.type.SpinValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,8 +95,17 @@ public class Pagination<T> {
   public Map<String, Object> toVariableMap() {
     Map<String, Object> result = new HashMap<>();
     toList().forEach(e -> {
-      VariableInstance var = (VariableInstance) e;
-      result.put(var.getName(), var.getValue());
+      VariableInstanceEntity var = (VariableInstanceEntity) e;
+      TypedValue typedValue = var.getTypedValue(false);
+      if (typedValue.getType().equals(ValueType.OBJECT)) {
+        // don't serialize the value for object
+        result.put(var.getName(), typedValue.getValue());
+      } else if (typedValue.getType().equals(SpinValueType.JSON) || typedValue.getType().equals(SpinValueType.XML)) {
+        // For Spin JSON/XML, explicitly set the string value
+        result.put(var.getName(), typedValue.getValue().toString());
+      } else {
+        result.put(var.getName(), var.getValue());
+      }
     });
     return result;
   }
