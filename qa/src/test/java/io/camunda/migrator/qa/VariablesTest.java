@@ -86,6 +86,31 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
         .hasVariable("byteVar", (byte) 1)
         .hasVariable("charVar", (char) 1);
   }
+  @Test
+  public void shouldSetUnsupportedNameVariables() {
+    // deploy processes
+    deployProcessInC7AndC8("simpleProcess.bpmn");
+
+    // given process state in c7
+    VariableMap variables = Variables.createVariables();
+    variables.putValue("1stC", "value");
+    variables.putValue("st C", "value");
+    variables.putValue("st/C", "value");
+    variables.putValue("st-C", "value");
+    variables.putValue("null", "value");
+
+    var simpleProcessInstance = runtimeService.startProcessInstanceByKey("simpleProcess", variables);
+
+    // when running runtime migration
+    runtimeMigrator.start();
+
+    CamundaAssert.assertThat(byProcessId("simpleProcss"))
+        .hasVariable("1stC", "value")
+        .hasVariable("st C", "value")
+        .hasVariable("st/C", "value")
+        .hasVariable("st-C", "value")
+        .hasVariable("null", "value");
+  }
 
   @Test
   @Disabled
