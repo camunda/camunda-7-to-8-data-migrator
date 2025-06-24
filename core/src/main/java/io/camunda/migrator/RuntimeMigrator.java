@@ -16,6 +16,9 @@ import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
 import io.camunda.client.api.response.ActivatedJob;
+import io.camunda.client.api.search.response.ProcessDefinition;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import io.camunda.migrator.persistence.IdKeyDbModel;
 import io.camunda.migrator.persistence.IdKeyMapper;
 import java.util.Date;
@@ -32,6 +35,7 @@ import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstanceQuery;
 import org.camunda.bpm.engine.runtime.VariableInstance;
 import org.camunda.bpm.engine.runtime.VariableInstanceQuery;
+import org.camunda.bpm.model.bpmn.Bpmn;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.Activity;
 import org.camunda.bpm.model.bpmn.instance.FlowElement;
@@ -220,7 +224,6 @@ public class RuntimeMigrator {
   /**
    * This method iterates over all the activity instances of the root process instance and its
    * children until it either finds an activityInstance that cannot be migrated or the iteration ends.
-   * For now, only multi-instance activities will fail validation.
    * @param legacyProcessInstanceId the legacy id of the root process instance.
    */
   protected void validateProcessInstanceState(String legacyProcessInstanceId) {
@@ -233,20 +236,46 @@ public class RuntimeMigrator {
         .query(processInstanceQuery)
         .callback(processInstance -> {
           String processInstanceId = processInstance.getId();
-          ActivityInstance activityInstanceTree = callApi(() -> runtimeService.getActivityInstance(processInstanceId));
+          String c7DefinitionId = processInstance.getProcessDefinitionId();
+          String c8DefinitionId = processInstance.getProcessDefinitionKey();
 
-          String processDefinitionId = processInstance.getProcessDefinitionId();
-          BpmnModelInstance bpmnModelInstance = callApi(() -> repositoryService.getBpmnModelInstance(processDefinitionId));
+          var c8DefinitionSearchRequest = camundaClient.newProcessDefinitionSearchRequest()
+              .filter(filter -> filter.processDefinitionId(c8DefinitionId))
+              .sort((s) -> s.version().desc());
+
+          List<ProcessDefinition> c8Definitions = callApi(c8DefinitionSearchRequest::execute).items();
+          if (c8Definitions.isEmpty()) {
+            throw new IllegalStateException(
+                String.format("No C8 process found for process ID [%s] required for instance with legacyID [%s].",
+                    c8DefinitionId, legacyProcessInstanceId));
+          }
+
+          ActivityInstance activityInstanceTree = callApi(() -> runtimeService.getActivityInstance(processInstanceId));
+          BpmnModelInstance c7BpmnModelInstance = callApi(() -> repositoryService.getBpmnModelInstance(c7DefinitionId));
+
+          long processDefinitionKey = c8Definitions.getFirst().getProcessDefinitionKey();
+          String c8XmlString =
+              callApi(() -> camundaClient.newProcessDefinitionGetXmlRequest(processDefinitionKey).execute());
+          BpmnModelInstance c8BpmnModelInstance = Bpmn.readModelFromStream(new ByteArrayInputStream(c8XmlString.getBytes(StandardCharsets.UTF_8)));
 
           LOGGER.debug("Collecting active descendant activity instances for legacyId [{}]", processInstanceId);
           Map<String, FlowNode> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
           LOGGER.debug("Found {} active activity instances to validate", activityInstanceMap.size());
 
           for (FlowNode flowNode : activityInstanceMap.values()) {
-            FlowElement element = bpmnModelInstance.getModelElementById(flowNode.activityId());
+            // validate no multi-instance loop characteristics
+            FlowElement element = c7BpmnModelInstance.getModelElementById(flowNode.activityId());
             if ((element instanceof Activity activity) && (activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics)) {
               throw new IllegalStateException("Found multi-instance loop characteristics for " + element.getName() +
                   " in C7 process instance " + processInstance.getId() + ".");
+            }
+
+            // validate element exists in C8 deployment
+            if (c8BpmnModelInstance.getModelElementById(flowNode.activityId()) == null) {
+              throw new IllegalStateException(String.format(
+                  "C7 instance detected which is currently in a C7 flow node which does not exist in the equivalent deployed C8 model. "
+                      + "Instance legacyId: [%s], Model legacyId: [%s], Element Id: [%s].",
+                  legacyProcessInstanceId, c8DefinitionId, flowNode.activityId));
             }
           }
         });
