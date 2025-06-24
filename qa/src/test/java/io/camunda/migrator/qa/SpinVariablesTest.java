@@ -16,7 +16,6 @@ import io.camunda.client.api.search.response.Variable;
 import io.camunda.process.test.api.CamundaAssert;
 import java.util.List;
 import org.awaitility.Awaitility;
-import org.camunda.bpm.engine.variable.value.TypedValue;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
@@ -81,9 +80,6 @@ public class SpinVariablesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    //    CamundaAssert.assertThat(byProcessId("simpleProcess"))
-    //        .hasVariable("var", xml);
-
     Awaitility.await().ignoreException(ClientException.class).untilAsserted(() -> {
 
       List<Variable> items = camundaClient.newVariableSearchRequest().filter(f -> f.name("var")).send().join().items();
@@ -91,7 +87,8 @@ public class SpinVariablesTest extends RuntimeMigrationAbstractTest {
       assertThat(items).hasSize(1);
       assertThat(items.get(0).getValue()).contains(street);
       assertThat(items.get(0).getValue()).contains(postcode);
-
     });
+//    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+//        .hasVariable("var", xml);
   }
 }
