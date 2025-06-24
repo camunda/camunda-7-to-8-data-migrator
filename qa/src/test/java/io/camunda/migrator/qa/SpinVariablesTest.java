@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 public class SpinVariablesTest extends RuntimeMigrationAbstractTest {
 
   @Test
+  @Disabled // https://github.com/camunda/c7-data-migrator/pull/79/
   public void shouldSetSpinJsonVariable() throws JsonProcessingException {
     // deploy processes
     deployProcessInC7AndC8("simpleProcess.bpmn");

@@ -18,6 +18,7 @@ import io.camunda.migrator.qa.variables.JsonSerializable;
 import io.camunda.migrator.qa.variables.XmlSerializable;
 import io.camunda.process.test.api.CamundaAssert;
 
+import java.util.Arrays;
 import org.camunda.bpm.engine.task.Task;
 import org.camunda.bpm.engine.variable.VariableMap;
 import org.camunda.bpm.engine.variable.Variables;
@@ -86,8 +87,32 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
         .hasVariable("byteVar", (byte) 1)
         .hasVariable("charVar", (char) 1);
   }
+
   @Test
-  public void shouldSetUnsupportedNameVariables() {
+  public void shouldSetArrayVariables() {
+    // deploy processes
+    deployProcessInC7AndC8("simpleProcess.bpmn");
+    List<String> stringList = Arrays.asList("one", "two", "three");
+    HashMap<Integer, String> map = new HashMap<Integer, String>();
+    map.put(1, "one");
+    map.put(2, "two");
+
+    // given process state in c7
+    VariableMap variables = Variables.createVariables();
+    variables.putValue("stringList", stringList);
+    variables.putValue("map", map);
+
+    var simpleProcessInstance = runtimeService.startProcessInstanceByKey("simpleProcess", variables);
+
+    // when running runtime migration
+    runtimeMigrator.start();
+
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+        .hasVariable("stringList", stringList)
+        .hasVariable("map", map);
+  }
+  @Test
+  public void shouldSetInvalidVariableNameInFeel() {
     // deploy processes
     deployProcessInC7AndC8("simpleProcess.bpmn");
 
@@ -104,7 +129,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // when running runtime migration
     runtimeMigrator.start();
 
-    CamundaAssert.assertThat(byProcessId("simpleProcss"))
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
         .hasVariable("1stC", "value")
         .hasVariable("st C", "value")
         .hasVariable("st/C", "value")
@@ -113,7 +138,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  @Disabled
+  @Disabled // https://github.com/camunda/camunda-bpm-platform/issues/5244
   public void shouldSetDateVariable() {
     // deploy processes
     deployProcessInC7AndC8("simpleProcess.bpmn");
@@ -298,7 +323,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  @Disabled
+  @Disabled // https://github.com/camunda/camunda-bpm-platform/issues/5235
   public void shouldSetVariableIntoSubprocess() {
     // deploy processes
     deploySubprocessModels();
