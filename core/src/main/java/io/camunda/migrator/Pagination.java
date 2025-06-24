@@ -98,7 +98,7 @@ public class Pagination<T> {
       VariableInstanceEntity var = (VariableInstanceEntity) e;
       TypedValue typedValue = var.getTypedValue(false);
       if (typedValue.getType().equals(ValueType.OBJECT)) {
-        // don't serialize the value for object
+        // skip the value deserialization
         result.put(var.getName(), typedValue.getValue());
       } else if (typedValue.getType().equals(SpinValueType.JSON) || typedValue.getType().equals(SpinValueType.XML)) {
         // For Spin JSON/XML, explicitly set the string value
