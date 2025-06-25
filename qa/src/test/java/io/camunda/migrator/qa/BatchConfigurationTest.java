@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import io.camunda.client.api.command.ClientException;
 import io.camunda.client.api.search.response.ProcessDefinition;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -88,7 +87,6 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
 
     // then
     Awaitility.await().ignoreException(ClientException.class)
-        .timeout(10, TimeUnit.SECONDS)
         .untilAsserted(() -> {
           List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest()
               .send()
