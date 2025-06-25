@@ -67,8 +67,8 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
       - Variables that do not follow the restrictions will cause issues in FEEL expression evaluation.
     - A Date variable (2025-06-20T11:32:06.868) is migrated to C8 in `ms` format (1750419126868). [ticket](https://github.com/camunda/camunda-bpm-platform/issues/5244)
     - Variables are serialized. (to be changed)
-    - XML variable is migrated to XML string variable. [ticket](https://github.com/camunda/camunda-bpm-platform/issues/5246)
-      - Including Spin XML variables.
+    - XML variable is migrated to JSON string variable. [ticket](https://github.com/camunda/camunda-bpm-platform/issues/5246)
+      - Spin XML variable is migrated to XML string variable.
     - Variables set into the scope of embedded sub-processes are not supported yet and will be ignored. Will be implemented in this [ticket](https://github.com/camunda/camunda-bpm-platform/issues/5235).
 
 

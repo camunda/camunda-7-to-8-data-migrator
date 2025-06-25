@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Test;
 public class SpinVariablesTest extends RuntimeMigrationAbstractTest {
 
   @Test
-  @Disabled // https://github.com/camunda/c7-data-migrator/pull/79/
   public void shouldSetSpinJsonVariable() throws JsonProcessingException {
     // deploy processes
     deployProcessInC7AndC8("simpleProcess.bpmn");
@@ -76,14 +75,10 @@ public class SpinVariablesTest extends RuntimeMigrationAbstractTest {
     runtimeService.setVariable(simpleProcessInstance.getId(), "var", xmlValue);
     SpinXmlElement c7value = (SpinXmlElement) runtimeService.getVariable(simpleProcessInstance.getId(), "var");
 
-
     // when running runtime migration
     runtimeMigrator.start();
 
     // then
-    //    CamundaAssert.assertThat(byProcessId("simpleProcess"))
-    //        .hasVariable("var", xml);
-
     Awaitility.await().ignoreException(ClientException.class).untilAsserted(() -> {
 
       List<Variable> items = camundaClient.newVariableSearchRequest().filter(f -> f.name("var")).send().join().items();
@@ -91,7 +86,8 @@ public class SpinVariablesTest extends RuntimeMigrationAbstractTest {
       assertThat(items).hasSize(1);
       assertThat(items.get(0).getValue()).contains(street);
       assertThat(items.get(0).getValue()).contains(postcode);
-
     });
+//    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+//        .hasVariable("var", xml);
   }
 }
