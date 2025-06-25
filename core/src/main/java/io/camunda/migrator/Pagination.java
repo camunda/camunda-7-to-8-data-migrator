@@ -9,6 +9,9 @@ package io.camunda.migrator;
 
 import static io.camunda.migrator.ExceptionUtils.callApi;
 
+import io.camunda.migrator.interceptor.InterceptorService;
+import io.camunda.migrator.interceptor.VariableInterceptor;
+import io.camunda.migrator.interceptor.VariableInvocation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +29,7 @@ import org.camunda.spin.plugin.variable.type.JsonValueType;
 import org.camunda.spin.plugin.variable.type.SpinValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class Pagination<T> {
 
@@ -88,6 +92,10 @@ public class Pagination<T> {
     return list;
   }
 
+
+  @Autowired
+  protected List<?  extends VariableInterceptor> interceptors;
+
   /**
    * Heads-up: this implementation needs to be null safe for the variable value.
    * Using streams might lead to undesired {@link NullPointerException}s.
@@ -95,16 +103,27 @@ public class Pagination<T> {
   public Map<String, Object> toVariableMap() {
     Map<String, Object> result = new HashMap<>();
     toList().forEach(e -> {
-      VariableInstanceEntity var = (VariableInstanceEntity) e;
-      TypedValue typedValue = var.getTypedValue(false);
+      VariableInvocation variableInvocation = new VariableInvocation((VariableInstanceEntity) e);
+      if (interceptors != null && interceptors.size() > 0) {
+        interceptors.stream().forEach(i -> {
+          try {
+            i.execute(variableInvocation);
+          } catch (Exception ex) {
+            throw new MigratorException("An error occurred during variable transformation.", ex);
+          }
+        });
+      }
+
+      var variable = variableInvocation.getVariable();
+      TypedValue typedValue = variable.getTypedValue(false);
       if (typedValue.getType().equals(ValueType.OBJECT)) {
         // skip the value deserialization
-        result.put(var.getName(), typedValue.getValue());
+        result.put(variable.getName(), typedValue.getValue());
       } else if (typedValue.getType().equals(SpinValueType.JSON) || typedValue.getType().equals(SpinValueType.XML)) {
         // For Spin JSON/XML, explicitly set the string value
-        result.put(var.getName(), typedValue.getValue().toString());
+        result.put(variable.getName(), typedValue.getValue().toString());
       } else {
-        result.put(var.getName(), var.getValue());
+        result.put(variable.getName(), variable.getValue());
       }
     });
     return result;

@@ -215,7 +215,7 @@ public class RuntimeMigrator {
     Map<String, Object> globalVariables = new Pagination<VariableInstance>()
         .batchSize(batchSize)
         .query(variableQuery)
-        .toVariableMap();
+        .toVariableMap();// should we pass the legacy id too? to be available out of the box in the interceptor
 
     globalVariables.put("legacyId", legacyProcessInstanceId);
     return globalVariables;
