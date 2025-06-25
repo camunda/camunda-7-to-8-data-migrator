@@ -95,6 +95,10 @@ public abstract class RuntimeMigrationAbstractTest {
       throw new IllegalStateException("Could not deploy process");
     }
 
+    checkC8ProcessDefinitionAvailable(resourcePath);
+  }
+
+  private void checkC8ProcessDefinitionAvailable(String resourcePath) {
     Awaitility.await().ignoreException(ClientException.class).untilAsserted(() -> {
       List<ProcessDefinition> items = camundaClient.newProcessDefinitionSearchRequest()
           .filter(filter -> filter.resourceName(resourcePath))
@@ -116,6 +120,7 @@ public abstract class RuntimeMigrationAbstractTest {
                                    io.camunda.zeebe.model.bpmn.BpmnModelInstance c8Model) {
     repositoryService.createDeployment().addModelInstance(process + ".bpmn", c7Model).deploy();
     camundaClient.newDeployResourceCommand().addProcessModel(c8Model, process + ".bpmn").send().join();
+    checkC8ProcessDefinitionAvailable(process + ".bpmn");
   }
 
   protected Optional<Variable> getVariableByScope(Long processInstanceKey, Long scopeKey, String variableName) {

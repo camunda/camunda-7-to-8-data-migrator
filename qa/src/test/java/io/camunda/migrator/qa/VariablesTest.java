@@ -12,6 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.camunda.client.api.command.ClientException;
 import io.camunda.client.api.search.response.ElementInstance;
 import io.camunda.client.api.search.response.Variable;
 import io.camunda.migrator.qa.variables.JsonSerializable;
@@ -19,6 +20,7 @@ import io.camunda.migrator.qa.variables.XmlSerializable;
 import io.camunda.process.test.api.CamundaAssert;
 
 import java.util.Arrays;
+import org.awaitility.Awaitility;
 import org.camunda.bpm.engine.task.Task;
 import org.camunda.bpm.engine.variable.VariableMap;
 import org.camunda.bpm.engine.variable.Variables;
@@ -30,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.Map;
 
 public class VariablesTest extends RuntimeMigrationAbstractTest {
@@ -267,23 +270,28 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // then
     // TODO switch to CPT
     // https://github.com/camunda/camunda-bpm-platform/issues/5251
-    List<Variable> c8vars = camundaClient.newVariableSearchRequest()
-        .filter(f -> f.name("localVariable"))
-        .send()
-        .join()
-        .items();
+    Awaitility.await().ignoreException(ClientException.class)
+        .timeout(10, TimeUnit.SECONDS)
+        .untilAsserted(() -> {
+      List<Variable> c8vars = camundaClient.newVariableSearchRequest()
+          .filter(f -> f.name("localVariable"))
+          .send()
+          .join()
+          .items();
 
-    List<ElementInstance> elements = camundaClient.newElementInstanceSearchRequest()
-        .filter(f -> f.elementId("userTask_1"))
-        .send()
-        .join()
-        .items();
+      List<ElementInstance> elements = camundaClient.newElementInstanceSearchRequest()
+          .filter(f -> f.elementId("userTask_1"))
+          .send()
+          .join()
+          .items();
 
-    assertThat(c8vars.size()).isEqualTo(1);
-    var c8Var = c8vars.get(0);
-    assertThat(c8Var.getValue().contains("local value")).isTrue();
-    assertThat(c8Var.getScopeKey()).isNotEqualTo(elements.get(0).getProcessInstanceKey());
-    assertThat(c8Var.getScopeKey()).isEqualTo(elements.get(0).getElementInstanceKey());
+      assertThat(c8vars.size()).isEqualTo(1);
+      var c8Var = c8vars.get(0);
+      assertThat(c8Var.getValue().contains("local value")).isTrue();
+      assertThat(c8Var.getScopeKey()).isNotEqualTo(elements.get(0).getProcessInstanceKey());
+      assertThat(c8Var.getScopeKey()).isEqualTo(elements.get(0).getElementInstanceKey());
+    });
+
   }
 
   @Test
@@ -303,23 +311,26 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
 
     // then
     // TODO assert local variable when this ticket is completed https://github.com/camunda/camunda/issues/32648
-    List<Variable> c8vars = camundaClient.newVariableSearchRequest()
-        .filter(f -> f.name("localVariable"))
-        .send()
-        .join()
-        .items();
+    Awaitility.await().ignoreException(ClientException.class)
+        .timeout(10, TimeUnit.SECONDS).untilAsserted(() -> {
+      List<Variable> c8vars = camundaClient.newVariableSearchRequest()
+          .filter(f -> f.name("localVariable"))
+          .send()
+          .join()
+          .items();
 
-    List<ElementInstance> elements = camundaClient.newElementInstanceSearchRequest()
-        .filter(f -> f.elementId("userTask_1"))
-        .send()
-        .join()
-        .items();
+      List<ElementInstance> elements = camundaClient.newElementInstanceSearchRequest()
+          .filter(f -> f.elementId("userTask_1"))
+          .send()
+          .join()
+          .items();
 
-    assertThat(c8vars.size()).isEqualTo(1);
-    var c8Var = c8vars.get(0);
-    assertThat(c8Var.getValue().contains("local value")).isTrue();
-    assertThat(c8Var.getScopeKey()).isNotEqualTo(elements.get(0).getProcessInstanceKey());
-    assertThat(c8Var.getScopeKey()).isEqualTo(elements.get(0).getElementInstanceKey());
+      assertThat(c8vars.size()).isEqualTo(1);
+      var c8Var = c8vars.get(0);
+      assertThat(c8Var.getValue().contains("local value")).isTrue();
+      assertThat(c8Var.getScopeKey()).isNotEqualTo(elements.get(0).getProcessInstanceKey());
+      assertThat(c8Var.getScopeKey()).isEqualTo(elements.get(0).getElementInstanceKey());
+    });
   }
 
   @Test
@@ -344,15 +355,18 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
         .hasVariableNames("variable1", "variable2");
 
     // TODO assert local variable when this ticket is completed https://github.com/camunda/camunda/issues/32648
-    List<Variable> c8vars = camundaClient.newVariableSearchRequest()
-        .filter(f -> f.name("localVariable"))
-        .send()
-        .join()
-        .items();
+    Awaitility.await().ignoreException(ClientException.class)
+        .timeout(10, TimeUnit.SECONDS).untilAsserted(() -> {
+      List<Variable> c8vars = camundaClient.newVariableSearchRequest()
+          .filter(f -> f.name("localVariable"))
+          .send()
+          .join()
+          .items();
 
-    assertThat(c8vars.size()).isEqualTo(1);
-    var c8Var = c8vars.get(0);
-    assertThat(c8Var.getValue()).isEqualTo("local value");
+      assertThat(c8vars.size()).isEqualTo(1);
+      var c8Var = c8vars.get(0);
+      assertThat(c8Var.getValue()).isEqualTo("local value");
+    });
   }
 
   private void deploySubprocessModels() {
