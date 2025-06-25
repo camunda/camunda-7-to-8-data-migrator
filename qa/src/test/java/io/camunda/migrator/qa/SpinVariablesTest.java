@@ -75,7 +75,6 @@ public class SpinVariablesTest extends RuntimeMigrationAbstractTest {
     runtimeService.setVariable(simpleProcessInstance.getId(), "var", xmlValue);
     SpinXmlElement c7value = (SpinXmlElement) runtimeService.getVariable(simpleProcessInstance.getId(), "var");
 
-
     // when running runtime migration
     runtimeMigrator.start();
 
