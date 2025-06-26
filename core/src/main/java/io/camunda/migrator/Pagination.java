@@ -9,7 +9,6 @@ package io.camunda.migrator;
 
 import static io.camunda.migrator.ExceptionUtils.callApi;
 
-import io.camunda.migrator.interceptor.InterceptorService;
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInvocation;
 import java.util.ArrayList;
@@ -21,15 +20,12 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import org.camunda.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
 import org.camunda.bpm.engine.query.Query;
-import org.camunda.bpm.engine.runtime.VariableInstance;
 import org.camunda.bpm.engine.variable.type.ValueType;
 import org.camunda.bpm.engine.variable.value.TypedValue;
-import org.camunda.spin.json.SpinJsonNode;
-import org.camunda.spin.plugin.variable.type.JsonValueType;
 import org.camunda.spin.plugin.variable.type.SpinValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 public class Pagination<T> {
 
@@ -39,6 +35,8 @@ public class Pagination<T> {
   protected Supplier<Long> maxCount;
   protected Function<Integer, List<T>> page;
   private Query<?, T> query;
+  private ApplicationContext context;
+
 
   public Pagination<T> batchSize(int batchSize) {
     this.batchSize = batchSize;
@@ -57,6 +55,11 @@ public class Pagination<T> {
 
   public Pagination<T> query(Query<?, T> query) {
     this.query = query;
+    return this;
+  }
+
+  public Pagination<T> context(ApplicationContext context) {
+    this.context = context;
     return this;
   }
 
@@ -93,15 +96,13 @@ public class Pagination<T> {
   }
 
 
-  @Autowired
-  protected List<?  extends VariableInterceptor> interceptors;
-
   /**
    * Heads-up: this implementation needs to be null safe for the variable value.
    * Using streams might lead to undesired {@link NullPointerException}s.
    */
   public Map<String, Object> toVariableMap() {
     Map<String, Object> result = new HashMap<>();
+    List<VariableInterceptor> interceptors = (List<VariableInterceptor>) context.getBeansOfType(VariableInterceptor.class).values().stream().toList();
     toList().forEach(e -> {
       VariableInvocation variableInvocation = new VariableInvocation((VariableInstanceEntity) e);
       if (interceptors != null && interceptors.size() > 0) {
@@ -129,3 +130,4 @@ public class Pagination<T> {
     return result;
   }
 }
+g

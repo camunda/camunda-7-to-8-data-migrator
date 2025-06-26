@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -75,6 +76,10 @@ public class RuntimeMigrator {
 
   @Value("${migrator.batch-size:" + DEFAULT_BATCH_SIZE + "}")
   protected int batchSize;
+
+  @Autowired
+  private ApplicationContext context;
+
 
   protected MigratorMode mode = MIGRATE;
 
@@ -215,6 +220,7 @@ public class RuntimeMigrator {
     Map<String, Object> globalVariables = new Pagination<VariableInstance>()
         .batchSize(batchSize)
         .query(variableQuery)
+        .context(context)
         .toVariableMap();// should we pass the legacy id too? to be available out of the box in the interceptor
 
     globalVariables.put("legacyId", legacyProcessInstanceId);
@@ -319,6 +325,7 @@ public class RuntimeMigrator {
 
           Map<String, Object> localVariables = new Pagination<VariableInstance>().batchSize(batchSize)
               .query(variableQuery)
+              .context(context)
               .toVariableMap();
 
           String subProcessInstanceId = flowNode.subProcessInstanceId();
