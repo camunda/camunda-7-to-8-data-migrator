@@ -18,7 +18,7 @@ public class VariableInterceptorTest extends RuntimeMigrationAbstractTest {
   TestVariableInterceptor interceptor;
 
   @Test
-  public void shouldSetDateVariable(CapturedOutput output) {
+  public void shouldInvokeInterceptor(CapturedOutput output) {
     // deploy processes
     deployProcessInC7AndC8("simpleProcess.bpmn");
 

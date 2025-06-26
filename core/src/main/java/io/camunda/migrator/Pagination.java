@@ -102,7 +102,8 @@ public class Pagination<T> {
    */
   public Map<String, Object> toVariableMap() {
     Map<String, Object> result = new HashMap<>();
-    List<VariableInterceptor> interceptors = (List<VariableInterceptor>) context.getBeansOfType(VariableInterceptor.class).values().stream().toList();
+    List<VariableInterceptor> interceptors = (List<VariableInterceptor>) context.getBeansOfType(
+        VariableInterceptor.class).values().stream().toList();
     toList().forEach(e -> {
       VariableInvocation variableInvocation = new VariableInvocation((VariableInstanceEntity) e);
       if (interceptors != null && interceptors.size() > 0) {
@@ -130,4 +131,3 @@ public class Pagination<T> {
     return result;
   }
 }
-g
