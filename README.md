@@ -70,9 +70,6 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
 **Q:** I can see the process instances in Operate, but they are stuck in the `migrator` listener on start events. What am I missing?
 **A:** If the migration stopped unexpectedly before/during the `migrator` execution listener job execution, rerun the Data Migrator to complete the migration.
 
-**Q:** I can see the process instances in Operate, but they were started from the start event instead of migrating the tokens into the correct flow nodes.  What's wrong?
-**A:** Check if you forgot to add the `migrator` execution listener to the start events of your process models in C8.
-
 ## Development Setup
 1. Prerequisites: Use Java 21
 1. Set up Camunda 8
