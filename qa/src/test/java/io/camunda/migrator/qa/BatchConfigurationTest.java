@@ -7,22 +7,18 @@
  */
 package io.camunda.migrator.qa;
 
+import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.camunda.client.api.command.ClientException;
-import io.camunda.client.api.search.response.ProcessDefinition;
+import io.camunda.client.api.search.response.ProcessInstance;
+import io.camunda.process.test.api.CamundaAssert;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-
-import io.camunda.client.api.search.response.ProcessInstance;
 
 @ExtendWith(OutputCaptureExtension.class)
 class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
@@ -77,7 +73,10 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
   @Test
   public void shouldPaginateMultiLevelProcessModel(CapturedOutput output) {
     // deploy processes
-    deployModels();
+    String rootId = "root";
+    String level1Id = "level1";
+    String level2Id = "level2";
+    deployModels(rootId, level1Id, level2Id);
 
     // given
     runtimeService.startProcessInstanceByKey("root");
@@ -86,17 +85,12 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    Awaitility.await().ignoreException(ClientException.class)
-        .untilAsserted(() -> {
-          List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest()
-              .send()
-              .join()
-              .items();
-
-          // assume
-          assertThat(processInstances).hasSize(3);
-    });
-
+    CamundaAssert.assertThat(byProcessId(rootId))
+        .isActive();
+    CamundaAssert.assertThat(byProcessId(level1Id))
+        .isActive();
+    CamundaAssert.assertThat(byProcessId(level2Id))
+        .isActive();
 
     Matcher matcher = Pattern.compile("Migrator jobs found: 1").matcher(output.getOut());
     assertThat(matcher.results().count()).isEqualTo(3);
@@ -104,10 +98,7 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
     assertThat(output.getOut()).contains("Method: #validateProcessInstanceState, max count: 3, offset: 0, batch size: 500");
   }
 
-  private void deployModels() {
-    String rootId = "root";
-    String level1Id = "level1";
-    String level2Id = "level2";
+  private void deployModels(String rootId, String level1Id, String level2Id) {
     // C7
     var c7rootModel = org.camunda.bpm.model.bpmn.Bpmn.createExecutableProcess(rootId)
         .startEvent("start_1")
@@ -142,24 +133,9 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
         .userTask("userTask_1")
         .endEvent("end_3").done();
 
-    repositoryService.createDeployment().addModelInstance(rootId+".bpmn", c7rootModel).deploy();
-    repositoryService.createDeployment().addModelInstance(level1Id+".bpmn", c7level1Model).deploy();
-    repositoryService.createDeployment().addModelInstance(level2Id+".bpmn", c7level2Model).deploy();
-
-    camundaClient.newDeployResourceCommand().addProcessModel(c8rootModel, rootId+".bpmn").send().join();
-    camundaClient.newDeployResourceCommand().addProcessModel(c8level1Model, level1Id+".bpmn").send().join();
-    camundaClient.newDeployResourceCommand().addProcessModel(c8level2Model, level2Id+".bpmn").send().join();
-
-    Awaitility.await().ignoreException(ClientException.class).untilAsserted(() -> {
-      List<ProcessDefinition> items = camundaClient.newProcessDefinitionSearchRequest()
-          .filter(filter -> filter.resourceName(rootId + ".bpmn"))
-          .send()
-          .join()
-          .items();
-
-      // assume
-      assertThat(items).hasSize(1);
-    });
+    deployModelInstance(rootId, c7rootModel, c8rootModel);
+    deployModelInstance(level1Id, c7level1Model, c8level1Model);
+    deployModelInstance(level2Id, c7level2Model, c8level2Model);
   }
 
 }
