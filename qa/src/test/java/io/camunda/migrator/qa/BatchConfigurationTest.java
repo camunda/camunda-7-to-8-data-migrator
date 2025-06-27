@@ -25,6 +25,8 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("logging-test")
 class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
 
+  public static final String MIGRATOR_JOBS_FOUND = "Migrator jobs found: ";
+
   @Test
   public void shouldPerformPaginationForProcessInstances(CapturedOutput output) {
     runtimeMigrator.setBatchSize(2);
@@ -66,10 +68,10 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
     // then
     assertThat(camundaClient.newProcessInstanceSearchRequest().send().join().items()).hasSize(5);
 
-    Matcher matcher = Pattern.compile("Migrator jobs found: 2").matcher(output.getOut());
+    Matcher matcher = Pattern.compile(MIGRATOR_JOBS_FOUND + "2").matcher(output.getOut());
     assertThat(matcher.results().count()).isEqualTo(2);
-    assertThat(output.getOut()).contains("Migrator jobs found: 1");
-    assertThat(output.getOut()).contains("Migrator jobs found: 0");
+    assertThat(output.getOut()).contains(MIGRATOR_JOBS_FOUND + "1");
+    assertThat(output.getOut()).contains(MIGRATOR_JOBS_FOUND + "0");
   }
 
   @Test
@@ -87,14 +89,12 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    CamundaAssert.assertThat(byProcessId(rootId))
-        .isActive();
-    CamundaAssert.assertThat(byProcessId(level1Id))
-        .isActive();
-    CamundaAssert.assertThat(byProcessId(level2Id))
-        .isActive();
+    List<String> processIds = List.of(rootId, level1Id, level2Id);
+    processIds.forEach(processId ->
+        CamundaAssert.assertThat(byProcessId(processId))
+            .isActive());
 
-    Matcher matcher = Pattern.compile("Migrator jobs found: 1").matcher(output.getOut());
+    Matcher matcher = Pattern.compile(MIGRATOR_JOBS_FOUND + "1").matcher(output.getOut());
     assertThat(matcher.results().count()).isEqualTo(3);
     assertThat(output.getOut()).contains("Method: #fetchProcessInstancesToMigrate, max count: 1, offset: 0, batch size: 500");
     assertThat(output.getOut()).contains("Method: #validateProcessInstanceState, max count: 3, offset: 0, batch size: 500");
