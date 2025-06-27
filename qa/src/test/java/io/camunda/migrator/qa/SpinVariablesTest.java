@@ -81,7 +81,7 @@ public class SpinVariablesTest extends RuntimeMigrationAbstractTest {
     // then
     Awaitility.await().ignoreException(ClientException.class).untilAsserted(() -> {
 
-      List<Variable> items = camundaClient.newVariableSearchRequest().filter(f -> f.name("var")).send().join().items();
+      List<Variable> items = camundaClient.newVariableSearchRequest().filter(f -> f.name("var")).execute().items();
 
       assertThat(items).hasSize(1);
       assertThat(items.get(0).getValue()).contains(street);

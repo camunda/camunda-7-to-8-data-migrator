@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:conversion="http://camunda.org/schema/conversion/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" conversion:converterVersion="0.12.4" exporter="Camunda Modeler" exporterVersion="5.34.0" expressionLanguage="http://www.w3.org/1999/XPath" id="Definitions_0kgk3yj" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0" targetNamespace="http://bpmn.io/schema/bpmn" typeLanguage="http://www.w3.org/2001/XMLSchema">
+  <bpmn:process id="callMultiInstanceProcess" isClosed="false" isExecutable="true" name="Call Multi Instance Process" processType="None">
+    <bpmn:startEvent id="StartEvent" isInterrupting="true" name="StartEvent" parallelMultiple="false">
+      <bpmn:extensionElements>
+        <zeebe:executionListeners>
+          <zeebe:executionListener eventType="end" type="migrator" />
+        </zeebe:executionListeners>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_10u5e0b</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_10u5e0b" sourceRef="StartEvent" targetRef="call"/>
+    <bpmn:callActivity calledElement="multiInstanceProcess" completionQuantity="1" id="call" isForCompensation="false" name="Call" startQuantity="1">
+      <bpmn:extensionElements>
+        <zeebe:calledElement processId="multiInstanceProcess" propagateAllChildVariables="false" propagateAllParentVariables="false"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_10u5e0b</bpmn:incoming>
+      <bpmn:outgoing>Flow_1r2nyfk</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="EndEvent" name="EndEvent">
+      <bpmn:incoming>Flow_1r2nyfk</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1r2nyfk" sourceRef="call" targetRef="EndEvent"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane bpmnElement="callMultiInstanceProcess" id="BPMNPlane_1">
+      <bpmndi:BPMNShape bpmnElement="call" id="Activity_0fu9zam_di">
+        <dc:Bounds height="80" width="100" x="280" y="77"/>
+        <bpmndi:BPMNLabel/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="EndEvent" id="Event_1t9qrc2_di">
+        <dc:Bounds height="36" width="36" x="442" y="99"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="14" width="48" x="436" y="142"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="StartEvent" id="_BPMNShape_StartEvent_2">
+        <dc:Bounds height="36" width="36" x="162" y="99"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="14" width="52" x="154" y="142"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="Flow_10u5e0b" id="Flow_10u5e0b_di">
+        <di:waypoint x="198" y="117"/>
+        <di:waypoint x="280" y="117"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="Flow_1r2nyfk" id="Flow_1r2nyfk_di">
+        <di:waypoint x="380" y="117"/>
+        <di:waypoint x="442" y="117"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

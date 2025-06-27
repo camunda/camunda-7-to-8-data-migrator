@@ -67,7 +67,7 @@ public class TaskMigrationTest extends AbstractElementMigrationTest {
     runtimeMigrator.start();
 
     // then there is one expected process instance
-    List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().send().join().items();
+    List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().execute().items();
     assertEquals(1, processInstances.size());
     ProcessInstance processInstance = processInstances.getFirst();
     assertEquals(simpleProcess.getProcessDefinitionKey(), processInstance.getProcessDefinitionId());

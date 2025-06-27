@@ -27,7 +27,7 @@ class MigrationOrderedByStartDateTest extends RuntimeMigrationAbstractTest {
 
     runtimeMigrator.migrate();
 
-    Supplier<SearchResponsePage> response = () -> camundaClient.newProcessInstanceSearchRequest().send().join().page();
+    Supplier<SearchResponsePage> response = () -> camundaClient.newProcessInstanceSearchRequest().execute().page();
 
     // assume
     assertThat(response.get().totalItems()).isEqualTo(2);
@@ -61,7 +61,7 @@ class MigrationOrderedByStartDateTest extends RuntimeMigrationAbstractTest {
     // when
     runtimeMigrator.migrate();
 
-    Supplier<SearchResponsePage> response = () -> camundaClient.newProcessInstanceSearchRequest().send().join().page();
+    Supplier<SearchResponsePage> response = () -> camundaClient.newProcessInstanceSearchRequest().execute().page();
 
     // then
     assertThat(response.get().totalItems()).isEqualTo(5);
