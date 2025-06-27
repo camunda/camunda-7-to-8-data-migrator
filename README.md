@@ -80,6 +80,7 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
   - **How to prevent it**:
     - **Don't correlate messages or send signals during migration**
     - **Temporarily disable timer start events** in event subprocesses:
+      - TODO: this will be changed in this Github [issue](https://github.com/camunda/camunda-bpm-platform/issues/5173) 
       - You can remove them or convert them to signal/message events for the migration
       - Or you can set a far-future duration like `P30D` (30 days) to ensure they won't fire
     - If above suggestions are not feasible in your use case **make sure service tasks are idempotent** — so repeating them does not cause issues.
