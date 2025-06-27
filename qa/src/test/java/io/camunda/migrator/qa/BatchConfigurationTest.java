@@ -19,8 +19,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 @ExtendWith(OutputCaptureExtension.class)
+@ActiveProfiles("logging-test")
 class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
 
   @Test
