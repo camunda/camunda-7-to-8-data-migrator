@@ -92,7 +92,7 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
     - Variables set into the scope of embedded sub-processes are not supported yet and will be ignored. Will be implemented in this [ticket](https://github.com/camunda/camunda-bpm-platform/issues/5235).
 
 
-## Configuration
+## Configuration (Spring Boot Properties)
 
 The C7 Data Migrator can be configured using the following Spring Boot properties (typically in `application.yml` or as environment variables):
 
@@ -115,6 +115,7 @@ The C7 Data Migrator can be configured using the following Spring Boot propertie
 | `logging.level.root`                      | Root logging level                                                     | INFO         |
 | `logging.level.io.camunda.migrator`       | Logging level for migrator components                                  | INFO         |
 | `logging.file.name`                       | Log file location                                                      | logs/c7-data-migrator.log |
+| `camunda.database.database-vendor-id`     | Database vendor ID for Camunda (e.g., h2, postgresql)                 | h2           |
 
 You can override these properties via environment variables or command-line arguments. For more details, see the [Spring Boot documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html).
 
