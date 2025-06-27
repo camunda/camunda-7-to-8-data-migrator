@@ -76,7 +76,7 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
         - for all subsequent runs, the defined cycle duration will trigger the timer. The "repeat once" instruction ensures it only fires once, similar to a duration timer
         - you must still ensure that the start time lies outside the migration time frame
       - other timers with duration:
-        - other times with duration may not allow cycle definition
+        - other timers with duration may not allow cycle definition
         - add a variable to your C7 instance that contains the leftover duration until the next timer is due
         - in your C8 model, adjust the timer duration definition to use an expression: if the variable is set, the value of this variable should be used for the duration. If the variable is not set or does not exist, you may configure a default duration
         - this way, for the first post migration run the variable will exist and the timer will set its duration accordingly
