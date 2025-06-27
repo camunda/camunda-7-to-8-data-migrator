@@ -45,6 +45,30 @@ public class MigratorListenerNotFoundTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
+  public void shouldSkipOnListenerWithWrongType() {
+    // given
+    deployProcessInC7AndC8("migratorListenerWrongType.bpmn");
+
+    String id = runtimeService.startProcessInstanceByKey("migratorListenerWrongType").getId();
+
+    // assume
+    assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(id).singleResult()).isNotNull();
+
+    // when
+    runtimeMigrator.start();
+
+    // then
+    assertThatProcessInstanceCountIsEqualTo(0);
+
+    var events = logs.getEvents();
+    assertThat(events.stream().filter(event -> event.getMessage()
+        .matches(String.format(".*Skipping process instance with legacyId \\[%s\\]: "
+            + "No execution listener of type 'migrator' found on start event \\[Event_1px2j50\\] "
+            + "in C8 process with id \\[\\d+\\]\\. At least one migrator listener is required\\.", id))))
+        .hasSize(1);
+  }
+
+  @Test
   public void shouldNotSkipOnMissingListenerWithEmbeddedSubprocess() {
     // given
     deployProcessInC7AndC8("embeddedSubprocessWithoutMigratorListener.bpmn");

@@ -263,8 +263,8 @@ public class RuntimeMigrator {
           LOGGER.debug("Found {} active activity instances to validate", activityInstanceMap.size());
 
           for (FlowNode flowNode : activityInstanceMap.values()) {
-            validateC8FlowNodes(c8BpmnModelInstance, flowNode.activityId());
             validateC7FlowNodes(c7BpmnModelInstance, flowNode.activityId());
+            validateC8FlowNodes(c8BpmnModelInstance, flowNode.activityId());
           }
         });
   }
@@ -284,6 +284,16 @@ public class RuntimeMigrator {
           if (zBExecutionListeners == null) {
             throw new IllegalStateException(String.format("Couldn't find execution listener of type 'migrator' "
                 + "on start event [%s] in C8 process with key [%s].", startEvent.getId(), processDefinitionKey));
+          } else {
+            boolean hasMigratorListener = zBExecutionListeners.getExecutionListeners().stream()
+                .anyMatch(listener -> "migrator".equals(listener.getType()));
+
+            if (!hasMigratorListener) {
+              throw new IllegalStateException(String.format(
+                  "No execution listener of type 'migrator' found on start event [%s] in C8 process with id [%s]. " +
+                  "At least one migrator listener is required.",
+                  startEvent.getId(), processDefinitionKey));
+            }
           }
         });
   }
@@ -292,8 +302,6 @@ public class RuntimeMigrator {
    * Validates if flow nodes exist in C8 model.
    */
   protected void validateC8FlowNodes(BpmnModelInstance c8BpmnModelInstance, String activityId) {
-    // #multiInstanceBody is a pseudo flow node id that doesn't exist in the actual BPMN model.
-    activityId = activityId.replace("#multiInstanceBody", "");
     if (c8BpmnModelInstance.getModelElementById(activityId) == null) {
       throw new IllegalStateException(String.format("Flow node with id [%s] "
           + "doesn't exist in the equivalent deployed C8 model.", activityId));
