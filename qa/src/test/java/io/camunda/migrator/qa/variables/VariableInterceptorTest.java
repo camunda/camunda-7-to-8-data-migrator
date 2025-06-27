@@ -1,3 +1,10 @@
+/*
+ * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH under
+ * one or more contributor license agreements. See the NOTICE file distributed
+ * with this work for additional information regarding copyright ownership.
+ * Licensed under the Camunda License 1.0. You may not use this file
+ * except in compliance with the Camunda License 1.0.
+ */
 package io.camunda.migrator.qa.variables;
 
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
@@ -7,6 +14,7 @@ import io.camunda.migrator.qa.RuntimeMigrationAbstractTest;
 import io.camunda.process.test.api.CamundaAssert;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,5 +51,26 @@ public class VariableInterceptorTest extends RuntimeMigrationAbstractTest {
     assertThat(output.getOut()).contains("Hello from interceptor");
     Matcher matcher = Pattern.compile("Hello from interceptor").matcher(output.getOut());
     assertThat(matcher.results().count()).isEqualTo(2);
+  }
+
+  @Test
+  @Disabled
+  public void shouldThrowExceptionFromInterceptor(CapturedOutput output) {
+    // deploy processes
+    deployProcessInC7AndC8("simpleProcess.bpmn");
+
+    // given processes state in c7
+    var simpleProcessInstance = runtimeService.startProcessInstanceByKey("simpleProcess");
+    runtimeService.setVariable(simpleProcessInstance.getId(), "exFlag", true);
+
+    // when running runtime migration
+    runtimeMigrator.start();
+
+    // then two instances and two interceptor invocations
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
+        .hasVariable("exFlag", true);
+
+    assertThat(output.getOut()).contains("Hello from interceptor");
+    // check instance is skipped?
   }
 }

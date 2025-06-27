@@ -111,7 +111,7 @@ public class Pagination<T> {
           try {
             i.execute(variableInvocation);
           } catch (Exception ex) {
-            throw new MigratorException("An error occurred during variable transformation.", ex);
+            throw new VariableInterceptorException("An error occurred during variable transformation.", ex);
           }
         });
       }

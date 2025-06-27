@@ -10,6 +10,7 @@ package io.camunda.migrator.qa.variables;
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInvocation;
 import org.camunda.bpm.engine.variable.type.ValueType;
+import org.camunda.bpm.engine.variable.value.TypedValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -21,8 +22,14 @@ public class TestVariableInterceptor implements VariableInterceptor {
 
   @Override
   public void execute(VariableInvocation invocation) throws Exception {
-    ValueType type = invocation.getVariable().getTypedValue(false).getType();
+    TypedValue typedValue = invocation.getVariable().getTypedValue(false);
+
+//    ValueType type = typedValue.getType();
+
     LOGGER.info("Hello from interceptor");
 
+    if(invocation.getVariable().getName().equals("exFlag") && Boolean.valueOf(typedValue.getValue().toString()) == true){
+      throw new RuntimeException("Expected exception from Interceptor");
+    }
   }
 }
