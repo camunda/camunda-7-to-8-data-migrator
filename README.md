@@ -60,7 +60,28 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
 - Multi-instance:
   - Processes with active multi-instance elements can currently not be migrated. We recommend to finish the execution of any multi-instance elements prior to migration.
 - Timer events:
-  - Processes with active tokens in [timer events](https://docs.camunda.org/manual/latest/reference/bpmn20/events/timer-events/) are not yet supported for migration. We have [this ticket](https://github.com/camunda/camunda-bpm-platform/issues/5173) to address this limitation in the future. 
+  - Processes with timer start events are not yet supported for migration. We plan to address this limitation with [this ticket](https://github.com/camunda/camunda-bpm-platform/issues/5200)
+  - If your model contains other timer events, you must ensure that no timers fire during the migration process.
+    - timers with [date](https://docs.camunda.io/docs/next/components/modeler/bpmn/timer-events/#time-date): ensure the date lies outside the migration time frame
+    - timers with [durations](https://docs.camunda.io/docs/next/components/modeler/bpmn/timer-events/#time-duration): ensure the duration is significantly longer than the migration time frame
+    - timers with [cycles](https://docs.camunda.io/docs/next/components/modeler/bpmn/timer-events/#time-cycle): ensure the cycle is significantly longer than the migration time frame and/or use a start time that lies outside the migration time frame
+  - Note that during deployment and/or migration, the timers may be restarted. If business logic requires you to avoid resetting timer cycles/duration, you need to apply a workaround:
+    - timers with cycles: 
+      - add a start time to your cycle definition that is equal to the moment in time when the currently running C7 timer is next due
+      - you must still ensure that the start time lies outside the migration time frame
+    - timers with durations:
+      - non interrupting timer boundary events:
+        - switch to cycle definition with a start time that is equal to the moment in time when the currently running C7 timer is next due and add a "repeat once" configuration
+        - this way, for the first post migration run, the timer will trigger at the start time
+        - for all subsequent runs, the defined cycle duration will trigger the timer. The "repeat once" instruction ensures it only fires once, similar to a duration timer
+        - you must still ensure that the start time lies outside the migration time frame
+      - other timers with duration:
+        - other times with duration may not allow cycle definition
+        - add a variable to your C7 instance that contains the leftover duration until the next timer is due
+        - in your C8 model, adjust the timer duration definition to use an expression: if the variable is set, the value of this variable should be used for the duration. If the variable is not set or does not exist, you may configure a default duration
+        - this way, for the first post migration run the variable will exist and the timer will set its duration accordingly
+        - for all subsequent runs, the variable will not exist and the default duration will be used
+        - again, you must ensure the leftover duration for the first post migration run lies outside the migration time frame
 - Variables
     - Camunda 8 supported types: [documentation](https://docs.camunda.io/docs/components/concepts/variables/#variable-values)
     - Camunda 8 variable name restrictions: [documentation](https://docs.camunda.io/docs/next/components/concepts/variables/#variable-values).
