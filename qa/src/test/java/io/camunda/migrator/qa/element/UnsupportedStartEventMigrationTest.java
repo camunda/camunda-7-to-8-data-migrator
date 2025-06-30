@@ -8,26 +8,34 @@
 
 package io.camunda.migrator.qa.element;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.camunda.migrator.MigratorException;
+import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.qa.RuntimeMigrationAbstractTest;
+import io.github.netmikey.logunit.api.LogCapturer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class UnsupportedStartEventMigrationTest extends RuntimeMigrationAbstractTest {
 
-  // To be addressed with https://github.com/camunda/camunda-bpm-platform/issues/5195
+  @RegisterExtension
+  protected LogCapturer logs = LogCapturer.create().captureForType(RuntimeMigrator.class);
+
   @Test
   public void migrateProcessWithUnsupportedStartEvent() {
     // given
     deployProcessInC7AndC8("messageStartEventProcess.bpmn");
     runtimeService.correlateMessage("msgRef");
 
-    // when/then
-    assertThatThrownBy(() -> runtimeMigrator.start()).isInstanceOf(MigratorException.class)
-        .hasMessageContaining(
-            "Creating process instance failed for legacyId: ")
-        .hasRootCauseMessage("FAILED_PRECONDITION: Command 'CREATE' rejected with code 'INVALID_STATE': Expected to "
-            + "create instance of process with none start event, but there is no such event");
+    // when
+    runtimeMigrator.start();
+
+    // then
+    var events = logs.getEvents();
+    assertThat(events.stream().filter(event -> event.getMessage()
+        .matches(".*Couldn't find process None Start Event in C8 process with key.*")))
+        .hasSize(1);
   }
 }

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?><bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:conversion="http://camunda.org/schema/conversion/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" conversion:converterVersion="0.12.4" exporter="Camunda Modeler" exporterVersion="5.31.0" expressionLanguage="http://www.w3.org/1999/XPath" id="Definitions_0pn0lt5" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0" targetNamespace="http://bpmn.io/schema/bpmn" typeLanguage="http://www.w3.org/2001/XMLSchema">
+  <bpmn:process id="messageStartEventWithSubprocess" isClosed="false" isExecutable="true" processType="None">
+    <bpmn:extensionElements>
+      <conversion:message severity="INFO">Unused attribute 'historyTimeToLive' on 'process' is removed.</conversion:message>
+    </bpmn:extensionElements>
+    <bpmn:startEvent id="StartEvent_1" isInterrupting="true" parallelMultiple="false">
+      <bpmn:extensionElements>
+        <conversion:reference>Message_2jjc83j</conversion:reference>
+        <zeebe:executionListeners>
+          <zeebe:executionListener eventType="end" type="migrator" />
+        </zeebe:executionListeners>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_1fh2zq4</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_11vof9i" messageRef="Message_2jjc83j"/>
+    </bpmn:startEvent>
+    <bpmn:subProcess completionQuantity="1" id="Activity_0arwkii" isForCompensation="false" startQuantity="1" triggeredByEvent="false">
+      <bpmn:incoming>Flow_1fh2zq4</bpmn:incoming>
+      <bpmn:outgoing>Flow_0r5pyg5</bpmn:outgoing>
+      <bpmn:startEvent id="Event_16aohpw" isInterrupting="true" parallelMultiple="false">
+        <bpmn:outgoing>Flow_0hp3f9q</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:userTask completionQuantity="1" id="Activity_08dvjt5" implementation="##unspecified" isForCompensation="false" startQuantity="1">
+        <bpmn:extensionElements>
+          <zeebe:userTask/>
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_0hp3f9q</bpmn:incoming>
+        <bpmn:outgoing>Flow_0phgadc</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:endEvent id="Event_0opffpg">
+        <bpmn:incoming>Flow_0phgadc</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_0hp3f9q" sourceRef="Event_16aohpw" targetRef="Activity_08dvjt5"/>
+      <bpmn:sequenceFlow id="Flow_0phgadc" sourceRef="Activity_08dvjt5" targetRef="Event_0opffpg"/>
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_1fh2zq4" sourceRef="StartEvent_1" targetRef="Activity_0arwkii"/>
+    <bpmn:endEvent id="Event_17gpw6j">
+      <bpmn:incoming>Flow_0r5pyg5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0r5pyg5" sourceRef="Activity_0arwkii" targetRef="Event_17gpw6j"/>
+  </bpmn:process>
+  <bpmn:message id="Message_2jjc83j" name="MessageName">
+    <bpmn:extensionElements>
+      <conversion:message severity="TASK">Please define a correlation key if the message is used in a message catch event.</conversion:message>
+      <conversion:referencedBy>StartEvent_1</conversion:referencedBy>
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane bpmnElement="messageStartEventWithSubprocess" id="BPMNPlane_1">
+      <bpmndi:BPMNShape bpmnElement="StartEvent_1" id="Event_18rqw9s_di">
+        <dc:Bounds height="36" width="36" x="182" y="162"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="Event_17gpw6j" id="Event_17gpw6j_di">
+        <dc:Bounds height="36" width="36" x="732" y="162"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="Activity_0arwkii" id="Activity_1e02nym_di" isExpanded="true">
+        <dc:Bounds height="200" width="350" x="270" y="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="Event_16aohpw" id="Event_16aohpw_di">
+        <dc:Bounds height="36" width="36" x="310.33333333333337" y="162"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="Activity_08dvjt5" id="Activity_1hpsr1w_di">
+        <dc:Bounds height="80" width="100" x="390" y="140"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="Event_0opffpg" id="Event_0opffpg_di">
+        <dc:Bounds height="36" width="36" x="532" y="162"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="Flow_0hp3f9q" id="Flow_0hp3f9q_di">
+        <di:waypoint x="346" y="180"/>
+        <di:waypoint x="390" y="180"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="Flow_0phgadc" id="Flow_0phgadc_di">
+        <di:waypoint x="490" y="180"/>
+        <di:waypoint x="532" y="180"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="Flow_1fh2zq4" id="Flow_1fh2zq4_di">
+        <di:waypoint x="218" y="180"/>
+        <di:waypoint x="270" y="180"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="Flow_0r5pyg5" id="Flow_0r5pyg5_di">
+        <di:waypoint x="620" y="180"/>
+        <di:waypoint x="732" y="180"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
