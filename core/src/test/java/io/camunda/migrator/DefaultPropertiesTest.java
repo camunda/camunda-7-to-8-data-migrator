@@ -24,7 +24,7 @@ class DefaultPropertiesTest {
 
   @Test
   public void shouldHaveDefaultBatchSize() {
-    Assertions.assertThat(runtimeMigrator.batchSize).isEqualTo(500);
+    Assertions.assertThat(runtimeMigrator.getBatchSize()).isEqualTo(500);
   }
 
   @Test

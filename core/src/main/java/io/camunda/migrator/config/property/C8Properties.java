@@ -7,9 +7,10 @@
  */
 package io.camunda.migrator.config.property;
 
-public class C7Properties {
+public class C8Properties {
 
   protected DataSourceProperties dataSource;
+  protected String deploymentDir = null;
 
   public DataSourceProperties getDataSource() {
     return dataSource;
@@ -18,4 +19,13 @@ public class C7Properties {
   public void setDataSource(DataSourceProperties dataSource) {
     this.dataSource = dataSource;
   }
+
+  public String getDeploymentDir() {
+    return deploymentDir;
+  }
+
+  public void setDeploymentDir(String deploymentDir) {
+    this.deploymentDir = deploymentDir;
+  }
+
 }

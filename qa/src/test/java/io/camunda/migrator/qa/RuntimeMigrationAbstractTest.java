@@ -17,6 +17,7 @@ import io.camunda.client.api.search.response.ProcessDefinition;
 import io.camunda.client.api.search.response.ProcessInstance;
 import io.camunda.client.api.search.response.Variable;
 import io.camunda.migrator.RuntimeMigrator;
+import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.persistence.IdKeyMapper;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
 
@@ -80,7 +81,6 @@ public abstract class RuntimeMigrationAbstractTest {
 
     // reset runtime migrator
     runtimeMigrator.setMode(MIGRATE);
-    runtimeMigrator.setBatchSize(RuntimeMigrator.DEFAULT_BATCH_SIZE);
   }
 
   protected void deployCamunda7Process(String resourcePath) {

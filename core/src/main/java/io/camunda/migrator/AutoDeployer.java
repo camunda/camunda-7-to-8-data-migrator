@@ -9,6 +9,8 @@ package io.camunda.migrator;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.DeployResourceCommandStep1;
+import io.camunda.migrator.config.property.C8Properties;
+import io.camunda.migrator.config.property.MigratorProperties;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +20,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -28,8 +29,8 @@ public class AutoDeployer {
   @Autowired
   protected CamundaClient camundaClient;
 
-  @Value("${migrator.deployment-dir:#{null}}")
-  protected String deploymentDir;
+  @Autowired
+  protected MigratorProperties migratorProperties;
 
   public void deploy() {
     // Deploy process
@@ -48,15 +49,20 @@ public class AutoDeployer {
   }
 
   public Set<Path> getDeploymentResources() {
-    if (StringUtils.hasText(deploymentDir)) {
-      Path resourceDir = Paths.get(deploymentDir);
+    C8Properties c8Props = migratorProperties.getC8();
+    if (c8Props != null) {
+      String deploymentDir = c8Props.getDeploymentDir();
+      if (StringUtils.hasText(deploymentDir)) {
+        Path resourceDir = Paths.get(deploymentDir);
 
-      try (Stream<Path> stream = Files.walk(resourceDir)) {
-        return stream.filter(file -> !Files.isDirectory(file)).collect(Collectors.toSet());
-      } catch (IOException e) {
-        e.printStackTrace(); // TODO: Add error logging when available.
+        try (Stream<Path> stream = Files.walk(resourceDir)) {
+          return stream.filter(file -> !Files.isDirectory(file)).collect(Collectors.toSet());
+        } catch (IOException e) {
+          e.printStackTrace(); // TODO: Add error logging when available.
+        }
       }
     }
+
     return Collections.emptySet();
   }
 }

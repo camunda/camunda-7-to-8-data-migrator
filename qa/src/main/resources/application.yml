@@ -1,7 +1,10 @@
-migrator:
-  c7.auto-ddl: true
-  rdbms-exporter.auto-ddl: true
-
 camunda:
-  database:
-    database-vendor-id: h2
+  migrator:
+    auto-ddl: true
+    c7:
+      data-source:
+        auto-ddl: true
+
+logging:
+  level.io.camunda.migrator: DEBUG
+  level.org.camunda.bpm.engine.impl.persistence.entity.HistoricProcessInstanceEntity: DEBUG

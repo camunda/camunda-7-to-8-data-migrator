@@ -22,7 +22,7 @@ class AutoDeploymentTest extends RuntimeMigrationAbstractTest {
 
   @DynamicPropertySource
   static void registerProperties(DynamicPropertyRegistry registry) {
-    registry.add("migrator.deployment-dir",
+    registry.add("camunda.migrator.c8.deployment-dir",
         () -> FileSystems.getDefault().getPath("src/test/resources/my-resources").toAbsolutePath().toString());
   }
 
