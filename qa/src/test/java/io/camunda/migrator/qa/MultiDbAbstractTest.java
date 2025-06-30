@@ -29,12 +29,11 @@ public class MultiDbAbstractTest {
   }
 
   protected static void startContainer() {
-    String activeProfiles = System.getProperty("spring.profiles.active", "");
-    LOGGER.info("Running tests with profiles [{}]", activeProfiles);
-    if (activeProfiles.contains("postgresql")) {
-      containers.get("postgresql").start();
-    } else if (activeProfiles.contains("oracle")) {
-      containers.get("oracle").start();
+    String activeProfile = System.getProperty("spring.profiles.active", "");
+    LOGGER.info("Running tests with profile [{}]", activeProfile);
+    JdbcDatabaseContainer<?> container = containers.get(activeProfile);
+    if (container != null) {
+      container.start();
     }
   }
 
