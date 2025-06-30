@@ -38,7 +38,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @CamundaSpringProcessTest
-public abstract class RuntimeMigrationAbstractTest {
+public abstract class RuntimeMigrationAbstractTest extends MultiDbAbstractTest {
 
   // Migrator ---------------------------------------
 
