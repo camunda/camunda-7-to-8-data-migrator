@@ -22,8 +22,8 @@ public class MultiDbAbstractTest {
   public static final int ORACLE_PORT = 15432;
   protected static final Logger LOGGER = LoggerFactory.getLogger(MultiDbAbstractTest.class);
 
-  protected static Map<String, JdbcDatabaseContainer> containers = createContainers();
-
+  protected static Map<String, JdbcDatabaseContainer<?>> containers = createContainers();
+  
   static { // Start db container before initializing Spring context
     startContainer();
   }
@@ -57,8 +57,8 @@ public class MultiDbAbstractTest {
     return oracle;
   }
 
-  protected static Map<String, JdbcDatabaseContainer> createContainers() {
-    Map<String, JdbcDatabaseContainer> containers = new HashMap<>();
+  protected static Map<String, JdbcDatabaseContainer<?>> createContainers() {
+    Map<String, JdbcDatabaseContainer<?>> containers = new HashMap<>();
     containers.put("postgresql", createPostgreSQLContainer());
     containers.put("oracle", createOracleContainer());
     return containers;

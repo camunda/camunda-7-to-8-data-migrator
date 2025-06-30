@@ -15,7 +15,7 @@
   <artifactId>c7-data-migrator-qa</artifactId>
 
   <properties>
-    <version.testcontainers>1.20.1</version.testcontainers>
+    <version.testcontainers>1.21.2</version.testcontainers>
     <version.postgres>42.2.29</version.postgres>
     <version.oracle>23.8.0.25.04</version.oracle>
   </properties>
@@ -81,7 +81,7 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>1.21.2</version>
+      <version>${version.testcontainers}</version>
       <scope>test</scope>
     </dependency>
     <!--PostgreSQL-->
