@@ -42,7 +42,7 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().send().join().items();
+    List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().execute().items();
     assertThat(processInstances.size()).isEqualTo(5);
     assertThat(output.getOut()).contains("Method: #fetchProcessInstancesToMigrate, max count: 5, offset: 0, batch size: 2");
     assertThat(output.getOut()).contains("Method: #fetchProcessInstancesToMigrate, max count: 5, offset: 2, batch size: 2");
@@ -66,7 +66,7 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    assertThat(camundaClient.newProcessInstanceSearchRequest().send().join().items()).hasSize(5);
+    assertThat(camundaClient.newProcessInstanceSearchRequest().execute().items()).hasSize(5);
 
     Matcher matcher = Pattern.compile(MIGRATOR_JOBS_FOUND + "2").matcher(output.getOut());
     assertThat(matcher.results().count()).isEqualTo(2);

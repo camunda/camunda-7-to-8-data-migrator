@@ -27,9 +27,8 @@ class ProcessDefinitionNotFoundTest extends RuntimeMigrationAbstractTest {
   @Autowired
   private IdKeyMapper idKeyMapper;
 
-  private final String MISSING_DEFINITION_LOG = "Process instance with legacyId [%s] can't be migrated: "
-      + "No C8 process found for process ID [%s] required for instance with "
-      + "legacyID [%s].";
+  private final String MISSING_DEFINITION_LOG = "Skipping process instance with legacyId [%s]: "
+      + "No C8 deployment found for process ID [%s] required for instance with legacyID [%s].";
 
   @Test
   public void shouldSkipOnMissingC8Deployment() {
@@ -42,7 +41,7 @@ class ProcessDefinitionNotFoundTest extends RuntimeMigrationAbstractTest {
 
     // then
     logs.assertContains(String.format(MISSING_DEFINITION_LOG,  c7Instance.getId(), "simpleProcess", c7Instance.getId()));
-    assertThat(camundaClient.newProcessInstanceSearchRequest().send().join().items().size()).isEqualTo(0);
+    assertThatProcessInstanceCountIsEqualTo(0);
     List<IdKeyDbModel> skippedProcessInstanceIds = idKeyMapper.findSkipped().stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
     assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(c7Instance.getId());
@@ -52,7 +51,7 @@ class ProcessDefinitionNotFoundTest extends RuntimeMigrationAbstractTest {
   public void shouldSkipNotExistingProcessIdempotently() {
     // given
     deployCamunda7Process("io/camunda/migrator/bpmn/c7/simpleProcess.bpmn");
-   deployProcessInC7AndC8("userTaskProcess.bpmn");
+    deployProcessInC7AndC8("userTaskProcess.bpmn");
 
     var c7Instance = runtimeService.startProcessInstanceByKey("simpleProcess");
     ClockUtil.offset(50_000L);
