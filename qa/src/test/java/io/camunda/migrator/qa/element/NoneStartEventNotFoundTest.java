@@ -9,6 +9,7 @@
 package io.camunda.migrator.qa.element;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.qa.RuntimeMigrationAbstractTest;
@@ -29,9 +30,9 @@ public class NoneStartEventNotFoundTest extends RuntimeMigrationAbstractTest {
     String id = runtimeService.startProcessInstanceByKey("noneStartProcess").getId();
 
     // assume
-    assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(id).singleResult()).isNotNull();
+    ensureNotNull("Unexpected process state: process instance should exist",
+        runtimeService.createProcessInstanceQuery().processInstanceId(id).singleResult());
 
-    // assume
     // when
     runtimeMigrator.start();
 
@@ -45,7 +46,6 @@ public class NoneStartEventNotFoundTest extends RuntimeMigrationAbstractTest {
     deployProcessInC7AndC8("messageStartEventProcess.bpmn");
      runtimeService.correlateMessage("msgRef");
 
-    // assume
     // when
     runtimeMigrator.start();
 
@@ -66,9 +66,9 @@ public class NoneStartEventNotFoundTest extends RuntimeMigrationAbstractTest {
     String id = runtimeService.startProcessInstanceByKey("multipleStartEvent").getId();
 
     // assume
-    assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(id).singleResult()).isNotNull();
+    ensureNotNull("Unexpected process state: process instance should exist",
+        runtimeService.createProcessInstanceQuery().processInstanceId(id).singleResult());
 
-    // assume
     // when
     runtimeMigrator.start();
 
@@ -84,9 +84,9 @@ public class NoneStartEventNotFoundTest extends RuntimeMigrationAbstractTest {
     String id = runtimeService.startProcessInstanceByKey("messageStartEventWithSubprocess").getId();
 
     // assume
-    assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(id).singleResult()).isNotNull();
+    ensureNotNull("Unexpected process state: process instance should exist",
+        runtimeService.createProcessInstanceQuery().processInstanceId(id).singleResult());
 
-    // assume
     // when
     runtimeMigrator.start();
 
