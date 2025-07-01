@@ -60,8 +60,8 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
 - Multi-instance:
   - Processes with active multi-instance elements can currently not be migrated. We recommend to finish the execution of any multi-instance elements prior to migration.
 - Timer events:
-  - Processes with timer start events are not yet supported for migration. We plan to address this limitation with [this ticket](https://github.com/camunda/camunda-bpm-platform/issues/5200)
-  - If your model contains other timer events, you must ensure that no timers fire during the migration process.
+  - Timer start events: prior to migration, you must ensure that your process has at least one [none start event](https://docs.camunda.io/docs/8.6/components/modeler/bpmn/none-events/#none-start-events). Processes that only have a timer start event cannot be migrated. 
+  - If your model contains timer events (start and other), you must ensure that no timers fire during the migration process.
     - timers with [date](https://docs.camunda.io/docs/next/components/modeler/bpmn/timer-events/#time-date): ensure the date lies outside the migration time frame
     - timers with [durations](https://docs.camunda.io/docs/next/components/modeler/bpmn/timer-events/#time-duration): ensure the duration is significantly longer than the migration time frame
     - timers with [cycles](https://docs.camunda.io/docs/next/components/modeler/bpmn/timer-events/#time-cycle): ensure the cycle is significantly longer than the migration time frame and/or use a start time that lies outside the migration time frame
@@ -99,10 +99,8 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
     - This can occur when a process instance is already inside an event subprocess in C7, and the start event of that same subprocess is accidentally triggered again in C8 during migration.
   - **How to prevent it**:
     - **Don't correlate messages or send signals during migration**
-    - **Temporarily disable timer start events** in event subprocesses:
-      - TODO: this will be changed in this Github [issue](https://github.com/camunda/camunda-bpm-platform/issues/5200) 
-      - You can remove them or convert them to signal/message events for the migration
-      - Or you can set a far-future duration like `P30D` (30 days) to ensure they won't fire
+    - **Temporarily adjust timer start events** in event subprocesses to ensure they do not trigger during migration:
+      - See the section on timer events for more details
     - If above suggestions are not feasible in your use case **make sure service tasks are idempotent** — so repeating them does not cause issues.
 
 
