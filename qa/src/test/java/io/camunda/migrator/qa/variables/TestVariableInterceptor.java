@@ -22,14 +22,17 @@ public class TestVariableInterceptor implements VariableInterceptor {
 
   @Override
   public void execute(VariableInvocation invocation) throws Exception {
-    TypedValue typedValue = invocation.getVariable().getTypedValue(false);
 
-//    ValueType type = typedValue.getType();
+    if (invocation.getVariable().getName().equals("varIntercept")) {
+      LOGGER.info("Hello from interceptor");
+    }
 
-    LOGGER.info("Hello from interceptor");
-
-    if(invocation.getVariable().getName().equals("exFlag") && Boolean.valueOf(typedValue.getValue().toString()) == true){
-      throw new RuntimeException("Expected exception from Interceptor");
+    if (invocation.getVariable().getName().equals("exFlag")) {
+      if (Boolean.valueOf(invocation.getVariable().getValue().toString()) == true) {
+        throw new RuntimeException("Expected exception from Interceptor");
+      } else {
+        LOGGER.info("Bye from interceptor");
+      }
     }
   }
 }
