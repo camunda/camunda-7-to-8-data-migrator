@@ -105,10 +105,22 @@ public class RuntimeMigrator {
 
       } else if (legacyProcessInstance.skippedPreviously() || !idKeyMapper.checkExists(legacyProcessInstanceId)) {
         LOGGER.debug("Starting new C8 process instance with legacyId: [{}]", legacyProcessInstanceId);
-        Long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
-        LOGGER.debug("Started C8 process instance with processInstanceKey: [{}]", processInstanceKey);
-        if (processInstanceKey != null) {
-          storeMapping(legacyProcessInstanceId, startDate, processInstanceKey);
+        Long processInstanceKey = null;
+        try {
+          processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
+          LOGGER.debug("Started C8 process instance with processInstanceKey: [{}]", processInstanceKey);
+          if (processInstanceKey != null) {
+            storeMapping(legacyProcessInstanceId, startDate, processInstanceKey);
+          }
+        } catch (VariableInterceptorException e) {
+          LOGGER.info(
+              "Skipping process instance with legacyId: {}; due to: {} "
+                  + "Enable DEBUG level to print the stacktrace.",
+              legacyProcessInstanceId, e.getMessage());
+          LOGGER.debug("Stacktrace:", e);
+          if (!legacyProcessInstance.skippedPreviously()) {
+            storeMapping(legacyProcessInstanceId, startDate, null);
+          }
         }
       }
     });
@@ -192,7 +204,7 @@ public class RuntimeMigrator {
     }
   }
 
-  protected Long startNewProcessInstance(String legacyProcessInstanceId) {
+  protected Long startNewProcessInstance(String legacyProcessInstanceId) throws VariableInterceptorException {
     var processInstanceQuery = runtimeService.createProcessInstanceQuery().processInstanceId(legacyProcessInstanceId);
 
     String fetchProcessIdError = "Process instance fetching failed for legacyId: " + legacyProcessInstanceId;
@@ -200,10 +212,13 @@ public class RuntimeMigrator {
     if (processInstance != null) {
       String bpmnProcessId = processInstance.getProcessDefinitionKey();
 
+      // Ensure all variables are fetched and can be transformed before starting the new instance
+      Map<String, Map<String, Object>> allVariables = getAllVariables(legacyProcessInstanceId);
+
       var createProcessInstance = camundaClient.newCreateInstanceCommand()
           .bpmnProcessId(bpmnProcessId)
           .latestVersion()
-          .variables(getGlobalVariables(legacyProcessInstanceId));
+          .variables(getGlobalVariables(allVariables, legacyProcessInstanceId));
 
       String createProcessInstanceErrorMessage = "Creating process instance failed for legacyId: " + legacyProcessInstanceId;
       return callApi(() -> createProcessInstance.send().join(), createProcessInstanceErrorMessage).getProcessInstanceKey();
@@ -213,17 +228,24 @@ public class RuntimeMigrator {
     }
   }
 
-  protected Map<String, Object> getGlobalVariables(String legacyProcessInstanceId) {
+  protected Map<String, Map<String, Object>> getAllVariables(String legacyProcessInstanceId) throws VariableInterceptorException {
     VariableInstanceQuery variableQuery = runtimeService.createVariableInstanceQuery()
-        .activityInstanceIdIn(legacyProcessInstanceId);
+        .processInstanceIdIn(legacyProcessInstanceId);
 
-    Map<String, Object> globalVariables = new Pagination<VariableInstance>()
+    Map<String, Map<String, Object>> allVariables = new Pagination<VariableInstance>()
         .batchSize(batchSize)
         .query(variableQuery)
         .context(context)
-        .toVariableMap();// should we pass the legacy id too? to be available out of the box in the interceptor
+        .toVariableMap();
+    return allVariables;
+  }
+
+  protected Map<String, Object> getGlobalVariables(Map<String, Map<String, Object>> allVariables,
+                                                   String legacyProcessInstanceId) {
+    Map<String, Object> globalVariables = allVariables.getOrDefault(legacyProcessInstanceId, new HashMap<>());
 
     globalVariables.put("legacyId", legacyProcessInstanceId);
+
     return globalVariables;
   }
 
@@ -326,7 +348,7 @@ public class RuntimeMigrator {
           Map<String, Object> localVariables = new Pagination<VariableInstance>().batchSize(batchSize)
               .query(variableQuery)
               .context(context)
-              .toVariableMap();
+              .toVariableMapSingleActivity();
 
           String subProcessInstanceId = flowNode.subProcessInstanceId();
           if (subProcessInstanceId != null) {
