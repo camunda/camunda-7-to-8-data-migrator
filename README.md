@@ -104,7 +104,7 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
     - If above suggestions are not feasible in your use case **make sure service tasks are idempotent** — so repeating them does not cause issues.
 - Start events
   - It is required that a process instance contains a single process level None Start Event to run the data migrator. 
-  - If a process definition only has event based start event (eg. Message, Timer) it is recommended to add a new None Start Event temporary, this change needs to be reverted after the data migration is completed. 
+  - If a process definition only has event-based start events (eg. Message, Timer), it is required to add a temporary None Start Event. This change needs to be reverted after the data migration is completed. 
   - Example adding a None Start Event: 
 
 ``` diff
