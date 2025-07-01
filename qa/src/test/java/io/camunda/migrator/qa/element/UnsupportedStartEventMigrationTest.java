@@ -33,6 +33,8 @@ public class UnsupportedStartEventMigrationTest extends RuntimeMigrationAbstract
     runtimeMigrator.start();
 
     // then
+    assertThatProcessInstanceCountIsEqualTo(0);
+
     var events = logs.getEvents();
     assertThat(events.stream().filter(event -> event.getMessage()
         .matches(".*Couldn't find process None Start Event in C8 process with key.*")))
