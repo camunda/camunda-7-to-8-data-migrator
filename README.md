@@ -102,7 +102,33 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
     - **Temporarily adjust timer start events** in event subprocesses to ensure they do not trigger during migration:
       - See the section on timer events for more details
     - If above suggestions are not feasible in your use case **make sure service tasks are idempotent** — so repeating them does not cause issues.
+- Start events
+  - It is required that a process instance contains a single process level None Start Event to run the data migrator. 
+  - If a process definition only has event-based start events (eg. Message, Timer), it is required to add a temporary None Start Event. This change needs to be reverted after the data migration is completed. 
+  - Example adding a None Start Event: 
 
+``` diff
+  <bpmn:process id="Process_1fcbsv3" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_FromEventStartEvent</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1yknqqn" />
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_FromEventStartEvent" sourceRef="StartEvent_1" targetRef="ActivityId" />
++   <bpmn:startEvent id="NoneStartEvent">
++     <bpmn:outgoing>Flow_FromNoneStartEvent</bpmn:outgoing>
++   </bpmn:startEvent>
++   <bpmn:sequenceFlow id="Flow_FromNoneStartEvent" sourceRef="NoneStartEvent" targetRef="ActivityId" />
+    <bpmn:task id="ActivityId">
+      <bpmn:incoming>Flow_FromEventStartEvent</bpmn:incoming>
+      <bpmn:incoming>Flow_FromNoneStartEvent</bpmn:incoming>
+      <bpmn:outgoing>Flow_1o2i34a</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent">
+      <bpmn:incoming>Flow_1o2i34a</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1o2i34a" sourceRef="ActivityId" targetRef="EndEvent" />
+  </bpmn:process>
+```
 
 ## Configuration
 
