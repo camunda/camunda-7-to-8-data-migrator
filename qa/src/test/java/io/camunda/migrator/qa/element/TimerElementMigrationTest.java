@@ -33,9 +33,19 @@ public class TimerElementMigrationTest extends AbstractElementMigrationTest {
 
     // when
     runtimeMigrator.start();
+
+    // then timer has not yet fired
+    assertThat(byProcessId("timerDurationBoundaryEventProcessId")).isActive()
+        .hasActiveElements("userTaskId")
+        .hasVariables(Map.of(
+            LEGACY_ID_VAR_NAME, c7instance.getProcessInstanceId(),
+            "leftoverDuration", "P1D")
+        );
+
+    // when
     processTestContext.increaseTime(Duration.ofDays(2));
 
-    // then
+    // then timer fires
     assertThat(byProcessId("timerDurationBoundaryEventProcessId")).isCompleted()
         .hasTerminatedElements("userTaskId")
         .hasCompletedElements( "timerEndEventId")
