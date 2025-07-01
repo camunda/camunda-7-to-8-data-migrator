@@ -35,8 +35,14 @@ jobs:
           vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
 
-      - name: Build with Maven
+      - name: Build and run default tests
         run: mvn clean install --batch-mode
+
+      - name: Run tests with PostgreSQL
+        run: mvn test -Dpostgresql
+
+      - name: Run tests with Oracle
+        run: mvn test -Doracle
 
       - name: Collect distro
         id: distro
