@@ -11,7 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -39,10 +39,10 @@ jobs:
         run: mvn clean install --batch-mode
 
       - name: Run tests with PostgreSQL
-        run: mvn test -Dpostgresql
+        run: mvn verify -Ppostgresql -T 1C
 
       - name: Run tests with Oracle
-        run: mvn test -Doracle
+        run: mvn verify -Poracle -T 1C
 
       - name: Collect distro
         id: distro
