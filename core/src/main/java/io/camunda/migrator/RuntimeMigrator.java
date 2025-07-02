@@ -302,9 +302,6 @@ public class RuntimeMigrator {
         });
   }
 
-  /**
-   * Validates if flow nodes exist in C8 model.
-   */
   protected void validateC8FlowNodes(BpmnModelInstance c8BpmnModelInstance, String activityId) {
     if (c8BpmnModelInstance.getModelElementById(activityId) == null) {
       throw new IllegalStateException(String.format("Flow node with id [%s] "
@@ -313,7 +310,6 @@ public class RuntimeMigrator {
   }
 
   protected void validateC7FlowNodes(org.camunda.bpm.model.bpmn.BpmnModelInstance c7BpmnModelInstance, String activityId) {
-    // validate no multi-instance loop characteristics
     FlowElement element = c7BpmnModelInstance.getModelElementById(activityId);
     if ((element instanceof Activity activity)
         && (activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics)) {
@@ -388,7 +384,7 @@ public class RuntimeMigrator {
     Arrays.asList(activityInstance.getChildActivityInstances()).forEach(actInst -> {
       activeActivities.putAll(getActiveActivityIdsById(actInst, activeActivities));
 
-      if (!"subProcess".equals(actInst.getActivityType())) {
+      if (!"subProcess".equals(actInst.getActivityType()) && !actInst.getActivityId().endsWith("#multiInstanceBody") ) {
         activeActivities.put(actInst.getId(), new FlowNode(actInst.getActivityId(), ((ActivityInstanceImpl) actInst).getSubProcessInstanceId()));
       }
     });

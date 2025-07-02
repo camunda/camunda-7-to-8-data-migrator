@@ -38,6 +38,10 @@ import org.springframework.test.context.TestPropertySource;
 @ExtendWith(OutputCaptureExtension.class)
 @TestPropertySource(properties = { "logging.level.io.camunda.migrator=WARN" })
 class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
+  private static final String SKIP_INSTANCE_MESSAGE = "Skipping process instance with legacyId [%s]: ";
+  private static final String LOOP_CHARACTERISTICS_MESSAGE =
+      SKIP_INSTANCE_MESSAGE + "Found multi-instance loop characteristics for flow node"
+          + " with id [%s] in C7 process instance.";
 
   @RegisterExtension
   protected LogCapturer logs = LogCapturer.create().captureForType(RuntimeMigrator.class);
@@ -70,11 +74,9 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(process.getId());
 
     var events = logs.getEvents();
-    Assertions.assertThat(events.stream().filter(event -> event.getMessage()
-        .contains(String.format("Skipping process instance with legacyId [%s]: "
-            + "Found multi-instance loop characteristics "
-            + "for flow node with id [multiUserTask] in C7 process instance.", process.getId())))
-    ).hasSize(1);
+    Assertions.assertThat(events.stream()
+        .filter(event -> event.getMessage()
+            .contains(String.format(LOOP_CHARACTERISTICS_MESSAGE, process.getId(), "multiUserTask")))).hasSize(1);
   }
 
   @Test
@@ -96,11 +98,9 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(process.getId());
 
     var events = logs.getEvents();
-    Assertions.assertThat(events.stream().filter(event -> event.getMessage()
-            .contains(String.format("Skipping process instance with legacyId [%s]: "
-                + "Found multi-instance loop characteristics "
-                + "for flow node with id [multiUserTask] in C7 process instance.", process.getId())))
-        ).hasSize(1);
+    Assertions.assertThat(events.stream()
+        .filter(event -> event.getMessage()
+            .contains(String.format(LOOP_CHARACTERISTICS_MESSAGE, process.getId(), "multiUserTask")))).hasSize(1);
   }
 
   @Test
@@ -122,11 +122,9 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(process.getId());
 
     var events = logs.getEvents();
-    Assertions.assertThat(events.stream().filter(event -> event.getMessage()
-        .contains(String.format("Skipping process instance with legacyId [%s]: "
-            + "Found multi-instance loop characteristics "
-            + "for flow node with id [multiUserTask] in C7 process instance.", process.getId())))
-    ).hasSize(2);
+    Assertions.assertThat(events.stream()
+        .filter(event -> event.getMessage()
+            .contains(String.format(SKIP_INSTANCE_MESSAGE, process.getId())))).hasSize(2);
   }
 
   @Test
@@ -137,14 +135,12 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     var events = logs.getEvents();
-    Assertions.assertThat(events.stream().filter(event -> event.getMessage()
-        .contains(String.format("Skipping process instance with legacyId [%s]: "
-            + "Found multi-instance loop characteristics "
-            + "for flow node with id [multiUserTask] in C7 process instance.", process.getId())))
-    ).hasSize(1);
+    Assertions.assertThat(events.stream()
+        .filter(event -> event.getMessage()
+            .contains(String.format(SKIP_INSTANCE_MESSAGE, process.getId())))).hasSize(1);
 
     // and given the process state changed after skipping and is now eligible for migration
-    for(Task task : taskService.createTaskQuery().taskDefinitionKey("multiUserTask").list()) {
+    for (Task task : taskService.createTaskQuery().taskDefinitionKey("multiUserTask").list()) {
       taskService.complete(task.getId());
     }
     ensureTrue("Unexpected process state: only one task should be active", taskService.createTaskQuery().count() == 1);
@@ -161,6 +157,11 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
 
     // and the key updated
     assertThat(idKeyMapper.findKeyById(process.getId())).isNotNull();
+
+    // and no additional skipping logs (still 1, not 2 matches)
+    Assertions.assertThat(events.stream()
+        .filter(event -> event.getMessage()
+            .contains(String.format(SKIP_INSTANCE_MESSAGE, process.getId())))).hasSize(1);
   }
 
   @Test
@@ -178,8 +179,8 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    assertThat(output.getOut())
-        .containsPattern("WARN(.*)Process instance with legacyId [a-f0-9-]+ doesn't exist anymore. Has it been completed or cancelled in the meantime\\?");
+    assertThat(output.getOut()).containsPattern(
+        "WARN(.*)Process instance with legacyId [a-f0-9-]+ doesn't exist anymore. Has it been completed or cancelled in the meantime\\?");
   }
 
   @Test
