@@ -245,7 +245,6 @@ public class RuntimeMigrator {
     Map<String, Object> globalVariables = allVariables.getOrDefault(legacyProcessInstanceId, new HashMap<>());
 
     globalVariables.put("legacyId", legacyProcessInstanceId);
-
     return globalVariables;
   }
 
