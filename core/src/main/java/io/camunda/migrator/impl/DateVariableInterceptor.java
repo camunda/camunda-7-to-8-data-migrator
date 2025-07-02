@@ -31,21 +31,19 @@ public class DateVariableInterceptor implements VariableInterceptor {
     VariableInstanceEntity variable = invocation.getVariable();
     TypedValue typedValue = variable.getTypedValue(false);
 
-        ValueType type = typedValue.getType();
-        LOGGER.info(type.toString());
-    if (type.getName().equals("date")) {
+    ValueType type = typedValue.getType();
+    LOGGER.info(type.toString());
+    if (type.getName().equals(ValueType.STRING.getName())) {
 
-      LOGGER.info(String.valueOf(type.getName().equals(ValueType.STRING.getName())));
       LOGGER.info("Date variable detected: {}", variable.getName());
       Date value = (Date) typedValue.getValue();
-      LOGGER.debug(value.toString());
+      LOGGER.debug("old=" + value.toString());
 
-//      SIMPLE_DATE_FORMAT.setTimeZone(java.util.TimeZone.getTimeZone("UTC")); // TODO
-             String newFormattedDate = SIMPLE_DATE_FORMAT.format(value);
-//      variable.setValue(Variables.stringValue(newFormattedDate, false));
+      //      SIMPLE_DATE_FORMAT.setTimeZone(java.util.TimeZone.getTimeZone("UTC")); // TODO
+      String newFormattedDate = SIMPLE_DATE_FORMAT.format(value);
+      //      variable.setValue(Variables.stringValue(newFormattedDate, false));
+      LOGGER.debug("new=" + newFormattedDate);
       invocation.setVariableValue(newFormattedDate);
-
-      LOGGER.debug(value.toString());
 
     }
   }

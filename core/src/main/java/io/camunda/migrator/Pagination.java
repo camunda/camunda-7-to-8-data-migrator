@@ -96,36 +96,73 @@ public class Pagination<T> {
     return list;
   }
 
-  public Map<String, Map<String, Object>> toVariableMap() {
-    Map<String, Map<String, Object>> result = new HashMap<>();
-    processVariables((variable, typedValue) -> {
-      Map<String, Object> variableResult = getVariableResult(variable, typedValue);
-      String activityInstanceId = variable.getActivityInstanceId();
-      Map<String, Object> variableMap = result.getOrDefault(activityInstanceId, new HashMap<>());
-      variableMap.putAll(variableResult);
-      result.put(activityInstanceId, variableMap);
-    });
-    return result;
-  }
+//  public Map<String, Map<String, Object>> toVariableMap() {
+//    Map<String, Map<String, Object>> result = new HashMap<>();
+//    processVariables((variable, typedValue) -> {
+//      Map<String, Object> variableResult = getVariableResult(variable, typedValue);
+//      String activityInstanceId = variable.getActivityInstanceId();
+//      Map<String, Object> variableMap = result.getOrDefault(activityInstanceId, new HashMap<>());
+//      variableMap.putAll(variableResult);
+//      result.put(activityInstanceId, variableMap);
+//    });
+//    return result;
+//  }
 
 
-  public Map<String, Object> toVariableMapSingleActivity() {
-    Map<String, Object> variableResult = new HashMap<>();
-    processVariables((variable, typedValue) -> variableResult.putAll(getVariableResult(variable, typedValue)));
-    return variableResult;
-  }
+//  public Map<String, Object> toVariableMapSingleActivity() {
+//    Map<String, Object> variableResult = new HashMap<>();
+//    processVariables((variable, typedValue) -> variableResult.putAll(getVariableResult(variable, typedValue)));
+//    return variableResult;
+//  }
+//
+//  /**
+//   * Heads-up: this implementation needs to be null safe for the variable value.
+//   * Using streams might lead to undesired {@link NullPointerException}s.
+//   */
+//  private void processVariables(BiConsumer<VariableInstanceEntity, TypedValue> consumer) {
+//    List<VariableInterceptor> interceptors = (List<VariableInterceptor>) context.getBeansOfType(
+//        VariableInterceptor.class).values().stream().toList();
+//    toList().forEach(e -> {
+//      VariableInvocation variableInvocation = new VariableInvocation((VariableInstanceEntity) e);
+//      if (interceptors != null && !interceptors.isEmpty()) {
+//        interceptors.forEach(i -> {
+//          try {
+//            i.execute(variableInvocation);
+//          } catch (Exception ex) {
+//            throw new VariableInterceptorException("An error occurred during variable transformation.", ex);
+//          }
+//        });
+//      }
+//      VariableInstanceEntity variable = variableInvocation.getVariable();
+//      TypedValue typedValue = variable.getTypedValue(false);
+//      consumer.accept(variable, typedValue);
+//    });
+//  }
+//
+//  private Map<String, Object> getVariableResult(VariableInstanceEntity variable, TypedValue typedValue) {
+//    Map<String, Object> variableResult = new HashMap<>();
+//    if (typedValue.getType().equals(ValueType.OBJECT)) {
+//      variableResult.put(variable.getName(), typedValue.getValue());
+//    } else if (typedValue.getType().equals(SpinValueType.JSON) || typedValue.getType().equals(SpinValueType.XML)) {
+//      variableResult.put(variable.getName(), typedValue.getValue().toString());
+//    } else {
+//      variableResult.put(variable.getName(), variable.getValue());
+//    }
+//    return variableResult;
+//  }
 
   /**
    * Heads-up: this implementation needs to be null safe for the variable value.
    * Using streams might lead to undesired {@link NullPointerException}s.
    */
-  private void processVariables(BiConsumer<VariableInstanceEntity, TypedValue> consumer) {
+  public Map<String, Map<String, Object>> toVariableMap() {
+    Map<String, Map<String, Object>> result = new HashMap<>();
     List<VariableInterceptor> interceptors = (List<VariableInterceptor>) context.getBeansOfType(
         VariableInterceptor.class).values().stream().toList();
     toList().forEach(e -> {
       VariableInvocation variableInvocation = new VariableInvocation((VariableInstanceEntity) e);
-      if (interceptors != null && !interceptors.isEmpty()) {
-        interceptors.forEach(i -> {
+      if (interceptors != null && interceptors.size() > 0) {
+        interceptors.stream().forEach(i -> {
           try {
             i.execute(variableInvocation);
           } catch (Exception ex) {
@@ -133,21 +170,58 @@ public class Pagination<T> {
           }
         });
       }
-      VariableInstanceEntity variable = variableInvocation.getVariable();
-      TypedValue typedValue = variable.getTypedValue(false);
-      consumer.accept(variable, typedValue);
-    });
-  }
 
-  private Map<String, Object> getVariableResult(VariableInstanceEntity variable, TypedValue typedValue) {
-    Map<String, Object> variableResult = new HashMap<>();
-    if (typedValue.getType().equals(ValueType.OBJECT)) {
-      variableResult.put(variable.getName(), typedValue.getValue());
-    } else if (typedValue.getType().equals(SpinValueType.JSON) || typedValue.getType().equals(SpinValueType.XML)) {
-      variableResult.put(variable.getName(), typedValue.getValue().toString());
-    } else {
-      variableResult.put(variable.getName(), variable.getValue());
-    }
-    return variableResult;
+      var variable = variableInvocation.getVariable();
+      TypedValue typedValue = variable.getTypedValue(false);
+      Map<String, Object> variableResult = new HashMap<>();
+      if (typedValue.getType().equals(ValueType.OBJECT)) {
+        // skip the value deserialization
+        variableResult.put(variable.getName(), typedValue.getValue());
+      } else if (typedValue.getType().equals(SpinValueType.JSON) || typedValue.getType().equals(SpinValueType.XML)) {
+        // For Spin JSON/XML, explicitly set the string value
+        variableResult.put(variable.getName(), typedValue.getValue().toString());
+      } else {
+        variableResult.put(variable.getName(), variable.getValue());
+      }
+      String activityInstanceId = variable.getActivityInstanceId();
+      Map<String, Object> variableMap = result.getOrDefault(activityInstanceId, new HashMap<>());
+      variableMap.putAll(variableResult);
+      result.put(activityInstanceId, variableMap);
+    });
+    return result;
+  }
+  /**
+   * Heads-up: this implementation needs to be null safe for the variable value.
+   * Using streams might lead to undesired {@link NullPointerException}s.
+   */
+  public Map<String, Object> toVariableMapSingleActivity() {
+    Map<String, Object> result = new HashMap<>();
+    List<VariableInterceptor> interceptors = (List<VariableInterceptor>) context.getBeansOfType(
+        VariableInterceptor.class).values().stream().toList();
+    toList().forEach(e -> {
+      VariableInvocation variableInvocation = new VariableInvocation((VariableInstanceEntity) e);
+      if (interceptors != null && interceptors.size() > 0) {
+        interceptors.stream().forEach(i -> {
+          try {
+            i.execute(variableInvocation);
+          } catch (Exception ex) {
+            throw new VariableInterceptorException("An error occurred during variable transformation.", ex);
+          }
+        });
+      }
+
+      var variable = variableInvocation.getVariable();
+      TypedValue typedValue = variable.getTypedValue(false);
+      if (typedValue.getType().equals(ValueType.OBJECT)) {
+        // skip the value deserialization
+        result.put(variable.getName(), typedValue.getValue());
+      } else if (typedValue.getType().equals(SpinValueType.JSON) || typedValue.getType().equals(SpinValueType.XML)) {
+        // For Spin JSON/XML, explicitly set the string value
+        result.put(variable.getName(), typedValue.getValue().toString());
+      } else {
+        result.put(variable.getName(), variable.getValue());
+      }
+    });
+    return result;
   }
 }

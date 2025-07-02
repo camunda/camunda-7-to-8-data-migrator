@@ -17,6 +17,7 @@ public class VariableInvocation {
   protected VariableInstanceEntity variable;
   protected String processInstanceId;
   protected String activityInstanceId;
+  protected String variableValue;
 
   public VariableInvocation(VariableInstanceEntity variable) {
     this.variable = variable;
@@ -49,5 +50,13 @@ public class VariableInvocation {
    */
   public String getActivityInstanceId() {
     return activityInstanceId;
+  }
+
+  public String getVariableValue() {
+    return variableValue;
+  }
+
+  public void setVariableValue(String variableValue) {
+    this.variableValue = variableValue;
   }
 }
