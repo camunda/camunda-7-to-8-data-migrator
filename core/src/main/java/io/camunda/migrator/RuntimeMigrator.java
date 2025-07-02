@@ -270,15 +270,19 @@ public class RuntimeMigrator {
   }
 
   protected void validateC8Process(io.camunda.zeebe.model.bpmn.BpmnModelInstance bpmnModelInstance, long processDefinitionKey) {
-    var startEvents = bpmnModelInstance.getDefinitions()
+    var processInstanceStartEvents = bpmnModelInstance.getDefinitions()
         .getModelInstance()
-        .getModelElementsByType(StartEvent.class);
-
-    Optional.ofNullable(startEvents)
-        .orElse(Collections.emptyList())
+        .getModelElementsByType(StartEvent.class)
         .stream()
         .filter(startEvent -> startEvent.getParentElement() instanceof ProcessImpl)
-        .toList()
+        .toList();
+
+    boolean hasNoneStartEvent = processInstanceStartEvents.stream().anyMatch(startEvent -> startEvent.getEventDefinitions().isEmpty());
+    if (!hasNoneStartEvent) {
+      throw new IllegalStateException(String.format("Couldn't find process None Start Event in C8 process with key [%s].", processDefinitionKey));
+    }
+
+    processInstanceStartEvents
         .forEach(startEvent -> {
           var zBExecutionListeners = startEvent.getSingleExtensionElement(ZeebeExecutionListenersImpl.class);
           if (zBExecutionListeners == null) {
