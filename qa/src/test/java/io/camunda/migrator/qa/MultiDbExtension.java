@@ -54,7 +54,7 @@ public class MultiDbExtension implements BeforeAllCallback {
   }
 
   protected static OracleContainer createOracleContainer() {
-    OracleContainer oracle = new OracleContainer("gvenzl/oracle-free:latest")
+    OracleContainer oracle = new OracleContainer("gvenzl/oracle-free:23")
         .withDatabaseName("ORCLDB")
         .withUsername("camunda")
         .withPassword("camunda")
