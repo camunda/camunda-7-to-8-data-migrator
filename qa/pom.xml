@@ -16,7 +16,7 @@
 
   <properties>
     <version.testcontainers>1.21.2</version.testcontainers>
-    <version.postgres>42.2.29</version.postgres>
+    <version.postgres>42.7.7</version.postgres>
     <version.oracle>23.8.0.25.04</version.oracle>
   </properties>
 

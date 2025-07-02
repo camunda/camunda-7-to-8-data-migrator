@@ -39,10 +39,10 @@ jobs:
         run: mvn clean install --batch-mode
 
       - name: Run tests with PostgreSQL
-        run: mvn verify -Ppostgresql -T 1C
+        run: mvn verify -Ppostgresql
 
       - name: Run tests with Oracle
-        run: mvn verify -Poracle -T 1C
+        run: mvn verify -Poracle
 
       - name: Collect distro
         id: distro
