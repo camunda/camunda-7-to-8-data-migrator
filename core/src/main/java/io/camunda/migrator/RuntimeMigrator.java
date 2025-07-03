@@ -8,20 +8,31 @@
 package io.camunda.migrator;
 
 import static io.camunda.migrator.ExceptionUtils.callApi;
-import static io.camunda.migrator.persistence.IdKeyMapper.TYPE;
 import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
+import static io.camunda.migrator.persistence.IdKeyMapper.TYPE;
+import static io.camunda.zeebe.model.bpmn.Bpmn.readModelFromStream;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.search.response.ProcessDefinition;
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import io.camunda.migrator.persistence.IdKeyDbModel;
 import io.camunda.migrator.persistence.IdKeyMapper;
+import io.camunda.zeebe.model.bpmn.BpmnModelInstance;
+import io.camunda.zeebe.model.bpmn.impl.instance.ProcessImpl;
+import io.camunda.zeebe.model.bpmn.impl.instance.zeebe.ZeebeExecutionListenersImpl;
+import io.camunda.zeebe.model.bpmn.instance.StartEvent;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.camunda.bpm.engine.HistoryService;
@@ -35,12 +46,9 @@ import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstanceQuery;
 import org.camunda.bpm.engine.runtime.VariableInstance;
 import org.camunda.bpm.engine.runtime.VariableInstanceQuery;
-import org.camunda.bpm.model.bpmn.Bpmn;
-import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.Activity;
 import org.camunda.bpm.model.bpmn.instance.FlowElement;
 import org.camunda.bpm.model.bpmn.instance.MultiInstanceLoopCharacteristics;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,15 +56,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @Component
 public class RuntimeMigrator {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(RuntimeMigrator.class);
+
   public final static int DEFAULT_BATCH_SIZE = 500;
 
   @Autowired
@@ -98,12 +102,11 @@ public class RuntimeMigrator {
       String legacyProcessInstanceId = legacyProcessInstance.id();
       Date startDate = legacyProcessInstance.startDate();
       if (skipProcessInstance(legacyProcessInstanceId)) {
-        LOGGER.info("Skipping process instance with legacyId: {}", legacyProcessInstanceId);
         if (!legacyProcessInstance.skippedPreviously()) {
           storeMapping(legacyProcessInstanceId, startDate, null);
         }
 
-      } else if (legacyProcessInstance.skippedPreviously() || !idKeyMapper.checkExists(legacyProcessInstanceId)) {
+      } else if (legacyProcessInstance.skippedPreviously() || callApi(() -> !idKeyMapper.checkExists(legacyProcessInstanceId))) {
         LOGGER.debug("Starting new C8 process instance with legacyId: [{}]", legacyProcessInstanceId);
         Long processInstanceKey = null;
         try {
@@ -143,7 +146,7 @@ public class RuntimeMigrator {
     try {
       validateProcessInstanceState(legacyProcessInstanceId);
     } catch (IllegalStateException e) {
-      LOGGER.warn("Process instance with legacyId [{}] can't be migrated: {}", legacyProcessInstanceId, e.getMessage());
+      LOGGER.warn("Skipping process instance with legacyId [{}]: {}", legacyProcessInstanceId, e.getMessage());
       return true;
     }
 
@@ -221,7 +224,7 @@ public class RuntimeMigrator {
           .variables(getGlobalVariables(allVariables, legacyProcessInstanceId));
 
       String createProcessInstanceErrorMessage = "Creating process instance failed for legacyId: " + legacyProcessInstanceId;
-      return callApi(() -> createProcessInstance.send().join(), createProcessInstanceErrorMessage).getProcessInstanceKey();
+      return callApi(createProcessInstance::execute, createProcessInstanceErrorMessage).getProcessInstanceKey();
     } else {
       LOGGER.warn("Process instance with legacyId {} doesn't exist anymore. Has it been completed or cancelled in the meantime?", legacyProcessInstanceId);
       return null;
@@ -271,41 +274,82 @@ public class RuntimeMigrator {
               .sort((s) -> s.version().desc());
 
           List<ProcessDefinition> c8Definitions = callApi(c8DefinitionSearchRequest::execute).items();
-          if (c8Definitions.isEmpty()) {
-            throw new IllegalStateException(
-                String.format("No C8 process found for process ID [%s] required for instance with legacyID [%s].",
-                    c8DefinitionId, legacyProcessInstanceId));
-          }
+          validateC8DefinitionExists(c8Definitions, c8DefinitionId, processInstanceId);
 
           ActivityInstance activityInstanceTree = callApi(() -> runtimeService.getActivityInstance(processInstanceId));
-          BpmnModelInstance c7BpmnModelInstance = callApi(() -> repositoryService.getBpmnModelInstance(c7DefinitionId));
+          var c7BpmnModelInstance = callApi(() -> repositoryService.getBpmnModelInstance(c7DefinitionId));
 
           long processDefinitionKey = c8Definitions.getFirst().getProcessDefinitionKey();
-          String c8XmlString =
-              callApi(() -> camundaClient.newProcessDefinitionGetXmlRequest(processDefinitionKey).execute());
-          BpmnModelInstance c8BpmnModelInstance = Bpmn.readModelFromStream(new ByteArrayInputStream(c8XmlString.getBytes(StandardCharsets.UTF_8)));
+          String c8XmlString = callApi(() -> camundaClient.newProcessDefinitionGetXmlRequest(processDefinitionKey).execute());
+          var c8BpmnModelInstance = readModelFromStream(new ByteArrayInputStream(c8XmlString.getBytes(StandardCharsets.UTF_8)));
+
+          validateC8Process(c8BpmnModelInstance, processDefinitionKey);
 
           LOGGER.debug("Collecting active descendant activity instances for legacyId [{}]", processInstanceId);
           Map<String, FlowNode> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
           LOGGER.debug("Found {} active activity instances to validate", activityInstanceMap.size());
 
           for (FlowNode flowNode : activityInstanceMap.values()) {
-            // validate no multi-instance loop characteristics
-            FlowElement element = c7BpmnModelInstance.getModelElementById(flowNode.activityId());
-            if ((element instanceof Activity activity) && (activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics)) {
-              throw new IllegalStateException("Found multi-instance loop characteristics for " + element.getName() +
-                  " in C7 process instance " + processInstance.getId() + ".");
-            }
+            validateC7FlowNodes(c7BpmnModelInstance, flowNode.activityId());
+            validateC8FlowNodes(c8BpmnModelInstance, flowNode.activityId());
+          }
+        });
+  }
 
-            // validate element exists in C8 deployment
-            if (c8BpmnModelInstance.getModelElementById(flowNode.activityId()) == null) {
+  protected void validateC8Process(io.camunda.zeebe.model.bpmn.BpmnModelInstance bpmnModelInstance, long processDefinitionKey) {
+    var processInstanceStartEvents = bpmnModelInstance.getDefinitions()
+        .getModelInstance()
+        .getModelElementsByType(StartEvent.class)
+        .stream()
+        .filter(startEvent -> startEvent.getParentElement() instanceof ProcessImpl)
+        .toList();
+
+    boolean hasNoneStartEvent = processInstanceStartEvents.stream().anyMatch(startEvent -> startEvent.getEventDefinitions().isEmpty());
+    if (!hasNoneStartEvent) {
+      throw new IllegalStateException(String.format("Couldn't find process None Start Event in C8 process with key [%s].", processDefinitionKey));
+    }
+
+    processInstanceStartEvents
+        .forEach(startEvent -> {
+          var zBExecutionListeners = startEvent.getSingleExtensionElement(ZeebeExecutionListenersImpl.class);
+          if (zBExecutionListeners == null) {
+            throw new IllegalStateException(String.format("Couldn't find execution listener of type 'migrator' "
+                + "on start event [%s] in C8 process with key [%s].", startEvent.getId(), processDefinitionKey));
+          } else {
+            boolean hasMigratorListener = zBExecutionListeners.getExecutionListeners().stream()
+                .anyMatch(listener -> "migrator".equals(listener.getType()));
+
+            if (!hasMigratorListener) {
               throw new IllegalStateException(String.format(
-                  "C7 instance detected which is currently in a C7 flow node which does not exist in the equivalent deployed C8 model. "
-                      + "Instance legacyId: [%s], Model legacyId: [%s], Element Id: [%s].",
-                  legacyProcessInstanceId, c8DefinitionId, flowNode.activityId));
+                  "No execution listener of type 'migrator' found on start event [%s] in C8 process with id [%s]. " +
+                  "At least one migrator listener is required.",
+                  startEvent.getId(), processDefinitionKey));
             }
           }
         });
+  }
+
+  protected void validateC8FlowNodes(BpmnModelInstance c8BpmnModelInstance, String activityId) {
+    if (c8BpmnModelInstance.getModelElementById(activityId) == null) {
+      throw new IllegalStateException(String.format("Flow node with id [%s] "
+          + "doesn't exist in the equivalent deployed C8 model.", activityId));
+    }
+  }
+
+  protected void validateC7FlowNodes(org.camunda.bpm.model.bpmn.BpmnModelInstance c7BpmnModelInstance, String activityId) {
+    FlowElement element = c7BpmnModelInstance.getModelElementById(activityId);
+    if ((element instanceof Activity activity)
+        && (activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics)) {
+      throw new IllegalStateException(String.format("Found multi-instance loop characteristics "
+          + "for flow node with id [%s] in C7 process instance.", element.getId()));
+    }
+  }
+
+  protected void validateC8DefinitionExists(List<ProcessDefinition> c8Definitions, String c8DefinitionId, String legacyProcessInstanceId) {
+    if (c8Definitions.isEmpty()) {
+      throw new IllegalStateException(
+          String.format("No C8 deployment found for process ID [%s] required for instance with legacyID [%s].", c8DefinitionId, legacyProcessInstanceId));
+    }
   }
 
   protected void activateMigratorJobs() {
@@ -317,7 +361,7 @@ public class RuntimeMigrator {
           .maxJobsToActivate(batchSize);
 
       String fetchMigratorJobsErrorMessage = "Error while fetching migrator jobs";
-      migratorJobs = callApi(() -> jobQuery.send().join().getJobs(), fetchMigratorJobsErrorMessage);
+      migratorJobs = callApi(() -> jobQuery.execute().getJobs(), fetchMigratorJobsErrorMessage);
 
       LOGGER.debug("Migrator jobs found: {}", migratorJobs.size());
 
@@ -358,7 +402,7 @@ public class RuntimeMigrator {
         });
 
         String batchUpdatedActivitiesErrorMessage = "Error while activating jobs";
-        callApi(() -> ((ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3) modifyProcessInstance).send().join(), batchUpdatedActivitiesErrorMessage);
+        callApi(() -> ((ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3) modifyProcessInstance).execute(), batchUpdatedActivitiesErrorMessage);
         // no need to complete the job since the modification canceled the migrator job in the start event
       });
     } while (!migratorJobs.isEmpty());
@@ -368,7 +412,7 @@ public class RuntimeMigrator {
     Arrays.asList(activityInstance.getChildActivityInstances()).forEach(actInst -> {
       activeActivities.putAll(getActiveActivityIdsById(actInst, activeActivities));
 
-      if (!"subProcess".equals(actInst.getActivityType())) {
+      if (!"subProcess".equals(actInst.getActivityType()) && !actInst.getActivityId().endsWith("#multiInstanceBody") ) {
         activeActivities.put(actInst.getId(), new FlowNode(actInst.getActivityId(), ((ActivityInstanceImpl) actInst).getSubProcessInstanceId()));
       }
     });

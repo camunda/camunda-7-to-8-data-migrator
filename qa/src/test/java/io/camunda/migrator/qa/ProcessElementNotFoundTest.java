@@ -37,12 +37,9 @@ public class ProcessElementNotFoundTest  extends RuntimeMigrationAbstractTest{
     runtimeMigrator.start();
 
     // then
-    logs.assertContains(String.format(
-        "Process instance with legacyId [%s] can't be migrated: " +
-            "C7 instance detected which is currently in a C7 flow node which does not exist in the equivalent deployed C8 model. "
-            + "Instance legacyId: [%s], Model legacyId: [%s], Element Id: [%s].",
-        c7Instance.getId(), c7Instance.getId(), "userTaskProcessWithMissingUserTaskInC8Id", "userTaskId"));
-    assertThat(camundaClient.newProcessInstanceSearchRequest().send().join().items().size()).isEqualTo(0);
+    logs.assertContains(String.format("Skipping process instance with legacyId [%s]: "
+        + "Flow node with id [userTaskId] doesn't exist in the equivalent deployed C8 model.", c7Instance.getId()));
+    assertThatProcessInstanceCountIsEqualTo(0);
     List<IdKeyDbModel> skippedProcessInstanceIds = idKeyMapper.findSkipped().stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
     assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(c7Instance.getId());

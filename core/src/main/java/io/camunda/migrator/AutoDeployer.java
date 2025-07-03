@@ -43,7 +43,7 @@ public class AutoDeployer {
     }
 
     if (deployResourceCommandStep2 != null) {
-      deployResourceCommandStep2.send().join();
+      deployResourceCommandStep2.execute();
     }
   }
 
