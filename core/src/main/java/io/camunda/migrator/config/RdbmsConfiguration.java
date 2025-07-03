@@ -224,7 +224,6 @@ public class RdbmsConfiguration {
         batchOperationReader,
         null,
         null,
-        null
-    );
+        null);
   }
 }
