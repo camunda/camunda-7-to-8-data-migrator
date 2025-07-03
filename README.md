@@ -134,6 +134,11 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
 
 * migrator.batch-size - configure number of items (process instances, jobs) to be processed per iteration. Default: 500
 
+## Supported databases
+
+- h2 (default)
+- postgresql (tested with postgresql 17)
+- oracle (tested with oracle 23)
 
 ## Development Setup
 1. Prerequisites: Use Java 21
