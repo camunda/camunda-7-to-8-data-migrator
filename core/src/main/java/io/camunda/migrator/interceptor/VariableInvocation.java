@@ -14,15 +14,12 @@ import org.camunda.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
  */
 public class VariableInvocation {
 
-  protected VariableInstanceEntity variable;
-  protected String processInstanceId;
-  protected String activityInstanceId;
-  protected String variableValue;
+  protected VariableInstanceEntity c7Variable;
+  protected MigrationVariableDto migrationVariable;
 
   public VariableInvocation(VariableInstanceEntity variable) {
-    this.variable = variable;
-    this.processInstanceId = variable.getProcessInstanceId();
-    this.activityInstanceId = variable.getActivityInstanceId();
+    this.c7Variable = variable;
+    this.migrationVariable = new MigrationVariableDto(variable.getName(), variable.getValue());
   }
 
   /**
@@ -30,33 +27,24 @@ public class VariableInvocation {
    *
    * @return the {@link VariableInstanceEntity}
    */
-  public VariableInstanceEntity getVariable() {
-    return variable;
+  public VariableInstanceEntity getC7Variable() {
+    return c7Variable;
   }
 
   /**
-   * Returns the process instance ID associated with this variable invocation.
+   * Returns the DTO representation of the variable.
    *
-   * @return the process instance ID
+   * @return the {@link MigrationVariableDto}
    */
-  public String getProcessInstanceId() {
-    return processInstanceId;
+  public MigrationVariableDto getMigrationVariable() {
+    if (migrationVariable == null) {
+      migrationVariable = new MigrationVariableDto(c7Variable.getName(), c7Variable.getValue());
+    }
+    return migrationVariable;
   }
 
-  /**
-   * Returns the activity instance ID associated with this variable invocation.
-   *
-   * @return the activity instance ID
-   */
-  public String getActivityInstanceId() {
-    return activityInstanceId;
+  public void setVariableValue(Object value) {
+    migrationVariable.setValue(value);
   }
 
-  public String getVariableValue() {
-    return variableValue;
-  }
-
-  public void setVariableValue(String variableValue) {
-    this.variableValue = variableValue;
-  }
 }

@@ -9,12 +9,12 @@ package io.camunda.migrator.qa.variables;
 
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInvocation;
-import org.camunda.bpm.engine.variable.type.ValueType;
-import org.camunda.bpm.engine.variable.value.TypedValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+@Order(20)
 @Component
 public class TestVariableInterceptor implements VariableInterceptor {
 
@@ -22,13 +22,14 @@ public class TestVariableInterceptor implements VariableInterceptor {
 
   @Override
   public void execute(VariableInvocation invocation) throws Exception {
+    LOGGER.info("test");
 
-    if (invocation.getVariable().getName().equals("varIntercept")) {
+    if (invocation.getC7Variable().getName().equals("varIntercept")) {
       LOGGER.info("Hello from interceptor");
     }
 
-    if (invocation.getVariable().getName().equals("exFlag")) {
-      if (Boolean.valueOf(invocation.getVariable().getValue().toString()) == true) {
+    if (invocation.getC7Variable().getName().equals("exFlag")) {
+      if (Boolean.valueOf(invocation.getC7Variable().getValue().toString()) == true) {
         throw new RuntimeException("Expected exception from Interceptor");
       } else {
         LOGGER.info("Bye from interceptor");

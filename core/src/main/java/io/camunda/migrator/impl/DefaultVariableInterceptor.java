@@ -9,44 +9,35 @@ package io.camunda.migrator.impl;
 
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInvocation;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import org.camunda.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
 import org.camunda.bpm.engine.variable.type.ValueType;
 import org.camunda.bpm.engine.variable.value.TypedValue;
+import org.camunda.spin.plugin.variable.type.SpinValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-@Order(10)
+@Order(0)
 @Component
-public class DateVariableInterceptor implements VariableInterceptor {
+public class DefaultVariableInterceptor implements VariableInterceptor {
 
-  public static final SimpleDateFormat SIMPLE_DATE_FORMAT =
-      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
-  protected static final Logger LOGGER = LoggerFactory.getLogger(DateVariableInterceptor.class);
+  protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultVariableInterceptor.class);
 
   @Override
   public void execute(VariableInvocation invocation) throws Exception {
     LOGGER.info("test");
     VariableInstanceEntity variable = invocation.getC7Variable();
     TypedValue typedValue = variable.getTypedValue(false);
-
-    ValueType type = typedValue.getType();
-    LOGGER.info(type.toString());
-    if (type.getName().equals(ValueType.DATE.getName())) {
-
-      LOGGER.info("Date variable detected: {}", variable.getName());
-      Date value = (Date) typedValue.getValue();
-      LOGGER.debug("old=" + value.toString());
-
-      //      SIMPLE_DATE_FORMAT.setTimeZone(java.util.TimeZone.getTimeZone("UTC")); // TODO
-      String newFormattedDate = SIMPLE_DATE_FORMAT.format(value);
-      //      variable.setValue(Variables.stringValue(newFormattedDate, false));
-      LOGGER.debug("new=" + newFormattedDate);
-      invocation.setVariableValue(newFormattedDate);
-
+    if (typedValue.getType().equals(ValueType.OBJECT)) {
+      // skip the value deserialization
+      invocation.setVariableValue(typedValue.getValue());
+    } else if (typedValue.getType().equals(SpinValueType.JSON) || typedValue.getType().equals(SpinValueType.XML)) {
+      // For Spin JSON/XML, explicitly set the string value
+      invocation.setVariableValue(typedValue.getValue().toString());
+    } else {
+      invocation.setVariableValue(variable.getValue());
     }
   }
+
 }

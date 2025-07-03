@@ -19,6 +19,7 @@ import io.camunda.migrator.qa.variables.JsonSerializable;
 import io.camunda.migrator.qa.variables.XmlSerializable;
 import io.camunda.process.test.api.CamundaAssert;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import org.awaitility.Awaitility;
 import org.camunda.bpm.engine.task.Task;
@@ -154,7 +155,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     CamundaAssert.assertThat(byProcessId("simpleProcess"))
-        .hasVariable("dateVar", date);
+        .hasVariable("dateVar", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX").format(date));
 
     List<Variable> c8vars = camundaClient.newVariableSearchRequest()
         .filter(f -> f.name("dateVar"))
