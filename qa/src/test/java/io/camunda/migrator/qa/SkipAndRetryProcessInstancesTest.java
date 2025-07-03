@@ -33,10 +33,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.test.context.TestPropertySource;
 
 @ExtendWith(OutputCaptureExtension.class)
-@TestPropertySource(properties = { "logging.level.io.camunda.migrator=WARN" })
 class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
   private static final String SKIP_INSTANCE_MESSAGE = "Skipping process instance with legacyId [%s]: ";
   private static final String LOOP_CHARACTERISTICS_MESSAGE =
