@@ -60,8 +60,8 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
 - Multi-instance:
   - Processes with active multi-instance elements can currently not be migrated. We recommend to finish the execution of any multi-instance elements prior to migration.
 - Timer events:
-  - Processes with timer start events are not yet supported for migration. We plan to address this limitation with [this ticket](https://github.com/camunda/camunda-bpm-platform/issues/5200)
-  - If your model contains other timer events, you must ensure that no timers fire during the migration process.
+  - Timer start events: prior to migration, you must ensure that your process has at least one [none start event](https://docs.camunda.io/docs/8.6/components/modeler/bpmn/none-events/#none-start-events). Processes that only have a timer start event cannot be migrated. 
+  - If your model contains timer events (start and other), you must ensure that no timers fire during the migration process.
     - timers with [date](https://docs.camunda.io/docs/next/components/modeler/bpmn/timer-events/#time-date): ensure the date lies outside the migration time frame
     - timers with [durations](https://docs.camunda.io/docs/next/components/modeler/bpmn/timer-events/#time-duration): ensure the duration is significantly longer than the migration time frame
     - timers with [cycles](https://docs.camunda.io/docs/next/components/modeler/bpmn/timer-events/#time-cycle): ensure the cycle is significantly longer than the migration time frame and/or use a start time that lies outside the migration time frame
@@ -90,7 +90,45 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
     - XML variable is migrated to JSON string variable. [ticket](https://github.com/camunda/camunda-bpm-platform/issues/5246)
       - Spin XML variable is migrated to XML string variable.
     - Variables set into the scope of embedded sub-processes are not supported yet and will be ignored. Will be implemented in this [ticket](https://github.com/camunda/camunda-bpm-platform/issues/5235).
+- Event subprocess:
+  - **Important limitation during migration**: Event subprocesses with interrupting start events can cause unexpected behavior during migration if triggered at the wrong moment. This includes timer, message, and signal start events.
+  - **What can go wrong**:
+    - A task that already ran in Camunda 7 might run again in Camunda 8.
+    - The process might end up in the wrong state after migration — for example, being one step behind what you see in C7.
+  - **When could it happen**:
+    - This can occur when a process instance is already inside an event subprocess in C7, and the start event of that same subprocess is accidentally triggered again in C8 during migration.
+  - **How to prevent it**:
+    - **Don't correlate messages or send signals during migration**
+    - **Temporarily adjust timer start events** in event subprocesses to ensure they do not trigger during migration:
+      - See the section on timer events for more details
+    - If above suggestions are not feasible in your use case **make sure service tasks are idempotent** — so repeating them does not cause issues.
+- Start events
+  - It is required that a process instance contains a single process level None Start Event to run the data migrator. 
+  - If a process definition only has event-based start events (eg. Message, Timer), it is required to add a temporary None Start Event. This change needs to be reverted after the data migration is completed. 
+  - Example adding a None Start Event: 
 
+``` diff
+  <bpmn:process id="Process_1fcbsv3" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_FromEventStartEvent</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1yknqqn" />
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_FromEventStartEvent" sourceRef="StartEvent_1" targetRef="ActivityId" />
++   <bpmn:startEvent id="NoneStartEvent">
++     <bpmn:outgoing>Flow_FromNoneStartEvent</bpmn:outgoing>
++   </bpmn:startEvent>
++   <bpmn:sequenceFlow id="Flow_FromNoneStartEvent" sourceRef="NoneStartEvent" targetRef="ActivityId" />
+    <bpmn:task id="ActivityId">
+      <bpmn:incoming>Flow_FromEventStartEvent</bpmn:incoming>
+      <bpmn:incoming>Flow_FromNoneStartEvent</bpmn:incoming>
+      <bpmn:outgoing>Flow_1o2i34a</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent">
+      <bpmn:incoming>Flow_1o2i34a</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1o2i34a" sourceRef="ActivityId" targetRef="EndEvent" />
+  </bpmn:process>
+```
 
 ## Configuration
 

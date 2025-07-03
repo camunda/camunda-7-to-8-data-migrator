@@ -40,7 +40,7 @@ class SkippedProcessInstancesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.setBatchSize(4);
     runtimeMigrator.start();
 
-    Supplier<SearchResponsePage> response = () -> camundaClient.newProcessInstanceSearchRequest().send().join().page();
+    Supplier<SearchResponsePage> response = () -> camundaClient.newProcessInstanceSearchRequest().execute().page();
 
     // assume
     assertThat(response.get().totalItems()).isEqualTo(22);

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:conversion="http://camunda.org/schema/conversion/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" conversion:converterVersion="0.12.4" exporter="Camunda Modeler" exporterVersion="5.24.0" expressionLanguage="http://www.w3.org/1999/XPath" id="Definitions_1k90jst" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0" targetNamespace="http://bpmn.io/schema/bpmn" typeLanguage="http://www.w3.org/2001/XMLSchema">
+  <bpmn:process id="timerCycleBoundaryEventProcessId" isClosed="false" isExecutable="true" name="timerCycleBoundaryEventProcess" processType="None">
+    <bpmn:extensionElements>
+      <conversion:message severity="INFO">Unused attribute 'historyTimeToLive' on 'process' is removed.</conversion:message>
+    </bpmn:extensionElements>
+    <bpmn:startEvent id="startId" isInterrupting="true" name="start" parallelMultiple="false">
+      <bpmn:extensionElements>
+        <zeebe:executionListeners>
+          <zeebe:executionListener eventType="end" type="migrator" />
+        </zeebe:executionListeners>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_0v5fy99</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_0v5fy99" sourceRef="startId" targetRef="userTaskId"/>
+    <bpmn:endEvent id="userTaskEndId" name="userTaskEnd">
+      <bpmn:incoming>Flow_045bkl8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_045bkl8" sourceRef="userTaskId" targetRef="userTaskEndId"/>
+    <bpmn:endEvent id="timerEndEventId" name="timerEnd">
+      <bpmn:incoming>Flow_1lj7czi</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1lj7czi" sourceRef="timerCycleBoundaryEventId" targetRef="timerEndEventId"/>
+    <bpmn:boundaryEvent attachedToRef="userTaskId" cancelActivity="false" id="timerCycleBoundaryEventId" name="timerCycleBoundaryEvent" parallelMultiple="false">
+      <bpmn:outgoing>Flow_1lj7czi</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_1e4ce69">
+        <bpmn:timeCycle xsi:type="bpmn:tFormalExpression">R/P10D</bpmn:timeCycle>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:userTask completionQuantity="1" id="userTaskId" implementation="##unspecified" isForCompensation="false" name="userTask" startQuantity="1">
+      <bpmn:extensionElements>
+        <zeebe:userTask/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0v5fy99</bpmn:incoming>
+      <bpmn:outgoing>Flow_045bkl8</bpmn:outgoing>
+    </bpmn:userTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane bpmnElement="timerCycleBoundaryEventProcessId" id="BPMNPlane_1">
+      <bpmndi:BPMNShape bpmnElement="startId" id="_BPMNShape_StartEvent_2">
+        <dc:Bounds height="36" width="36" x="179" y="99"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="14" width="22" x="186" y="142"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="userTaskEndId" id="Event_0pwb41d_di">
+        <dc:Bounds height="36" width="36" x="432" y="99"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="14" width="64" x="418" y="142"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="timerEndEventId" id="Event_0s4hick_di">
+        <dc:Bounds height="36" width="36" x="432" y="222"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="14" width="45" x="428" y="265"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="userTaskId" id="Activity_0yoxao4_di">
+        <dc:Bounds height="80" width="100" x="270" y="77"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="timerCycleBoundaryEventId" id="Event_1o8w67n_di">
+        <dc:Bounds height="36" width="36" x="302" y="139"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="27" width="84" x="228" y="182"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="Flow_0v5fy99" id="Flow_0v5fy99_di">
+        <di:waypoint x="215" y="117"/>
+        <di:waypoint x="270" y="117"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="Flow_045bkl8" id="Flow_045bkl8_di">
+        <di:waypoint x="370" y="117"/>
+        <di:waypoint x="432" y="117"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="Flow_1lj7czi" id="Flow_1lj7czi_di">
+        <di:waypoint x="320" y="175"/>
+        <di:waypoint x="320" y="240"/>
+        <di:waypoint x="432" y="240"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
