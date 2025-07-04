@@ -105,13 +105,11 @@ public class MigratorAutoConfiguration {
 
   @Bean
   public DefaultVariableInterceptor defaultVariableInterceptor() {
-    // TODO if null create a new instance
     return new DefaultVariableInterceptor();
   }
 
   @Bean
   public DateVariableInterceptor dateVariableInterceptor() {
-    // TODO if null create a new instance
     return new DateVariableInterceptor();
   }
 
