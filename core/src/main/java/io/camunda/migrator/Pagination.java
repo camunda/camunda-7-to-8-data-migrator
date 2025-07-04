@@ -97,12 +97,10 @@ public class Pagination<T> {
   public Map<String, Map<String, Object>> toVariableMapAll() {
     Map<String, Map<String, Object>> result = new HashMap<>();
     processVariables((variable, variableInvocation) -> {
-      Map<String, Object> variableResult = new HashMap<>();
-      variableResult.put(variableInvocation.getMigrationVariable().getName(), variableInvocation.getMigrationVariable().getValue());
       String activityInstanceId = variable.getActivityInstanceId();
-      Map<String, Object> variableMap = result.getOrDefault(activityInstanceId, new HashMap<>());
-      variableMap.putAll(variableResult);
-      result.put(activityInstanceId, variableMap);
+      Map<String, Object> variableMap = result.computeIfAbsent(activityInstanceId, k -> new HashMap<>());
+      variableMap.put(variableInvocation.getMigrationVariable().getName(),
+          variableInvocation.getMigrationVariable().getValue());
     });
     return result;
   }
