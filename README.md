@@ -14,9 +14,9 @@ A tool for migrating Camunda 7 process instances and related data to Camunda 8. 
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
 - [Migration Process](#migration-process)
+- [Supported databases](#supported-databases)
 - [Configuration](#configuration)
 - [Migration Limitations](#migration-limitations)
-- [Architecture](#architecture)
 - [Development](#development)
 - [Contributing](#contributing)
 - [License](#license)
@@ -190,7 +190,7 @@ logging:
   - The minimum supported history level is `ACTIVITY`.
 - You need to add an execution listener of type `migrator` to all your start events.
 
-### Process Instance Validation
+#### Process Instance Validation
 
 The migrator validates each process instance before migration and will skip instances that fail validation for the following reasons:
 
@@ -215,7 +215,7 @@ When a process instance is skipped:
 - You can list skipped instances
 - You can retry migration of skipped instances after fixing the underlying issues
 
-### Handling Skipped Instances
+#### Handling Skipped Instances
 
 1. **List Skipped Instances**
    ```bash
