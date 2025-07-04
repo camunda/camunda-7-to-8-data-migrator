@@ -20,17 +20,15 @@ import io.camunda.migrator.config.mybatis.MigratorConfiguration;
 import io.camunda.migrator.config.property.DataSourceProperties;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.converter.ConverterConfiguration;
-
-<<<<<<< HEAD
 import io.camunda.migrator.impl.DefaultVariableInterceptor;
-=======
 import java.util.Optional;
+import javax.sql.DataSource;
 import liquibase.integration.spring.SpringLiquibase;
->>>>>>> origin/main
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.spring.ProcessEngineFactoryBean;
 import org.camunda.bpm.engine.spring.SpringProcessEngineConfiguration;
 import org.camunda.bpm.engine.spring.SpringProcessEngineServicesConfiguration;
+import org.camunda.spin.plugin.impl.SpinProcessEnginePlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -47,8 +45,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
-
-import javax.sql.DataSource;
 
 @Import({
     SpringProcessEngineServicesConfiguration.class,
