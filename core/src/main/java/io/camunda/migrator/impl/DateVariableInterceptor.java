@@ -24,12 +24,13 @@ import org.springframework.stereotype.Component;
 public class DateVariableInterceptor implements VariableInterceptor {
 
   public static final SimpleDateFormat SIMPLE_DATE_FORMAT =
-      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
   protected static final Logger LOGGER = LoggerFactory.getLogger(DateVariableInterceptor.class);
 
   @Override
   public void execute(VariableInvocation invocation) throws Exception {
-    LOGGER.info("test");
+    LOGGER.debug("Start {} execution for variable: {}", DateVariableInterceptor.class,
+        invocation.getC7Variable().getName());
     VariableInstanceEntity variable = invocation.getC7Variable();
     TypedValue typedValue = variable.getTypedValue(false);
 
@@ -46,7 +47,8 @@ public class DateVariableInterceptor implements VariableInterceptor {
       //      variable.setValue(Variables.stringValue(newFormattedDate, false));
       LOGGER.debug("new=" + newFormattedDate);
       invocation.setVariableValue(newFormattedDate);
-
+      LOGGER.debug("End {} execution for variable: {}", DateVariableInterceptor.class,
+          invocation.getC7Variable().getName());
     }
   }
 }

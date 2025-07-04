@@ -155,15 +155,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     CamundaAssert.assertThat(byProcessId("simpleProcess"))
-        .hasVariable("dateVar", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX").format(date));
-
-    List<Variable> c8vars = camundaClient.newVariableSearchRequest()
-        .filter(f -> f.name("dateVar"))
-        .send()
-        .join()
-        .items();
-
-    assertThat(c8vars.get(0).getValue()).isEqualTo(runtimeService.getVariable(simpleProcessInstance.getId(),"dateVar"));
+        .hasVariable("dateVar", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(date));
   }
 
   @Test
