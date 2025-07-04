@@ -7,8 +7,13 @@
  */
 package io.camunda.migrator.qa.variables;
 
+import io.camunda.migrator.impl.DefaultVariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInvocation;
+import org.camunda.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
+import org.camunda.bpm.engine.variable.type.ValueType;
+import org.camunda.bpm.engine.variable.value.TypedValue;
+import org.camunda.spin.plugin.variable.type.SpinValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
@@ -22,10 +27,11 @@ public class TestVariableInterceptor implements VariableInterceptor {
 
   @Override
   public void execute(VariableInvocation invocation) throws Exception {
-    LOGGER.info("test");
-
+    LOGGER.debug("Start {} execution for variable: {}", TestVariableInterceptor.class,
+        invocation.getC7Variable().getName());
     if (invocation.getC7Variable().getName().equals("varIntercept")) {
       LOGGER.info("Hello from interceptor");
+      invocation.setVariableValue("Hello");
     }
 
     if (invocation.getC7Variable().getName().equals("exFlag")) {
@@ -35,5 +41,7 @@ public class TestVariableInterceptor implements VariableInterceptor {
         LOGGER.info("Bye from interceptor");
       }
     }
+    LOGGER.debug("End {} execution for variable: {}", TestVariableInterceptor.class,
+        invocation.getC7Variable().getName());
   }
 }

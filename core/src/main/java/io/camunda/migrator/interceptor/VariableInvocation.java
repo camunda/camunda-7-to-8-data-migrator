@@ -18,6 +18,9 @@ public class VariableInvocation {
   protected MigrationVariableDto migrationVariable;
 
   public VariableInvocation(VariableInstanceEntity variable) {
+    if (variable == null) {
+      throw new IllegalArgumentException("Variable cannot be null");
+    }
     this.c7Variable = variable;
     this.migrationVariable = new MigrationVariableDto(variable.getName(), variable.getValue());
   }
@@ -43,6 +46,11 @@ public class VariableInvocation {
     return migrationVariable;
   }
 
+  /**
+   * Sets the value of the variable in the migration context.
+   *
+   * @param value the new value to set
+   */
   public void setVariableValue(Object value) {
     migrationVariable.setValue(value);
   }

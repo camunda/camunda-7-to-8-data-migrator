@@ -21,12 +21,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import org.camunda.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
 import org.camunda.bpm.engine.query.Query;
-import org.camunda.bpm.engine.variable.type.ValueType;
-import org.camunda.bpm.engine.variable.value.TypedValue;
-import org.camunda.spin.plugin.variable.type.SpinValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
 public class Pagination<T> {
 
@@ -96,7 +94,7 @@ public class Pagination<T> {
     return list;
   }
 
-  public Map<String, Map<String, Object>> toVariableMap() {
+  public Map<String, Map<String, Object>> toVariableMapAll() {
     Map<String, Map<String, Object>> result = new HashMap<>();
     processVariables((variable, variableInvocation) -> {
       Map<String, Object> variableResult = new HashMap<>();
@@ -122,9 +120,8 @@ public class Pagination<T> {
    * Heads-up: this implementation needs to be null safe for the variable value.
    * Using streams might lead to undesired {@link NullPointerException}s.
    */
-  private void processVariables(BiConsumer<VariableInstanceEntity, VariableInvocation> consumer) {
-    List<VariableInterceptor> interceptors = (List<VariableInterceptor>) context.getBeansOfType(
-        VariableInterceptor.class).values().stream().toList();
+  protected void processVariables(BiConsumer<VariableInstanceEntity, VariableInvocation> consumer) {
+    List<VariableInterceptor> interceptors = getVariableInterceptorsOrdered();
     toList().forEach(e -> {
       var variable = (VariableInstanceEntity) e;
       VariableInvocation variableInvocation = new VariableInvocation((VariableInstanceEntity) e);
@@ -141,5 +138,11 @@ public class Pagination<T> {
     });
   }
 
+  protected List<VariableInterceptor> getVariableInterceptorsOrdered() {
+    List<VariableInterceptor> interceptors = new ArrayList<>(
+        context.getBeansOfType(VariableInterceptor.class).values());
+    AnnotationAwareOrderComparator.sort(interceptors);
+    return interceptors;
+  }
 
 }

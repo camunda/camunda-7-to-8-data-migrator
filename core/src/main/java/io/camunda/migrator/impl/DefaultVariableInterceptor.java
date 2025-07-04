@@ -18,6 +18,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+/**
+ * Default implementation of {@link VariableInterceptor} that handles variable processing
+ * during migration from Camunda 7 to Camunda 8.
+ * <p>
+ * The interceptor is ordered with priority 0 to ensure it runs first among interceptors.
+ */
 @Order(0)
 @Component
 public class DefaultVariableInterceptor implements VariableInterceptor {
@@ -26,7 +32,8 @@ public class DefaultVariableInterceptor implements VariableInterceptor {
 
   @Override
   public void execute(VariableInvocation invocation) throws Exception {
-    LOGGER.info("test");
+    LOGGER.debug("Start {} execution for variable: {}", DefaultVariableInterceptor.class,
+        invocation.getC7Variable().getName());
     VariableInstanceEntity variable = invocation.getC7Variable();
     TypedValue typedValue = variable.getTypedValue(false);
     if (typedValue.getType().equals(ValueType.OBJECT)) {
@@ -38,6 +45,8 @@ public class DefaultVariableInterceptor implements VariableInterceptor {
     } else {
       invocation.setVariableValue(variable.getValue());
     }
+    LOGGER.debug("End {} execution for variable: {}", DefaultVariableInterceptor.class,
+        invocation.getC7Variable().getName());
   }
 
 }
