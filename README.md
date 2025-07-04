@@ -136,9 +136,9 @@ The migrator supports the following SQL databases:
 
 | Database | Version | JDBC Driver | Notes |
 |----------|---------|-------------|-------|
-| **H2** | Latest | `org.h2.Driver` | Default, good for testing |
-| **PostgreSQL** | 17+ | `org.postgresql.Driver` | Recommended for production |
-| **Oracle** | 23ai+ | `oracle.jdbc.OracleDriver` | Enterprise option |
+| **H2** | 2.3.232 | `org.h2.Driver` | Default, good for testing |
+| **PostgreSQL** | 17 | `org.postgresql.Driver` | Recommended for production |
+| **Oracle** | 23ai | `oracle.jdbc.OracleDriver` | Enterprise option |
 
 ### Database Setup Requirements:
 1. **Include the appropriate JDBC driver** in your classpath
