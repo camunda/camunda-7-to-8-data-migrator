@@ -388,7 +388,8 @@ public class C8Configuration extends AbstractConfiguration {
         mappingReader,
         batchOperationReader,
         sequenceFlowReader,
-        batchOperationItemReader);
+        batchOperationItemReader,
+        null);
   }
 
 }
