@@ -23,7 +23,7 @@ package io.camunda.migrator.interceptor;
  *   &#64;Override
  *   public void execute(VariableInvocation invocation) throws Exception {
  *     // Custom logic before or after variable access
- *     Object value = invocation.getValue();
+ *     Object value = invocation.getC7Variable().getValue();
  *     // Modify or log the value as needed
  *     invocation.setVariableValue(modifiedValue);
  *   }
