@@ -73,7 +73,7 @@ git clone https://github.com/camunda/c7-data-migrator.git
 cd c7-data-migrator
 
 # Build the project
-mvn clean install
+mvn clean install -DskipTests
 
 # Navigate to the distribution
 cd assembly/target
