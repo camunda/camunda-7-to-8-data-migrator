@@ -129,16 +129,110 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
     <bpmn:sequenceFlow id="Flow_1o2i34a" sourceRef="ActivityId" targetRef="EndEvent" />
   </bpmn:process>
 ```
+## Supported databases
+
+The Migrator supports the following SQL databases:
+* H2 (default)
+* PostgreSQL 17
+* Oracle 23ai
+
+Make sure to:
+1. Include the appropriate JDBC driver in your classpath
+2. Configure the correct JDBC URL, username, and password for your databases
+3. Set the appropriate table prefixes if your existing installation uses them
+4. Set the database vendor explicitly if the automatic detection doesn't work as expected
+
+The database vendor is automatically detected but can be overridden using the `database-vendor` property.
 
 ## Configuration
 
-* migrator.batch-size - configure number of items (process instances, jobs) to be processed per iteration. Default: 500
+The migrator can be configured using the `application.yml` file. Here are the available configuration options:
 
-## Supported databases
+### Camunda 8 Client Configuration for Runtime Migration
 
-- h2 (default)
-- postgresql (tested with postgresql 17)
-- oracle (tested with oracle 23)
+```yaml
+camunda.client:
+  mode: self-managed                    # Operation mode: 'self-managed' or 'cloud'
+  grpc-address: http://localhost:26500  # The gRPC API endpoint
+  rest-address: http://localhost:8088   # The REST API endpoint
+```
+
+### Migrator Configuration
+```yaml
+camunda.migrator:
+  batch-size: 500                      # Number of records to process in each batch
+  auto-ddl: true                       # Automatically create/update database schema
+  table-prefix: MY_PREFIX_             # Optional table prefix for migrator schema
+  data-source: C7                      # Choose if the migrator schema is created on the data source of 'C7' or 'C8'
+```
+
+### Camunda 7 Database for Runtime and History Migration
+```yaml
+camunda.migrator.c7.data-source:
+  table-prefix: MY_PREFIX_             # Optional prefix for C7 database tables
+  auto-ddl: true                       # Automatically create/update C7 database schema
+  jdbc-url: jdbc:h2:./h2/data-migrator-source.db
+  username: sa                         # Database username
+  password: sa                         # Database password
+  driver-class-name: org.h2.Driver
+```
+
+### Camunda 8 RDBMS Database for History Migration
+```yaml
+camunda.migrator.c8.data-source:
+  table-prefix: MY_PREFIX_             # Optional prefix for C8 RDBMS database tables
+  auto-ddl: true                       # Automatically create/update C8 RDBMS database schema
+  jdbc-url: jdbc:h2:./h2/data-migrator-target.db
+  username: sa                         # Database username
+  password: sa                         # Database password
+  driver-class-name: org.h2.Driver
+```
+
+### Logging Configuration
+```yaml
+logging:
+  level:
+    root: INFO                                    # Root logger level
+    io.camunda.migrator: INFO                     # Migrator logging
+    io.camunda.migrator.RuntimeMigrator: DEBUG    # Runtime migration logging
+    io.camunda.migrator.persistence.IdKeyMapper: DEBUG  # ID mapping logging
+```
+
+### Configuration Properties Overview
+
+| Prefix | Property                     | Type      | Description                                                                                                  |
+|-------|------------------------------|-----------|--------------------------------------------------------------------------------------------------------------|
+| `camunda.client` | `.mode`                      | `string`  | Operation mode of the Camunda 8 client. Options: `self-managed` or `cloud`. Default: `self-managed`          |
+| | `.grpc-address`              | `string`  | The gRPC API endpoint for Camunda 8 Platform. Default: `http://localhost:26500`                              |
+| | `.rest-address`              | `string`  | The REST API endpoint for Camunda 8 Platform. Default: `http://localhost:8088`                               |
+| `camunda.migrator` |                              |           |                                                                                                              |
+| | `.batch-size`                | `number`  | Number of records to process in each migration batch. Default: `500`                                         |
+| | `.auto-ddl`                  | `boolean` | Automatically create/update migrator database schema. Default: `false`                                       |
+| | `.table-prefix`              | `string`  | Optional prefix for migrator database tables. Default: _(empty)_                                             |
+| | `.data-source`               | `string`  | Choose if the migrator schema is created in the `C7` or `C8` data source. Default: `C7`                      |
+| | `.database-vendor`           | `string`  | Database vendor for migrator schema. Options: `h2`, `postgresql`, `oracle`. Default: Automatically detected. |
+| `camunda.migrator.c7.data-source` |                              |           |                                                                                                              |
+| | `.table-prefix`              | `string`  | Optional prefix for Camunda 7 database tables. Default: _(empty)_                                            |
+| | `.auto-ddl`                  | `boolean` | Automatically create/update Camunda 7 database schema. Default: `false`                                      |
+| | `.jdbc-url`                  | `string`  | JDBC connection URL for the source Camunda 7 database. Default: `jdbc:h2:mem:migrator`                       |
+| | `.username`                  | `string`  | Username for Camunda 7 database connection. Default: `sa`                                                    |
+| | `.password`                  | `string`  | Password for Camunda 7 database connection. Default: `sa`                                                    |
+| | `.driver-class-name`         | `string`  | JDBC driver class for Camunda 7 database. Default: `org.h2.Driver`                                           |
+| | `.database-vendor`           | `string`  | The database vendor is automatically detected and can currently not be overridden.                           |
+| `camunda.migrator.c8` |                              |           |                                                                                                              |
+| | `.deployment-dir`             | `string`   | Define directory which resources like BPMN processes are automatically deployed to C8.                       |
+| `camunda.migrator.c8.data-source` |                              |           | If the `c8.data-source` configuration is absent, the RDBMS history data migrator is disabled.                |
+| | `.table-prefix`              | `string`  | Optional prefix for Camunda 8 RDBMS database tables. Default: _(empty)_                                      |
+| | `.auto-ddl`                  | `boolean` | Automatically create/update Camunda 8 RDBMS database schema. Default: `false`                                |
+| | `.jdbc-url`                  | `string`  | JDBC connection URL for the target Camunda 8 RDBMS database. Default: `jdbc:h2:mem:migrator`                 |
+| | `.username`                  | `string`  | Username for Camunda 8 database connection. Default: `sa`                                                    |
+| | `.password`                  | `string`  | Password for Camunda 8 database connection. Default: `sa`                                                    |
+| | `.driver-class-name`         | `string`  | JDBC driver class for Camunda 8 database. Default: `org.h2.Driver`                                           |
+| | `.database-vendor`           | `string`  | Database vendor for C8 schema. Options: `h2`, `postgresql`, `oracle`. Default: Automatically detected.       |
+| `logging` |                              |           |                                                                                                              |
+| | `.level.root`                | `string`  | Root logger level. Default: `INFO`                                                                           |
+| | `.level.io.camunda.migrator` | `string`  | Migrator logging level. Default: `INFO`                                                                      |
+| | `.file.name`                 | `string`  | Log file location. Set to: `logs/c7-data-migrator.log`. If not specified, logs are output to the console.    |
 
 ## Development Setup
 1. Prerequisites: Use Java 21

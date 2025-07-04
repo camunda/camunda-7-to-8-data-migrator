@@ -10,6 +10,7 @@ package io.camunda.migrator.qa;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 
 import io.camunda.migrator.AutoDeployer;
+import io.camunda.migrator.config.property.MigratorProperties;
 import java.nio.file.FileSystems;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ class AutoDeploymentTest extends RuntimeMigrationAbstractTest {
 
   @DynamicPropertySource
   static void registerProperties(DynamicPropertyRegistry registry) {
-    registry.add("migrator.deployment-dir",
+    registry.add(MigratorProperties.PREFIX + ".c8.deployment-dir",
         () -> FileSystems.getDefault().getPath("src/test/resources/my-resources").toAbsolutePath().toString());
   }
 

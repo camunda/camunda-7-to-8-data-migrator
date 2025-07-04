@@ -17,7 +17,11 @@ import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
 
+@TestPropertySource(properties = {
+    "camunda.migrator.batch-size=4"
+})
 class SkippedProcessInstancesTest extends RuntimeMigrationAbstractTest {
 
   @Autowired
@@ -37,7 +41,6 @@ class SkippedProcessInstancesTest extends RuntimeMigrationAbstractTest {
       runtimeService.startProcessInstanceByKey("miProcess");
     }
 
-    runtimeMigrator.setBatchSize(4);
     runtimeMigrator.start();
 
     Supplier<SearchResponsePage> response = () -> camundaClient.newProcessInstanceSearchRequest().execute().page();

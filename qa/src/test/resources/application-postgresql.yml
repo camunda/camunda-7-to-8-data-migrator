@@ -1,17 +1,10 @@
-migrator:
-  c7.auto-ddl: true
-  rdbms-exporter.auto-ddl: true
-  source:
-    jdbc-url: jdbc:postgresql://localhost:55432/process-engine
-    username: camunda
-    password: camunda
-    driver-class-name: org.postgresql.Driver
-  target:
-    jdbc-url: jdbc:postgresql://localhost:55432/process-engine
-    username: camunda
-    password: camunda
-    driver-class-name: org.postgresql.Driver
-
 camunda:
-  database:
-    database-vendor-id: postgresql
+  migrator:
+    auto-ddl: true
+    c7:
+      data-source:
+        auto-ddl: true
+        jdbc-url: jdbc:postgresql://localhost:55432/process-engine
+        username: camunda
+        password: camunda
+        driver-class-name: org.postgresql.Driver
