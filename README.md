@@ -17,7 +17,7 @@ A tool for migrating Camunda 7 process instances and related data to Camunda 8. 
 - [Quick Start](#quick-start)
 - [Supported Databases](#supported-databases)
 - [Configuration](#configuration)
-- [tations](#migration-limitations)
+- [Migration Limitations](#migration-limitations)
 - [Troubleshooting](#troubleshooting)
 - [Migration Process](#migration-process)
 - [Development](#development)
@@ -451,7 +451,6 @@ When a process instance is skipped:
 - Check database connectivity and credentials
 - Ensure Camunda 8 is running and accessible
 - Review `application.yml` configuration
->>>>>>> origin/main
 
 #### Process Instances Are Skipped
 **Symptoms**: Instances appear in skipped list
