@@ -4,91 +4,150 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)](https://spring.io/projects/spring-boot)
 [![Status](https://img.shields.io/badge/Status-In%20Development-yellow)](https://github.com/camunda/c7-data-migrator)
 
-A tool for migrating Camunda 7 process instances and related data to Camunda 8. This migrator helps organizations transition their running process instances while preserving execution state, variables, and business data.
+A tool for migrating Camunda 7 process instances and related data to Camunda 8. This migrator helps organizations seamlessly transition their process instances while preserving execution state and variables ensuring minimal disruption to ongoing business processes.
 
 > [!WARNING]  
-> The C7 Data Migrator is still in development and not yet ready for production use. However, we encourage users to try it out and provide feedback.
+> The C7 Data Migrator is currently in active development and not yet ready for production use. However, we encourage users to try it out in development/testing environments and provide feedback to help us improve the tool.
 
 ## Table of Contents
+- [Overview](#overview)
 - [Key Features](#key-features)
 - [Prerequisites](#prerequisites)
+- [Installation & Setup](#installation--setup)
 - [Quick Start](#quick-start)
-- [Migration Process](#migration-process)
-- [Supported databases](#supported-databases)
+- [Supported Databases](#supported-databases)
 - [Configuration](#configuration)
 - [Migration Limitations](#migration-limitations)
+- [Troubleshooting](#troubleshooting)
+- [Migration Process](#migration-process)
 - [Development](#development)
 - [Contributing](#contributing)
 - [License](#license)
 
+## Overview
+
+The C7 Data Migrator is designed to help organizations migrate from Camunda 7 to Camunda 8 while preserving the state of running process instances. Unlike starting fresh with new process instances, this tool maintains variable states, and current positions within process flows.
+
+**What this tool migrates:**
+- Running process instances with their current state
+- Process variables and their values
+
+**What this tool does NOT migrate:**
+- BPMN process models (use the [Migration Analyzer](https://migration-analyzer.consulting-sandbox.camunda.cloud/) for this)
+- Custom code or integrations
+- Users, groups and authorizations
+- Task assignments and states
+- Execution history (we are working on this currently)
+
 ## Key Features
 
-- State-preserving migration of running process instances
-- Variable data migration with type conversion
-- Error handling and retry mechanisms
-- Detailed logging and reporting
-- Support for complex BPMN constructs
+- **State-preserving migration**: Maintains exact execution state of running process instances
+- **Variable data migration**: Converts and migrates process variables with proper type handling
+- **Validation and verification**: Pre-migration validation to ensure successful migration
+- **Skip and retry capabilities**: Handle problematic instances gracefully with retry options
+- **Detailed logging and reporting**: Comprehensive logging for monitoring migration progress
+- **Database flexibility**: Support for multiple database vendors (H2, PostgreSQL, Oracle)
 
 ## Prerequisites
 
-- Java 21 or higher
-- Maven 3.6+ (for building from source)
-- Running instance of Camunda 8
-- Access to Camunda 7 database
-- Migrated BPMN models (C7 → C8)
+Before using the C7 Data Migrator, ensure you have:
+
+- **Java 21 or higher** - Required for running the migrator
+- **Maven 3.6+** - For building from source (if not using pre-built releases)
+- **Running Camunda 8 instance** - Target platform for migration
+- **Access to Camunda 7 database** - Source database with process instances to migrate
+- **Migrated BPMN models** - Process definitions already converted from C7 to C8 format
+- **Network connectivity** - Between migrator, C7 database, and C8 platform
+
+## Installation & Setup
+
+### Option 1: Download Pre-built Release
+1. Download the latest release from the [releases page](https://github.com/camunda/c7-data-migrator/releases)
+2. Extract the archive to your preferred directory
+3. Navigate to the extracted directory
+
+### Option 2: Build from Source
+```bash
+# Clone the repository
+git clone https://github.com/camunda/c7-data-migrator.git
+cd c7-data-migrator
+
+# Build the project
+mvn clean install
+
+# Navigate to the distribution
+cd assembly/target
+# Extract the generated archive (tar.gz or zip)
+```
 
 ## Quick Start
 
-1. Download the latest release or build from source:
-   ```bash
-   mvn clean install
+1. **Prepare your configuration file** (`application.yml`):
+   ```yaml
+   camunda.client:
+     mode: self-managed
+     grpc-address: http://localhost:26500
+     rest-address: http://localhost:8088
+   
+   camunda.migrator.c7.data-source:
+     jdbc-url: jdbc:postgresql://localhost:5432/camunda7
+     username: your-username
+     password: your-password
    ```
 
-2. Configure your source (C7) and target (C8) connection details in `application.yml`
-
-3. Run the migrator:
+2. **Run the migrator**:
    ```bash
-   ./start.sh  # or start.bat on Windows
+   # On Linux/macOS
+   ./start.sh --runtime
+   
+   # On Windows
+   start.bat --runtime
    ```
 
-## Migration Process
+3. **Monitor the migration progress** in the console output and log files.
 
-1. **Preparation Phase**
-   - Stop C7 process execution
-   - Migrate your BPMN models using the [Migration Analyzer](https://migration-analyzer.consulting-sandbox.camunda.cloud/)
-   - Add required `migrator` execution listeners to normal flow start events of C8 models
-   - Adjust C8 models to ensure compatibility with migration limitations
-   - Test migrated models in C8
+## Runtime Migration Example
+```bash
+# Migrate running process instances
+./start.sh --runtime
 
-2. **Migration Phase**
-   - Deploy C8 process models and resources
-   - Start the migrator
-   - Monitor progress in logs
-   - Verify results in Operate
-   - Redeploy C8 models if necessary
-     - Remove `migrator` execution listeners from C8 models after successful migration
-     - Revert changes in C8 models if necessary
-     - Migrate process instances to latest version of C8 models
+# List skipped instances
+./start.sh --runtime --list-skipped
 
-3. **Validation Phase**
-   - Check migrated instances
-   - Verify variable data
-   - Test process continuation
+# Retry previously skipped instances
+./start.sh --runtime --retry-skipped
+```
 
-## Supported databases
+## History Migration Example
+```bash
+# Migrate historical data
+./start.sh --history
+```
 
-The Migrator supports the following SQL databases:
-* H2 (default)
-* PostgreSQL 17
-* Oracle 23ai
+## Custom Configuration Example
+```bash
+# Use custom configuration file
+./start.sh --spring.config.location=file:./my-config.yml
+```
 
-Make sure to:
-1. Include the appropriate JDBC driver in your classpath
-2. Configure the correct JDBC URL, username, and password for your databases
-3. Set the appropriate table prefixes if your existing installation uses them
-4. Set the database vendor explicitly if the automatic detection doesn't work as expected
+## Supported Databases
 
-The database vendor is automatically detected but can be overridden using the `database-vendor` property.
+The migrator supports the following SQL databases:
+
+| Database | Version | JDBC Driver | Notes |
+|----------|---------|-------------|-------|
+| **H2** | Latest | `org.h2.Driver` | Default, good for testing |
+| **PostgreSQL** | 17+ | `org.postgresql.Driver` | Recommended for production |
+| **Oracle** | 23ai+ | `oracle.jdbc.OracleDriver` | Enterprise option |
+
+### Database Setup Requirements:
+1. **Include the appropriate JDBC driver** in your classpath
+2. **Configure connection details** in `application.yml`
+3. **Set table prefixes** if your existing installation uses them
+4. **Verify connectivity** before starting migration
+5. **Ensure sufficient disk space** for migration data
+
+> **Note**: The database vendor is automatically detected but can be overridden using the `database-vendor` property.
 
 ## Configuration
 
@@ -332,32 +391,204 @@ When a process instance is skipped:
   </bpmn:process>
 ```
 
+## Troubleshooting
+
+### Common Issues and Solutions
+
+#### Migration Fails to Start
+**Symptoms**: Migrator exits immediately or fails to connect
+**Solutions**:
+- Verify Java 21+ is installed: `java -version`
+- Check database connectivity and credentials
+- Ensure Camunda 8 is running and accessible
+- Review `application.yml` configuration
+
+#### Process Instances Are Skipped
+**Symptoms**: Instances appear in skipped list
+**Solutions**:
+- Check that C8 process definitions are deployed
+- Verify `migrator` execution listeners are added to start events
+- Ensure flow nodes exist in both C7 and C8 models
+- Review the skipped instances log for specific reasons
+
+#### Performance Issues
+**Symptoms**: Slow migration speed
+**Solutions**:
+- Tweak `batch-size` in your configuration
+- Ensure database has sufficient resources
+- Check network latency between components
+- Monitor system resources (CPU, memory, disk)
+
+#### Variable Migration Errors
+**Symptoms**: Variables not migrated correctly
+**Solutions**:
+- Check variable name restrictions for C8
+- Verify variable types are supported
+- Implement your customer variable interceptor if needed
+
+### Getting Help
+
+If you encounter issues not covered here:
+
+1. **Check the logs** - Enable `DEBUG` logging for detailed information
+2. **Review limitations** - Ensure your use case is supported
+3. **Search existing issues** - Check GitHub issues for similar problems
+4. **Create an issue** - Provide logs, configuration, and steps to reproduce
+
+### Debugging Tips
+
+Enable detailed logging for troubleshooting:
+
+```yaml
+logging:
+  level:
+    root: INFO
+    io.camunda.migrator: DEBUG
+    io.camunda.migrator.RuntimeMigrator: TRACE
+  file:
+    name: logs/c7-data-migrator.log
+```
+
+## Migration Process
+
+The migration process consists of three main phases to ensure a successful transition from Camunda 7 to Camunda 8:
+
+### 1. Preparation Phase
+- **Stop C7 process execution** - Prevent new instances from starting during migration
+- **Migrate your BPMN models** using the [Migration Analyzer](https://migration-analyzer.consulting-sandbox.camunda.cloud/)
+- **Add required `migrator` execution listeners** to normal flow start events of C8 models
+- **Adjust C8 models** to ensure compatibility with migration limitations
+- **Test migrated models** in C8 environment thoroughly
+- **Create backup** of your C7 database before starting migration
+
+### 2. Migration Phase
+- **Deploy C8 process models and resources** to the target environment
+- **Configure the migrator** with proper database connections and settings
+- **Start the migrator** and monitor progress through logs
+- **Verify results** in Camunda 8 Operate
+- **Handle skipped instances** by reviewing and addressing validation failures
+- **Redeploy C8 models if necessary**:
+  - Remove `migrator` execution listeners from C8 models after successful migration
+  - Revert temporary changes in C8 models if necessary
+  - Migrate process instances to latest version of C8 models
+
+### 3. Validation Phase
+- **Check migrated instances** in Camunda 8 Operate
+- **Verify variable data** has been transferred correctly
+- **Test process continuation** by completing some migrated instances
+- **Monitor system performance** and resource usage
+- **Validate business logic** continues to work as expected
+
 ## Development
 
 ### Building from Source
 
-1. Clone the repository
-2. Build the project:
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/camunda/c7-data-migrator.git
+   cd c7-data-migrator
+   ```
+
+2. **Build the project**:
    ```bash
    mvn clean install
    ```
-3. Find distribution in `assembly/target/`
+
+3. **Find distribution** in `assembly/target/` directory
 
 ### Running Tests
 
+Execute the full test suite:
 ```bash
 mvn verify
 ```
 
+Run specific test categories:
+```bash
+# Unit tests only
+mvn test
+
+# Integration tests only
+mvn integration-test
+```
+
+### Development Environment Setup
+
+1. **Install prerequisites**:
+   - Java 21+
+   - Maven 3.6+
+   - Docker (for testing with different databases)
+
+2. **Set up IDE** (IntelliJ IDEA/Eclipse):
+   - Import as Maven project
+   - Configure Java 21 as project SDK
+   - Install Spring Boot plugin (recommended)
+
+3. **Local development database**:
+   ```bash
+   # Start PostgreSQL with Docker
+   docker run --name postgres-dev \
+     -e POSTGRES_DB=camunda7 \
+     -e POSTGRES_USER=camunda \
+     -e POSTGRES_PASSWORD=camunda \
+     -p 5432:5432 -d postgres:17
+   ```
+
 ## Contributing
 
-Read the [Contributions Guide](https://github.com/camunda/camunda-bpm-platform/blob/master/CONTRIBUTING.md).
+We welcome contributions to the C7 Data Migrator! Here's how you can help:
 
-### License headers
+### Ways to Contribute
 
-Every source file in an open-source repository needs to contain the following license header at the top, formatted as this file:
-[license header](./license/header.txt).
+1. **Report bugs** - Create detailed issue reports
+2. **Suggest features** - Propose new functionality
+3. **Submit code** - Fix bugs or implement features
+4. **Improve documentation** - Help others understand the tool
+5. **Test and provide feedback** - Try the tool and share your experience
+
+See our [issue tracker](https://github.com/camunda/camunda-bpm-platform/issues).
+
+### Before Contributing
+
+1. **Read the [Contributions Guide](https://github.com/camunda/camunda-bpm-platform/blob/master/CONTRIBUTING.md)**
+2. **Check existing issues** to avoid duplicates
+3. **Discuss major changes** in an issue before implementing
+
+### Development Guidelines
+
+- **Follow Java coding standards** and existing code style
+- **Write tests** for new functionality
+- **Update documentation** when adding features
+- **Use meaningful commit messages**
+- **Keep changes focused** - one feature/fix per pull request
+
+### License Headers
+
+Every source file must contain the license header. See [license header template](./license/header.txt) for the exact format required.
+
+### Pull Request Process
+
+1. Fork the repository
+2. Create a feature branch from `main`
+3. Make your changes with tests
+4. Ensure all tests pass
+5. Update documentation if needed
+6. Submit a pull request with a clear description
 
 ## License
 
-The source files in this repository are made available under the [Camunda License Version 1.0](./CAMUNDA-LICENSE-1.0.txt)
+The source files in this repository are made available under the [Camunda License Version 1.0](./CAMUNDA-LICENSE-1.0.txt).
+
+---
+
+## Additional Resources
+
+- **[Camunda 8 Documentation](https://docs.camunda.io/)** - Official Camunda 8 documentation
+- **[Migration Guide](https://docs.camunda.io/docs/guides/migrating-from-camunda-platform-7/)** - General migration guidance
+- **[Migration Analyzer](https://migration-analyzer.consulting-sandbox.camunda.cloud/)** - Tool for migrating BPMN models
+- **[Community Forum](https://forum.camunda.io/)** - Get help from the community
+- **[GitHub Issues](https://github.com/camunda/c7-data-migrator/issues)** - Report bugs and request features
+
+---
+
+*Last updated: July 2025*
