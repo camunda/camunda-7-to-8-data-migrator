@@ -51,7 +51,7 @@ import io.camunda.db.rdbms.sql.UserMapper;
 import io.camunda.db.rdbms.sql.UserTaskMapper;
 import io.camunda.db.rdbms.sql.VariableMapper;
 import io.camunda.db.rdbms.write.RdbmsWriterFactory;
-import io.camunda.migrator.config.C8ConfigExists;
+import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.spring.client.metrics.MetricsRecorder;
 import java.util.Properties;
@@ -67,7 +67,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@Conditional(C8ConfigExists.class)
+@Conditional(C8DataSourceConfigured.class)
 public class C8Configuration extends AbstractConfiguration {
 
   @Autowired

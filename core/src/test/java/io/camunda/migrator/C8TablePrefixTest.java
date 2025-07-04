@@ -26,7 +26,7 @@ import org.springframework.test.context.TestPropertySource;
 public class C8TablePrefixTest {
 
   @Test
-  public void migrateProcessWithUnsupportedStartEvent(CapturedOutput output) {
+  public void shouldCreateC8RdbmsTableSchemaWithTablePrefix(CapturedOutput output) {
     assertThat(output)
         .contains("Creating table schema with Liquibase change log file "
             + "'db/changelog/rdbms-exporter/changelog-master.xml' with table prefix 'MY_PREFIX_'");

@@ -17,15 +17,12 @@ import io.camunda.client.api.search.response.ProcessDefinition;
 import io.camunda.client.api.search.response.ProcessInstance;
 import io.camunda.client.api.search.response.Variable;
 import io.camunda.migrator.RuntimeMigrator;
-import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.persistence.IdKeyMapper;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
 
 import java.util.List;
 
 import java.util.Optional;
-import org.assertj.core.api.AbstractIntegerAssert;
-import org.assertj.core.api.AssertionsForClassTypes;
 import org.awaitility.Awaitility;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;

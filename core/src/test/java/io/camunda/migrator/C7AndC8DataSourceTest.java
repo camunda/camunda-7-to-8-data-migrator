@@ -46,7 +46,7 @@ public class C7AndC8DataSourceTest {
   protected DataSource c8DataSource;
 
   @Test
-  public void migrateProcessWithUnsupportedStartEvent() {
+  public void shouldConfigureDataSources() {
     assertThat(c7DataSource).isEqualTo(migratorDataSource);
     assertThat(c7DataSource).isInstanceOf(HikariDataSource.class)
         .extracting("username", "password", "jdbcUrl", "driverClassName")

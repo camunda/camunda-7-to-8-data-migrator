@@ -24,7 +24,7 @@ import io.camunda.db.rdbms.write.domain.ProcessDefinitionDbModel;
 import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
 import io.camunda.db.rdbms.write.domain.VariableDbModel;
-import io.camunda.migrator.config.C8ConfigExists;
+import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.converter.DecisionDefinitionConverter;
 import io.camunda.migrator.converter.FlowNodeConverter;
 import io.camunda.migrator.converter.IncidentConverter;
@@ -56,7 +56,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-@Conditional(C8ConfigExists.class)
+@Conditional(C8DataSourceConfigured.class)
 public class HistoryMigrator {
 
   protected static int BATCH_SIZE = 500;

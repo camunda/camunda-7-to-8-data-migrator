@@ -6,29 +6,23 @@
  * except in compliance with the Camunda License 1.0.
  */
 
-package io.camunda.migrator.qa.datasource;
+package io.camunda.migrator.qa.element;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.qa.RuntimeMigrationAbstractTest;
 import io.github.netmikey.logunit.api.LogCapturer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.slf4j.event.Level;
-import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(properties = {
-    "camunda.migrator.table-prefix=MY_PREFIX_",
-    "logging.level.io.camunda.migrator.persistence.IdKeyMapper=DEBUG"
-})
-public class MigratorTablePrefixTest extends RuntimeMigrationAbstractTest {
+public class UnsupportedStartEventMigrationTest extends RuntimeMigrationAbstractTest {
 
   @RegisterExtension
-  protected LogCapturer logs = LogCapturer.create()
-      .captureForLogger("io.camunda.migrator.persistence.IdKeyMapper", Level.DEBUG);
+  protected LogCapturer logs = LogCapturer.create().captureForType(RuntimeMigrator.class);
 
   @Test
-  public void shouldMigrateWithMigratorTablePrefix() {
+  public void migrateProcessWithUnsupportedStartEvent() {
     // given
     deployProcessInC7AndC8("messageStartEventProcess.bpmn");
     runtimeService.correlateMessage("msgRef");
@@ -41,8 +35,7 @@ public class MigratorTablePrefixTest extends RuntimeMigrationAbstractTest {
 
     var events = logs.getEvents();
     assertThat(events.stream().filter(event -> event.getMessage()
-        .matches(".*INSERT INTO MY_PREFIX_MIGRATION_MAPPING.*")))
+        .matches(".*Couldn't find process None Start Event in C8 process with key.*")))
         .hasSize(1);
   }
-
 }

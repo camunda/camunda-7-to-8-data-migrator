@@ -9,7 +9,7 @@ package io.camunda.migrator.config.property;
 
 public class C8Properties {
 
-  protected DataSourceProperties dataSource;
+  protected DataSourceProperties dataSource = null;
   protected String deploymentDir = null;
 
   public DataSourceProperties getDataSource() {

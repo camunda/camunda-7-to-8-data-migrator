@@ -58,7 +58,7 @@ public class AutoDeployer {
         try (Stream<Path> stream = Files.walk(resourceDir)) {
           return stream.filter(file -> !Files.isDirectory(file)).collect(Collectors.toSet());
         } catch (IOException e) {
-          e.printStackTrace(); // TODO: Add error logging when available.
+          throw ExceptionUtils.wrapException("Error occurred: shutting down Data Migrator gracefully.", e);
         }
       }
     }

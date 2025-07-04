@@ -113,7 +113,7 @@ public class MigratorAutoConfiguration {
     }
 
     @Bean
-    @Conditional(C8ConfigExists.class)
+    @Conditional(C8DataSourceConfigured.class)
     public DataSource c8DataSource() {
       DataSourceProperties props = migratorProperties.getC8().getDataSource();
       if (props.getJdbcUrl() == null) {

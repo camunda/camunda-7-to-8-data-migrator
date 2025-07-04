@@ -13,13 +13,14 @@ import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
-public class C8ConfigExists implements Condition {
+public class C8DataSourceConfigured implements Condition {
 
   @Override
   public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
     MigratorProperties config = Binder.get(context.getEnvironment())
         .bind(MigratorProperties.PREFIX, MigratorProperties.class)
         .orElse(null);
-    return config != null && config.getC8() != null;
+    return config != null && config.getC8() != null && config.getC8().getDataSource() != null;
   }
+
 }

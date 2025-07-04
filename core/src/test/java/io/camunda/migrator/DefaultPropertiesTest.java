@@ -7,7 +7,9 @@
  */
 package io.camunda.migrator;
 
-import org.assertj.core.api.Assertions;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import io.camunda.migrator.config.property.MigratorProperties;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +26,11 @@ class DefaultPropertiesTest {
 
   @Test
   public void shouldHaveDefaultBatchSize() {
-    Assertions.assertThat(runtimeMigrator.getBatchSize()).isEqualTo(500);
+    assertThat(runtimeMigrator.getBatchSize()).isEqualTo(MigratorProperties.DEFAULT_BATCH_SIZE);
   }
 
   @Test
   public void shouldHaveDisabledJobExecutor() {
-    Assertions.assertThat(processEngineConfiguration.getJobExecutor().isActive()).isEqualTo(false);
+    assertThat(processEngineConfiguration.getJobExecutor().isActive()).isEqualTo(false);
   }
 }

@@ -41,7 +41,7 @@ public class C7DataSourceTest {
   protected DataSource c8DataSource;
 
   @Test
-  public void migrateProcessWithUnsupportedStartEvent() {
+  public void shouldConfigureC7DataSource() {
     assertThat(c8DataSource).isNull();
     assertThat(c7DataSource).isEqualTo(migratorDataSource);
     assertThat(c7DataSource).isInstanceOf(HikariDataSource.class)

@@ -49,7 +49,7 @@ public class MigratorDataSourceTest {
   protected DataSource c8DataSource;
 
   @Test
-  public void migrateProcessWithUnsupportedStartEvent() {
+  public void shouldChangeMigratorDataSource() {
     assertThat(c8DataSource).isEqualTo(migratorDataSource);
     assertThat(c7DataSource).isInstanceOf(HikariDataSource.class)
         .extracting("username", "password", "jdbcUrl", "driverClassName")

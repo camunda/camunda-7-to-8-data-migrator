@@ -27,8 +27,11 @@ import org.springframework.test.context.TestPropertySource;
 @TestExecutionListeners(CustomTestExecutionListener.class)
 public class C7TablePrefixTest {
 
+  /**
+   * This test verifies that engine tables are prefix with `MY_PREFIX_`. See `CustomTestExecutionListener` for validation logic.
+   */
   @Test
-  public void migrateProcessWithUnsupportedStartEvent() {
+  public void shouldThrowExceptionSincePrefixedTableIsNotFound() {
   }
 
   static class CustomTestExecutionListener implements TestExecutionListener {
