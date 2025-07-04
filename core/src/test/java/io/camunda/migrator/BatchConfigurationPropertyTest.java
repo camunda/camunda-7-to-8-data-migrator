@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest(properties = { "migrator.batch-size=2" })
+@SpringBootTest(properties = { "camunda.migrator.batch-size=2" })
 class BatchConfigurationPropertyTest {
 
   @Autowired
@@ -21,7 +21,7 @@ class BatchConfigurationPropertyTest {
   @Test
   public void shouldSetBatchSize() {
 
-    Assertions.assertThat(runtimeMigrator.batchSize).isEqualTo(2);
+    Assertions.assertThat(runtimeMigrator.getBatchSize()).isEqualTo(2);
   }
 
 }

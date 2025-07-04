@@ -35,7 +35,6 @@
     UPDATE ${prefix}MIGRATION_MAPPING
     SET INSTANCE_KEY = #{instanceKey, jdbcType=BIGINT}
     WHERE ID = #{id, jdbcType=VARCHAR}
-    <include refid="io.camunda.migrator.Commons.singleResultSql"/>
   </update>
 
   <select id="findLatestIdByType" parameterType="java.lang.String">
@@ -72,7 +71,6 @@
   <delete id="delete">
     DELETE FROM ${prefix}MIGRATION_MAPPING
     WHERE ID = #{id}
-    <include refid="io.camunda.migrator.Commons.singleResultSql"/>
   </delete>
 
 </mapper>

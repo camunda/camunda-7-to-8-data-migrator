@@ -18,6 +18,7 @@ import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.search.response.ProcessDefinition;
+import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.persistence.IdKeyDbModel;
 import io.camunda.migrator.persistence.IdKeyMapper;
 import io.camunda.zeebe.model.bpmn.BpmnModelInstance;
@@ -50,7 +51,6 @@ import org.camunda.bpm.model.bpmn.instance.MultiInstanceLoopCharacteristics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -58,8 +58,6 @@ import org.springframework.stereotype.Component;
 public class RuntimeMigrator {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(RuntimeMigrator.class);
-
-  public final static int DEFAULT_BATCH_SIZE = 500;
 
   @Autowired
   protected RepositoryService repositoryService;
@@ -76,8 +74,8 @@ public class RuntimeMigrator {
   @Autowired
   protected CamundaClient camundaClient;
 
-  @Value("${migrator.batch-size:" + DEFAULT_BATCH_SIZE + "}")
-  protected int batchSize;
+  @Autowired
+  protected MigratorProperties migratorProperties;
 
   @Autowired
   private ApplicationContext context;
@@ -131,9 +129,9 @@ public class RuntimeMigrator {
 
   protected void listSkippedProcessInstances() {
    new Pagination<String>()
-        .batchSize(batchSize)
+        .batchSize(getBatchSize())
         .maxCount(idKeyMapper::findSkippedCount)
-        .page(offset -> idKeyMapper.findSkipped(offset, batchSize)
+        .page(offset -> idKeyMapper.findSkipped(offset, getBatchSize())
             .stream()
             .map(IdKeyDbModel::id)
             .collect(Collectors.toList()))
@@ -156,10 +154,10 @@ public class RuntimeMigrator {
 
     if (RETRY_SKIPPED.equals(mode)) {
       new Pagination<IdKeyDbModel>()
-          .batchSize(batchSize)
+          .batchSize(getBatchSize())
           .maxCount(idKeyMapper::findSkippedCount)
           // Hardcode offset to 0 since each callback updates the database and leads to fresh results.
-          .page(offset -> idKeyMapper.findSkipped(0, batchSize))
+          .page(offset -> idKeyMapper.findSkipped(0, getBatchSize()))
           .callback(storeMappingConsumer);
 
     } else {
@@ -179,9 +177,9 @@ public class RuntimeMigrator {
           .asc();
 
       new Pagination<IdKeyDbModel>()
-          .batchSize(batchSize)
+          .batchSize(getBatchSize())
           .maxCount(processInstanceQuery::count)
-          .page(offset -> processInstanceQuery.listPage(offset, batchSize)
+          .page(offset -> processInstanceQuery.listPage(offset, getBatchSize())
               .stream()
               .map(hpi -> new IdKeyDbModel(hpi.getId(), hpi.getStartTime()))
               .collect(Collectors.toList()))
@@ -234,7 +232,7 @@ public class RuntimeMigrator {
         .processInstanceIdIn(legacyProcessInstanceId);
 
     Map<String, Map<String, Object>> allVariables = new Pagination<VariableInstance>()
-        .batchSize(batchSize)
+        .batchSize(getBatchSize())
         .query(variableQuery)
         .context(context)
         .toVariableMapAll();
@@ -260,7 +258,7 @@ public class RuntimeMigrator {
         .rootProcessInstanceId(legacyProcessInstanceId);
 
     new Pagination<ProcessInstance>()
-        .batchSize(batchSize)
+        .batchSize(getBatchSize())
         .query(processInstanceQuery)
         .callback(processInstance -> {
           String processInstanceId = processInstance.getId();
@@ -356,7 +354,7 @@ public class RuntimeMigrator {
     do {
       var jobQuery = camundaClient.newActivateJobsCommand()
           .jobType("migrator")
-          .maxJobsToActivate(batchSize);
+          .maxJobsToActivate(getBatchSize());
 
       String fetchMigratorJobsErrorMessage = "Error while fetching migrator jobs";
       migratorJobs = callApi(() -> jobQuery.execute().getJobs(), fetchMigratorJobsErrorMessage);
@@ -386,7 +384,7 @@ public class RuntimeMigrator {
           String activityId = flowNode.activityId();
           var variableQuery = runtimeService.createVariableInstanceQuery().activityInstanceIdIn(activityInstanceId);
 
-          Map<String, Object> localVariables = new Pagination<VariableInstance>().batchSize(batchSize)
+          Map<String, Object> localVariables = new Pagination<VariableInstance>().batchSize(getBatchSize())
               .query(variableQuery)
               .context(context)
               .toVariableMapSingleActivity();
@@ -427,8 +425,8 @@ public class RuntimeMigrator {
     return activeActivities;
   }
 
-  public void setBatchSize(int batchSize) {
-    this.batchSize = batchSize;
+  public int getBatchSize() {
+    return migratorProperties.getBatchSize();
   }
 
   public record FlowNode(String activityId, String subProcessInstanceId) {

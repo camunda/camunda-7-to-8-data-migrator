@@ -7,64 +7,73 @@
  */
 package io.camunda.migrator.config.property;
 
-import io.camunda.migrator.RuntimeMigrator;
-import javax.sql.DataSource;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @ConfigurationProperties(MigratorProperties.PREFIX)
 public class MigratorProperties {
 
-  public static final String PREFIX = "migrator";
+  public static final int DEFAULT_BATCH_SIZE = 500;
+  public static final String PREFIX = "camunda.migrator";
 
-  protected Integer batchSize = RuntimeMigrator.DEFAULT_BATCH_SIZE;
+  public enum DataSource {
+    C7, C8
+  }
 
-  protected DataSource source;
+  protected Integer batchSize = DEFAULT_BATCH_SIZE;
+  protected DataSource dataSource = DataSource.C7;
 
-  protected DataSource target;
+  protected Boolean autoDdl;
+  protected String tablePrefix;
 
-  @NestedConfigurationProperty
-  protected C7Properties c7Properties;
-
-  @NestedConfigurationProperty
-  protected RdbmsExporterProperties rdbmsExporterProperties;
+  protected C7Properties c7;
+  protected C8Properties c8;
 
   public int getBatchSize() {
     return batchSize;
   }
+
   public void setBatchSize(int batchSize) {
     this.batchSize = batchSize;
   }
 
-  public DataSource getSource() {
-    return source;
+  public C7Properties getC7() {
+    return c7;
   }
 
-  public void setSource(DataSource source) {
-    this.source = source;
+  public void setC7(C7Properties c7) {
+    this.c7 = c7;
   }
 
-  public DataSource getTarget() {
-    return target;
+  public C8Properties getC8() {
+    return c8;
   }
 
-  public void setTarget(DataSource target) {
-    this.target = target;
+  public void setC8(C8Properties c8) {
+    this.c8 = c8;
   }
 
-  public C7Properties getC7Properties() {
-    return c7Properties;
+  public Boolean getAutoDdl() {
+    return autoDdl;
   }
 
-  public void setC7Properties(C7Properties c7Properties) {
-    this.c7Properties = c7Properties;
+  public void setAutoDdl(Boolean autoDdl) {
+    this.autoDdl = autoDdl;
   }
 
-  public RdbmsExporterProperties getRdbmsExporterProperties() {
-    return rdbmsExporterProperties;
+  public String getTablePrefix() {
+    return tablePrefix;
   }
 
-  public void setRdbmsExporterProperties(RdbmsExporterProperties rdbmsExporterProperties) {
-    this.rdbmsExporterProperties = rdbmsExporterProperties;
+  public void setTablePrefix(String tablePrefix) {
+    this.tablePrefix = tablePrefix;
   }
+
+  public DataSource getDataSource() {
+    return dataSource;
+  }
+
+  public void setDataSource(DataSource dataSource) {
+    this.dataSource = dataSource;
+  }
+
 }
