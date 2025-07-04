@@ -15,10 +15,10 @@ camunda:
     # batch-size: 500
 
     # Automatically create/update database schema
-    # auto-ddl: true
+    auto-ddl: true
 
     # Optional prefix for migrator database schema tables
-    # table-prefix:
+    # table-prefix: MY_TABLE_PREFIX_
 
     # Optional property to configure if the migrator schema is created on `C7` or `C8`. Default is 'C7'.
     # data-source: C7
