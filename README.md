@@ -1,26 +1,244 @@
 # C7 Data Migrator
 
+[![Java Version](https://img.shields.io/badge/Java-21-blue)](https://www.oracle.com/java/technologies/downloads/#java21)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)](https://spring.io/projects/spring-boot)
+[![Status](https://img.shields.io/badge/Status-In%20Development-yellow)](https://github.com/camunda/c7-data-migrator)
+
+A tool for migrating Camunda 7 process instances and related data to Camunda 8. This migrator helps organizations seamlessly transition their process instances while preserving execution state and variables ensuring minimal disruption to ongoing business processes.
+
 > [!WARNING]  
-> The C7 Data Migrator is still in development and not yet ready for production use. 
+> The C7 Data Migrator is currently in active development and not yet ready for production use. However, we encourage users to try it out in development/testing environments and provide feedback to help us improve the tool.
 
-However, even though the C7 Data Migrator is not yet ready for production, we encourage users to try it out, play around with the current functionality and provide feedback.
+## Table of Contents
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Prerequisites](#prerequisites)
+- [Installation & Setup](#installation--setup)
+- [Quick Start](#quick-start)
+- [Supported Databases](#supported-databases)
+- [Configuration](#configuration)
+- [Migration Limitations](#migration-limitations)
+- [Troubleshooting](#troubleshooting)
+- [Migration Process](#migration-process)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
 
-## How to use the Migrator
+## Overview
 
-1. Prerequisites: Use Java 21
-2. Consider whether any of the [migration limitations](#migration-limitations) apply to your current C7 models and apply any changes necessary.
-1. Stop C7 process execution. I.e., shut down your engines.
-2. Migrate your models 
-   1. Can use https://migration-analyzer.consulting-sandbox.camunda.cloud/ to migrate your C7 models.
-   2. If required, make any manual adjustments required in the C8 models. Note the migrator tool will leave hints in your diagram.
-   3. Add "migrator" End Execution listener of the start event of each C8 model. Example: [link](./qa/src/test/resources/io/camunda/migrator/bpmn/c8/simpleProcess.bpmn).
-1. Start C8.
-1. Deploy migrated C8 process models and any other required resources such as referenced DMN or forms.
-1. Build or download the distribution.
-1. Start Migrator (start.sh/start.bat) and wait to finish.
-   2. Do not make any changes to the C8 deployments while the migrator is running.
-1. Navigate to Operate and check result.
-1. When a process instance gets skipped, you can start C7 again, modify the process instance into a supported state and shut down C7 again.
+The C7 Data Migrator is designed to help organizations migrate from Camunda 7 to Camunda 8 while preserving the state of running process instances. Unlike starting fresh with new process instances, this tool maintains variable states, and current positions within process flows.
+
+**What this tool migrates:**
+- Running process instances with their current state
+- Process variables and their values
+
+**What this tool does NOT migrate:**
+- BPMN process models (use the [Migration Analyzer](https://migration-analyzer.consulting-sandbox.camunda.cloud/) for this)
+- Custom code or integrations
+- Users, groups and authorizations
+- Task assignments and states
+- Execution history (we are working on this currently)
+
+## Key Features
+
+- **State-preserving migration**: Maintains exact execution state of running process instances
+- **Variable data migration**: Converts and migrates process variables with proper type handling
+- **Validation and verification**: Pre-migration validation to ensure successful migration
+- **Skip and retry capabilities**: Handle problematic instances gracefully with retry options
+- **Detailed logging and reporting**: Comprehensive logging for monitoring migration progress
+- **Database flexibility**: Support for multiple database vendors (H2, PostgreSQL, Oracle)
+
+## Prerequisites
+
+Before using the C7 Data Migrator, ensure you have:
+
+- **Java 21 or higher** - Required for running the migrator
+- **Maven 3.6+** - For building from source (if not using pre-built releases)
+- **Running Camunda 8 instance** - Target platform for migration
+- **Access to Camunda 7 database** - Source database with process instances to migrate
+- **Migrated BPMN models** - Process definitions already converted from C7 to C8 format
+- **Network connectivity** - Between migrator, C7 database, and C8 platform
+
+## Installation & Setup
+
+### Option 1: Download Pre-built Release
+1. Download the latest release from the [releases page](https://github.com/camunda/c7-data-migrator/releases)
+2. Extract the archive to your preferred directory
+3. Navigate to the extracted directory
+
+### Option 2: Build from Source
+```bash
+# Clone the repository
+git clone https://github.com/camunda/c7-data-migrator.git
+cd c7-data-migrator
+
+# Build the project
+mvn clean install -DskipTests
+
+# Navigate to the distribution
+cd assembly/target
+# Extract the generated archive (tar.gz or zip)
+```
+
+## Quick Start
+
+1. **Prepare your configuration file** (`application.yml`):
+   ```yaml
+   camunda.client:
+     mode: self-managed
+     grpc-address: http://localhost:26500
+     rest-address: http://localhost:8088
+   
+   camunda.migrator.c7.data-source:
+     jdbc-url: jdbc:postgresql://localhost:5432/camunda7
+     username: your-username
+     password: your-password
+   ```
+
+2. **Run the migrator**:
+   ```bash
+   # On Linux/macOS
+   ./start.sh --runtime
+   
+   # On Windows
+   start.bat --runtime
+   ```
+
+3. **Monitor the migration progress** in the console output and log files.
+
+## Runtime Migration Example
+```bash
+# Migrate running process instances
+./start.sh --runtime
+
+# List skipped instances
+./start.sh --runtime --list-skipped
+
+# Retry previously skipped instances
+./start.sh --runtime --retry-skipped
+```
+
+## History Migration Example
+```bash
+# Migrate historical data
+./start.sh --history
+```
+
+## Custom Configuration Example
+```bash
+# Use custom configuration file
+./start.sh --spring.config.location=file:./my-config.yml
+```
+
+## Supported Databases
+
+The migrator supports the following SQL databases:
+
+| Database | Version | JDBC Driver | Notes |
+|----------|---------|-------------|-------|
+| **H2** | 2.3.232 | `org.h2.Driver` | Default, good for testing |
+| **PostgreSQL** | 17 | `org.postgresql.Driver` | Recommended for production |
+| **Oracle** | 23ai | `oracle.jdbc.OracleDriver` | Enterprise option |
+
+### Database Setup Requirements:
+1. **Include the appropriate JDBC driver** in your classpath
+2. **Configure connection details** in `application.yml`
+3. **Set table prefixes** if your existing installation uses them
+4. **Verify connectivity** before starting migration
+5. **Ensure sufficient disk space** for migration data
+
+> **Note**: The database vendor is automatically detected but can be overridden using the `database-vendor` property.
+
+## Configuration
+
+The migrator can be configured using the `application.yml` file. Here are the available configuration options:
+
+### Camunda 8 Client Configuration for Runtime Migration
+
+```yaml
+camunda.client:
+  mode: self-managed                    # Operation mode: 'self-managed' or 'cloud'
+  grpc-address: http://localhost:26500  # The gRPC API endpoint
+  rest-address: http://localhost:8088   # The REST API endpoint
+```
+
+### Migrator Configuration
+```yaml
+camunda.migrator:
+  batch-size: 500                      # Number of records to process in each batch
+  auto-ddl: true                       # Automatically create/update database schema
+  table-prefix: MY_PREFIX_             # Optional table prefix for migrator schema
+  data-source: C7                      # Choose if the migrator schema is created on the data source of 'C7' or 'C8'
+```
+
+### Camunda 7 Database for Runtime and History Migration
+```yaml
+camunda.migrator.c7.data-source:
+  table-prefix: MY_PREFIX_             # Optional prefix for C7 database tables
+  auto-ddl: true                       # Automatically create/update C7 database schema
+  jdbc-url: jdbc:h2:./h2/data-migrator-source.db
+  username: sa                         # Database username
+  password: sa                         # Database password
+  driver-class-name: org.h2.Driver
+```
+
+### Camunda 8 RDBMS Database for History Migration
+```yaml
+camunda.migrator.c8.data-source:
+  table-prefix: MY_PREFIX_             # Optional prefix for C8 RDBMS database tables
+  auto-ddl: true                       # Automatically create/update C8 RDBMS database schema
+  jdbc-url: jdbc:h2:./h2/data-migrator-target.db
+  username: sa                         # Database username
+  password: sa                         # Database password
+  driver-class-name: org.h2.Driver
+```
+
+### Logging Configuration
+```yaml
+logging:
+  level:
+    root: INFO                                    # Root logger level
+    io.camunda.migrator: INFO                     # Migrator logging
+    io.camunda.migrator.RuntimeMigrator: DEBUG    # Runtime migration logging
+    io.camunda.migrator.persistence.IdKeyMapper: DEBUG  # ID mapping logging
+```
+
+### Configuration Properties Overview
+
+| Prefix | Property                     | Type      | Description                                                                                                                               |
+|------|------------------------------|-----------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| `camunda.client` |                       |   | Read more about Camunda Client [configuration options](https://docs.camunda.io/docs/next/apis-tools/spring-zeebe-sdk/configuration/).     |
+| | `.mode`                      | `string`  | Operation mode of the Camunda 8 client. Options: `self-managed` or `cloud`. Default: `self-managed`                                       |
+| | `.grpc-address`              | `string`  | The gRPC API endpoint for Camunda 8 Platform. Default: `http://localhost:26500`                                                           |
+| | `.rest-address`              | `string`  | The REST API endpoint for Camunda 8 Platform. Default: `http://localhost:8088`                                                            |
+| `camunda.migrator` |                              |           |                                                                                                                                           |
+| | `.batch-size`                | `number`  | Number of records to process in each migration batch. Default: `500`                                                                      |
+| | `.auto-ddl`                  | `boolean` | Automatically create/update migrator database schema. Default: `false`                                                                    |
+| | `.table-prefix`              | `string`  | Optional prefix for migrator database tables. Default: _(empty)_                                                                          |
+| | `.data-source`               | `string`  | Choose if the migrator schema is created in the `C7` or `C8` data source. Default: `C7`                                                   |
+| | `.database-vendor`           | `string`  | Database vendor for migrator schema. Options: `h2`, `postgresql`, `oracle`. Default: Automatically detected.                              |
+| `camunda.migrator.c7.data-source` |                              |           |                                                                                                                                           |
+| | `.table-prefix`              | `string`  | Optional prefix for Camunda 7 database tables. Default: _(empty)_                                                                         |
+| | `.auto-ddl`                  | `boolean` | Automatically create/update Camunda 7 database schema. Default: `false`                                                                   |
+| | `.jdbc-url`                  | `string`  | JDBC connection URL for the source Camunda 7 database. Default: `jdbc:h2:mem:migrator`                                                    |
+| | `.username`                  | `string`  | Username for Camunda 7 database connection. Default: `sa`                                                                                 |
+| | `.password`                  | `string`  | Password for Camunda 7 database connection. Default: `sa`                                                                                 |
+| | `.driver-class-name`         | `string`  | JDBC driver class for Camunda 7 database. Default: `org.h2.Driver`                                                                        |
+| | `.database-vendor`           | `string`  | The database vendor is automatically detected and can currently not be overridden.                                                        |
+| `camunda.migrator.c8` |                              |           |                                                                                                                                           |
+| | `.deployment-dir`             | `string`   | Define directory which resources like BPMN processes are automatically deployed to C8.                                                    |
+| `camunda.migrator.c8.data-source` |                              |           | If the `c8.data-source` configuration is absent, the RDBMS history data migrator is disabled.                                             |
+| | `.table-prefix`              | `string`  | Optional prefix for Camunda 8 RDBMS database tables. Default: _(empty)_                                                                   |
+| | `.auto-ddl`                  | `boolean` | Automatically create/update Camunda 8 RDBMS database schema. Default: `false`                                                             |
+| | `.jdbc-url`                  | `string`  | JDBC connection URL for the target Camunda 8 RDBMS database. Default: `jdbc:h2:mem:migrator`                                              |
+| | `.username`                  | `string`  | Username for Camunda 8 database connection. Default: `sa`                                                                                 |
+| | `.password`                  | `string`  | Password for Camunda 8 database connection. Default: `sa`                                                                                 |
+| | `.driver-class-name`         | `string`  | JDBC driver class for Camunda 8 database. Default: `org.h2.Driver`                                                                        |
+| | `.database-vendor`           | `string`  | Database vendor for C8 schema. Options: `h2`, `postgresql`, `oracle`. Default: Automatically detected.                                    |
+| `logging` |                              |           |                                                                                                                                           |
+| | `.level.root`                | `string`  | Root logger level. Default: `INFO`                                                                                                        |
+| | `.level.io.camunda.migrator` | `string`  | Migrator logging level. Default: `INFO`                                                                                                   |
+| | `.file.name`                 | `string`  | Log file location. Set to: `logs/c7-data-migrator.log`. If not specified, logs are output to the console.                                 |
 
 ## Migration Limitations
 
@@ -30,6 +248,49 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
   - You cannot migrate running instances when you have configured history level to `NONE` or a custom history level that doesn't create historic process instances.
   - The minimum supported history level is `ACTIVITY`.
 - You need to add an execution listener of type `migrator` to all your start events.
+
+#### Process Instance Validation
+
+The migrator validates each process instance before migration and will skip instances that fail validation for the following reasons:
+
+1. **Missing C8 Process Definition**
+   - If no corresponding C8 process definition is found for the C7 process ID
+
+2. **Multi-Instance Activities**
+   - If the process instance has active multi-instance activities
+
+3. **Missing Flow Node Elements**
+   - If a C7 process instance is currently at a flow node that doesn't exist in the deployed C8 model
+
+4. **Missing Non Start Event**
+    - If a C8 process definition does not have a process level None Start Event, the migrator will skip the instance.
+
+5. **Missing `migrator` Execution Listener on Non Start Event**
+    - If a C8 process definition does not have an execution listener of type `migrator` on the None Start Event, the migrator will skip the instance.
+
+When a process instance is skipped:
+- The skipped process instance is logged
+- The instance is marked as skipped in the migration database
+- You can list skipped instances
+- You can retry migration of skipped instances after fixing the underlying issues
+
+#### Handling Skipped Instances
+
+1. **List Skipped Instances**
+   ```bash
+   ./start.sh --runtime --list-skipped
+   ```
+
+2. **Retry Skipped Instances**
+   ```bash
+   ./start.sh --runtime --retry-skipped
+   ```
+
+3. **Common Resolution Steps**
+   - Deploy the missing C8 process definition
+   - Wait for multi-instance activities to complete
+   - Ensure all active flow nodes in the C7 process have corresponding elements in the C8 process
+   - Modify process instance to a supported state
 
 #### Limitations for BPMN elements
 
@@ -129,133 +390,205 @@ However, even though the C7 Data Migrator is not yet ready for production, we en
     <bpmn:sequenceFlow id="Flow_1o2i34a" sourceRef="ActivityId" targetRef="EndEvent" />
   </bpmn:process>
 ```
-## Supported databases
 
-The Migrator supports the following SQL databases:
-* H2 (default)
-* PostgreSQL 17
-* Oracle 23ai
+## Troubleshooting
 
-Make sure to:
-1. Include the appropriate JDBC driver in your classpath
-2. Configure the correct JDBC URL, username, and password for your databases
-3. Set the appropriate table prefixes if your existing installation uses them
-4. Set the database vendor explicitly if the automatic detection doesn't work as expected
+### Common Issues and Solutions
 
-The database vendor is automatically detected but can be overridden using the `database-vendor` property.
+#### Migration Fails to Start
+**Symptoms**: Migrator exits immediately or fails to connect
+**Solutions**:
+- Verify Java 21+ is installed: `java -version`
+- Check database connectivity and credentials
+- Ensure Camunda 8 is running and accessible
+- Review `application.yml` configuration
 
-## Configuration
+#### Process Instances Are Skipped
+**Symptoms**: Instances appear in skipped list
+**Solutions**:
+- Check that C8 process definitions are deployed
+- Verify `migrator` execution listeners are added to start events
+- Ensure flow nodes exist in both C7 and C8 models
+- Review the skipped instances log for specific reasons
 
-The migrator can be configured using the `application.yml` file. Here are the available configuration options:
+#### Performance Issues
+**Symptoms**: Slow migration speed
+**Solutions**:
+- Tweak `batch-size` in your configuration
+- Ensure database has sufficient resources
+- Check network latency between components
+- Monitor system resources (CPU, memory, disk)
 
-### Camunda 8 Client Configuration for Runtime Migration
+#### Variable Migration Errors
+**Symptoms**: Variables not migrated correctly
+**Solutions**:
+- Check variable name restrictions for C8
+- Verify variable types are supported
+- Implement your customer variable interceptor if needed
 
-```yaml
-camunda.client:
-  mode: self-managed                    # Operation mode: 'self-managed' or 'cloud'
-  grpc-address: http://localhost:26500  # The gRPC API endpoint
-  rest-address: http://localhost:8088   # The REST API endpoint
-```
+### Getting Help
 
-### Migrator Configuration
-```yaml
-camunda.migrator:
-  batch-size: 500                      # Number of records to process in each batch
-  auto-ddl: true                       # Automatically create/update database schema
-  table-prefix: MY_PREFIX_             # Optional table prefix for migrator schema
-  data-source: C7                      # Choose if the migrator schema is created on the data source of 'C7' or 'C8'
-```
+If you encounter issues not covered here:
 
-### Camunda 7 Database for Runtime and History Migration
-```yaml
-camunda.migrator.c7.data-source:
-  table-prefix: MY_PREFIX_             # Optional prefix for C7 database tables
-  auto-ddl: true                       # Automatically create/update C7 database schema
-  jdbc-url: jdbc:h2:./h2/data-migrator-source.db
-  username: sa                         # Database username
-  password: sa                         # Database password
-  driver-class-name: org.h2.Driver
-```
+1. **Check the logs** - Enable `DEBUG` logging for detailed information
+2. **Review limitations** - Ensure your use case is supported
+3. **Search existing issues** - Check GitHub issues for similar problems
+4. **Create an issue** - Provide logs, configuration, and steps to reproduce
 
-### Camunda 8 RDBMS Database for History Migration
-```yaml
-camunda.migrator.c8.data-source:
-  table-prefix: MY_PREFIX_             # Optional prefix for C8 RDBMS database tables
-  auto-ddl: true                       # Automatically create/update C8 RDBMS database schema
-  jdbc-url: jdbc:h2:./h2/data-migrator-target.db
-  username: sa                         # Database username
-  password: sa                         # Database password
-  driver-class-name: org.h2.Driver
-```
+### Debugging Tips
 
-### Logging Configuration
+Enable detailed logging for troubleshooting:
+
 ```yaml
 logging:
   level:
-    root: INFO                                    # Root logger level
-    io.camunda.migrator: INFO                     # Migrator logging
-    io.camunda.migrator.RuntimeMigrator: DEBUG    # Runtime migration logging
-    io.camunda.migrator.persistence.IdKeyMapper: DEBUG  # ID mapping logging
+    root: INFO
+    io.camunda.migrator: DEBUG
+    io.camunda.migrator.RuntimeMigrator: TRACE
+  file:
+    name: logs/c7-data-migrator.log
 ```
 
-### Configuration Properties Overview
+## Migration Process
 
-| Prefix | Property                     | Type      | Description                                                                                                  |
-|-------|------------------------------|-----------|--------------------------------------------------------------------------------------------------------------|
-| `camunda.client` | `.mode`                      | `string`  | Operation mode of the Camunda 8 client. Options: `self-managed` or `cloud`. Default: `self-managed`          |
-| | `.grpc-address`              | `string`  | The gRPC API endpoint for Camunda 8 Platform. Default: `http://localhost:26500`                              |
-| | `.rest-address`              | `string`  | The REST API endpoint for Camunda 8 Platform. Default: `http://localhost:8088`                               |
-| `camunda.migrator` |                              |           |                                                                                                              |
-| | `.batch-size`                | `number`  | Number of records to process in each migration batch. Default: `500`                                         |
-| | `.auto-ddl`                  | `boolean` | Automatically create/update migrator database schema. Default: `false`                                       |
-| | `.table-prefix`              | `string`  | Optional prefix for migrator database tables. Default: _(empty)_                                             |
-| | `.data-source`               | `string`  | Choose if the migrator schema is created in the `C7` or `C8` data source. Default: `C7`                      |
-| | `.database-vendor`           | `string`  | Database vendor for migrator schema. Options: `h2`, `postgresql`, `oracle`. Default: Automatically detected. |
-| `camunda.migrator.c7.data-source` |                              |           |                                                                                                              |
-| | `.table-prefix`              | `string`  | Optional prefix for Camunda 7 database tables. Default: _(empty)_                                            |
-| | `.auto-ddl`                  | `boolean` | Automatically create/update Camunda 7 database schema. Default: `false`                                      |
-| | `.jdbc-url`                  | `string`  | JDBC connection URL for the source Camunda 7 database. Default: `jdbc:h2:mem:migrator`                       |
-| | `.username`                  | `string`  | Username for Camunda 7 database connection. Default: `sa`                                                    |
-| | `.password`                  | `string`  | Password for Camunda 7 database connection. Default: `sa`                                                    |
-| | `.driver-class-name`         | `string`  | JDBC driver class for Camunda 7 database. Default: `org.h2.Driver`                                           |
-| | `.database-vendor`           | `string`  | The database vendor is automatically detected and can currently not be overridden.                           |
-| `camunda.migrator.c8` |                              |           |                                                                                                              |
-| | `.deployment-dir`             | `string`   | Define directory which resources like BPMN processes are automatically deployed to C8.                       |
-| `camunda.migrator.c8.data-source` |                              |           | If the `c8.data-source` configuration is absent, the RDBMS history data migrator is disabled.                |
-| | `.table-prefix`              | `string`  | Optional prefix for Camunda 8 RDBMS database tables. Default: _(empty)_                                      |
-| | `.auto-ddl`                  | `boolean` | Automatically create/update Camunda 8 RDBMS database schema. Default: `false`                                |
-| | `.jdbc-url`                  | `string`  | JDBC connection URL for the target Camunda 8 RDBMS database. Default: `jdbc:h2:mem:migrator`                 |
-| | `.username`                  | `string`  | Username for Camunda 8 database connection. Default: `sa`                                                    |
-| | `.password`                  | `string`  | Password for Camunda 8 database connection. Default: `sa`                                                    |
-| | `.driver-class-name`         | `string`  | JDBC driver class for Camunda 8 database. Default: `org.h2.Driver`                                           |
-| | `.database-vendor`           | `string`  | Database vendor for C8 schema. Options: `h2`, `postgresql`, `oracle`. Default: Automatically detected.       |
-| `logging` |                              |           |                                                                                                              |
-| | `.level.root`                | `string`  | Root logger level. Default: `INFO`                                                                           |
-| | `.level.io.camunda.migrator` | `string`  | Migrator logging level. Default: `INFO`                                                                      |
-| | `.file.name`                 | `string`  | Log file location. Set to: `logs/c7-data-migrator.log`. If not specified, logs are output to the console.    |
+The migration process consists of three main phases to ensure a successful transition from Camunda 7 to Camunda 8:
 
-## Development Setup
-1. Prerequisites: Use Java 21
-1. Set up Camunda 8
-   1. Download Camunda [c8run-8.8](https://github.com/camunda/camunda/releases/tag/c8run-8.8)
-   1. Extract files
-   1. Start from distribution root by running `./start.sh` (or `c8run.exe start`)
-1. Clone this repository
-1. Build from root with `mvn clean install` (add `-DskipTests` to skip the tests)
-1. (Optional) Run the [example data generator](./examples/generate-runtime/src/main/java/io/camunda/migrator/example/ExampleApplication.java)
-1. (Optional) Run the migrator
-   1. Either using [the example](./examples/migrate-runtime/src/main/java/io/camunda/migrator/example/RuntimeExampleApplication.java)
-   1. Or by building, extracting and running [the distribution](./assembly)
+### 1. Preparation Phase
+- **Stop C7 process execution** - Prevent new instances from starting during migration
+- **Migrate your BPMN models** using the [Migration Analyzer](https://migration-analyzer.consulting-sandbox.camunda.cloud/)
+- **Add required `migrator` execution listeners** to normal flow start events of C8 models
+- **Adjust C8 models** to ensure compatibility with migration limitations
+- **Test migrated models** in C8 environment thoroughly
+- **Create backup** of your C7 database before starting migration
+
+### 2. Migration Phase
+- **Deploy C8 process models and resources** to the target environment
+- **Configure the migrator** with proper database connections and settings
+- **Start the migrator** and monitor progress through logs
+- **Verify results** in Camunda 8 Operate
+- **Handle skipped instances** by reviewing and addressing validation failures
+- **Redeploy C8 models if necessary**:
+  - Remove `migrator` execution listeners from C8 models after successful migration
+  - Revert temporary changes in C8 models if necessary
+  - Migrate process instances to latest version of C8 models
+
+### 3. Validation Phase
+- **Check migrated instances** in Camunda 8 Operate
+- **Verify variable data** has been transferred correctly
+- **Test process continuation** by completing some migrated instances
+- **Monitor system performance** and resource usage
+- **Validate business logic** continues to work as expected
+
+## Development
+
+### Building from Source
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/camunda/c7-data-migrator.git
+   cd c7-data-migrator
+   ```
+
+2. **Build the project**:
+   ```bash
+   mvn clean install
+   ```
+
+3. **Find distribution** in `assembly/target/` directory
+
+### Running Tests
+
+Execute the full test suite:
+```bash
+mvn verify
+```
+
+Run specific test categories:
+```bash
+# Unit tests only
+mvn test
+
+# Integration tests only
+mvn integration-test
+```
+
+### Development Environment Setup
+
+1. **Install prerequisites**:
+   - Java 21+
+   - Maven 3.6+
+   - Docker (for testing with different databases)
+
+2. **Set up IDE** (IntelliJ IDEA/Eclipse):
+   - Import as Maven project
+   - Configure Java 21 as project SDK
+   - Install Spring Boot plugin (recommended)
+
+3. **Local development database**:
+   ```bash
+   # Start PostgreSQL with Docker
+   docker run --name postgres-dev \
+     -e POSTGRES_DB=camunda7 \
+     -e POSTGRES_USER=camunda \
+     -e POSTGRES_PASSWORD=camunda \
+     -p 5432:5432 -d postgres:17
+   ```
 
 ## Contributing
 
-Read the [Contributions Guide](https://github.com/camunda/camunda-bpm-platform/blob/master/CONTRIBUTING.md).
+We welcome contributions to the C7 Data Migrator! Here's how you can help:
 
-### License headers
+### Ways to Contribute
 
-Every source file in an open-source repository needs to contain the following license header at the top, formatted as this file:
-[license header](./license/header.txt).
+1. **Report bugs** - Create detailed issue reports
+2. **Suggest features** - Propose new functionality
+3. **Submit code** - Fix bugs or implement features
+4. **Improve documentation** - Help others understand the tool
+5. **Test and provide feedback** - Try the tool and share your experience
+
+See our [issue tracker](https://github.com/camunda/camunda-bpm-platform/issues).
+
+### Before Contributing
+
+1. **Read the [Contributions Guide](https://github.com/camunda/camunda-bpm-platform/blob/master/CONTRIBUTING.md)**
+2. **Check existing issues** to avoid duplicates
+3. **Discuss major changes** in an issue before implementing
+
+### Development Guidelines
+
+- **Follow Java coding standards** and existing code style
+- **Write tests** for new functionality
+- **Update documentation** when adding features
+- **Use meaningful commit messages**
+- **Keep changes focused** - one feature/fix per pull request
+
+### License Headers
+
+Every source file must contain the license header. See [license header template](./license/header.txt) for the exact format required.
+
+### Pull Request Process
+
+1. Fork the repository
+2. Create a feature branch from `main`
+3. Make your changes with tests
+4. Ensure all tests pass
+5. Update documentation if needed
+6. Submit a pull request with a clear description
 
 ## License
 
-The source files in this repository are made available under the [Camunda License Version 1.0](./CAMUNDA-LICENSE-1.0.txt)
+The source files in this repository are made available under the [Camunda License Version 1.0](./CAMUNDA-LICENSE-1.0.txt).
+
+---
+
+## Additional Resources
+
+- **[Camunda 8 Documentation](https://docs.camunda.io/)** - Official Camunda 8 documentation
+- **[Migration Guide](https://docs.camunda.io/docs/guides/migrating-from-camunda-platform-7/)** - General migration guidance
+- **[Migration Analyzer](https://migration-analyzer.consulting-sandbox.camunda.cloud/)** - Tool for migrating BPMN models
+- **[Community Forum](https://forum.camunda.io/)** - Get help from the community
+- **[GitHub Issues](https://github.com/camunda/c7-data-migrator/issues)** - Report bugs and request features
+
+---
+
+*Last updated: July 2025*
