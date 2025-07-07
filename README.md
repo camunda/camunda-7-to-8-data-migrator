@@ -249,7 +249,6 @@ The `VariableInterceptor` interface allows you to define custom logic that execu
 1. Create a class that implements `VariableInterceptor`.
 2. Annotate your class with `@Component` to register it as a Spring bean.
 3. Override the `execute(VariableInvocation invocation)` method to add your logic.
-4. Register your interceptor as a bean in your application in necessary.
 
 **Example:**
 ```java

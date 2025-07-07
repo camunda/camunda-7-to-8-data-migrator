@@ -153,10 +153,6 @@ public class MigratorAutoConfiguration {
   protected PlatformTransactionManager c7TransactionManager;
 
   @Bean
-  public DefaultVariableInterceptor defaultVariableInterceptor() {
-    return new DefaultVariableInterceptor();
-  }
-
   public ProcessEngineConfigurationImpl processEngineConfiguration() {
     var config = new SpringProcessEngineConfiguration();
     config.setDataSource(c7DataSource);
