@@ -142,7 +142,6 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  @Disabled // https://github.com/camunda/camunda-bpm-platform/issues/5244
   public void shouldSetDateVariable() {
     // deploy processes
     deployProcessInC7AndC8("simpleProcess.bpmn");
