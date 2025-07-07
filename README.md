@@ -283,7 +283,9 @@ The following interceptors are already implemented in the project:
 1. **DefaultVariableInterceptor**
 - Handles formatting and migration of primitive and object variables.
 
-2. **(Add other interceptors here as they are implemented in your project, e.g., CustomTypeVariableInterceptor, LoggingVariableInterceptor, etc.)**
+2. **DateVariableInterceptor**
+- Converts Camunda 7 Date variables to Camunda 8 compatible format `yyyy-MM-dd'T'HH:mm:ss.SSSZ`.
+- The interceptor is ordered with priority 10 to ensure it runs after the default interceptor.
 
 *To see all registered interceptors and their order, you can fetch them from the Spring context as described previously.*
 

@@ -20,6 +20,7 @@ import io.camunda.migrator.config.mybatis.MigratorConfiguration;
 import io.camunda.migrator.config.property.DataSourceProperties;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.converter.ConverterConfiguration;
+import io.camunda.migrator.impl.DateVariableInterceptor;
 import io.camunda.migrator.impl.DefaultVariableInterceptor;
 import java.util.Optional;
 import javax.sql.DataSource;
@@ -155,6 +156,11 @@ public class MigratorAutoConfiguration {
   @Bean
   public DefaultVariableInterceptor defaultVariableInterceptor() {
     return new DefaultVariableInterceptor();
+  }
+
+  @Bean
+  public DateVariableInterceptor dateVariableInterceptor() {
+    return new DateVariableInterceptor();
   }
 
   @Bean
