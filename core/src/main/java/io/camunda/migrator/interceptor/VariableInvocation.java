@@ -40,9 +40,6 @@ public class VariableInvocation {
    * @return the {@link MigrationVariableDto}
    */
   public MigrationVariableDto getMigrationVariable() {
-    if (migrationVariable == null) {
-      migrationVariable = new MigrationVariableDto(c7Variable.getName(), c7Variable.getValue());
-    }
     return migrationVariable;
   }
 
