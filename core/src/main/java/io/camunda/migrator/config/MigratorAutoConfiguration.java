@@ -170,6 +170,7 @@ public class MigratorAutoConfiguration {
     config.setTransactionManager(c7TransactionManager);
     config.setHistory(HISTORY_AUTO);
     config.setJobExecutorActivate(false);
+    config.setMetricsEnabled(false);
 
     String tablePrefix = migratorProperties.getC7().getDataSource().getTablePrefix();
     if (tablePrefix != null) {
