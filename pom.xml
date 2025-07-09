@@ -18,6 +18,12 @@
 
   <name>C7 Data Migrator - Root</name>
 
+  <licenses>
+    <license>
+      <name>Camunda License v1.0</name>
+    </license>
+  </licenses>
+
   <properties>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
