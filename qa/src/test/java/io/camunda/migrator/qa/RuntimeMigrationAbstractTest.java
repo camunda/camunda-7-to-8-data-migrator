@@ -23,8 +23,6 @@ import io.camunda.process.test.api.CamundaSpringProcessTest;
 import java.util.List;
 
 import java.util.Optional;
-import org.assertj.core.api.AbstractIntegerAssert;
-import org.assertj.core.api.AssertionsForClassTypes;
 import org.awaitility.Awaitility;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
@@ -38,6 +36,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @CamundaSpringProcessTest
+@WithMultiDb
 public abstract class RuntimeMigrationAbstractTest {
 
   // Migrator ---------------------------------------
@@ -79,7 +78,6 @@ public abstract class RuntimeMigrationAbstractTest {
 
     // reset runtime migrator
     runtimeMigrator.setMode(MIGRATE);
-    runtimeMigrator.setBatchSize(RuntimeMigrator.DEFAULT_BATCH_SIZE);
   }
 
   protected void deployCamunda7Process(String resourcePath) {

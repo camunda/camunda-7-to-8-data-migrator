@@ -49,7 +49,7 @@ public class ExceptionUtils {
     }
   }
 
-  protected static RuntimeMigratorException wrapException(String message, RuntimeException e) {
+  protected static RuntimeMigratorException wrapException(String message, Exception e) {
     var exception = new RuntimeMigratorException(message, e);
     LOGGER.error(message, exception);
     return exception;

@@ -7,17 +7,18 @@
  */
 package io.camunda.migrator;
 
-import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
-import static io.camunda.migrator.persistence.IdKeyMapper.TYPE;
+import static io.camunda.migrator.ExceptionUtils.callApi;
 import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
+import static io.camunda.migrator.persistence.IdKeyMapper.TYPE;
 import static io.camunda.zeebe.model.bpmn.Bpmn.readModelFromStream;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.search.response.ProcessDefinition;
+import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.util.PrintUtils;
 import io.camunda.migrator.persistence.IdKeyDbModel;
 import io.camunda.migrator.persistence.IdKeyMapper;
@@ -28,10 +29,12 @@ import io.camunda.zeebe.model.bpmn.instance.StartEvent;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.camunda.bpm.engine.HistoryService;
@@ -59,8 +62,6 @@ public class RuntimeMigrator {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(RuntimeMigrator.class);
 
-  public final static int DEFAULT_BATCH_SIZE = 500;
-
   @Autowired
   protected RepositoryService repositoryService;
 
@@ -76,8 +77,12 @@ public class RuntimeMigrator {
   @Autowired
   protected CamundaClient camundaClient;
 
-  @Value("${migrator.batch-size:" + DEFAULT_BATCH_SIZE + "}")
-  protected int batchSize;
+  @Autowired
+  protected MigratorProperties migratorProperties;
+
+  @Autowired
+  private ApplicationContext context;
+
 
   protected MigratorMode mode = MIGRATE;
 
@@ -102,10 +107,22 @@ public class RuntimeMigrator {
 
       } else if (legacyProcessInstance.skippedPreviously() || callApi(() -> !idKeyMapper.checkExists(legacyProcessInstanceId))) {
         LOGGER.debug("Starting new C8 process instance with legacyId: [{}]", legacyProcessInstanceId);
-        Long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
-        LOGGER.debug("Started C8 process instance with processInstanceKey: [{}]", processInstanceKey);
-        if (processInstanceKey != null) {
-          storeMapping(legacyProcessInstanceId, startDate, processInstanceKey);
+        Long processInstanceKey = null;
+        try {
+          processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
+          LOGGER.debug("Started C8 process instance with processInstanceKey: [{}]", processInstanceKey);
+          if (processInstanceKey != null) {
+            storeMapping(legacyProcessInstanceId, startDate, processInstanceKey);
+          }
+        } catch (VariableInterceptorException e) {
+          LOGGER.info(
+              "Skipping process instance with legacyId: {}; due to: {} "
+                  + "Enable DEBUG level to print the stacktrace.",
+              legacyProcessInstanceId, e.getMessage());
+          LOGGER.debug("Stacktrace:", e);
+          if (!legacyProcessInstance.skippedPreviously()) {
+            storeMapping(legacyProcessInstanceId, startDate, null);
+          }
         }
       }
     });
@@ -115,9 +132,9 @@ public class RuntimeMigrator {
 
   protected void listSkippedProcessInstances() {
    new Pagination<String>()
-        .batchSize(batchSize)
+        .batchSize(getBatchSize())
         .maxCount(idKeyMapper::findSkippedCount)
-        .page(offset -> idKeyMapper.findSkipped(offset, batchSize)
+        .page(offset -> idKeyMapper.findSkipped(offset, getBatchSize())
             .stream()
             .map(IdKeyDbModel::id)
             .collect(Collectors.toList()))
@@ -140,10 +157,10 @@ public class RuntimeMigrator {
 
     if (RETRY_SKIPPED.equals(mode)) {
       new Pagination<IdKeyDbModel>()
-          .batchSize(batchSize)
+          .batchSize(getBatchSize())
           .maxCount(idKeyMapper::findSkippedCount)
           // Hardcode offset to 0 since each callback updates the database and leads to fresh results.
-          .page(offset -> idKeyMapper.findSkipped(0, batchSize))
+          .page(offset -> idKeyMapper.findSkipped(0, getBatchSize()))
           .callback(storeMappingConsumer);
 
     } else {
@@ -163,9 +180,9 @@ public class RuntimeMigrator {
           .asc();
 
       new Pagination<IdKeyDbModel>()
-          .batchSize(batchSize)
+          .batchSize(getBatchSize())
           .maxCount(processInstanceQuery::count)
-          .page(offset -> processInstanceQuery.listPage(offset, batchSize)
+          .page(offset -> processInstanceQuery.listPage(offset, getBatchSize())
               .stream()
               .map(hpi -> new IdKeyDbModel(hpi.getId(), hpi.getStartTime()))
               .collect(Collectors.toList()))
@@ -189,7 +206,7 @@ public class RuntimeMigrator {
     }
   }
 
-  protected Long startNewProcessInstance(String legacyProcessInstanceId) {
+  protected Long startNewProcessInstance(String legacyProcessInstanceId) throws VariableInterceptorException {
     var processInstanceQuery = runtimeService.createProcessInstanceQuery().processInstanceId(legacyProcessInstanceId);
 
     String fetchProcessIdError = "Process instance fetching failed for legacyId: " + legacyProcessInstanceId;
@@ -197,10 +214,13 @@ public class RuntimeMigrator {
     if (processInstance != null) {
       String bpmnProcessId = processInstance.getProcessDefinitionKey();
 
+      // Ensure all variables are fetched and can be transformed before starting the new instance
+      Map<String, Map<String, Object>> allVariables = getAllVariables(legacyProcessInstanceId);
+
       var createProcessInstance = camundaClient.newCreateInstanceCommand()
           .bpmnProcessId(bpmnProcessId)
           .latestVersion()
-          .variables(getGlobalVariables(legacyProcessInstanceId));
+          .variables(getGlobalVariables(allVariables, legacyProcessInstanceId));
 
       String createProcessInstanceErrorMessage = "Creating process instance failed for legacyId: " + legacyProcessInstanceId;
       return callApi(createProcessInstance::execute, createProcessInstanceErrorMessage).getProcessInstanceKey();
@@ -210,14 +230,21 @@ public class RuntimeMigrator {
     }
   }
 
-  protected Map<String, Object> getGlobalVariables(String legacyProcessInstanceId) {
+  protected Map<String, Map<String, Object>> getAllVariables(String legacyProcessInstanceId) throws VariableInterceptorException {
     VariableInstanceQuery variableQuery = runtimeService.createVariableInstanceQuery()
-        .activityInstanceIdIn(legacyProcessInstanceId);
+        .processInstanceIdIn(legacyProcessInstanceId);
 
-    Map<String, Object> globalVariables = new Pagination<VariableInstance>()
-        .batchSize(batchSize)
+    Map<String, Map<String, Object>> allVariables = new Pagination<VariableInstance>()
+        .batchSize(getBatchSize())
         .query(variableQuery)
-        .toVariableMap();
+        .context(context)
+        .toVariableMapAll();
+    return allVariables;
+  }
+
+  protected Map<String, Object> getGlobalVariables(Map<String, Map<String, Object>> allVariables,
+                                                   String legacyProcessInstanceId) {
+    Map<String, Object> globalVariables = allVariables.getOrDefault(legacyProcessInstanceId, new HashMap<>());
 
     globalVariables.put("legacyId", legacyProcessInstanceId);
     return globalVariables;
@@ -234,7 +261,7 @@ public class RuntimeMigrator {
         .rootProcessInstanceId(legacyProcessInstanceId);
 
     new Pagination<ProcessInstance>()
-        .batchSize(batchSize)
+        .batchSize(getBatchSize())
         .query(processInstanceQuery)
         .callback(processInstance -> {
           String processInstanceId = processInstance.getId();
@@ -301,9 +328,6 @@ public class RuntimeMigrator {
         });
   }
 
-  /**
-   * Validates if flow nodes exist in C8 model.
-   */
   protected void validateC8FlowNodes(BpmnModelInstance c8BpmnModelInstance, String activityId) {
     if (c8BpmnModelInstance.getModelElementById(activityId) == null) {
       throw new IllegalStateException(String.format("Flow node with id [%s] "
@@ -312,7 +336,6 @@ public class RuntimeMigrator {
   }
 
   protected void validateC7FlowNodes(org.camunda.bpm.model.bpmn.BpmnModelInstance c7BpmnModelInstance, String activityId) {
-    // validate no multi-instance loop characteristics
     FlowElement element = c7BpmnModelInstance.getModelElementById(activityId);
     if ((element instanceof Activity activity)
         && (activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics)) {
@@ -334,7 +357,7 @@ public class RuntimeMigrator {
     do {
       var jobQuery = camundaClient.newActivateJobsCommand()
           .jobType("migrator")
-          .maxJobsToActivate(batchSize);
+          .maxJobsToActivate(getBatchSize());
 
       String fetchMigratorJobsErrorMessage = "Error while fetching migrator jobs";
       migratorJobs = callApi(() -> jobQuery.execute().getJobs(), fetchMigratorJobsErrorMessage);
@@ -364,9 +387,10 @@ public class RuntimeMigrator {
           String activityId = flowNode.activityId();
           var variableQuery = runtimeService.createVariableInstanceQuery().activityInstanceIdIn(activityInstanceId);
 
-          Map<String, Object> localVariables = new Pagination<VariableInstance>().batchSize(batchSize)
+          Map<String, Object> localVariables = new Pagination<VariableInstance>().batchSize(getBatchSize())
               .query(variableQuery)
-              .toVariableMap();
+              .context(context)
+              .toVariableMapSingleActivity();
 
           String subProcessInstanceId = flowNode.subProcessInstanceId();
           if (subProcessInstanceId != null) {
@@ -387,7 +411,7 @@ public class RuntimeMigrator {
     Arrays.asList(activityInstance.getChildActivityInstances()).forEach(actInst -> {
       activeActivities.putAll(getActiveActivityIdsById(actInst, activeActivities));
 
-      if (!"subProcess".equals(actInst.getActivityType())) {
+      if (!"subProcess".equals(actInst.getActivityType()) && !actInst.getActivityId().endsWith("#multiInstanceBody") ) {
         activeActivities.put(actInst.getId(), new FlowNode(actInst.getActivityId(), ((ActivityInstanceImpl) actInst).getSubProcessInstanceId()));
       }
     });
@@ -404,8 +428,8 @@ public class RuntimeMigrator {
     return activeActivities;
   }
 
-  public void setBatchSize(int batchSize) {
-    this.batchSize = batchSize;
+  public int getBatchSize() {
+    return migratorProperties.getBatchSize();
   }
 
   public record FlowNode(String activityId, String subProcessInstanceId) {

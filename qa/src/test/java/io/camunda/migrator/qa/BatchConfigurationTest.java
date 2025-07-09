@@ -20,16 +20,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 @ExtendWith(OutputCaptureExtension.class)
 @ActiveProfiles("logging-test")
+@TestPropertySource(properties = {
+    "camunda.migrator.batch-size=2"
+})
 class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
 
   public static final String MIGRATOR_JOBS_FOUND = "Migrator jobs found: ";
 
   @Test
   public void shouldPerformPaginationForProcessInstances(CapturedOutput output) {
-    runtimeMigrator.setBatchSize(2);
     // deploy processes
     deployProcessInC7AndC8("simpleProcess.bpmn");
 
@@ -53,7 +56,6 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
 
   @Test
   public void shouldPerformPaginationForMigrationJobs(CapturedOutput output) {
-    runtimeMigrator.setBatchSize(2);
     // deploy processes
     deployProcessInC7AndC8("simpleProcess.bpmn");
 
@@ -96,8 +98,8 @@ class BatchConfigurationTest extends RuntimeMigrationAbstractTest {
 
     Matcher matcher = Pattern.compile(MIGRATOR_JOBS_FOUND + "1").matcher(output.getOut());
     assertThat(matcher.results().count()).isEqualTo(3);
-    assertThat(output.getOut()).contains("Method: #fetchProcessInstancesToMigrate, max count: 1, offset: 0, batch size: 500");
-    assertThat(output.getOut()).contains("Method: #validateProcessInstanceState, max count: 3, offset: 0, batch size: 500");
+    assertThat(output.getOut()).contains("Method: #fetchProcessInstancesToMigrate, max count: 1, offset: 0, batch size: 2");
+    assertThat(output.getOut()).contains("Method: #validateProcessInstanceState, max count: 3, offset: 0, batch size: 2");
   }
 
   private void deployModels(String rootId, String level1Id, String level2Id) {

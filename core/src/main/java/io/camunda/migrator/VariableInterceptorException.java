@@ -5,17 +5,10 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.config.property;
+package io.camunda.migrator;
 
-public class C7Properties {
-
-  protected DataSourceProperties dataSource;
-
-  public DataSourceProperties getDataSource() {
-    return dataSource;
-  }
-
-  public void setDataSource(DataSourceProperties dataSource) {
-    this.dataSource = dataSource;
+public class VariableInterceptorException extends MigratorException {
+  public VariableInterceptorException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

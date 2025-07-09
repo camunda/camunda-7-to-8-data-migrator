@@ -5,14 +5,13 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.config;
+package io.camunda.migrator.config.mybatis;
 
 import java.util.Properties;
 import javax.sql.DataSource;
 import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
-import org.springframework.context.annotation.Configuration;
 
-public class RdbmsDatabaseIdProvider extends VendorDatabaseIdProvider {
+public class DbVendorProvider extends VendorDatabaseIdProvider {
 
   private static final Properties VENDOR_PROPERTIES = new Properties();
 
@@ -26,7 +25,7 @@ public class RdbmsDatabaseIdProvider extends VendorDatabaseIdProvider {
 
   private final String databaseIdOverride;
 
-  public RdbmsDatabaseIdProvider(final String databaseIdOverride) {
+  public DbVendorProvider(final String databaseIdOverride) {
     this.databaseIdOverride = databaseIdOverride;
     setProperties(VENDOR_PROPERTIES);
   }
