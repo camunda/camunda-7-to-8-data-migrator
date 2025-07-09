@@ -68,4 +68,54 @@ class MigrationOrderedByStartDateTest extends RuntimeMigrationAbstractTest {
     assertThat(response.get().totalItems()).isEqualTo(5);
   }
 
+  @Test
+  public void shouldRerunWithProcessInstancesMigratedAndValidationFailure() {
+    // given
+    deployProcessInC7AndC8("simpleProcess.bpmn");
+
+    runtimeService.startProcessInstanceByKey("simpleProcess");
+    runtimeService.startProcessInstanceByKey("simpleProcess");
+
+    runtimeMigrator.migrate();
+
+    Supplier<SearchResponsePage> response = () -> camundaClient.newProcessInstanceSearchRequest().execute().page();
+
+    // assume
+    assertThat(response.get().totalItems()).isEqualTo(2);
+
+    deployCamunda8Process("simpleProcessWithoutListener.bpmn");
+
+    // when
+    runtimeMigrator.migrate();
+
+    // then
+    assertThat(response.get().totalItems()).isEqualTo(2);
+  }
+
+  @Test
+  public void shouldRerunWithProcessInstancesSkippedAndValidationFailure() {
+    // given
+    deployCamunda7Process("simpleProcess.bpmn");
+    deployCamunda8Process("simpleProcessWithoutListener.bpmn");
+
+    runtimeService.startProcessInstanceByKey("simpleProcess");
+    runtimeService.startProcessInstanceByKey("simpleProcess");
+
+    runtimeMigrator.migrate();
+
+    Supplier<SearchResponsePage> response = () -> camundaClient.newProcessInstanceSearchRequest().execute().page();
+
+    // assume
+    assertThat(response.get().totalItems()).isEqualTo(0);
+
+    deployCamunda8Process("simpleProcessMissingTask.bpmn");
+
+    // when
+    runtimeMigrator.migrate();
+
+    // then
+    assertThat(response.get().totalItems()).isEqualTo(0);
+  }
+
+
 }

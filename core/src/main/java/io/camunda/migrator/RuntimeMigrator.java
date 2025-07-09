@@ -165,11 +165,10 @@ public class RuntimeMigrator {
 
     } else {
       LOGGER.debug("Fetching latest start date of process instances");
-      Date latestStartDate = callApi(() -> idKeyMapper.findLatestStartDateByType(TYPE.RUNTIME_PROCESS_INSTANCE));
-      LOGGER.debug("Latest start date: {}", latestStartDate);
+      IdKeyDbModel latestProcessInstance = callApi(() -> idKeyMapper.findByTypeOrderedByStartDateDesc(TYPE.RUNTIME_PROCESS_INSTANCE));
+      LOGGER.debug("Latest process instance [{}]", latestProcessInstance);
 
       HistoricProcessInstanceQuery processInstanceQuery = historyService.createHistoricProcessInstanceQuery()
-          .startedAfter(latestStartDate)
           .rootProcessInstances()
           .unfinished()
           .orderByProcessInstanceStartTime()
@@ -178,6 +177,12 @@ public class RuntimeMigrator {
           // Without second criteria and PIs have same start time, order is non-deterministic.
           .orderByProcessInstanceId()
           .asc();
+
+      if (latestProcessInstance != null) {
+        // Skip process instance if already migrated.
+        processInstanceQuery.processInstanceIdNotIn(latestProcessInstance.id());
+        processInstanceQuery.startedAfter(latestProcessInstance.startDate());
+      }
 
       new Pagination<IdKeyDbModel>()
           .batchSize(getBatchSize())
