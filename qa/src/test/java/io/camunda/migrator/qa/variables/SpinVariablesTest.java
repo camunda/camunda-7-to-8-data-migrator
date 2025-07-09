@@ -5,7 +5,7 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.qa;
+package io.camunda.migrator.qa.variables;
 
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -13,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.camunda.client.api.command.ClientException;
 import io.camunda.client.api.search.response.Variable;
+import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
 import io.camunda.process.test.api.CamundaAssert;
 import java.util.List;
 import org.awaitility.Awaitility;

@@ -11,6 +11,7 @@ import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 import io.camunda.client.api.search.response.SearchResponsePage;
+import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
 import java.util.function.Supplier;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;

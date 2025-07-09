@@ -7,7 +7,7 @@
  */
 package io.camunda.migrator;
 
-import static io.camunda.migrator.ExceptionUtils.callApi;
+import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
@@ -19,6 +19,9 @@ import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.search.response.ProcessDefinition;
 import io.camunda.migrator.config.property.MigratorProperties;
+import io.camunda.migrator.exception.VariableInterceptorException;
+import io.camunda.migrator.impl.Pagination;
+import io.camunda.migrator.impl.util.PrintUtils;
 import io.camunda.migrator.persistence.IdKeyDbModel;
 import io.camunda.migrator.persistence.IdKeyMapper;
 import io.camunda.zeebe.model.bpmn.BpmnModelInstance;

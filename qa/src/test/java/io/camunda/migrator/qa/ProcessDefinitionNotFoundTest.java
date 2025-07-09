@@ -12,6 +12,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.persistence.IdKeyDbModel;
 import io.camunda.migrator.persistence.IdKeyMapper;
+import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
 import io.github.netmikey.logunit.api.LogCapturer;
 import java.util.List;
 import org.camunda.bpm.engine.impl.util.ClockUtil;

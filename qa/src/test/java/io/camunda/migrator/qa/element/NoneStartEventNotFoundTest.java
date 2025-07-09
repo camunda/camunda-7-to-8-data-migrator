@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 
 import io.camunda.migrator.RuntimeMigrator;
-import io.camunda.migrator.qa.RuntimeMigrationAbstractTest;
+import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
 import io.github.netmikey.logunit.api.LogCapturer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
