@@ -1,0 +1,19 @@
+camunda:
+  migrator:
+    # Configure variable interceptor plugins via YAML
+    variable-interceptor-plugins:
+      - class-name: io.camunda.migrator.qa.variables.YamlConfiguredVariableInterceptor
+        properties:
+          logMessage: "Hello from YAML interceptor configured via properties"
+          enableTransformation: true
+          targetVariable: "yamlVar"
+
+    # Other configuration remains the same
+    auto-ddl: true
+    c7:
+      data-source:
+        auto-ddl: true
+
+logging:
+  level:
+    io.camunda.migrator.qa.variables.YamlConfiguredVariableInterceptor: INFO
