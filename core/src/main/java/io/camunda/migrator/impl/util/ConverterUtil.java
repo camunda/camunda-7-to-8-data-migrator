@@ -30,7 +30,7 @@ public class ConverterUtil {
     return Protocol.encodePartitionId(C7_HISTORY_PARTITION_ID, secureRandom.nextLong(getUpperBound() + 1));
   }
 
-  protected static long getUpperBound() {
+  public static long getUpperBound() {
     return (1L << KEY_BITS) - 1;
   }
 

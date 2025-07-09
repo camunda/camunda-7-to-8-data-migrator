@@ -7,11 +7,12 @@
  */
 package io.camunda.migrator.history;
 
+import io.camunda.migrator.impl.util.ConverterUtil;
 import io.camunda.zeebe.protocol.Protocol;
 import org.junit.jupiter.api.Test;
 
-import static io.camunda.migrator.history.ConverterUtil.C7_HISTORY_PARTITION_ID;
-import static io.camunda.migrator.history.ConverterUtil.getUpperBound;
+import static io.camunda.migrator.impl.util.ConverterUtil.C7_HISTORY_PARTITION_ID;
+import static io.camunda.migrator.impl.util.ConverterUtil.getUpperBound;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 

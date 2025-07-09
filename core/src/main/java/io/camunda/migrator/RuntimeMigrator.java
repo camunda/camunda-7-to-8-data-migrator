@@ -7,7 +7,7 @@
  */
 package io.camunda.migrator;
 
-import static io.camunda.migrator.ExceptionUtils.callApi;
+import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
@@ -19,6 +19,8 @@ import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.search.response.ProcessDefinition;
 import io.camunda.migrator.config.property.MigratorProperties;
+import io.camunda.migrator.exception.VariableInterceptorException;
+import io.camunda.migrator.impl.Pagination;
 import io.camunda.migrator.impl.util.PrintUtils;
 import io.camunda.migrator.persistence.IdKeyDbModel;
 import io.camunda.migrator.persistence.IdKeyMapper;
@@ -29,12 +31,10 @@ import io.camunda.zeebe.model.bpmn.instance.StartEvent;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.camunda.bpm.engine.HistoryService;
@@ -54,7 +54,7 @@ import org.camunda.bpm.model.bpmn.instance.MultiInstanceLoopCharacteristics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 @Component

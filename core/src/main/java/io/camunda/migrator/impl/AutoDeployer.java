@@ -11,6 +11,7 @@ import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.DeployResourceCommandStep1;
 import io.camunda.migrator.config.property.C8Properties;
 import io.camunda.migrator.config.property.MigratorProperties;
+import io.camunda.migrator.impl.util.ExceptionUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

@@ -5,10 +5,11 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator;
+package io.camunda.migrator.impl;
 
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 
+import io.camunda.migrator.exception.VariableInterceptorException;
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInvocation;
 import java.util.ArrayList;
