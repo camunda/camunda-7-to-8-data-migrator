@@ -11,6 +11,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 
 import io.camunda.migrator.impl.AutoDeployer;
 import io.camunda.migrator.config.property.MigratorProperties;
+import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
 import java.nio.file.FileSystems;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

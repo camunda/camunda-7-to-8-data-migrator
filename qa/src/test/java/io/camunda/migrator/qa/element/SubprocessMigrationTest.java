@@ -8,13 +8,13 @@
 
 package io.camunda.migrator.qa.element;
 
-import static io.camunda.migrator.qa.MigrationTestConstants.LEGACY_ID_VAR_NAME;
+import static io.camunda.migrator.qa.util.MigrationTestConstants.LEGACY_ID_VAR_NAME;
 import static io.camunda.process.test.api.CamundaAssert.assertThat;
 import static io.camunda.process.test.api.assertions.ElementSelectors.byId;
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
 import static io.camunda.process.test.api.assertions.UserTaskSelectors.byTaskName;
 
-import io.camunda.migrator.qa.RuntimeMigrationAbstractTest;
+import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
 import io.camunda.client.api.search.response.Variable;
 import java.util.Optional;
 import org.camunda.bpm.engine.runtime.ProcessInstance;

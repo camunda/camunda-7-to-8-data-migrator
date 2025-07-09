@@ -10,6 +10,7 @@ package io.camunda.migrator.qa;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.camunda.client.api.search.response.SearchResponsePage;
+import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
 import java.util.Date;
 import java.util.function.Supplier;
 import org.camunda.bpm.engine.impl.util.ClockUtil;
