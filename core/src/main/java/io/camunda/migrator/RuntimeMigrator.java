@@ -82,7 +82,7 @@ public class RuntimeMigrator {
   private ApplicationContext context;
 
   @Autowired
-  private List<VariableInterceptor> variableInterceptors;
+  private List<VariableInterceptor> configuredVariableInterceptors;
 
 
   protected MigratorMode mode = MIGRATE;
@@ -239,7 +239,7 @@ public class RuntimeMigrator {
         .batchSize(getBatchSize())
         .query(variableQuery)
         .context(context)
-        .variableInterceptors(variableInterceptors)
+        .variableInterceptors(configuredVariableInterceptors)
         .toVariableMapAll();
     return allVariables;
   }
@@ -392,7 +392,7 @@ public class RuntimeMigrator {
           Map<String, Object> localVariables = new Pagination<VariableInstance>().batchSize(getBatchSize())
               .query(variableQuery)
               .context(context)
-              .variableInterceptors(variableInterceptors)
+              .variableInterceptors(configuredVariableInterceptors)
               .toVariableMapSingleActivity();
 
           String subProcessInstanceId = flowNode.subProcessInstanceId();

@@ -30,7 +30,7 @@ import org.springframework.test.context.ActiveProfiles;
 @ExtendWith(OutputCaptureExtension.class)
 @ActiveProfiles("interceptor-test")
 @SpringBootTest
-public class YamlVariableInterceptorConfigurationTest extends RuntimeMigrationAbstractTest {
+public class YamlVariableInterceptorTest extends RuntimeMigrationAbstractTest {
 
   @Autowired
   private MigratorProperties migratorProperties;
@@ -41,13 +41,12 @@ public class YamlVariableInterceptorConfigurationTest extends RuntimeMigrationAb
   @Test
   public void shouldLoadVariableInterceptorFromYamlConfiguration() {
     // Verify that the YAML configuration is loaded correctly
-    assertThat(migratorProperties.getVariableInterceptorPlugins()).isNotNull();
-    assertThat(migratorProperties.getVariableInterceptorPlugins()).hasSize(1);
+    assertThat(migratorProperties.getInterceptors()).isNotNull();
+    assertThat(migratorProperties.getInterceptors()).hasSize(1);
 
-    var pluginConfig = migratorProperties.getVariableInterceptorPlugins().get(0);
-    assertThat(pluginConfig.getClassName()).isEqualTo("io.camunda.migrator.qa.variables.YamlConfiguredVariableInterceptor");
-    assertThat(pluginConfig.getProperties()).containsEntry("prefix", "YAML_TEST_");
-    assertThat(pluginConfig.getProperties()).containsEntry("targetVariable", "yamlVar");
+    var interceptor = migratorProperties.getInterceptors().get(0);
+    assertThat(interceptor.getClassName()).isEqualTo("io.camunda.migrator.qa.variables.YamlVariableInterceptor");
+    assertThat(interceptor.getProperties()).containsEntry("targetVariable", "yamlVar");
   }
 
   @Test
@@ -56,19 +55,18 @@ public class YamlVariableInterceptorConfigurationTest extends RuntimeMigrationAb
     assertThat(configuredVariableInterceptors).isNotNull();
 
     boolean hasYamlInterceptor = configuredVariableInterceptors.stream()
-        .anyMatch(interceptor -> interceptor instanceof YamlConfiguredVariableInterceptor);
+        .anyMatch(interceptor -> interceptor instanceof YamlVariableInterceptor);
 
     assertThat(hasYamlInterceptor).isTrue();
 
     // Find the YAML interceptor and verify its configuration
-    YamlConfiguredVariableInterceptor yamlInterceptor = configuredVariableInterceptors.stream()
-        .filter(interceptor -> interceptor instanceof YamlConfiguredVariableInterceptor)
-        .map(YamlConfiguredVariableInterceptor.class::cast)
+    YamlVariableInterceptor yamlInterceptor = configuredVariableInterceptors.stream()
+        .filter(interceptor -> interceptor instanceof YamlVariableInterceptor)
+        .map(YamlVariableInterceptor.class::cast)
         .findFirst()
         .orElse(null);
 
     assertThat(yamlInterceptor).isNotNull();
-    assertThat(yamlInterceptor.getPrefix()).isEqualTo("YAML_TEST_");
     assertThat(yamlInterceptor.getLogMessage()).isEqualTo("Hello from YAML interceptor configured via properties");
     assertThat(yamlInterceptor.isEnableTransformation()).isTrue();
     assertThat(yamlInterceptor.getTargetVariable()).isEqualTo("yamlVar");
@@ -92,9 +90,9 @@ public class YamlVariableInterceptorConfigurationTest extends RuntimeMigrationAb
 
     // then verify that variables were transformed by the YAML-configured interceptor
     CamundaAssert.assertThat(byProcessId("simpleProcess"))
-        .hasVariable("yamlVar", "YAML_TEST_originalValue");
+        .hasVariable("yamlVar", "transformedValue");
     CamundaAssert.assertThat(byProcessId("userTaskProcessId"))
-        .hasVariable("yamlVar", "YAML_TEST_anotherValue");
+        .hasVariable("yamlVar", "transformedValue");
 
     // verify interceptor log messages appear
     assertThat(output.getOut()).contains("Hello from YAML interceptor configured via properties");
@@ -102,8 +100,8 @@ public class YamlVariableInterceptorConfigurationTest extends RuntimeMigrationAb
     assertThat(matcher.results().count()).isEqualTo(2);
 
     // verify transformation log messages
-    assertThat(output.getOut()).contains("Transformed variable yamlVar from 'originalValue' to 'YAML_TEST_originalValue'");
-    assertThat(output.getOut()).contains("Transformed variable yamlVar from 'anotherValue' to 'YAML_TEST_anotherValue'");
+    assertThat(output.getOut()).contains("Transformed variable yamlVar from 'originalValue' to 'transformedValue'");
+    assertThat(output.getOut()).contains("Transformed variable yamlVar from 'anotherValue' to 'transformedValue'");
   }
 
   @Test
@@ -152,7 +150,7 @@ public class YamlVariableInterceptorConfigurationTest extends RuntimeMigrationAb
     // then both interceptors should have executed
     CamundaAssert.assertThat(byProcessId("simpleProcess"))
         .hasVariable("varIntercept", "Hello") // Transformed by Spring @Component interceptor
-        .hasVariable("yamlVar", "YAML_TEST_yamlValue"); // Transformed by YAML interceptor
+        .hasVariable("yamlVar", "transformedValue"); // Transformed by YAML interceptor
 
     // verify both interceptors logged their messages
     assertThat(output.getOut()).contains("Hello from interceptor"); // From TestVariableInterceptor

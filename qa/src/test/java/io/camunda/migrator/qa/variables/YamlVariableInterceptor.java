@@ -12,24 +12,18 @@ import io.camunda.migrator.interceptor.VariableInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Test variable interceptor that is configured via YAML instead of Spring annotations.
- * This interceptor demonstrates the plugin system capability to load interceptors
- * from YAML configuration without requiring @Component annotations.
- */
-public class YamlConfiguredVariableInterceptor implements VariableInterceptor {
+public class YamlVariableInterceptor implements VariableInterceptor {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(YamlConfiguredVariableInterceptor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(YamlVariableInterceptor.class);
 
   // Configurable properties that can be set via YAML
-  private String prefix = "YAML_";
-  private String logMessage = "Hello from YAML interceptor";
+  private String logMessage = "Hello from YAML interceptor configured via properties";
   private boolean enableTransformation = true;
   private String targetVariable = "yamlVar";
 
   @Override
   public void execute(VariableInvocation invocation) throws Exception {
-    LOGGER.debug("Start {} execution for variable: {}", YamlConfiguredVariableInterceptor.class,
+    LOGGER.debug("Start {} execution for variable: {}", YamlVariableInterceptor.class,
         invocation.getC7Variable().getName());
 
     String variableName = invocation.getC7Variable().getName();
@@ -39,7 +33,7 @@ public class YamlConfiguredVariableInterceptor implements VariableInterceptor {
 
       if (enableTransformation) {
         String originalValue = String.valueOf(invocation.getC7Variable().getValue());
-        String transformedValue = prefix + originalValue;
+        String transformedValue = "transformedValue";
         invocation.setVariableValue(transformedValue);
         LOGGER.info("Transformed variable {} from '{}' to '{}'", variableName, originalValue, transformedValue);
       }
@@ -54,15 +48,11 @@ public class YamlConfiguredVariableInterceptor implements VariableInterceptor {
       }
     }
 
-    LOGGER.debug("End {} execution for variable: {}", YamlConfiguredVariableInterceptor.class,
+    LOGGER.debug("End {} execution for variable: {}", YamlVariableInterceptor.class,
         invocation.getC7Variable().getName());
   }
 
   // Setter methods for YAML configuration
-  public void setPrefix(String prefix) {
-    this.prefix = prefix;
-  }
-
   public void setLogMessage(String logMessage) {
     this.logMessage = logMessage;
   }
@@ -76,10 +66,6 @@ public class YamlConfiguredVariableInterceptor implements VariableInterceptor {
   }
 
   // Getter methods for testing
-  public String getPrefix() {
-    return prefix;
-  }
-
   public String getLogMessage() {
     return logMessage;
   }
