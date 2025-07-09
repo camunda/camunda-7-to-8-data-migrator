@@ -28,7 +28,6 @@
   <select id="findAllIds">
     SELECT ID
     FROM ${prefix}MIGRATION_MAPPING
-    WHERE TYPE = 'RUNTIME_PROCESS_INSTANCE'
   </select>
 
   <update id="updateKeyById" parameterType="io.camunda.migrator.persistence.IdKeyDbModel">
