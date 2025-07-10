@@ -122,7 +122,7 @@ class MigrationOrderedByStartDateTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  public void shouldRerunSameStartDateWithProcessInstancesMigratedAndValidationFailure2() {
+  public void shouldRerunSameStartDateWithProcessInstancesMigratedAndValidationFailure() {
     // given
     deployProcessInC7AndC8("simpleProcess.bpmn");
 
@@ -147,7 +147,7 @@ class MigrationOrderedByStartDateTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  public void shouldRerunWithSameStartDateWithProcessInstancesSkippedAndValidationFailure2() {
+  public void shouldRerunWithSameStartDateWithProcessInstancesSkippedAndValidationFailure() {
     // given
     deployCamunda7Process("simpleProcess.bpmn");
     deployCamunda8Process("simpleProcessWithoutListener.bpmn");
