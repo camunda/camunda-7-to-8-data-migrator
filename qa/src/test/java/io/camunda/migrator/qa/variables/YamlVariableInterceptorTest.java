@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.interceptor.VariableInterceptor;
-import io.camunda.migrator.qa.RuntimeMigrationAbstractTest;
+import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
 import io.camunda.process.test.api.CamundaAssert;
 import java.util.List;
 import java.util.regex.Matcher;
