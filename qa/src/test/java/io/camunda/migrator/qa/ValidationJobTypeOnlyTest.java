@@ -6,24 +6,29 @@
  * except in compliance with the Camunda License 1.0.
  */
 
-package io.camunda.migrator.qa.runtime;
+package io.camunda.migrator.qa;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.migrator.RuntimeMigrator;
+import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
 import io.github.netmikey.logunit.api.LogCapturer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.springframework.test.context.TestPropertySource;
 
-public class MigratorListenerNotFoundTest extends RuntimeMigrationAbstractTest {
+@TestPropertySource(properties = {
+    "camunda.migrator.validation-job-type==if legacyId then \"migrator\" else \"noop\""
+})
+public class ValidationJobTypeOnlyTest extends RuntimeMigrationAbstractTest {
 
   @RegisterExtension
   protected LogCapturer logs = LogCapturer.create().captureForType(RuntimeMigrator.class);
 
   @Test
-  public void shouldSkipOnMissingListener() {
+  public void shouldUseCustomValidationJobTypeWithDefaultActivationType() {
     // given
-    deployer.deployProcessInC7AndC8("noMigratorListener.bpmn");
+    deployProcessInC7AndC8("noMigratorListener.bpmn");
 
     String id = runtimeService.startProcessInstanceByKey("noMigratorListener").getId();
 
@@ -37,17 +42,18 @@ public class MigratorListenerNotFoundTest extends RuntimeMigrationAbstractTest {
     assertThatProcessInstanceCountIsEqualTo(0);
 
     var events = logs.getEvents();
-    assertThat(events.stream().filter(event -> event.getMessage()
-        .contains(String.format("Skipping process instance with legacyId [%s]: "
-            + "Couldn't find execution listener of type 'migrator' "
-            + "on start event [Event_1px2j50] in C8 process with key", id))))
+    assertThat(events.stream()
+        .filter(event -> event.getMessage()
+            .matches(String.format(".*Skipping process instance with legacyId \\[%s\\]: "
+                + "Couldn't find execution listener of type '=if legacyId then \"migrator\" else \"noop\"' on start event "
+                + "\\[Event_1px2j50\\] in C8 process with key \\[(\\d+)\\]\\.", id))))
         .hasSize(1);
   }
 
   @Test
-  public void shouldSkipOnListenerWithWrongType() {
+  public void shouldUseCustomValidationJobTypeInListenerNotFoundMessage() {
     // given
-    deployer.deployProcessInC7AndC8("migratorListenerCustomType.bpmn");
+    deployProcessInC7AndC8("migratorListenerCustomType.bpmn");
 
     String id = runtimeService.startProcessInstanceByKey("migratorListenerCustomType").getId();
 
@@ -63,17 +69,18 @@ public class MigratorListenerNotFoundTest extends RuntimeMigrationAbstractTest {
     var events = logs.getEvents();
     assertThat(events.stream().filter(event -> event.getMessage()
         .matches(String.format(".*Skipping process instance with legacyId \\[%s\\]: "
-            + "No execution listener of type 'migrator' found on start event \\[Event_1px2j50\\] "
-            + "in C8 process with id \\[\\d+\\]\\. At least one migrator listener is required\\.", id))))
+            + "No execution listener of type '=if legacyId then \"migrator\" else \"noop\"' found on "
+            + "start event \\[Event_1px2j50\\] in C8 process with id \\[(\\d+)\\]\\. "
+            + "At least one '=if legacyId then \"migrator\" else \"noop\"' listener is required\\.", id))))
         .hasSize(1);
   }
 
   @Test
-  public void shouldNotSkipOnMissingListenerWithEmbeddedSubprocess() {
+  public void shouldUseCustomValidationJobTypeInListenerSucceed() {
     // given
-    deployer.deployProcessInC7AndC8("embeddedSubprocessWithoutMigratorListener.bpmn");
+    deployProcessInC7AndC8("migratorListenerFeel.bpmn");
 
-    String id = runtimeService.startProcessInstanceByKey("embeddedSubprocessWithoutMigratorListener").getId();
+    String id = runtimeService.startProcessInstanceByKey("migratorListenerFeel").getId();
 
     // assume
     assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(id).singleResult()).isNotNull();
