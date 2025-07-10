@@ -9,14 +9,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.camunda.migrator.persistence.IdKeyMapper">
 
-  <resultMap id="idKeyResultMap"
-             type="io.camunda.migrator.persistence.IdKeyDbModel">
-    <id property="id" column="ID" jdbcType="VARCHAR"/>
-    <result property="instanceKey" column="INSTANCE_KEY" jdbcType="BIGINT"/>
-    <result property="type" column="TYPE" jdbcType="VARCHAR"/>
-    <result property="startDate" column="START_DATE" jdbcType="TIMESTAMP"/>
-  </resultMap>
-
   <select id="findSkippedCount" resultType="long">
     SELECT COUNT(ID) FROM (
       <include refid="findSkippedByQueryCriteriaSql"/>
@@ -57,9 +49,9 @@
     <include refid="io.camunda.migrator.Commons.singleResultSql"/>
   </select>
 
-  <select id="findByTypeOrderedByStartDateDesc" parameterType="java.lang.String" resultMap="idKeyResultMap">
+  <select id="findLatestStartDateByType" parameterType="java.lang.String">
     <!-- No need to order with two criteria since we limit result to return exactly one start date -->
-    SELECT * FROM ${prefix}MIGRATION_MAPPING WHERE TYPE = '${type}' ORDER BY START_DATE DESC
+    SELECT START_DATE FROM ${prefix}MIGRATION_MAPPING WHERE TYPE = '${type}' ORDER BY START_DATE DESC
     <include refid="io.camunda.migrator.Commons.singleResultSql"/>
   </select>
 

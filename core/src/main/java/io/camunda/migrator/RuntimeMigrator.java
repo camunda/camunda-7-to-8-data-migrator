@@ -99,13 +99,15 @@ public class RuntimeMigrator {
     fetchProcessInstancesToMigrate(legacyProcessInstance -> {
 
       String legacyProcessInstanceId = legacyProcessInstance.id();
+      boolean unknown = callApi(() -> !idKeyMapper.checkExists(legacyProcessInstanceId));
+
       Date startDate = legacyProcessInstance.startDate();
-      if (skipProcessInstance(legacyProcessInstanceId)) {
+      if (unknown && skipProcessInstance(legacyProcessInstanceId)) {
         if (!legacyProcessInstance.skippedPreviously()) {
           storeMapping(legacyProcessInstanceId, startDate, null);
         }
 
-      } else if (legacyProcessInstance.skippedPreviously() || callApi(() -> !idKeyMapper.checkExists(legacyProcessInstanceId))) {
+      } else if (unknown || legacyProcessInstance.skippedPreviously()) {
         LOGGER.debug("Starting new C8 process instance with legacyId: [{}]", legacyProcessInstanceId);
         Long processInstanceKey = null;
         try {
@@ -165,10 +167,11 @@ public class RuntimeMigrator {
 
     } else {
       LOGGER.debug("Fetching latest start date of process instances");
-      IdKeyDbModel latestProcessInstance = callApi(() -> idKeyMapper.findByTypeOrderedByStartDateDesc(TYPE.RUNTIME_PROCESS_INSTANCE));
-      LOGGER.debug("Latest process instance [{}]", latestProcessInstance);
+      Date latestStartDate = callApi(() -> idKeyMapper.findLatestStartDateByType(TYPE.RUNTIME_PROCESS_INSTANCE));
+      LOGGER.debug("Latest start date: {}", latestStartDate);
 
       HistoricProcessInstanceQuery processInstanceQuery = historyService.createHistoricProcessInstanceQuery()
+          .startedAfter(latestStartDate)
           .rootProcessInstances()
           .unfinished()
           .orderByProcessInstanceStartTime()
@@ -177,12 +180,6 @@ public class RuntimeMigrator {
           // Without second criteria and PIs have same start time, order is non-deterministic.
           .orderByProcessInstanceId()
           .asc();
-
-      if (latestProcessInstance != null) {
-        // Skip process instance if already migrated.
-        processInstanceQuery.processInstanceIdNotIn(latestProcessInstance.id());
-        processInstanceQuery.startedAfter(latestProcessInstance.startDate());
-      }
 
       new Pagination<IdKeyDbModel>()
           .batchSize(getBatchSize())

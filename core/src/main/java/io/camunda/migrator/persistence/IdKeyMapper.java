@@ -7,6 +7,7 @@
  */
 package io.camunda.migrator.persistence;
 
+import java.util.Date;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
@@ -28,7 +29,7 @@ public interface IdKeyMapper {
 
   boolean checkExists(String id);
 
-  IdKeyDbModel findByTypeOrderedByStartDateDesc(TYPE type);
+  Date findLatestStartDateByType(TYPE type);
 
   Long findKeyById(String id);
 
