@@ -182,7 +182,7 @@ camunda.client:
 ### Migrator Configuration
 ```yaml
 camunda.migrator:
-  batch-size: 500                      # Number of records to process in each batch
+  page-size: 500                      # Number of records to process in each page
   job-type: migrator                   # Job type for actual job activation (used for validation and activation unless validation-job-type is defined)
   validation-job-type: '=if legacyId != null then "migrator" else "noop"'        # Job type for validation (optional - falls back to job-type if not defined)
   auto-ddl: true                       # Automatically create/update database schema
@@ -311,7 +311,7 @@ logging:
 | | `.grpc-address`             | `string`  | The gRPC API endpoint for Camunda 8 Platform. Default: `http://localhost:26500`                                                                           |
 | | `.rest-address`             | `string`  | The REST API endpoint for Camunda 8 Platform. Default: `http://localhost:8088`                                                                            |
 | `camunda.migrator` |                             |           |                                                                                                                                                           |
-| | `.batch-size`               | `number`  | Number of records to process in each migration batch. Default: `500`                                                                                      |
+| | `.page-size`                | `number`  | Number of records to process in each page. Default: `500`                                                                  |
 | | `.job-type`                 | `string`  | Job type for actual job activation. Default: `migrator`.                                                                              |
 | | `.validation-job-type`      | `string`  | Job type for validation purposes. Optional: falls back to `job-type` if not defined. Set to `DISABLED` to disable job type execution listener validation entirely. |
 | | `.auto-ddl`                 | `boolean` | Automatically create/update migrator database schema. Default: `false`                                                                                    |
@@ -561,7 +561,7 @@ When a process instance is skipped:
 #### Performance Issues
 **Symptoms**: Slow migration speed
 **Solutions**:
-- Tweak `batch-size` in your configuration
+- Tweak `page-size` in your configuration
 - Ensure database has sufficient resources
 - Check network latency between components
 - Monitor system resources (CPU, memory, disk)

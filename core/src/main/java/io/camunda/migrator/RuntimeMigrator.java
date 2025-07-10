@@ -106,10 +106,10 @@ public class RuntimeMigrator {
 
       if (shouldStartProcessInstance(legacyProcessInstanceId)) {
         startProcessInstance(legacyProcessInstanceId, startDate);
-        
+
       } else if (isUnknown(legacyProcessInstanceId)) {
         insertRecord(createIdKeyDbModel(legacyProcessInstanceId, startDate, null));
-        
+
       }
     });
 
@@ -183,9 +183,9 @@ public class RuntimeMigrator {
 
   protected void listSkippedProcessInstances() {
    new Pagination<String>()
-        .batchSize(getBatchSize())
+        .pageSize(getPageSize())
         .maxCount(idKeyMapper::findSkippedCount)
-        .page(offset -> idKeyMapper.findSkipped(offset, getBatchSize())
+        .page(offset -> idKeyMapper.findSkipped(offset, getPageSize())
             .stream()
             .map(IdKeyDbModel::id)
             .collect(Collectors.toList()))
@@ -208,10 +208,10 @@ public class RuntimeMigrator {
 
     if (RETRY_SKIPPED.equals(mode)) {
       new Pagination<IdKeyDbModel>()
-          .batchSize(getBatchSize())
+          .pageSize(getPageSize())
           .maxCount(idKeyMapper::findSkippedCount)
           // Hardcode offset to 0 since each callback updates the database and leads to fresh results.
-          .page(offset -> idKeyMapper.findSkipped(0, getBatchSize()))
+          .page(offset -> idKeyMapper.findSkipped(0, getPageSize()))
           .callback(storeMappingConsumer);
 
     } else {
@@ -231,9 +231,9 @@ public class RuntimeMigrator {
           .asc();
 
       new Pagination<IdKeyDbModel>()
-          .batchSize(getBatchSize())
+          .pageSize(getPageSize())
           .maxCount(processInstanceQuery::count)
-          .page(offset -> processInstanceQuery.listPage(offset, getBatchSize())
+          .page(offset -> processInstanceQuery.listPage(offset, getPageSize())
               .stream()
               .map(hpi -> new IdKeyDbModel(hpi.getId(), hpi.getStartTime()))
               .collect(Collectors.toList()))
@@ -270,7 +270,7 @@ public class RuntimeMigrator {
         .processInstanceIdIn(legacyProcessInstanceId);
 
     Map<String, Map<String, Object>> allVariables = new Pagination<VariableInstance>()
-        .batchSize(getBatchSize())
+        .pageSize(getPageSize())
         .query(variableQuery)
         .context(context)
         .variableInterceptors(configuredVariableInterceptors)
@@ -297,7 +297,7 @@ public class RuntimeMigrator {
         .rootProcessInstanceId(legacyProcessInstanceId);
 
     new Pagination<ProcessInstance>()
-        .batchSize(getBatchSize())
+        .pageSize(getPageSize())
         .query(processInstanceQuery)
         .callback(processInstance -> {
           String processInstanceId = processInstance.getId();
@@ -394,7 +394,7 @@ public class RuntimeMigrator {
     do {
       var jobQuery = camundaClient.newActivateJobsCommand()
           .jobType(migratorProperties.getJobActivationType())
-          .maxJobsToActivate(getBatchSize());
+          .maxJobsToActivate(getPageSize());
 
       String fetchMigratorJobsErrorMessage = "Error while fetching migrator jobs";
       migratorJobs = callApi(() -> jobQuery.execute().getJobs(), fetchMigratorJobsErrorMessage);
@@ -430,7 +430,7 @@ public class RuntimeMigrator {
             var variableQuery = runtimeService.createVariableInstanceQuery().activityInstanceIdIn(activityInstanceId);
 
           Map<String, Object> localVariables = new Pagination<VariableInstance>()
-              .batchSize(getBatchSize())
+              .pageSize(getPageSize())
               .query(variableQuery)
               .context(context)
               .variableInterceptors(configuredVariableInterceptors)
@@ -444,8 +444,8 @@ public class RuntimeMigrator {
             modifyProcessInstance.activateElement(activityId).withVariables(localVariables, activityId);
           });
 
-          String batchUpdatedActivitiesErrorMessage = "Error while activating jobs";
-          callApi(() -> ((ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3) modifyProcessInstance).execute(), batchUpdatedActivitiesErrorMessage);
+          String activatingActivitiesErrorMessage = "Error while activating jobs";
+          callApi(() -> ((ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3) modifyProcessInstance).execute(), activatingActivitiesErrorMessage);
           // no need to complete the job since the modification canceled the migrator job in the start event
         } else {
           LOGGER.info("Process instance with key [{}] was externally started, skipping migrator job activation.", job.getProcessInstanceKey());
@@ -475,8 +475,8 @@ public class RuntimeMigrator {
     return activeActivities;
   }
 
-  public int getBatchSize() {
-    return migratorProperties.getBatchSize();
+  public int getPageSize() {
+    return migratorProperties.getPageSize();
   }
 
   public record FlowNode(String activityId, String subProcessInstanceId) {
