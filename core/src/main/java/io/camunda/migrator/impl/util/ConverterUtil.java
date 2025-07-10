@@ -5,7 +5,7 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.history;
+package io.camunda.migrator.impl.util;
 
 import io.camunda.zeebe.protocol.Protocol;
 
@@ -30,7 +30,7 @@ public class ConverterUtil {
     return Protocol.encodePartitionId(C7_HISTORY_PARTITION_ID, secureRandom.nextLong(getUpperBound() + 1));
   }
 
-  protected static long getUpperBound() {
+  public static long getUpperBound() {
     return (1L << KEY_BITS) - 1;
   }
 

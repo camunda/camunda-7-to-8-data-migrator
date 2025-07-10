@@ -7,12 +7,12 @@
  */
 package io.camunda.migrator.qa.element;
 
-import static io.camunda.migrator.qa.MigrationTestConstants.LEGACY_ID_VAR_NAME;
+import static io.camunda.migrator.qa.util.MigrationTestConstants.LEGACY_ID_VAR_NAME;
 import static io.camunda.process.test.api.CamundaAssert.assertThat;
 import static io.camunda.process.test.api.assertions.ElementSelectors.byId;
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
 
-import io.camunda.migrator.qa.RuntimeMigrationAbstractTest;
+import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
 import java.util.Map;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.ProcessInstance;

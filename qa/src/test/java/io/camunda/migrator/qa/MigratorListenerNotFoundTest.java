@@ -11,6 +11,7 @@ package io.camunda.migrator.qa;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.migrator.RuntimeMigrator;
+import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
 import io.github.netmikey.logunit.api.LogCapturer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;

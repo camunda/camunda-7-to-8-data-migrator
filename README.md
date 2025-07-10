@@ -83,7 +83,23 @@ cd assembly/target
 
 ## Quick Start
 
-1. **Prepare your configuration file** (`application.yml`):
+1. **Make sure Camunda 8 is up and running and all process models that shall be migrated are deployed.** 
+
+   To be used with the Runtime Data Migrator, **every process model requires**:
+   - A blank start event (you need to add one if the process model doesn't have one)
+   - An execution listener at the end of your blank start event with the job type `migrator` (you have to add it manually, or let it be added by the [Migration Analyzer & Diagram Converter](https://github.com/camunda-community-hub/camunda-7-to-8-migration-analyzer)).
+   
+   ```xml
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:extensionElements>
+        <zeebe:executionListeners>
+          <zeebe:executionListener eventType="end" type="migrator" />
+        </zeebe:executionListeners>
+      </bpmn:extensionElements>
+    </bpmn:startEvent>
+   ```
+
+2. **Prepare your configuration file** (`application.yml`):
    ```yaml
    camunda.client:
      mode: self-managed
@@ -96,7 +112,7 @@ cd assembly/target
      password: your-password
    ```
 
-2. **Run the migrator**:
+3. **Run the migrator**:
    ```bash
    # On Linux/macOS
    ./start.sh --runtime
@@ -105,7 +121,7 @@ cd assembly/target
    start.bat --runtime
    ```
 
-3. **Monitor the migration progress** in the console output and log files.
+4. **Monitor the migration progress** in the console output and log files.
 
 ## Runtime Migration Example
 ```bash

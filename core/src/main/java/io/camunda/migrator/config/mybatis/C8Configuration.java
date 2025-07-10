@@ -19,6 +19,7 @@ import io.camunda.db.rdbms.read.service.FlowNodeInstanceReader;
 import io.camunda.db.rdbms.read.service.FormReader;
 import io.camunda.db.rdbms.read.service.GroupReader;
 import io.camunda.db.rdbms.read.service.IncidentReader;
+import io.camunda.db.rdbms.read.service.JobReader;
 import io.camunda.db.rdbms.read.service.MappingReader;
 import io.camunda.db.rdbms.read.service.ProcessDefinitionReader;
 import io.camunda.db.rdbms.read.service.ProcessInstanceReader;
@@ -304,9 +305,14 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
-  public BatchOperationItemReader batchOperationItenReader(
+  public BatchOperationItemReader batchOperationItemReader(
       final BatchOperationMapper batchOperationMapper) {
     return new BatchOperationItemReader(batchOperationMapper);
+  }
+
+  @Bean
+  public JobReader jobReader(final JobMapper jobMapper) {
+    return new JobReader(jobMapper);
   }
 
   @Bean
@@ -367,7 +373,8 @@ public class C8Configuration extends AbstractConfiguration {
       final MappingReader mappingReader,
       final BatchOperationReader batchOperationReader,
       final SequenceFlowReader sequenceFlowReader,
-      final BatchOperationItemReader batchOperationItemReader) {
+      final BatchOperationItemReader batchOperationItemReader,
+      final JobReader jobReader) {
     return new RdbmsService(
         rdbmsWriterFactory,
         authorizationReader,
@@ -389,7 +396,7 @@ public class C8Configuration extends AbstractConfiguration {
         batchOperationReader,
         sequenceFlowReader,
         batchOperationItemReader,
-        null);
+        jobReader);
   }
 
 }

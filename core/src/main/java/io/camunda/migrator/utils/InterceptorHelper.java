@@ -7,8 +7,8 @@
  */
 package io.camunda.migrator.utils;
 
-import io.camunda.migrator.MigratorException;
 import io.camunda.migrator.config.property.InterceptorProperty;
+import io.camunda.migrator.exception.MigratorException;
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

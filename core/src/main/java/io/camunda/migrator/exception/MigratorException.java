@@ -5,8 +5,12 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.qa;
+package io.camunda.migrator.exception;
 
-public class MigrationTestConstants {
-  public static final String LEGACY_ID_VAR_NAME = "legacyId";
+public class MigratorException extends RuntimeException {
+
+  public MigratorException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
 }

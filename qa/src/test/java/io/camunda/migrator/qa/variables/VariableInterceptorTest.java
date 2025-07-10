@@ -12,7 +12,7 @@ import static io.camunda.process.test.api.assertions.ElementSelectors.byId;
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.camunda.migrator.qa.RuntimeMigrationAbstractTest;
+import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
 import io.camunda.process.test.api.CamundaAssert;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

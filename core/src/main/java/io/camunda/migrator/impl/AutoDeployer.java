@@ -5,12 +5,13 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator;
+package io.camunda.migrator.impl;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.DeployResourceCommandStep1;
 import io.camunda.migrator.config.property.C8Properties;
 import io.camunda.migrator.config.property.MigratorProperties;
+import io.camunda.migrator.impl.util.ExceptionUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,12 +20,16 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
 public class AutoDeployer {
+
+  protected static final Logger LOGGER = LoggerFactory.getLogger(AutoDeployer.class);
 
   @Autowired
   protected CamundaClient camundaClient;

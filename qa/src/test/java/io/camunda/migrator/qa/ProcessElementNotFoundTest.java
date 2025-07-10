@@ -13,13 +13,14 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.persistence.IdKeyDbModel;
 import io.camunda.migrator.persistence.IdKeyMapper;
+import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
 import io.github.netmikey.logunit.api.LogCapturer;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ProcessElementNotFoundTest  extends RuntimeMigrationAbstractTest{
+public class ProcessElementNotFoundTest  extends RuntimeMigrationAbstractTest {
 
   @RegisterExtension
   protected final LogCapturer logs = LogCapturer.create().captureForType(RuntimeMigrator.class);
