@@ -46,7 +46,7 @@ public class MyCustomVariableInterceptor implements VariableInterceptor {
 
                 if (enableLogging) {
                     LOGGER.info("Converted variable {} from {} to String: {}",
-                        newName, originalValue.getClass().getSimpleName(), stringValue);
+                        invocation.getC7Variable().getName(), invocation.getC7Variable().getValue(), stringValue);
                 }
             }
         }
