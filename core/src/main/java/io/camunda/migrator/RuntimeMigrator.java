@@ -81,7 +81,7 @@ public class RuntimeMigrator {
   protected MigratorProperties migratorProperties;
 
   @Autowired
-  private ApplicationContext context;
+  protected ApplicationContext context;
 
 
   protected MigratorMode mode = MIGRATE;
@@ -97,37 +97,84 @@ public class RuntimeMigrator {
 
   public void migrate() {
     fetchProcessInstancesToMigrate(legacyProcessInstance -> {
-
       String legacyProcessInstanceId = legacyProcessInstance.id();
       Date startDate = legacyProcessInstance.startDate();
-      if (skipProcessInstance(legacyProcessInstanceId)) {
-        if (!legacyProcessInstance.skippedPreviously()) {
-          storeMapping(legacyProcessInstanceId, startDate, null);
-        }
 
-      } else if (legacyProcessInstance.skippedPreviously() || callApi(() -> !idKeyMapper.checkExists(legacyProcessInstanceId))) {
-        LOGGER.debug("Starting new C8 process instance with legacyId: [{}]", legacyProcessInstanceId);
-        Long processInstanceKey = null;
-        try {
-          processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
-          LOGGER.debug("Started C8 process instance with processInstanceKey: [{}]", processInstanceKey);
-          if (processInstanceKey != null) {
-            storeMapping(legacyProcessInstanceId, startDate, processInstanceKey);
-          }
-        } catch (VariableInterceptorException e) {
-          LOGGER.info(
-              "Skipping process instance with legacyId: {}; due to: {} "
-                  + "Enable DEBUG level to print the stacktrace.",
-              legacyProcessInstanceId, e.getMessage());
-          LOGGER.debug("Stacktrace:", e);
-          if (!legacyProcessInstance.skippedPreviously()) {
-            storeMapping(legacyProcessInstanceId, startDate, null);
-          }
-        }
+      if (shouldStartProcessInstance(legacyProcessInstanceId)) {
+        startProcessInstance(legacyProcessInstanceId, startDate);
+        
+      } else if (isUnknown(legacyProcessInstanceId)) {
+        insertRecord(createIdKeyDbModel(legacyProcessInstanceId, startDate, null));
+        
       }
     });
 
     activateMigratorJobs();
+  }
+
+  protected boolean shouldStartProcessInstance(String legacyProcessInstanceId) {
+    if (skipProcessInstance(legacyProcessInstanceId)) {
+      return false;
+    }
+
+    return RETRY_SKIPPED.equals(mode) || isUnknown(legacyProcessInstanceId);
+  }
+
+  protected boolean isUnknown(String legacyProcessInstanceId) {
+    return MIGRATE.equals(mode) && callApi(() -> !idKeyMapper.checkExists(legacyProcessInstanceId));
+  }
+
+  protected void startProcessInstance(String legacyProcessInstanceId, Date startDate) {
+    LOGGER.debug("Starting new C8 process instance with legacyId: [{}]", legacyProcessInstanceId);
+
+    try {
+      Long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
+      LOGGER.debug("Started C8 process instance with processInstanceKey: [{}]", processInstanceKey);
+
+      if (processInstanceKey != null) {
+        IdKeyDbModel model = createIdKeyDbModel(legacyProcessInstanceId, startDate, processInstanceKey);
+        saveRecord(model);
+      }
+    } catch (VariableInterceptorException e) {
+      handleVariableInterceptorException(e, legacyProcessInstanceId, startDate);
+    }
+  }
+
+  protected void handleVariableInterceptorException(VariableInterceptorException e, String legacyProcessInstanceId, Date startDate) {
+    LOGGER.info("Skipping process instance with legacyId: {}; due to: {} Enable DEBUG level to print the stacktrace.", legacyProcessInstanceId, e.getMessage());
+    LOGGER.debug("Stacktrace:", e);
+
+    if (MIGRATE.equals(mode)) {
+      IdKeyDbModel model = createIdKeyDbModel(legacyProcessInstanceId, startDate, null);
+      insertRecord(model);
+    }
+  }
+
+  protected IdKeyDbModel createIdKeyDbModel(String legacyProcessInstanceId, Date startDate, Long processInstanceKey) {
+    var keyIdDbModel = new IdKeyDbModel();
+    keyIdDbModel.setId(legacyProcessInstanceId);
+    keyIdDbModel.setStartDate(startDate);
+    keyIdDbModel.setInstanceKey(processInstanceKey);
+    keyIdDbModel.setType(TYPE.RUNTIME_PROCESS_INSTANCE);
+    return keyIdDbModel;
+  }
+
+  protected void saveRecord(IdKeyDbModel model) {
+    if (RETRY_SKIPPED.equals(mode)) {
+      updateRecord(model);
+    } else if (MIGRATE.equals(mode)) {
+      insertRecord(model);
+    }
+  }
+
+  protected void updateRecord(IdKeyDbModel model) {
+    LOGGER.debug("Updating key for legacyId [{}] with value [{}]", model.id(), model.instanceKey());
+    callApi(() -> idKeyMapper.updateKeyById(model));
+  }
+
+  protected void insertRecord(IdKeyDbModel model) {
+    LOGGER.debug("Inserting record [{}]", model);
+    callApi(() -> idKeyMapper.insert(model));
   }
 
   protected void listSkippedProcessInstances() {
@@ -187,22 +234,6 @@ public class RuntimeMigrator {
               .map(hpi -> new IdKeyDbModel(hpi.getId(), hpi.getStartTime()))
               .collect(Collectors.toList()))
           .callback(storeMappingConsumer);
-    }
-  }
-
-  protected void storeMapping(String legacyProcessInstanceId, Date startDate, Long processInstanceKey) {
-    var keyIdDbModel = new IdKeyDbModel();
-    keyIdDbModel.setId(legacyProcessInstanceId);
-    keyIdDbModel.setStartDate(startDate);
-    keyIdDbModel.setInstanceKey(processInstanceKey);
-    keyIdDbModel.setType(TYPE.RUNTIME_PROCESS_INSTANCE);
-
-    if (RETRY_SKIPPED.equals(mode)) {
-      LOGGER.debug("Updating key for legacyId [{}] with value [{}]", legacyProcessInstanceId, processInstanceKey);
-      callApi(() -> idKeyMapper.updateKeyById(keyIdDbModel));
-    } else {
-      LOGGER.debug("Inserting record [{}]", keyIdDbModel);
-      callApi(() -> idKeyMapper.insert(keyIdDbModel));
     }
   }
 
