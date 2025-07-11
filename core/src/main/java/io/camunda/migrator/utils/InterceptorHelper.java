@@ -24,7 +24,11 @@ import java.util.Map;
  */
 public class InterceptorHelper {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(InterceptorHelper.class);
+  protected static final Logger LOGGER = LoggerFactory.getLogger(InterceptorHelper.class);
+
+  private InterceptorHelper() {
+    // Prevent instantiation
+  }
 
   /**
    * Creates variable interceptor instances from YAML configuration and adds them to the context interceptors list.
@@ -58,7 +62,7 @@ public class InterceptorHelper {
    * @return VariableInterceptor instance
    * @throws Exception if instantiation fails
    */
-  private static VariableInterceptor createInterceptorInstance(InterceptorProperty interceptorProperty) throws Exception {
+  protected static VariableInterceptor createInterceptorInstance(InterceptorProperty interceptorProperty) throws Exception {
     String className = interceptorProperty.getClassName();
     if (className == null || className.trim().isEmpty()) {
       throw new IllegalArgumentException("Variable interceptor class name cannot be null or empty");

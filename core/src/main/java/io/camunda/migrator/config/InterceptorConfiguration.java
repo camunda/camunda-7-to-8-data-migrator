@@ -27,13 +27,13 @@ import java.util.List;
 @Configuration
 public class InterceptorConfiguration {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(InterceptorConfiguration.class);
+  protected static final Logger LOGGER = LoggerFactory.getLogger(InterceptorConfiguration.class);
 
   @Autowired
-  private ApplicationContext context;
+  protected ApplicationContext context;
 
   @Autowired
-  private MigratorProperties migratorProperties;
+  protected MigratorProperties migratorProperties;
 
   /**
    * Creates a composite list of variable interceptors from both Spring context and YAML configuration.

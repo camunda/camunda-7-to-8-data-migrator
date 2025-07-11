@@ -24,9 +24,7 @@ import org.camunda.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
 import org.camunda.bpm.engine.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
 public class Pagination<T> {
 
@@ -35,9 +33,9 @@ public class Pagination<T> {
   protected int batchSize;
   protected Supplier<Long> maxCount;
   protected Function<Integer, List<T>> page;
-  private Query<?, T> query;
-  private ApplicationContext context;
-  private List<VariableInterceptor> configuredVariableInterceptors;
+  protected Query<?, T> query;
+  protected ApplicationContext context;
+  protected List<VariableInterceptor> configuredVariableInterceptors;
 
 
   public Pagination<T> batchSize(int batchSize) {
@@ -127,21 +125,29 @@ public class Pagination<T> {
    * Using streams might lead to undesired {@link NullPointerException}s.
    */
   protected void processVariables(BiConsumer<VariableInstanceEntity, VariableInvocation> consumer) {
-    List<VariableInterceptor> interceptors = configuredVariableInterceptors;
     toList().forEach(e -> {
       var variable = (VariableInstanceEntity) e;
       VariableInvocation variableInvocation = new VariableInvocation((VariableInstanceEntity) e);
-      if (interceptors != null && !interceptors.isEmpty()) {
-        interceptors.forEach(i -> {
-          try {
-            i.execute(variableInvocation);
-          } catch (Exception ex) {
-            throw new VariableInterceptorException("An error occurred during variable transformation.", ex);
-          }
-        });
-      }
+      executeInterceptors(variableInvocation);
       consumer.accept(variable, variableInvocation);
     });
+  }
+
+  private void executeInterceptors(VariableInvocation variableInvocation) {
+    List<VariableInterceptor> interceptors = configuredVariableInterceptors;
+    if (hasInterceptors(interceptors)) {
+      interceptors.forEach(i -> {
+        try {
+          i.execute(variableInvocation);
+        } catch (Exception ex) {
+          throw new VariableInterceptorException("An error occurred during variable transformation.", ex);
+        }
+      });
+    }
+  }
+
+  protected boolean hasInterceptors(List<VariableInterceptor> interceptors) {
+    return interceptors != null && !interceptors.isEmpty();
   }
 
 }
