@@ -10,12 +10,17 @@ package io.camunda.migrator.utils;
 import io.camunda.migrator.config.property.InterceptorProperty;
 import io.camunda.migrator.exception.MigratorException;
 import io.camunda.migrator.interceptor.VariableInterceptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.properties.bind.BindHandler;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.bind.handler.NoUnboundElementsBindHandler;
+import org.springframework.boot.context.properties.source.ConfigurationPropertyName;
+import org.springframework.boot.context.properties.source.ConfigurationPropertySource;
+import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 
 /**
  * Helper class for managing interceptors loaded from YAML configuration.
@@ -81,9 +86,29 @@ public class InterceptorHelper {
     Map<String, Object> properties = interceptorProperty.getProperties();
     if (properties != null && !properties.isEmpty()) {
       LOGGER.debug("Setting properties for variable interceptor: {}", className);
-      BeanUtils.copyProperties(properties, interceptor);
+      populateInstance(interceptor, properties);
     }
 
     return interceptor;
+  }
+
+  protected static void populateInstance(VariableInterceptor interceptor, Map<String, Object> properties) {
+    applyProperties(interceptor, properties, false);
+
+  }
+
+  protected static <T> void applyProperties(T target, Map<String, Object> sourceMap, boolean ignoreUnknownFields) {
+    ConfigurationPropertySource source = new MapConfigurationPropertySource(sourceMap);
+    Binder binder = new Binder(source);
+    try {
+      if (ignoreUnknownFields) {
+        binder.bind(ConfigurationPropertyName.EMPTY, Bindable.ofInstance(target));
+      } else {
+        binder.bind(ConfigurationPropertyName.EMPTY, Bindable.ofInstance(target),
+            new NoUnboundElementsBindHandler(BindHandler.DEFAULT));
+      }
+    } catch (Exception e) {
+      throw new MigratorException("An exception occurred while parsing interceptor configuration.", e);
+    }
   }
 }
