@@ -215,6 +215,11 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
+  public MapperFactoryBean<UsageMetricMapper> usageMetricMapper(final @Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory) {
+    return createMapperFactoryBean(c8SqlSessionFactory, UsageMetricMapper.class);
+  }
+
+  @Bean
   public VariableReader variableRdbmsReader(final VariableMapper variableMapper) {
     return new VariableReader(variableMapper);
   }
