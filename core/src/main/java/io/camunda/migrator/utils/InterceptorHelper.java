@@ -86,15 +86,10 @@ public class InterceptorHelper {
     Map<String, Object> properties = interceptorProperty.getProperties();
     if (properties != null && !properties.isEmpty()) {
       LOGGER.debug("Setting properties for variable interceptor: {}", className);
-      populateInstance(interceptor, properties);
+      applyProperties(interceptor, properties, false);
     }
 
     return interceptor;
-  }
-
-  protected static void populateInstance(VariableInterceptor interceptor, Map<String, Object> properties) {
-    applyProperties(interceptor, properties, false);
-
   }
 
   protected static <T> void applyProperties(T target, Map<String, Object> sourceMap, boolean ignoreUnknownFields) {
