@@ -9,6 +9,9 @@ package com.example;
 
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInvocation;
+import org.camunda.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
+import org.camunda.bpm.engine.variable.type.ValueType;
+import org.camunda.bpm.engine.variable.value.TypedValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +20,7 @@ import org.slf4j.LoggerFactory;
  * and configured via YAML without Spring Boot annotations.
  *
  * This demonstrates:
- * - How to create a standalone interceptor without @Component
+ * - How to create a standalone interceptor
  * - How to handle configurable properties
  * - How to perform variable transformations
  */
@@ -27,26 +30,27 @@ public class MyCustomVariableInterceptor implements VariableInterceptor {
 
     // Configurable properties that can be set via YAML
     private boolean enableLogging = true;
-    private String targetVariableType = "String";
+    private String prefix = "CUSTOM_";
 
     @Override
     public void execute(VariableInvocation invocation) throws Exception {
+        VariableInstanceEntity variable = invocation.getC7Variable();
         if (enableLogging) {
             LOGGER.info("Processing variable: {} with value: {}",
-                invocation.getC7Variable().getName(),
-                invocation.getC7Variable().getValue());
+                variable.getName(),
+                variable.getValue());
         }
 
-        // Example transformation: convert value to string if specified
-        if ("String".equals(targetVariableType)) {
+        TypedValue typedValue = variable.getTypedValue(false);
+        if (ValueType.STRING.getName().equals(typedValue.getType().getName())) {
             Object originalValue = invocation.getMigrationVariable().getValue();
             if (originalValue != null) {
                 String stringValue = originalValue.toString();
-                invocation.setVariableValue(stringValue);
+                invocation.setVariableValue(prefix + stringValue);
 
                 if (enableLogging) {
                     LOGGER.info("Converted variable {} from {} to String: {}",
-                        invocation.getC7Variable().getName(), invocation.getC7Variable().getValue(), stringValue);
+                        variable.getName(), variable.getValue(), stringValue);
                 }
             }
         }
@@ -63,8 +67,8 @@ public class MyCustomVariableInterceptor implements VariableInterceptor {
         this.enableLogging = enableLogging;
     }
 
-    public void setTargetVariableType(String targetVariableType) {
-        this.targetVariableType = targetVariableType;
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
     }
 
     // Getter methods
@@ -72,7 +76,7 @@ public class MyCustomVariableInterceptor implements VariableInterceptor {
         return enableLogging;
     }
 
-    public String getTargetVariableType() {
-        return targetVariableType;
+    public String getPrefix() {
+        return prefix;
     }
 }

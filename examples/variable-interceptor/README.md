@@ -36,7 +36,6 @@ camunda:
         properties:
           prefix: "CUSTOM_"
           enableLogging: true
-          targetVariableType: "String"
       - class-name: com.example.AnotherInterceptor
         properties:
           someProperty: "someValue"

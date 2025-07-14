@@ -20,6 +20,7 @@
     <module>migrate-runtime</module>
     <module>generate-runtime</module>
     <module>migrate-history</module>
+    <module>variable-interceptor</module>
   </modules>
 
   <build>
