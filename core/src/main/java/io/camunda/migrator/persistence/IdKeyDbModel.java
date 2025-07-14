@@ -58,13 +58,6 @@ public class IdKeyDbModel {
     this.startDate = startDate;
   }
 
-  /**
-   * Type is only set when instance has been skipped.
-   */
-  public boolean skippedPreviously() {
-    return type() != null;
-  }
-
   @Override
   public boolean equals(Object obj) {
     if (obj == this)

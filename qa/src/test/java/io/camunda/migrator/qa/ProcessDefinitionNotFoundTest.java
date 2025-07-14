@@ -34,7 +34,7 @@ class ProcessDefinitionNotFoundTest extends RuntimeMigrationAbstractTest {
   @Test
   public void shouldSkipOnMissingC8Deployment() {
     // given
-    deployCamunda7Process("io/camunda/migrator/bpmn/c7/simpleProcess.bpmn");
+    deployCamunda7Process("simpleProcess.bpmn");
     var c7Instance = runtimeService.startProcessInstanceByKey("simpleProcess");
 
     // when
@@ -51,7 +51,7 @@ class ProcessDefinitionNotFoundTest extends RuntimeMigrationAbstractTest {
   @Test
   public void shouldSkipNotExistingProcessIdempotently() {
     // given
-    deployCamunda7Process("io/camunda/migrator/bpmn/c7/simpleProcess.bpmn");
+    deployCamunda7Process("simpleProcess.bpmn");
     deployProcessInC7AndC8("userTaskProcess.bpmn");
 
     var c7Instance = runtimeService.startProcessInstanceByKey("simpleProcess");

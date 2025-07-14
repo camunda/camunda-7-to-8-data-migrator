@@ -81,21 +81,21 @@ public abstract class RuntimeMigrationAbstractTest {
   }
 
   protected void deployCamunda7Process(String resourcePath) {
-    Deployment deployment = repositoryService.createDeployment().addClasspathResource(resourcePath).deploy();
+    Deployment deployment = repositoryService.createDeployment().addClasspathResource("io/camunda/migrator/bpmn/c7/" + resourcePath).deploy();
     if (deployment == null) {
       throw new IllegalStateException("Could not deploy process");
     }
   }
 
   protected void deployCamunda8Process(String resourcePath) {
-    DeploymentEvent deployment = camundaClient.newDeployResourceCommand().addResourceFromClasspath(resourcePath).send()
+    DeploymentEvent deployment = camundaClient.newDeployResourceCommand().addResourceFromClasspath("io/camunda/migrator/bpmn/c8/" + resourcePath).send()
         .join();
 
     if (deployment == null) {
       throw new IllegalStateException("Could not deploy process");
     }
 
-    checkC8ProcessDefinitionAvailable(resourcePath);
+    checkC8ProcessDefinitionAvailable("io/camunda/migrator/bpmn/c8/" + resourcePath);
   }
 
   private void checkC8ProcessDefinitionAvailable(String resourcePath) {
@@ -112,9 +112,10 @@ public abstract class RuntimeMigrationAbstractTest {
   }
 
   protected void deployProcessInC7AndC8(String fileName) {
-    deployCamunda7Process("io/camunda/migrator/bpmn/c7/" + fileName);
-    deployCamunda8Process("io/camunda/migrator/bpmn/c8/" + fileName);
+    deployCamunda7Process(fileName);
+    deployCamunda8Process(fileName);
   }
+
   protected void deployModelInstance(String process,
                                    BpmnModelInstance c7Model,
                                    io.camunda.zeebe.model.bpmn.BpmnModelInstance c8Model) {

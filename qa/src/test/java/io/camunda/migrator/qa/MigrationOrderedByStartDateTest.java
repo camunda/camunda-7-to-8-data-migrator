@@ -68,4 +68,109 @@ class MigrationOrderedByStartDateTest extends RuntimeMigrationAbstractTest {
     assertThat(response.get().totalItems()).isEqualTo(5);
   }
 
+  @Test
+  public void shouldRerunWithDifferentStartDateProcessInstancesMigratedAndValidationFailure() {
+    // given
+    deployProcessInC7AndC8("simpleProcess.bpmn");
+
+    ClockUtil.setCurrentTime(new Date());
+    runtimeService.startProcessInstanceByKey("simpleProcess");
+    ClockUtil.offset(1_000 * 4L);
+    runtimeService.startProcessInstanceByKey("simpleProcess");
+
+    runtimeMigrator.migrate();
+
+    Supplier<SearchResponsePage> response = () -> camundaClient.newProcessInstanceSearchRequest().execute().page();
+
+    // assume
+    assertThat(response.get().totalItems()).isEqualTo(2);
+
+    deployCamunda8Process("simpleProcessWithoutListener.bpmn");
+
+    // when
+    runtimeMigrator.migrate();
+
+    // then
+    assertThat(response.get().totalItems()).isEqualTo(2);
+  }
+
+  @Test
+  public void shouldRerunWithDifferentStartDateWithProcessInstancesSkippedAndValidationFailure() {
+    // given
+    deployCamunda7Process("simpleProcess.bpmn");
+    deployCamunda8Process("simpleProcessWithoutListener.bpmn");
+
+    ClockUtil.setCurrentTime(new Date());
+    runtimeService.startProcessInstanceByKey("simpleProcess");
+    ClockUtil.offset(1_000 * 4L);
+    runtimeService.startProcessInstanceByKey("simpleProcess");
+
+    runtimeMigrator.migrate();
+
+    Supplier<SearchResponsePage> response = () -> camundaClient.newProcessInstanceSearchRequest().execute().page();
+
+    // assume
+    assertThat(response.get().totalItems()).isEqualTo(0);
+
+    deployCamunda8Process("simpleProcessMissingTask.bpmn");
+
+    // when
+    runtimeMigrator.migrate();
+
+    // then
+    assertThat(response.get().totalItems()).isEqualTo(0);
+  }
+
+  @Test
+  public void shouldRerunSameStartDateWithProcessInstancesMigratedAndValidationFailure() {
+    // given
+    deployProcessInC7AndC8("simpleProcess.bpmn");
+
+    ClockUtil.setCurrentTime(new Date());
+    runtimeService.startProcessInstanceByKey("simpleProcess");
+    runtimeService.startProcessInstanceByKey("simpleProcess");
+
+    runtimeMigrator.migrate();
+
+    Supplier<SearchResponsePage> response = () -> camundaClient.newProcessInstanceSearchRequest().execute().page();
+
+    // assume
+    assertThat(response.get().totalItems()).isEqualTo(2);
+
+    deployCamunda8Process("simpleProcessWithoutListener.bpmn");
+
+    // when
+    runtimeMigrator.migrate();
+
+    // then
+    assertThat(response.get().totalItems()).isEqualTo(2);
+  }
+
+  @Test
+  public void shouldRerunWithSameStartDateWithProcessInstancesSkippedAndValidationFailure() {
+    // given
+    deployCamunda7Process("simpleProcess.bpmn");
+    deployCamunda8Process("simpleProcessWithoutListener.bpmn");
+
+    ClockUtil.setCurrentTime(new Date());
+    runtimeService.startProcessInstanceByKey("simpleProcess");
+    runtimeService.startProcessInstanceByKey("simpleProcess");
+
+    runtimeMigrator.migrate();
+
+    Supplier<SearchResponsePage> response = () -> camundaClient.newProcessInstanceSearchRequest().execute().page();
+
+    // assume
+    assertThat(response.get().totalItems()).isEqualTo(0);
+
+    deployCamunda8Process("simpleProcessMissingTask.bpmn");
+
+    // when
+    runtimeMigrator.migrate();
+
+    // then
+    assertThat(response.get().totalItems()).isEqualTo(0);
+  }
+
+
 }
