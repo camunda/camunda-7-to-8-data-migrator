@@ -14,7 +14,6 @@ import static org.camunda.bpm.engine.ProcessEngineConfiguration.HISTORY_AUTO;
 
 import io.camunda.migrator.impl.AutoDeployer;
 import com.zaxxer.hikari.HikariDataSource;
-import io.camunda.migrator.AutoDeployer;
 import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.config.mybatis.C8Configuration;
