@@ -517,8 +517,7 @@ logging:
 
 ## Migration Process
 
-The migration process consists of three 
-phases to ensure a successful transition from Camunda 7 to Camunda 8:
+The migration process consists of three main phases to ensure a successful transition from Camunda 7 to Camunda 8:
 
 ### 1. Preparation Phase
 - **Stop C7 process execution** - Prevent new instances from starting during migration
