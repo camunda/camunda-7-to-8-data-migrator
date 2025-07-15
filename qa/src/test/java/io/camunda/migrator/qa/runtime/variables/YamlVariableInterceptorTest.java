@@ -45,7 +45,7 @@ public class YamlVariableInterceptorTest extends RuntimeMigrationAbstractTest {
     assertThat(migratorProperties.getInterceptors()).hasSize(1);
 
     var interceptor = migratorProperties.getInterceptors().get(0);
-    assertThat(interceptor.getClassName()).isEqualTo("io.camunda.migrator.qa.variables.YamlVariableInterceptor");
+    assertThat(interceptor.getClassName()).isEqualTo("io.camunda.migrator.qa.runtime.variables.YamlVariableInterceptor");
     assertThat(interceptor.getProperties()).containsEntry("targetVariable", "yamlVar");
   }
 
