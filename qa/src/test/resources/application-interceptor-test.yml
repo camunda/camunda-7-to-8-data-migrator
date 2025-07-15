@@ -2,7 +2,7 @@ camunda:
   migrator:
     # Configure variable interceptor plugins via YAML
     interceptors:
-      - class-name: io.camunda.migrator.qa.variables.YamlVariableInterceptor
+      - class-name: io.camunda.migrator.qa.runtime.variables.YamlVariableInterceptor
         properties:
           logMessage: "Hello from YAML interceptor configured via properties"
           enableTransformation: true
@@ -17,4 +17,4 @@ camunda:
 logging:
   level:
     root: INFO
-    io.camunda.migrator.qa.variables.io.camunda.migrator.qa.variables.YamlVariableInterceptor: INFO
+    io.camunda.migrator.qa.variables.io.camunda.migrator.qa.runtime.variables.YamlVariableInterceptor: INFO

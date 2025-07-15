@@ -1,0 +1,33 @@
+camunda:
+  migrator:
+    auto-ddl: true
+    c7:
+      data-source:
+        auto-ddl: true
+        jdbc-url: jdbc:h2:mem:migrator
+        username: sa
+        password: sa
+        driver-class-name: org.h2.Driver
+
+logging:
+  level.io.camunda.migrator: DEBUG
+  level.org.camunda.bpm.engine.impl.persistence.entity.HistoricProcessInstanceEntity: DEBUG
+  level.io.camunda.migrator.qa.variables.TestVariableInterceptor: INFO
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: history
+
+camunda:
+  migrator:
+    auto-ddl: true
+    c8:
+      data-source:
+        auto-ddl: true
+        jdbc-url: jdbc:h2:mem:migrator
+        username: sa
+        password: sa
+        driver-class-name: org.h2.Driver

@@ -49,6 +49,7 @@ public class MultiDbExtension implements BeforeAllCallback {
         .withUsername("camunda")
         .withPassword("camunda")
         .withReuse(true)
+        .withCommand("postgres", "-c", "max_connections=200")
         .withExposedPorts(5432);
     postgres.setPortBindings(List.of(POSTGRESQL_PORT + ":5432"));
     return postgres;
@@ -75,7 +76,7 @@ public class MultiDbExtension implements BeforeAllCallback {
   @Override
   public void beforeAll(ExtensionContext context) {
     Environment env = SpringExtension.getApplicationContext(context).getEnvironment();
-    LOGGER.info("C7 jdbc-url set to [{}]", env.getProperty(MigratorProperties.PREFIX + "c7.data-source.jdbc-url"));
-    LOGGER.info("C8 jdbc-url set to [{}]", env.getProperty(MigratorProperties.PREFIX + "c8.data-source.jdbc-url"));
+    LOGGER.info("C7 jdbc-url set to [{}]", env.getProperty(MigratorProperties.PREFIX + ".c7.data-source.jdbc-url"));
+    LOGGER.info("C8 jdbc-url set to [{}]", env.getProperty(MigratorProperties.PREFIX + ".c8.data-source.jdbc-url"));
   }
 }
