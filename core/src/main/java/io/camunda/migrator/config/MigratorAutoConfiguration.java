@@ -49,6 +49,7 @@ import org.springframework.transaction.PlatformTransactionManager;
     C8Configuration.class,
     MigratorConfiguration.class,
     ConverterConfiguration.class,
+    InterceptorConfiguration.class,
     AutoDeployer.class,
     HistoryMigrator.class,
     RuntimeMigrator.class
