@@ -76,7 +76,7 @@ public class MultiDbExtension implements BeforeAllCallback {
   @Override
   public void beforeAll(ExtensionContext context) {
     Environment env = SpringExtension.getApplicationContext(context).getEnvironment();
-    LOGGER.info("C7 jdbc-url set to [{}]", env.getProperty(MigratorProperties.PREFIX + "c7.data-source.jdbc-url"));
-    LOGGER.info("C8 jdbc-url set to [{}]", env.getProperty(MigratorProperties.PREFIX + "c8.data-source.jdbc-url"));
+    LOGGER.info("C7 jdbc-url set to [{}]", env.getProperty(MigratorProperties.PREFIX + ".c7.data-source.jdbc-url"));
+    LOGGER.info("C8 jdbc-url set to [{}]", env.getProperty(MigratorProperties.PREFIX + ".c8.data-source.jdbc-url"));
   }
 }

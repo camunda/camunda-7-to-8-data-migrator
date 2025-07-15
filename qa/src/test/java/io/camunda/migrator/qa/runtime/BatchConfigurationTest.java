@@ -11,6 +11,7 @@ import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.by
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.client.api.search.response.ProcessInstance;
+import io.camunda.migrator.qa.util.WithSpringProfile;
 import io.camunda.process.test.api.CamundaAssert;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -19,11 +20,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 @ExtendWith(OutputCaptureExtension.class)
-@ActiveProfiles("logging-test")
+@WithSpringProfile("logging-test")
 @TestPropertySource(properties = {
     "camunda.migrator.batch-size=2"
 })

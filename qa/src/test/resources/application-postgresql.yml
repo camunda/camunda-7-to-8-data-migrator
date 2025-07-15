@@ -8,6 +8,17 @@ camunda:
         username: camunda
         password: camunda
         driver-class-name: org.postgresql.Driver
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: history
+
+camunda:
+  migrator:
+    auto-ddl: true
     c8:
       data-source:
         auto-ddl: true

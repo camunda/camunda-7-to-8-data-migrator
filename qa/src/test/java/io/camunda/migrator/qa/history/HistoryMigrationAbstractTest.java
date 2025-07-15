@@ -7,7 +7,6 @@
  */
 package io.camunda.migrator.qa.history;
 
-import io.camunda.client.CamundaClient;
 import io.camunda.db.rdbms.RdbmsService;
 import io.camunda.db.rdbms.config.VendorDatabaseProperties;
 import io.camunda.db.rdbms.sql.PurgeMapper;
@@ -17,6 +16,7 @@ import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.persistence.IdKeyMapper;
 import io.camunda.migrator.qa.util.ProcessDefinitionDeployer;
 import io.camunda.migrator.qa.util.WithMultiDb;
+import io.camunda.migrator.qa.util.WithSpringProfile;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.entities.UserTaskEntity;
@@ -35,11 +35,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @WithMultiDb
 @Import(HistoryMigrationAbstractTest.HistoryCustomConfiguration.class)
+@WithSpringProfile("history")
 public abstract class HistoryMigrationAbstractTest {
 
   @Autowired
