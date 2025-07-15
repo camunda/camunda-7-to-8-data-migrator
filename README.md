@@ -186,6 +186,9 @@ camunda.migrator:
   auto-ddl: true                       # Automatically create/update database schema
   table-prefix: MY_PREFIX_             # Optional table prefix for migrator schema
   data-source: C7                      # Choose if the migrator schema is created on the data source of 'C7' or 'C8'
+  interceptors:
+    - class-name: com.example.MyCustomInterceptor  # Custom interceptor class
+    - class-name: com.example.AnotherInterceptor   # Another custom interceptor class
 ```
 
 ### Camunda 7 Database for Runtime and History Migration
@@ -234,6 +237,7 @@ logging:
 | | `.table-prefix`              | `string`  | Optional prefix for migrator database tables. Default: _(empty)_                                                                          |
 | | `.data-source`               | `string`  | Choose if the migrator schema is created in the `C7` or `C8` data source. Default: `C7`                                                   |
 | | `.database-vendor`           | `string`  | Database vendor for migrator schema. Options: `h2`, `postgresql`, `oracle`. Default: Automatically detected.                              |
+| | `.interceptors`              | `array`   | List of custom variable interceptors to apply during migration. Each interceptor must implement the `VariableInterceptor` interface.      |
 | `camunda.migrator.c7.data-source` |                              |           |                                                                                                                                           |
 | | `.table-prefix`              | `string`  | Optional prefix for Camunda 7 database tables. Default: _(empty)_                                                                         |
 | | `.auto-ddl`                  | `boolean` | Automatically create/update Camunda 7 database schema. Default: `false`                                                                   |
@@ -293,6 +297,7 @@ The following interceptors are already implemented in the project:
 
 1. **DefaultVariableInterceptor**
 - Handles formatting and migration of primitive and object variables.
+- The interceptor is ordered with priority 0 to ensure it runs first.
 
 2. **DateVariableInterceptor**
 - Converts Camunda 7 Date variables to Camunda 8 compatible format `yyyy-MM-dd'T'HH:mm:ss.SSSZ`.

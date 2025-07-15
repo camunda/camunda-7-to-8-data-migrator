@@ -32,11 +32,11 @@ Add the following to your `application.yml`:
 camunda:
   migrator:
     interceptors:
-      - class-name: com.example.MyCustomVariableInterceptor
+      - class-name: io.camunda.migrator.example.MyCustomVariableInterceptor
         properties:
           prefix: "CUSTOM_"
           enableLogging: true
-      - class-name: com.example.AnotherInterceptor
+      - class-name: io.camunda.migrator.example.AnotherInterceptor
         properties:
           someProperty: "someValue"
 ```
