@@ -21,4 +21,5 @@ import org.springframework.test.context.ActiveProfiles;
 public @interface WithSpringProfile {
 
   String value();
+
 }

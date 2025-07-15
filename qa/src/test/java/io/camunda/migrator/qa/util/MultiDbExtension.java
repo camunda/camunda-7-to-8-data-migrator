@@ -34,11 +34,12 @@ public class MultiDbExtension implements BeforeAllCallback {
   }
 
   protected static void startContainer() {
-    String activeProfile = System.getProperty("spring.profiles.active", "");
-    LOGGER.info("Running tests with spring profile [{}]", activeProfile);
-    JdbcDatabaseContainer<?> container = containers.get(activeProfile);
+    List<String> activeProfiles = SpringProfileResolver.getActiveProfiles();
+    String dbProfile = activeProfiles.stream().filter(containers.keySet()::contains).findFirst().orElse("default");
+    LOGGER.info("Running tests with DB profile [{}]", dbProfile);
+    JdbcDatabaseContainer<?> container = containers.get(dbProfile);
     if (container != null) {
-      LOGGER.info("Starting container [{}]", activeProfile);
+      LOGGER.info("Starting container [{}]", dbProfile);
       container.start();
     }
   }
