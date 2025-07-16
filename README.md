@@ -252,7 +252,7 @@ Example BPMN configuration for FEEL expression validation:
 
 **Important Note for Externally Started Process Instances:**
 
-Migrator jobs for externally started process instances (process instances not started by the Data Migrator) are activated but not further processed by the Data Migrator since these process instance do not contain the `legacyId` variable that the migrator uses to identify instances that need migration. After the default lock timeout the jobs will be available again for activation.
+Migrator jobs for externally started process instances (process instances not started by the Data Migrator) are activated but not further processed by the Data Migrator since these process instances do not contain the `legacyId` variable that the migrator uses to identify instances that need migration. After the default lock timeout the jobs will be available again for activation.
 
 When using FEEL expressions like `=if legacyId != null then "migrator" else "noop"` in the execution listener, externally started process instances will generate jobs with the type `noop` instead of `migrator`. To handle these jobs properly, you need to implement a **noop job worker** that simply activates and completes these jobs without performing any migration logic.
 
