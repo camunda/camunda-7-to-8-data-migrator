@@ -113,7 +113,7 @@ class JobTypeConfigurationTest {
   @SpringBootTest
   @TestPropertySource(properties = {
       "camunda.migrator.job-type=migrator",
-      "camunda.migrator.validation-job-type==if legacyId then \"migrator\" else \"noop\""
+      "camunda.migrator.validation-job-type==if legacyId != null then \"migrator\" else \"noop\""
   })
   class FeelExpressionValidationTest {
 
@@ -123,12 +123,12 @@ class JobTypeConfigurationTest {
     @Test
     public void shouldHaveFeelExpressionForValidation() {
       assertThat(migratorProperties.getJobType()).isEqualTo("migrator");
-      assertThat(migratorProperties.getValidationJobType()).isEqualTo("=if legacyId then \"migrator\" else \"noop\"");
+      assertThat(migratorProperties.getValidationJobType()).isEqualTo("=if legacyId != null then \"migrator\" else \"noop\"");
     }
 
     @Test
     public void shouldUseFeelExpressionForValidationAndStaticForActivation() {
-      assertThat(migratorProperties.getEffectiveValidationJobType()).isEqualTo("=if legacyId then \"migrator\" else \"noop\"");
+      assertThat(migratorProperties.getEffectiveValidationJobType()).isEqualTo("=if legacyId != null then \"migrator\" else \"noop\"");
       assertThat(migratorProperties.getJobActivationType()).isEqualTo("migrator");
     }
   }

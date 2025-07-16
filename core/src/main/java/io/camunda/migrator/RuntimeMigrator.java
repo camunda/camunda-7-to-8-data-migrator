@@ -354,19 +354,13 @@ public class RuntimeMigrator {
     processInstanceStartEvents
         .forEach(startEvent -> {
           var zBExecutionListeners = startEvent.getSingleExtensionElement(ZeebeExecutionListenersImpl.class);
-          if (zBExecutionListeners == null) {
-            throw new IllegalStateException(String.format("Couldn't find execution listener of type '%s' "
-                + "on start event [%s] in C8 process with key [%s].", validationJobType, startEvent.getId(), processDefinitionKey));
-          } else {
-            boolean hasMigratorListener = zBExecutionListeners.getExecutionListeners().stream()
-                .anyMatch(listener -> validationJobType.equals(listener.getType()));
-
-            if (!hasMigratorListener) {
-              throw new IllegalStateException(String.format(
-                  "No execution listener of type '%s' found on start event [%s] in C8 process with id [%s]. " +
-                  "At least one '%s' listener is required.",
-                  validationJobType, startEvent.getId(), processDefinitionKey, validationJobType));
-            }
+          boolean hasMigratorListener = zBExecutionListeners != null && zBExecutionListeners.getExecutionListeners().stream()
+              .anyMatch(listener -> validationJobType.equals(listener.getType()));
+          if (!hasMigratorListener) {
+            throw new IllegalStateException(String.format(
+                "No execution listener of type '%s' found on start event [%s] in C8 process with id [%s]. " +
+                "At least one '%s' listener is required.",
+                validationJobType, startEvent.getId(), processDefinitionKey, validationJobType));
           }
         });
   }

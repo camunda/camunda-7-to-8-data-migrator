@@ -38,9 +38,9 @@ public class MigratorListenerNotFoundTest extends RuntimeMigrationAbstractTest {
 
     var events = logs.getEvents();
     assertThat(events.stream().filter(event -> event.getMessage()
-        .contains(String.format("Skipping process instance with legacyId [%s]: "
-            + "Couldn't find execution listener of type 'migrator' "
-            + "on start event [Event_1px2j50] in C8 process with key", id))))
+        .matches(String.format(".*Skipping process instance with legacyId \\[%s\\]: "
+            + "No execution listener of type 'migrator' found on start event \\[Event_1px2j50\\] "
+            + "in C8 process with id \\[\\d+\\]\\. At least one 'migrator' listener is required\\.", id))))
         .hasSize(1);
   }
 

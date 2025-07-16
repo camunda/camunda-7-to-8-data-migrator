@@ -184,7 +184,7 @@ camunda.client:
 camunda.migrator:
   batch-size: 500                      # Number of records to process in each batch
   job-type: migrator                   # Job type for actual job activation (used for validation and activation unless validation-job-type is defined)
-  validation-job-type: '=if legacyId then "migrator" else "noop"'        # Job type for validation (optional - falls back to job-type if not defined)
+  validation-job-type: '=if legacyId != null then "migrator" else "noop"'        # Job type for validation (optional - falls back to job-type if not defined)
   auto-ddl: true                       # Automatically create/update database schema
   table-prefix: MY_PREFIX_             # Optional table prefix for migrator schema
   data-source: C7                      # Choose if the migrator schema is created on the data source of 'C7' or 'C8'
@@ -195,12 +195,22 @@ camunda.migrator:
 
 ### Job Type Configuration
 
+During migration, the Data Migrator starts new C8 process instances and sets a special `legacyId` variable to link them to their original C7 process instances. The migrator uses execution listeners on start events for its internal migration logic.
+
+However, if users manually start new C8 process instances on models that still have these migration execution listeners, those instances won't have the `legacyId` variable. This creates a problem:
+- The migrator would try to migrate process instances that don't need migration
+- This could cause errors or unexpected behavior
+
+The `validation-job-type` feature solves this by allowing you to use a FEEL expression creating different job types for externally started process instances versus process instances started by the migrator, ensuring only instances that truly need migration are processed by the migrator.
+
 The migrator supports two job type configurations with fallback behavior:
 
 1. **`job-type`**: Used for actual job activation
    - This is the primary job type used when activating jobs in Camunda 8.
    - It is required for the migrator to function correctly.
 2. **`validation-job-type`**: Used for validation purposes (optional)
+    - You can define a FEEL expression that provides different job types based on the process instance context.
+    - The BPMN process will be validated to contain a start event execution listener with the respectively defined FEEL expression.
 
 **Default Behavior:**
 When `validation-job-type` is not defined, `job-type` is used for both validation and activation.
@@ -215,7 +225,7 @@ camunda.migrator:
 ```yaml
 camunda.migrator:
   job-type: migrator                                           # Used for activation
-  validation-job-type: '=if legacyId then "migrator" else "noop"'  # Used for validation with FEEL expression
+  validation-job-type: '=if legacyId != null then "migrator" else "noop"'  # Used for validation with FEEL expression
 ```
 
 **Important Notes:**
@@ -224,7 +234,7 @@ camunda.migrator:
 - The `validation-job-type` can be a FEEL expression (starts with `=`)
 - Set `validation-job-type` to `DISABLED` to disable job type validation entirely
 - Use FEEL expressions only for validation, not for job activation since on job activation, the FEEL expression is already evaluated to a static value
-- Variables referenced in FEEL expressions must exist in the process instance context
+- You can use variables like the special variable `legacyId` in FEEL expression
 
 **FEEL Expression Requirements:**
 When using FEEL expressions in the `validation-job-type` property, you must also specify the same expression in the execution listener of your BPMN process start events. The migrator configuration alone is not sufficient.
@@ -234,7 +244,7 @@ Example BPMN configuration for FEEL expression validation:
 <bpmn:startEvent id="StartEvent_1">
   <bpmn:extensionElements>
     <zeebe:executionListeners>
-      <zeebe:executionListener eventType="end" type="=if legacyId then &quot;migrator&quot; else &quot;noop&quot;" />
+      <zeebe:executionListener eventType="end" type="=if legacyId != null then &quot;migrator&quot; else &quot;noop&quot;" />
     </zeebe:executionListeners>
   </bpmn:extensionElements>
 </bpmn:startEvent>
@@ -242,9 +252,9 @@ Example BPMN configuration for FEEL expression validation:
 
 **Important Note for Externally Started Process Instances:**
 
-Migrator jobs for externally started process instances (process instances not started by the Data Migrator) are **not activated** by the data migrator. These process instances do not contain the `legacyId` variable that the migrator uses to identify instances that need migration.
+Migrator jobs for externally started process instances (process instances not started by the Data Migrator) are activated but not further processed by the Data Migrator since these process instance do not contain the `legacyId` variable that the migrator uses to identify instances that need migration. After the default lock timeout the jobs will be available again for activation.
 
-When using FEEL expressions like `=if legacyId then "migrator" else "noop"` in the execution listener, externally started process instances will generate jobs with the type `noop` instead of `migrator`. To handle these jobs properly, you need to implement a **noop job worker** that simply activates and completes these jobs without performing any migration logic.
+When using FEEL expressions like `=if legacyId != null then "migrator" else "noop"` in the execution listener, externally started process instances will generate jobs with the type `noop` instead of `migrator`. To handle these jobs properly, you need to implement a **noop job worker** that simply activates and completes these jobs without performing any migration logic.
 
 Example noop job worker implementation:
 ```java

@@ -19,7 +19,7 @@ import org.springframework.test.context.TestPropertySource;
 
 @TestPropertySource(properties = {
     "camunda.migrator.job-type=custom-activation-type",
-    "camunda.migrator.validation-job-type==if legacyId then \"migrator\" else \"noop\""
+    "camunda.migrator.validation-job-type==if legacyId != null then \"migrator\" else \"noop\""
 })
 public class SeparateJobTypesValidationTest extends RuntimeMigrationAbstractTest {
 
@@ -43,11 +43,11 @@ public class SeparateJobTypesValidationTest extends RuntimeMigrationAbstractTest
     assertThatProcessInstanceCountIsEqualTo(0);
 
     var events = logs.getEvents();
-    assertThat(events.stream()
-        .filter(event -> event.getMessage()
-            .matches(String.format(".*Skipping process instance with legacyId \\[%s\\]: "
-                + "Couldn't find execution listener of type '=if legacyId then \"migrator\" else \"noop\"' on start event "
-                + "\\[Event_1px2j50\\] in C8 process with key \\[(\\d+)\\]\\.", id))))
+    assertThat(events.stream().filter(event -> event.getMessage()
+        .matches(String.format(".*Skipping process instance with legacyId \\[%s\\]: "
+            + "No execution listener of type '=if legacyId != null then \"migrator\" else \"noop\"' found on "
+            + "start event \\[Event_1px2j50\\] in C8 process with id \\[(\\d+)\\]\\. "
+            + "At least one '=if legacyId != null then \"migrator\" else \"noop\"' listener is required\\.", id))))
         .hasSize(1);
   }
 
@@ -70,9 +70,9 @@ public class SeparateJobTypesValidationTest extends RuntimeMigrationAbstractTest
     var events = logs.getEvents();
     assertThat(events.stream().filter(event -> event.getMessage()
         .matches(String.format(".*Skipping process instance with legacyId \\[%s\\]: "
-            + "No execution listener of type '=if legacyId then \"migrator\" else \"noop\"' found on "
+            + "No execution listener of type '=if legacyId != null then \"migrator\" else \"noop\"' found on "
             + "start event \\[Event_1px2j50\\] in C8 process with id \\[(\\d+)\\]\\. "
-            + "At least one '=if legacyId then \"migrator\" else \"noop\"' listener is required\\.", id))))
+            + "At least one '=if legacyId != null then \"migrator\" else \"noop\"' listener is required\\.", id))))
         .hasSize(1);
   }
 

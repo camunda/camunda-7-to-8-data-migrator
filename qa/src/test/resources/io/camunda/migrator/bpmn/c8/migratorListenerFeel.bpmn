@@ -14,7 +14,7 @@
     <bpmn:startEvent id="Event_1px2j50" isInterrupting="true" parallelMultiple="false">
       <bpmn:extensionElements>
         <zeebe:executionListeners>
-          <zeebe:executionListener eventType="end" type="=if legacyId then &quot;migrator&quot; else &quot;noop&quot;"/>
+          <zeebe:executionListener eventType="end" type="=if legacyId != null then &quot;migrator&quot; else &quot;noop&quot;"/>
         </zeebe:executionListeners>
       </bpmn:extensionElements>
       <bpmn:outgoing>Flow_0wuv7y3</bpmn:outgoing>
@@ -22,7 +22,7 @@
     <bpmn:sequenceFlow id="Flow_0wuv7y3" sourceRef="Event_1px2j50" targetRef="Activity_016bbjm"/>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane bpmnElement="noMigratorListener" id="BPMNPlane_1">
+    <bpmndi:BPMNPlane bpmnElement="migratorListenerFeel" id="BPMNPlane_1">
       <bpmndi:BPMNShape bpmnElement="Activity_016bbjm" id="Activity_184um7h_di">
         <dc:Bounds height="80" width="100" x="270" y="80"/>
       </bpmndi:BPMNShape>
