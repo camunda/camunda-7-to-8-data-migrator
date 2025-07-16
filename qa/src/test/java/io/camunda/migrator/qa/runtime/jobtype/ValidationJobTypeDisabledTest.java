@@ -6,12 +6,12 @@
  * except in compliance with the Camunda License 1.0.
  */
 
-package io.camunda.migrator.qa;
+package io.camunda.migrator.qa.runtime.jobtype;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.migrator.RuntimeMigrator;
-import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
+import io.camunda.migrator.qa.runtime.RuntimeMigrationAbstractTest;
 import io.github.netmikey.logunit.api.LogCapturer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -28,7 +28,7 @@ public class ValidationJobTypeDisabledTest extends RuntimeMigrationAbstractTest 
   @Test
   public void shouldSucceedIfNoMigratorListenerExists() {
     // given
-    deployProcessInC7AndC8("noMigratorListener.bpmn");
+    deployer.deployProcessInC7AndC8("noMigratorListener.bpmn");
 
     String id = runtimeService.startProcessInstanceByKey("noMigratorListener").getId();
 
@@ -45,7 +45,7 @@ public class ValidationJobTypeDisabledTest extends RuntimeMigrationAbstractTest 
   @Test
   public void shouldSucceedIfCustomMigratorListenerTypeExists() {
     // given
-    deployProcessInC7AndC8("migratorListenerCustomType.bpmn");
+    deployer.deployProcessInC7AndC8("migratorListenerCustomType.bpmn");
 
     String id = runtimeService.startProcessInstanceByKey("migratorListenerCustomType").getId();
 
@@ -62,7 +62,7 @@ public class ValidationJobTypeDisabledTest extends RuntimeMigrationAbstractTest 
   @Test
   public void shouldSucceedIfListenerUsesFeel() {
     // given
-    deployProcessInC7AndC8("migratorListenerFeel.bpmn");
+    deployer.deployProcessInC7AndC8("migratorListenerFeel.bpmn");
 
     String id = runtimeService.startProcessInstanceByKey("migratorListenerFeel").getId();
 

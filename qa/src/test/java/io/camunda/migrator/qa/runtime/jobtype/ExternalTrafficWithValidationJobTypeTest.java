@@ -6,13 +6,13 @@
  * except in compliance with the Camunda License 1.0.
  */
 
-package io.camunda.migrator.qa;
+package io.camunda.migrator.qa.runtime.jobtype;
 
 import static io.camunda.process.test.api.assertions.UserTaskSelectors.byElementId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.client.api.response.ActivateJobsResponse;
-import io.camunda.migrator.qa.util.RuntimeMigrationAbstractTest;
+import io.camunda.migrator.qa.runtime.RuntimeMigrationAbstractTest;
 import io.camunda.process.test.api.CamundaAssert;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
@@ -25,7 +25,7 @@ public class ExternalTrafficWithValidationJobTypeTest extends RuntimeMigrationAb
   @Test
   public void shouldHandleExternallyStartedMigratorJobsGracefully() {
     // given
-    deployProcessInC7AndC8("migratorListenerFeel.bpmn");
+    deployer.deployProcessInC7AndC8("migratorListenerFeel.bpmn");
 
     String id = runtimeService.startProcessInstanceByKey("migratorListenerFeel").getId();
 
