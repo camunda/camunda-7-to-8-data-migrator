@@ -30,7 +30,7 @@ public class Pagination<T> {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(Pagination.class);
 
-  protected int batchSize;
+  protected int pageSize;
   protected Supplier<Long> maxCount;
   protected Function<Integer, List<T>> page;
   protected Query<?, T> query;
@@ -38,8 +38,8 @@ public class Pagination<T> {
   protected List<VariableInterceptor> configuredVariableInterceptors;
 
 
-  public Pagination<T> batchSize(int batchSize) {
-    this.batchSize = batchSize;
+  public Pagination<T> pageSize(int pageSize) {
+    this.pageSize = pageSize;
     return this;
   }
 
@@ -74,7 +74,7 @@ public class Pagination<T> {
 
     if (query != null) {
       maxCount = query.count();
-      result = offset -> query.listPage(offset, batchSize);
+      result = offset -> query.listPage(offset, pageSize);
 
     } else if (page != null) {
       maxCount = callApi(this.maxCount);
@@ -84,11 +84,11 @@ public class Pagination<T> {
       throw new IllegalStateException("Query and page cannot be null");
     }
 
-    for (int i = 0; i < maxCount; i = i + batchSize) {
+    for (int i = 0; i < maxCount; i = i + pageSize) {
       StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
       int offset = i;
       String methodName = stackTrace[2].getMethodName();
-      LOGGER.debug("Method: #{}, max count: {}, offset: {}, batch size: {}", methodName, maxCount, offset, batchSize);
+      LOGGER.debug("Method: #{}, max count: {}, offset: {}, page size: {}", methodName, maxCount, offset, pageSize);
 
       callApi(() -> result.apply(offset)).forEach(callback);
     }

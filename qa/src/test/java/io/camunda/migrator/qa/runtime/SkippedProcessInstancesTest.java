@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 
 @TestPropertySource(properties = {
-    "camunda.migrator.batch-size=4"
+    "camunda.migrator.page-size=4"
 })
 class SkippedProcessInstancesTest extends RuntimeMigrationAbstractTest {
 

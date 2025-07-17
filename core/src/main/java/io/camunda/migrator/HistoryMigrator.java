@@ -155,7 +155,7 @@ public class HistoryMigrator {
     }
 
     new Pagination<DecisionDefinition>()
-        .batchSize(getBatchSize())
+        .pageSize(getPageSize())
         .query(legacyDecisionDefinitionQuery)
         .callback(legacyDecisionDefinition -> {
           String legacyId = legacyDecisionDefinition.getId();
@@ -180,7 +180,7 @@ public class HistoryMigrator {
     }
 
     new Pagination<ProcessDefinition>()
-        .batchSize(getBatchSize())
+        .pageSize(getPageSize())
         .query(legacyProcessDefinitionQuery)
         .callback(legacyProcessDefinition -> {
           String legacyId = legacyProcessDefinition.getId();
@@ -205,7 +205,7 @@ public class HistoryMigrator {
     }
 
     new Pagination<HistoricProcessInstance>()
-        .batchSize(getBatchSize())
+        .pageSize(getPageSize())
         .query(legacyProcessInstanceQuery)
         .callback(legacyProcessInstance -> {
           String legacyProcessInstanceId = legacyProcessInstance.getId();
@@ -252,7 +252,7 @@ public class HistoryMigrator {
     }
 
     new Pagination<HistoricIncident>()
-        .batchSize(getBatchSize())
+        .pageSize(getPageSize())
         .query(legacyIncidentQuery)
         .callback(legacyIncident -> {
           String legacyIncidentId = legacyIncident.getId();
@@ -289,7 +289,7 @@ public class HistoryMigrator {
     }
 
     new Pagination<HistoricVariableInstance>()
-        .batchSize(getBatchSize())
+        .pageSize(getPageSize())
         .query(legacyVariableQuery)
         .callback(legacyVariable -> {
           String legacyVariableId = legacyVariable.getId();
@@ -329,7 +329,7 @@ public class HistoryMigrator {
     }
 
     new Pagination<HistoricTaskInstance>()
-        .batchSize(getBatchSize())
+        .pageSize(getPageSize())
         .query(legacyTaskQuery)
         .callback(legacyUserTask -> {
           String legacyUserTaskId = legacyUserTask.getId();
@@ -368,7 +368,7 @@ public class HistoryMigrator {
     }
 
     new Pagination<HistoricActivityInstance>()
-        .batchSize(getBatchSize())
+        .pageSize(getPageSize())
         .query(legacyFlowNodeQuery)
         .callback(legacyFlowNode -> {
           String legacyFlowNodeId = legacyFlowNode.getId();
@@ -456,8 +456,8 @@ public class HistoryMigrator {
     }
   }
 
-  public int getBatchSize() {
-    return migratorProperties.getBatchSize();
+  public int getPageSize() {
+    return migratorProperties.getPageSize();
   }
 
 }

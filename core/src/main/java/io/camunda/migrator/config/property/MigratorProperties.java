@@ -14,7 +14,7 @@ import java.util.List;
 @ConfigurationProperties(MigratorProperties.PREFIX)
 public class MigratorProperties {
 
-  public static final int DEFAULT_BATCH_SIZE = 500;
+  public static final int DEFAULT_PAGE_SIZE = 500;
   public static final String PREFIX = "camunda.migrator";
   public static final String DEFAULT_JOB_TYPE = "migrator";
 
@@ -22,7 +22,7 @@ public class MigratorProperties {
     C7, C8
   }
 
-  protected Integer batchSize = DEFAULT_BATCH_SIZE;
+  protected Integer pageSize = DEFAULT_PAGE_SIZE;
   protected DataSource dataSource = DataSource.C7;
   protected String jobType = DEFAULT_JOB_TYPE;
   protected String validationJobType;
@@ -35,12 +35,12 @@ public class MigratorProperties {
 
   protected List<InterceptorProperty> interceptors;
 
-  public int getBatchSize() {
-    return batchSize;
+  public int getPageSize() {
+    return pageSize;
   }
 
-  public void setBatchSize(int batchSize) {
-    this.batchSize = batchSize;
+  public void setPageSize(int pageSize) {
+    this.pageSize = pageSize;
   }
 
   public C7Properties getC7() {
