@@ -304,7 +304,7 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
-  public BatchOperationItemReader batchOperationItenReader(
+  public BatchOperationItemReader batchOperationItemReader(
       final BatchOperationMapper batchOperationMapper) {
     return new BatchOperationItemReader(batchOperationMapper);
   }
