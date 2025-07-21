@@ -19,7 +19,7 @@ public class DecisionDefinitionConverter {
     return new DecisionDefinitionDbModel.DecisionDefinitionDbModelBuilder()
         .decisionDefinitionKey(getNextKey())
         .name(legacyDecisionDefinition.getName())
-        .decisionDefinitionId(legacyDecisionDefinition.getId())
+        .decisionDefinitionId(legacyDecisionDefinition.getKey())
         .tenantId(legacyDecisionDefinition.getTenantId())
         .version(legacyDecisionDefinition.getVersion())
         .decisionRequirementsId(legacyDecisionDefinition.getDecisionRequirementsDefinitionId())
