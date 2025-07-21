@@ -10,26 +10,26 @@ package io.camunda.migrator.config.mybatis;
 import io.camunda.db.rdbms.RdbmsService;
 import io.camunda.db.rdbms.config.VendorDatabaseProperties;
 import io.camunda.db.rdbms.read.service.AuthorizationDbReader;
-import io.camunda.db.rdbms.read.service.BatchOperationItemReader;
-import io.camunda.db.rdbms.read.service.BatchOperationReader;
-import io.camunda.db.rdbms.read.service.DecisionDefinitionReader;
-import io.camunda.db.rdbms.read.service.DecisionInstanceReader;
-import io.camunda.db.rdbms.read.service.DecisionRequirementsReader;
-import io.camunda.db.rdbms.read.service.FlowNodeInstanceReader;
-import io.camunda.db.rdbms.read.service.FormReader;
-import io.camunda.db.rdbms.read.service.GroupReader;
-import io.camunda.db.rdbms.read.service.IncidentReader;
-import io.camunda.db.rdbms.read.service.JobReader;
-import io.camunda.db.rdbms.read.service.MappingRuleReader;
-import io.camunda.db.rdbms.read.service.ProcessDefinitionReader;
-import io.camunda.db.rdbms.read.service.ProcessInstanceReader;
-import io.camunda.db.rdbms.read.service.RoleReader;
-import io.camunda.db.rdbms.read.service.SequenceFlowReader;
-import io.camunda.db.rdbms.read.service.TenantReader;
-import io.camunda.db.rdbms.read.service.UsageMetricReader;
-import io.camunda.db.rdbms.read.service.UserReader;
-import io.camunda.db.rdbms.read.service.UserTaskReader;
-import io.camunda.db.rdbms.read.service.VariableReader;
+import io.camunda.db.rdbms.read.service.BatchOperationDbReader;
+import io.camunda.db.rdbms.read.service.BatchOperationItemDbReader;
+import io.camunda.db.rdbms.read.service.DecisionDefinitionDbReader;
+import io.camunda.db.rdbms.read.service.DecisionInstanceDbReader;
+import io.camunda.db.rdbms.read.service.DecisionRequirementsDbReader;
+import io.camunda.db.rdbms.read.service.FlowNodeInstanceDbReader;
+import io.camunda.db.rdbms.read.service.FormDbReader;
+import io.camunda.db.rdbms.read.service.GroupDbReader;
+import io.camunda.db.rdbms.read.service.IncidentDbReader;
+import io.camunda.db.rdbms.read.service.JobDbReader;
+import io.camunda.db.rdbms.read.service.MappingRuleDbReader;
+import io.camunda.db.rdbms.read.service.ProcessDefinitionDbReader;
+import io.camunda.db.rdbms.read.service.ProcessInstanceDbReader;
+import io.camunda.db.rdbms.read.service.RoleDbReader;
+import io.camunda.db.rdbms.read.service.SequenceFlowDbReader;
+import io.camunda.db.rdbms.read.service.TenantDbReader;
+import io.camunda.db.rdbms.read.service.UsageMetricsDbReader;
+import io.camunda.db.rdbms.read.service.UserDbReader;
+import io.camunda.db.rdbms.read.service.UserTaskDbReader;
+import io.camunda.db.rdbms.read.service.VariableDbReader;
 import io.camunda.db.rdbms.sql.AuthorizationMapper;
 import io.camunda.db.rdbms.sql.BatchOperationMapper;
 import io.camunda.db.rdbms.sql.DecisionDefinitionMapper;
@@ -55,7 +55,6 @@ import io.camunda.db.rdbms.sql.VariableMapper;
 import io.camunda.db.rdbms.write.RdbmsWriterFactory;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.config.property.MigratorProperties;
-import io.camunda.search.clients.reader.AuthorizationReader;
 import io.camunda.spring.client.metrics.MetricsRecorder;
 import java.util.Properties;
 import javax.sql.DataSource;
@@ -221,8 +220,8 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
-  public VariableReader variableRdbmsReader(final VariableMapper variableMapper) {
-    return new VariableReader(variableMapper);
+  public VariableDbReader variableRdbmsReader(final VariableMapper variableMapper) {
+    return new VariableDbReader(variableMapper);
   }
 
   @Bean
@@ -231,106 +230,106 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
-  public DecisionDefinitionReader decisionDefinitionReader(
+  public DecisionDefinitionDbReader decisionDefinitionReader(
       final DecisionDefinitionMapper decisionDefinitionMapper) {
-    return new DecisionDefinitionReader(decisionDefinitionMapper);
+    return new DecisionDefinitionDbReader(decisionDefinitionMapper);
   }
 
   @Bean
-  public DecisionInstanceReader decisionInstanceReader(
+  public DecisionInstanceDbReader decisionInstanceReader(
       final DecisionInstanceMapper decisionInstanceMapper) {
-    return new DecisionInstanceReader(decisionInstanceMapper);
+    return new DecisionInstanceDbReader(decisionInstanceMapper);
   }
 
   @Bean
-  public DecisionRequirementsReader decisionRequirementsReader(
+  public DecisionRequirementsDbReader decisionRequirementsReader(
       final DecisionRequirementsMapper decisionRequirementsMapper) {
-    return new DecisionRequirementsReader(decisionRequirementsMapper);
+    return new DecisionRequirementsDbReader(decisionRequirementsMapper);
   }
 
   @Bean
-  public FlowNodeInstanceReader flowNodeInstanceReader(
+  public FlowNodeInstanceDbReader flowNodeInstanceReader(
       final FlowNodeInstanceMapper flowNodeInstanceMapper) {
-    return new FlowNodeInstanceReader(flowNodeInstanceMapper);
+    return new FlowNodeInstanceDbReader(flowNodeInstanceMapper);
   }
 
   @Bean
-  public GroupReader groupReader(final GroupMapper groupMapper) {
-    return new GroupReader(groupMapper);
+  public GroupDbReader groupReader(final GroupMapper groupMapper) {
+    return new GroupDbReader(groupMapper);
   }
 
   @Bean
-  public IncidentReader incidentReader(final IncidentMapper incidentMapper) {
-    return new IncidentReader(incidentMapper);
+  public IncidentDbReader incidentReader(final IncidentMapper incidentMapper) {
+    return new IncidentDbReader(incidentMapper);
   }
 
   @Bean
-  public ProcessDefinitionReader processDeploymentRdbmsReader(
+  public ProcessDefinitionDbReader processDeploymentRdbmsReader(
       final ProcessDefinitionMapper processDefinitionMapper) {
-    return new ProcessDefinitionReader(processDefinitionMapper);
+    return new ProcessDefinitionDbReader(processDefinitionMapper);
   }
 
   @Bean
-  public ProcessInstanceReader processRdbmsReader(
+  public ProcessInstanceDbReader processRdbmsReader(
       final ProcessInstanceMapper processInstanceMapper) {
-    return new ProcessInstanceReader(processInstanceMapper);
+    return new ProcessInstanceDbReader(processInstanceMapper);
   }
 
   @Bean
-  public TenantReader tenantReader(final TenantMapper tenantMapper) {
-    return new TenantReader(tenantMapper);
+  public TenantDbReader tenantReader(final TenantMapper tenantMapper) {
+    return new TenantDbReader(tenantMapper);
   }
 
   @Bean
-  public UserReader userRdbmsReader(final UserMapper userTaskMapper) {
-    return new UserReader(userTaskMapper);
+  public UserDbReader userRdbmsReader(final UserMapper userTaskMapper) {
+    return new UserDbReader(userTaskMapper);
   }
 
   @Bean
-  public RoleReader roleRdbmsReader(final RoleMapper roleMapper) {
-    return new RoleReader(roleMapper);
+  public RoleDbReader roleRdbmsReader(final RoleMapper roleMapper) {
+    return new RoleDbReader(roleMapper);
   }
 
   @Bean
-  public UserTaskReader userTaskRdbmsReader(final UserTaskMapper userTaskMapper) {
-    return new UserTaskReader(userTaskMapper);
+  public UserTaskDbReader userTaskRdbmsReader(final UserTaskMapper userTaskMapper) {
+    return new UserTaskDbReader(userTaskMapper);
   }
 
   @Bean
-  public FormReader formRdbmsReader(final FormMapper formMapper) {
-    return new FormReader(formMapper);
+  public FormDbReader formRdbmsReader(final FormMapper formMapper) {
+    return new FormDbReader(formMapper);
   }
 
   @Bean
-  public MappingRuleReader mappingRdbmsReader(final MappingRuleMapper mappingMapper) {
-    return new MappingRuleReader(mappingMapper);
+  public MappingRuleDbReader mappingRdbmsReader(final MappingRuleMapper mappingMapper) {
+    return new MappingRuleDbReader(mappingMapper);
   }
 
   @Bean
-  public BatchOperationReader batchOperationReader(
+  public BatchOperationDbReader batchOperationReader(
       final BatchOperationMapper batchOperationMapper) {
-    return new BatchOperationReader(batchOperationMapper);
+    return new BatchOperationDbReader(batchOperationMapper);
   }
 
   @Bean
-  public BatchOperationItemReader batchOperationItemReader(
+  public BatchOperationItemDbReader batchOperationItemReader(
       final BatchOperationMapper batchOperationMapper) {
-    return new BatchOperationItemReader(batchOperationMapper);
+    return new BatchOperationItemDbReader(batchOperationMapper);
   }
 
   @Bean
-  public JobReader jobReader(final JobMapper jobMapper) {
-    return new JobReader(jobMapper);
+  public JobDbReader jobReader(final JobMapper jobMapper) {
+    return new JobDbReader(jobMapper);
   }
 
   @Bean
-  public SequenceFlowReader sequenceFlowReader(SequenceFlowMapper sequenceFlowMapper) {
-    return new SequenceFlowReader(sequenceFlowMapper);
+  public SequenceFlowDbReader sequenceFlowReader(SequenceFlowMapper sequenceFlowMapper) {
+    return new SequenceFlowDbReader(sequenceFlowMapper);
   }
 
   @Bean
-  public UsageMetricReader usageMetricReader(UsageMetricMapper usageMetricMapper) {
-    return new UsageMetricReader(usageMetricMapper);
+  public UsageMetricsDbReader usageMetricReader(UsageMetricMapper usageMetricMapper) {
+    return new UsageMetricsDbReader(usageMetricMapper);
   }
 
   @Bean
@@ -345,7 +344,7 @@ public class C8Configuration extends AbstractConfiguration {
       PurgeMapper purgeMapper,
       UserTaskMapper userTaskMapper,
       VariableMapper variableMapper,
-      BatchOperationReader batchOperationReader,
+      BatchOperationDbReader batchOperationReader,
       JobMapper jobMapper,
       SequenceFlowMapper sequenceFlowMapper,
       UsageMetricMapper usageMetricMapper) {
@@ -370,26 +369,26 @@ public class C8Configuration extends AbstractConfiguration {
   @Bean
   public RdbmsService rdbmsService(
       final RdbmsWriterFactory rdbmsWriterFactory,
-      final VariableReader variableReader,
+      final VariableDbReader variableReader,
       final AuthorizationDbReader authorizationReader,
-      final DecisionDefinitionReader decisionDefinitionReader,
-      final DecisionInstanceReader decisionInstanceReader,
-      final DecisionRequirementsReader decisionRequirementsReader,
-      final FlowNodeInstanceReader flowNodeInstanceReader,
-      final GroupReader groupReader,
-      final IncidentReader incidentReader,
-      final ProcessDefinitionReader processDefinitionReader,
-      final ProcessInstanceReader processInstanceReader,
-      final RoleReader roleReader,
-      final TenantReader tenantReader,
-      final UserReader userReader,
-      final UserTaskReader userTaskReader,
-      final FormReader formReader,
-      final BatchOperationReader batchOperationReader,
-      final SequenceFlowReader sequenceFlowReader,
-      final BatchOperationItemReader batchOperationItemReader,
-      final JobReader jobReader,
-      final UsageMetricReader usageMetricMapper) {
+      final DecisionDefinitionDbReader decisionDefinitionReader,
+      final DecisionInstanceDbReader decisionInstanceReader,
+      final DecisionRequirementsDbReader decisionRequirementsReader,
+      final FlowNodeInstanceDbReader flowNodeInstanceReader,
+      final GroupDbReader groupReader,
+      final IncidentDbReader incidentReader,
+      final ProcessDefinitionDbReader processDefinitionReader,
+      final ProcessInstanceDbReader processInstanceReader,
+      final RoleDbReader roleReader,
+      final TenantDbReader tenantReader,
+      final UserDbReader userReader,
+      final UserTaskDbReader userTaskReader,
+      final FormDbReader formReader,
+      final BatchOperationDbReader batchOperationReader,
+      final SequenceFlowDbReader sequenceFlowReader,
+      final BatchOperationItemDbReader batchOperationItemReader,
+      final JobDbReader jobReader,
+      final UsageMetricsDbReader usageMetricsReader) {
     return new RdbmsService(
         rdbmsWriterFactory,
         authorizationReader,
@@ -412,7 +411,7 @@ public class C8Configuration extends AbstractConfiguration {
         sequenceFlowReader,
         batchOperationItemReader,
         jobReader,
-        usageMetricMapper);
+        usageMetricsReader);
   }
 
 }
