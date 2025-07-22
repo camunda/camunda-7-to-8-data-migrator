@@ -10,7 +10,7 @@ package io.camunda.migrator.config;
 import static io.camunda.migrator.config.property.MigratorProperties.DataSource.C7;
 import static io.camunda.migrator.config.property.MigratorProperties.DataSource.C8;
 import static org.camunda.bpm.engine.ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE;
-import static org.camunda.bpm.engine.ProcessEngineConfiguration.HISTORY_AUTO;
+import static org.camunda.bpm.engine.ProcessEngineConfiguration.HISTORY_FULL;
 
 import io.camunda.migrator.impl.AutoDeployer;
 import com.zaxxer.hikari.HikariDataSource;
@@ -157,7 +157,7 @@ public class MigratorAutoConfiguration {
     var config = new SpringProcessEngineConfiguration();
     config.setDataSource(c7DataSource);
     config.setTransactionManager(c7TransactionManager);
-    config.setHistory(HISTORY_AUTO);
+    config.setHistory(HISTORY_FULL);
     config.setJobExecutorActivate(false);
     config.setMetricsEnabled(false);
 

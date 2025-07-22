@@ -27,9 +27,7 @@ public class HistoryTaskMigrationTest extends HistoryMigrationAbstractTest {
     for(int i = 0; i < 5; i++) {
       runtimeService.startProcessInstanceByKey("userTaskProcessId");
     }
-    for (Task task : taskService.createTaskQuery().taskDefinitionKey("userTaskId").list()) {
-      taskService.complete(task.getId());
-    }
+    completeAllUserTasksWithDefaultUserTaskId();
 
     // when history is migrated
     historyMigrator.migrate();
