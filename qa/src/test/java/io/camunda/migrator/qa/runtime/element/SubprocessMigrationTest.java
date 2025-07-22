@@ -14,13 +14,20 @@ import static io.camunda.process.test.api.assertions.ElementSelectors.byId;
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
 import static io.camunda.process.test.api.assertions.UserTaskSelectors.byTaskName;
 
+import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.qa.runtime.RuntimeMigrationAbstractTest;
 import io.camunda.client.api.search.response.Variable;
+import io.github.netmikey.logunit.api.LogCapturer;
 import java.util.Optional;
+import org.assertj.core.api.Assertions;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class SubprocessMigrationTest extends RuntimeMigrationAbstractTest {
+
+  @RegisterExtension
+  protected LogCapturer logs = LogCapturer.create().captureForType(RuntimeMigrator.class);
 
   @Test
   public void migrateCallActivityAndSubprocess() {
@@ -65,6 +72,15 @@ public class SubprocessMigrationTest extends RuntimeMigrationAbstractTest {
     // then
     // verify no C8 instance was created
     assertThatProcessInstanceCountIsEqualTo(0);
+
+    // verify the correct error message was logged
+    var events = logs.getEvents();
+    Assertions.assertThat(events.stream()
+        .filter(event -> event.getMessage()
+            .contains(String.format("Skipping process instance with legacyId [%s]: Found call activity with propagateAllParentVariables=false " +
+                "for flow node with id [callActivityId] in C8 process. This is not supported by the migrator unless there is an " +
+                "explicit mapping for the legacyId variable, as it would lead to orphaned sub-process instances.", parentInstance.getId()))))
+        .hasSize(1);
   }
 
   @Test
