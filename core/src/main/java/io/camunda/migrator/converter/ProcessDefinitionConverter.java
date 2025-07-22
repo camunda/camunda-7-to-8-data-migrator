@@ -33,7 +33,7 @@ public class ProcessDefinitionConverter {
 
     return new ProcessDefinitionDbModel.ProcessDefinitionDbModelBuilder()
         .processDefinitionKey(getNextKey())
-        .processDefinitionId(legacyProcessDefinition.getId())
+        .processDefinitionId(legacyProcessDefinition.getKey())
         .resourceName(legacyProcessDefinition.getResourceName())
         .name(legacyProcessDefinition.getName())
         .tenantId(legacyProcessDefinition.getTenantId())
