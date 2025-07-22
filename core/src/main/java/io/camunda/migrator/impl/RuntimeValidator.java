@@ -134,8 +134,39 @@ public class RuntimeValidator {
    */
   public void validateC8FlowNodes(String xmlString, String activityId) {
     var bpmnModelInstance = parseBpmnModel(xmlString);
-    if (bpmnModelInstance.getModelElementById(activityId) == null) {
+    var element = bpmnModelInstance.getModelElementById(activityId);
+    if (element == null) {
       throw new IllegalStateException(String.format(FLOW_NODE_NOT_EXISTS_ERROR, activityId));
+    }
+
+    // Check if it's a CallActivity and validate propagateAllParentVariables
+    if (element instanceof io.camunda.zeebe.model.bpmn.instance.CallActivity callActivity) {
+      var extensionElements = callActivity.getExtensionElements();
+      if (extensionElements != null) {
+        var calledElements = extensionElements.getElementsQuery()
+            .filterByType(io.camunda.zeebe.model.bpmn.instance.zeebe.ZeebeCalledElement.class)
+            .list();
+
+        for (var calledElement : calledElements) {
+          String propagateAllParentVariables = calledElement.getDomElement().getAttribute("propagateAllParentVariables");
+          if ("false".equalsIgnoreCase(propagateAllParentVariables)) {
+            // Check if there's an explicit mapping for legacyId
+            var ioMappings = extensionElements.getElementsQuery()
+                .filterByType(io.camunda.zeebe.model.bpmn.instance.zeebe.ZeebeIoMapping.class)
+                .list();
+
+            boolean hasLegacyIdMapping = ioMappings.stream()
+                .flatMap(mapping -> mapping.getInputs().stream())
+                .anyMatch(input -> "legacyId".equals(input.getTarget()));
+
+            if (!hasLegacyIdMapping) {
+              throw new IllegalStateException(String.format("Found call activity with propagateAllParentVariables=false "
+                  + "for flow node with id [%s] in C8 process. This is not supported by the migrator unless there is an "
+                  + "explicit mapping for the legacyId variable, as it would lead to orphaned sub-process instances.", activityId));
+            }
+          }
+        }
+      }
     }
   }
 
