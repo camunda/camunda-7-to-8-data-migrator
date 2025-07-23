@@ -10,7 +10,7 @@ package io.camunda.migrator.config;
 import static io.camunda.migrator.config.property.MigratorProperties.DataSource.C7;
 import static io.camunda.migrator.config.property.MigratorProperties.DataSource.C8;
 import static org.camunda.bpm.engine.ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE;
-import static org.camunda.bpm.engine.ProcessEngineConfiguration.HISTORY_FULL;
+import static org.camunda.bpm.engine.ProcessEngineConfiguration.HISTORY_AUTO;
 
 import io.camunda.migrator.impl.AutoDeployer;
 import com.zaxxer.hikari.HikariDataSource;
@@ -38,6 +38,7 @@ import org.camunda.bpm.engine.spring.SpringProcessEngineServicesConfiguration;
 import org.camunda.spin.plugin.impl.SpinProcessEnginePlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -45,6 +46,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -153,11 +155,12 @@ public class MigratorAutoConfiguration {
   }
 
   @Bean
+  @ConditionalOnMissingBean(ProcessEngineConfigurationImpl.class)
   public ProcessEngineConfigurationImpl processEngineConfiguration() {
     var config = new SpringProcessEngineConfiguration();
     config.setDataSource(c7DataSource);
     config.setTransactionManager(c7TransactionManager);
-    config.setHistory(HISTORY_FULL);
+    config.setHistory(HISTORY_AUTO);
     config.setJobExecutorActivate(false);
     config.setMetricsEnabled(false);
 
