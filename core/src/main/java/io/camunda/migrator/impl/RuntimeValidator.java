@@ -67,11 +67,11 @@ public class RuntimeValidator {
   protected RepositoryService repositoryService;
 
   /**
-   * Validates process instance state with pagination over process instances.
+   * Validates process instance state with pagination across process instance hierarchy (starting from root process instance).
    */
-  public void validateProcessInstanceState(String legacyProcessInstanceId, Consumer<ProcessInstance> validator) {
+  public void validateProcessInstanceState(String legacyRootProcessInstanceId, Consumer<ProcessInstance> validator) {
     ProcessInstanceQuery processInstanceQuery = runtimeService.createProcessInstanceQuery()
-        .rootProcessInstanceId(legacyProcessInstanceId);
+        .rootProcessInstanceId(legacyRootProcessInstanceId);
 
     new Pagination<ProcessInstance>()
         .pageSize(properties.getPageSize())

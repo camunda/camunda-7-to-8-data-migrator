@@ -105,11 +105,11 @@ public class DbClient {
     return callApi(idKeyMapper::findSkippedCount, FAILED_TO_FIND_SKIPPED_COUNT);
   }
 
-  protected IdKeyDbModel createIdKeyDbModel(String legacyProcessInstanceId, Date startDate, Long processInstanceKey) {
+  protected IdKeyDbModel createIdKeyDbModel(String id, Date startDate, Long key) {
     var keyIdDbModel = new IdKeyDbModel();
-    keyIdDbModel.setId(legacyProcessInstanceId);
+    keyIdDbModel.setId(id);
     keyIdDbModel.setStartDate(startDate);
-    keyIdDbModel.setInstanceKey(processInstanceKey);
+    keyIdDbModel.setInstanceKey(key);
     keyIdDbModel.setType(TYPE.RUNTIME_PROCESS_INSTANCE);
     return keyIdDbModel;
   }

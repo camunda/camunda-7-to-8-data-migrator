@@ -38,7 +38,7 @@ public class VariableService {
   private C8Client c8Client;
 
   @Autowired(required = false)
-  private List<VariableInterceptor> configuredVariableInterceptors;
+  protected List<VariableInterceptor> configuredVariableInterceptors;
 
   /**
    * Retrieves and processes all variables for a process instance, including global variables
@@ -169,4 +169,5 @@ public class VariableService {
       }
     }
   }
+
 }
