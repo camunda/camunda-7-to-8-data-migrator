@@ -15,6 +15,7 @@ import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.MULTI_INSTAN
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_C8_DEPLOYMENT_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_NONE_START_EVENT_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_EXECUTION_LISTENER_OF_TYPE_ERROR;
+import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.CALL_ACTIVITY_LEGACY_ID_ERROR;
 
 import io.camunda.migrator.impl.logging.RuntimeValidatorLogs;
 import static io.camunda.zeebe.model.bpmn.Bpmn.readModelFromStream;
@@ -160,9 +161,7 @@ public class RuntimeValidator {
                 .anyMatch(input -> "legacyId".equals(input.getTarget()));
 
             if (!hasLegacyIdMapping) {
-              throw new IllegalStateException(String.format("Found call activity with propagateAllParentVariables=false "
-                  + "for flow node with id [%s] in C8 process. This is not supported by the migrator unless there is an "
-                  + "explicit mapping for the legacyId variable, as it would lead to orphaned sub-process instances.", activityId));
+              throw new IllegalStateException(String.format(CALL_ACTIVITY_LEGACY_ID_ERROR, activityId));
             }
           }
         }

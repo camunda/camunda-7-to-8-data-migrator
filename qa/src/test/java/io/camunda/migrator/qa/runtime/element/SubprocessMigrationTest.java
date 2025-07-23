@@ -13,6 +13,7 @@ import static io.camunda.process.test.api.CamundaAssert.assertThat;
 import static io.camunda.process.test.api.assertions.ElementSelectors.byId;
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
 import static io.camunda.process.test.api.assertions.UserTaskSelectors.byTaskName;
+import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.CALL_ACTIVITY_LEGACY_ID_ERROR;
 
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.qa.runtime.RuntimeMigrationAbstractTest;
@@ -77,9 +78,8 @@ public class SubprocessMigrationTest extends RuntimeMigrationAbstractTest {
     var events = logs.getEvents();
     Assertions.assertThat(events.stream()
         .filter(event -> event.getMessage()
-            .contains(String.format("Skipping process instance with legacyId [%s]: Found call activity with propagateAllParentVariables=false " +
-                "for flow node with id [callActivityId] in C8 process. This is not supported by the migrator unless there is an " +
-                "explicit mapping for the legacyId variable, as it would lead to orphaned sub-process instances.", parentInstance.getId()))))
+            .contains(String.format("Skipping process instance with legacyId [%s]: " + CALL_ACTIVITY_LEGACY_ID_ERROR,
+                parentInstance.getId(), "callActivityId"))))
         .hasSize(1);
   }
 
