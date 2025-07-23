@@ -55,7 +55,6 @@ import io.camunda.db.rdbms.sql.UserMapper;
 import io.camunda.db.rdbms.sql.UserTaskMapper;
 import io.camunda.db.rdbms.sql.VariableMapper;
 import io.camunda.db.rdbms.write.RdbmsWriterFactory;
-import io.camunda.db.rdbms.write.RdbmsWriterMetrics;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.spring.client.metrics.MetricsRecorder;
@@ -170,11 +169,6 @@ public class C8Configuration extends AbstractConfiguration {
   @Bean
   public MapperFactoryBean<VariableMapper> variableMapper(@Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory) {
     return createMapperFactoryBean(c8SqlSessionFactory, VariableMapper.class);
-  }
-
-  @Bean
-  public MapperFactoryBean<RdbmsWriterMetrics> rdbmsWriterMetrics(@Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory) {
-    return createMapperFactoryBean(c8SqlSessionFactory, RdbmsWriterMetrics.class);
   }
 
   @Bean
@@ -362,7 +356,6 @@ public class C8Configuration extends AbstractConfiguration {
       PurgeMapper purgeMapper,
       UserTaskMapper userTaskMapper,
       VariableMapper variableMapper,
-      RdbmsWriterMetrics rdbmsWriterMetrics,
       BatchOperationDbReader batchOperationReader,
       JobMapper jobMapper,
       SequenceFlowMapper sequenceFlowMapper,
@@ -379,7 +372,7 @@ public class C8Configuration extends AbstractConfiguration {
         purgeMapper,
         userTaskMapper,
         variableMapper,
-        rdbmsWriterMetrics,
+        null,
         batchOperationReader,
         jobMapper,
         sequenceFlowMapper,
