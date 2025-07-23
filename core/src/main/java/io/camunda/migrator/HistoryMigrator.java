@@ -7,14 +7,14 @@
  */
 package io.camunda.migrator;
 
+import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_DEFINITION;
+import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_FLOW_NODE;
+import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_INCIDENT;
+import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION;
+import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE;
+import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_USER_TASK;
+import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_VARIABLE;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
-import static io.camunda.migrator.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_DEFINITION;
-import static io.camunda.migrator.persistence.IdKeyMapper.TYPE.HISTORY_FLOW_NODE;
-import static io.camunda.migrator.persistence.IdKeyMapper.TYPE.HISTORY_INCIDENT;
-import static io.camunda.migrator.persistence.IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION;
-import static io.camunda.migrator.persistence.IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE;
-import static io.camunda.migrator.persistence.IdKeyMapper.TYPE.HISTORY_USER_TASK;
-import static io.camunda.migrator.persistence.IdKeyMapper.TYPE.HISTORY_VARIABLE;
 
 import io.camunda.db.rdbms.read.domain.FlowNodeInstanceDbQuery;
 import io.camunda.db.rdbms.read.domain.ProcessDefinitionDbQuery;
