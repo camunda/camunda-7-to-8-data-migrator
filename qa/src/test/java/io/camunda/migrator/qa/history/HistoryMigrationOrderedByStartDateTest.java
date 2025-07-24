@@ -10,6 +10,7 @@ package io.camunda.migrator.qa.history;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType.INTERMEDIATE_CATCH_EVENT;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.camunda.migrator.qa.util.WithSpringProfile;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.IncidentEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
@@ -24,6 +25,7 @@ import org.camunda.bpm.engine.runtime.Job;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@WithSpringProfile("history-level-full")
 public class HistoryMigrationOrderedByStartDateTest extends HistoryMigrationAbstractTest {
 
   @Autowired

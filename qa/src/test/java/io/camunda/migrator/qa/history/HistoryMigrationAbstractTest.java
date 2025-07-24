@@ -19,6 +19,7 @@ import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.migrator.qa.config.TestProcessEngineConfiguration;
 import io.camunda.migrator.qa.util.ProcessDefinitionDeployer;
 import io.camunda.migrator.qa.util.WithMultiDb;
+import io.camunda.migrator.qa.util.WithSpringProfile;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.IncidentEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
@@ -47,7 +48,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 @WithMultiDb
 @Import({ HistoryMigrationAbstractTest.HistoryCustomConfiguration.class, TestProcessEngineConfiguration.class })
-@ActiveProfiles(profiles = {"history", "test"})
+@WithSpringProfile("history")
 public abstract class HistoryMigrationAbstractTest {
 
   @Autowired
