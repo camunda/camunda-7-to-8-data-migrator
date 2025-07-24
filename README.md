@@ -7,10 +7,15 @@
 A tool for migrating Camunda 7 process instances and related data to Camunda 8. This migrator helps organizations seamlessly transition their process instances while preserving execution state and variables ensuring minimal disruption to ongoing business processes.
 
 > [!WARNING]  
-> The C7 Data Migrator is currently in active development and not yet ready for production use. However, we encourage users to try it out in development/testing environments and provide feedback to help us improve the tool.
+> **Production Readiness Status:**
+> - **Runtime Migrator**: Will be production-ready and officially supported with the Camunda 8.8 release
+> - **History Migrator**: Currently **EXPERIMENTAL** and **NOT intended for production use**. Is in experimental status even after the 8.8 release.
+> 
+> We encourage users to try the runtime migrator in development/testing environments and provide feedback to help us improve the tool before the 8.8 release.
 
 ## Table of Contents
 - [Overview](#overview)
+- [Migration Modes](#migration-modes)
 - [Key Features](#key-features)
 - [Prerequisites](#prerequisites)
 - [Installation & Setup](#installation--setup)
@@ -39,6 +44,18 @@ The C7 Data Migrator is designed to help organizations migrate from Camunda 7 to
 - Users, groups and authorizations
 - Task assignments and states
 - Execution history (we are working on this currently)
+
+## Migration Modes
+
+The C7 Data Migrator offers two modes of operation:
+
+1. **Runtime Migration**: Migrate running process instances to Camunda 8 while preserving their current state.
+2. **History Migration**: Migrate historical data.
+
+### Important Notes:
+
+- The **Runtime Migrator** will be production-ready with the Camunda 8.8 release.
+- The **History Migrator** is currently experimental and not intended for production use.
 
 ## Key Features
 
@@ -304,45 +321,45 @@ logging:
 
 ### Configuration Properties Overview
 
-| Prefix | Property                    | Type      | Description                                                                                                                                               |
-|------|-----------------------------|-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `camunda.client` |                             |   | Read more about Camunda Client [configuration options](https://docs.camunda.io/docs/next/apis-tools/spring-zeebe-sdk/configuration/).                     |
-| | `.mode`                     | `string`  | Operation mode of the Camunda 8 client. Options: `self-managed` or `cloud`. Default: `self-managed`                                                       |
-| | `.grpc-address`             | `string`  | The gRPC API endpoint for Camunda 8 Platform. Default: `http://localhost:26500`                                                                           |
-| | `.rest-address`             | `string`  | The REST API endpoint for Camunda 8 Platform. Default: `http://localhost:8088`                                                                            |
-| `camunda.migrator` |                             |           |                                                                                                                                                           |
-| | `.page-size`                | `number`  | Number of records to process in each page. Default: `500`                                                                  |
-| | `.job-type`                 | `string`  | Job type for actual job activation. Default: `migrator`.                                                                              |
+| Prefix | Property                    | Type      | Description                                                                                                                                                        |
+|------|-----------------------------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `camunda.client` |                             |   | Read more about Camunda Client [configuration options](https://docs.camunda.io/docs/next/apis-tools/spring-zeebe-sdk/configuration/).                              |
+| | `.mode`                     | `string`  | Operation mode of the Camunda 8 client. Options: `self-managed` or `cloud`. Default: `self-managed`                                                                |
+| | `.grpc-address`             | `string`  | The gRPC API endpoint for Camunda 8 Platform. Default: `http://localhost:26500`                                                                                    |
+| | `.rest-address`             | `string`  | The REST API endpoint for Camunda 8 Platform. Default: `http://localhost:8088`                                                                                     |
+| `camunda.migrator` |                             |           |                                                                                                                                                                    |
+| | `.page-size`                | `number`  | Number of records to process in each page. Default: `500`                                                                                                          |
+| | `.job-type`                 | `string`  | Job type for actual job activation. Default: `migrator`.                                                                                                           |
 | | `.validation-job-type`      | `string`  | Job type for validation purposes. Optional: falls back to `job-type` if not defined. Set to `DISABLED` to disable job type execution listener validation entirely. |
-| | `.auto-ddl`                 | `boolean` | Automatically create/update migrator database schema. Default: `false`                                                                                    |
-| | `.table-prefix`             | `string`  | Optional prefix for migrator database tables. Default: _(empty)_                                                                                          |
-| | `.data-source`              | `string`  | Choose if the migrator schema is created in the `C7` or `C8` data source. Default: `C7`                                                                   |
-| | `.database-vendor`          | `string`  | Database vendor for migrator schema. Options: `h2`, `postgresql`, `oracle`. Default: Automatically detected.                                              |
-| | `.interceptors`              | `array`   | List of custom variable interceptors to apply during migration. Each interceptor must implement the `VariableInterceptor` interface.      |
-| `camunda.migrator.c7.data-source` |                             |           |                                                                                                                                                           |
-| | `.table-prefix`             | `string`  | Optional prefix for Camunda 7 database tables. Default: _(empty)_                                                                                         |
-| | `.auto-ddl`                 | `boolean` | Automatically create/update Camunda 7 database schema. Default: `false`                                                                                   |
-| | `.database-vendor`          | `string`  | The database vendor is automatically detected and can currently not be overridden.                                                                        |
-| | `.*`                        |   | You can apply all [`HikariConfig` properties](https://github.com/brettwooldridge/HikariCP?tab=readme-ov-file#gear-configuration-knobs-baby). For example: |
-| | `.jdbc-url`                 | `string`  | JDBC connection URL for the source Camunda 7 database. Default: `jdbc:h2:mem:migrator`                                                                    |
-| | `.username`                 | `string`  | Username for Camunda 7 database connection. Default: `sa`                                                                                                 |
-| | `.password`                 | `string`  | Password for Camunda 7 database connection. Default: `sa`                                                                                                 |
-| | `.driver-class-name`        | `string`  | JDBC driver class for Camunda 7 database. Default: `org.h2.Driver`                                                                                        |
-| `camunda.migrator.c8` |                             |           |                                                                                                                                                           |
-| | `.deployment-dir`           | `string`   | Define directory which resources like BPMN processes are automatically deployed to C8.                                                                    |
-| `camunda.migrator.c8.data-source` |                             |           | If the `c8.data-source` configuration is absent, the RDBMS history data migrator is disabled.                                                             |
-| | `.table-prefix`             | `string`  | Optional prefix for Camunda 8 RDBMS database tables. Default: _(empty)_                                                                                   |
-| | `.auto-ddl`                 | `boolean` | Automatically create/update Camunda 8 RDBMS database schema. Default: `false`                                                                             |
-| | `.database-vendor`          | `string`  | Database vendor for C8 schema. Options: `h2`, `postgresql`, `oracle`. Default: Automatically detected.                                                    |
-| | `.*`                        |   | You can apply all [`HikariConfig` properties](https://github.com/brettwooldridge/HikariCP?tab=readme-ov-file#gear-configuration-knobs-baby). For example:              |
-| | `.jdbc-url`                 | `string`  | JDBC connection URL for the target Camunda 8 RDBMS database. Default: `jdbc:h2:mem:migrator`                                                              |
-| | `.username`                 | `string`  | Username for Camunda 8 database connection. Default: `sa`                                                                                                 |
-| | `.password`                 | `string`  | Password for Camunda 8 database connection. Default: `sa`                                                                                                 |
-| | `.driver-class-name`        | `string`  | JDBC driver class for Camunda 8 database. Default: `org.h2.Driver`                                                                                        |
-| `logging` |                             |           |                                                                                                                                                           |
-| | `.level.root`               | `string`  | Root logger level. Default: `INFO`                                                                                                                        |
-| | `.level.io.camunda.migrator` | `string`  | Migrator logging level. Default: `INFO`                                                                                                                   |
-| | `.file.name`                | `string`  | Log file location. Set to: `logs/c7-data-migrator.log`. If not specified, logs are output to the console.                                                 |
+| | `.auto-ddl`                 | `boolean` | Automatically create/update migrator database schema. Default: `false`                                                                                             |
+| | `.table-prefix`             | `string`  | Optional prefix for migrator database tables. Default: _(empty)_                                                                                                   |
+| | `.data-source`              | `string`  | Choose if the migrator schema is created in the `C7` or `C8` data source. Default: `C7`                                                                            |
+| | `.database-vendor`          | `string`  | Database vendor for migrator schema. Options: `h2`, `postgresql`, `oracle`. Default: Automatically detected.                                                       |
+| | `.interceptors`              | `array`   | List of custom variable interceptors to apply during migration. Each interceptor must implement the `VariableInterceptor` interface.                               |
+| `camunda.migrator.c7.data-source` |                             |           |                                                                                                                                                                    |
+| | `.table-prefix`             | `string`  | Optional prefix for Camunda 7 database tables. Default: _(empty)_                                                                                                  |
+| | `.auto-ddl`                 | `boolean` | Automatically create/update Camunda 7 database schema. Default: `false`                                                                                            |
+| | `.database-vendor`          | `string`  | The database vendor is automatically detected and can currently not be overridden.                                                                                 |
+| | `.*`                        |   | You can apply all [`HikariConfig` properties](https://github.com/brettwooldridge/HikariCP?tab=readme-ov-file#gear-configuration-knobs-baby). For example:          |
+| | `.jdbc-url`                 | `string`  | JDBC connection URL for the source Camunda 7 database. Default: `jdbc:h2:mem:migrator`                                                                             |
+| | `.username`                 | `string`  | Username for Camunda 7 database connection. Default: `sa`                                                                                                          |
+| | `.password`                 | `string`  | Password for Camunda 7 database connection. Default: `sa`                                                                                                          |
+| | `.driver-class-name`        | `string`  | JDBC driver class for Camunda 7 database. Default: `org.h2.Driver`                                                                                                 |
+| `camunda.migrator.c8` |                             |           |                                                                                                                                                                    |
+| | `.deployment-dir`           | `string`   | Define directory which resources like BPMN processes are automatically deployed to C8.                                                                             |
+| `camunda.migrator.c8.data-source` |                             |           | If the `c8.data-source` configuration is absent, the RDBMS history data migrator is disabled. **Heads-up:** History Data Migrator is experimental.                 |
+| | `.table-prefix`             | `string`  | Optional prefix for Camunda 8 RDBMS database tables. Default: _(empty)_                                                                                            |
+| | `.auto-ddl`                 | `boolean` | Automatically create/update Camunda 8 RDBMS database schema. Default: `false`                                                                                      |
+| | `.database-vendor`          | `string`  | Database vendor for C8 schema. Options: `h2`, `postgresql`, `oracle`. Default: Automatically detected.                                                             |
+| | `.*`                        |   | You can apply all [`HikariConfig` properties](https://github.com/brettwooldridge/HikariCP?tab=readme-ov-file#gear-configuration-knobs-baby). For example:          |
+| | `.jdbc-url`                 | `string`  | JDBC connection URL for the target Camunda 8 RDBMS database. Default: `jdbc:h2:mem:migrator`                                                                       |
+| | `.username`                 | `string`  | Username for Camunda 8 database connection. Default: `sa`                                                                                                          |
+| | `.password`                 | `string`  | Password for Camunda 8 database connection. Default: `sa`                                                                                                          |
+| | `.driver-class-name`        | `string`  | JDBC driver class for Camunda 8 database. Default: `org.h2.Driver`                                                                                                 |
+| `logging` |                             |           |                                                                                                                                                                    |
+| | `.level.root`               | `string`  | Root logger level. Default: `INFO`                                                                                                                                 |
+| | `.level.io.camunda.migrator` | `string`  | Migrator logging level. Default: `INFO`                                                                                                                            |
+| | `.file.name`                | `string`  | Log file location. Set to: `logs/c7-data-migrator.log`. If not specified, logs are output to the console.                                                          |
 
 ## Variable transformation
 
