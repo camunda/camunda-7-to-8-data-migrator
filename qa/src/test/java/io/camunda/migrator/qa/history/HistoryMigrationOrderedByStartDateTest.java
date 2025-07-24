@@ -25,7 +25,6 @@ import org.camunda.bpm.engine.runtime.Job;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@WithSpringProfile("history-level-full")
 public class HistoryMigrationOrderedByStartDateTest extends HistoryMigrationAbstractTest {
 
   @Autowired

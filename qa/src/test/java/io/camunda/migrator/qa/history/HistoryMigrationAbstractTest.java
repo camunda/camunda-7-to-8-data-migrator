@@ -16,6 +16,7 @@ import io.camunda.db.rdbms.write.service.RdbmsPurger;
 import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import io.camunda.migrator.qa.AbstractMigratorTest;
 import io.camunda.migrator.qa.config.TestProcessEngineConfiguration;
 import io.camunda.migrator.qa.util.ProcessDefinitionDeployer;
 import io.camunda.migrator.qa.util.WithMultiDb;
@@ -49,7 +50,7 @@ import org.springframework.test.context.ActiveProfiles;
 @WithMultiDb
 @Import({ HistoryMigrationAbstractTest.HistoryCustomConfiguration.class, TestProcessEngineConfiguration.class })
 @WithSpringProfile("history")
-public abstract class HistoryMigrationAbstractTest {
+public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest {
 
   @Autowired
   protected ProcessDefinitionDeployer deployer;
