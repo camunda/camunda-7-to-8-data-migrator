@@ -15,50 +15,24 @@ import io.camunda.client.api.command.ClientException;
 import io.camunda.client.api.search.response.ProcessInstance;
 import io.camunda.client.api.search.response.Variable;
 import io.camunda.migrator.RuntimeMigrator;
-import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.migrator.qa.AbstractMigratorTest;
-import io.camunda.migrator.qa.util.ProcessDefinitionDeployer;
-import io.camunda.migrator.qa.util.WithMultiDb;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
 
 import java.util.List;
 
 import java.util.Optional;
 import org.awaitility.Awaitility;
-import org.camunda.bpm.engine.RepositoryService;
-import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.impl.util.ClockUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
 @CamundaSpringProcessTest
-@WithMultiDb
 public abstract class RuntimeMigrationAbstractTest extends AbstractMigratorTest {
-
-  @Autowired
-  protected ProcessDefinitionDeployer deployer;
 
   // Migrator ---------------------------------------
 
   @Autowired
   protected RuntimeMigrator runtimeMigrator;
-
-  @Autowired
-  private IdKeyMapper idKeyMapper;
-
-  // C7 ---------------------------------------
-
-  @Autowired
-  protected RepositoryService repositoryService;
-
-  @Autowired
-  protected RuntimeService runtimeService;
-
-  @Autowired
-  protected TaskService taskService;
 
   // C8 ---------------------------------------
 
