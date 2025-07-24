@@ -142,12 +142,20 @@
           <artifactId>spring-boot-actuator</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>jul-to-slf4j</artifactId>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter</artifactId>
         </exclusion>
         <exclusion>
           <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter</artifactId>
+          <artifactId>spring-boot</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-autoconfigure</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>jul-to-slf4j</artifactId>
         </exclusion>
         <exclusion>
           <groupId>org.springframework.boot</groupId>
