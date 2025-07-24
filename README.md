@@ -9,7 +9,7 @@ A tool for migrating Camunda 7 process instances and related data to Camunda 8. 
 > [!WARNING]  
 > **Production Readiness Status:**
 > - **Runtime Migrator**: Will be production-ready and officially supported with the Camunda 8.8 release
-> - **History Migrator**: Currently **EXPERIMENTAL** and **NOT intended for production use**. Is in experimental status even after the 8.8 release.
+> - **History Migrator**: Currently **EXPERIMENTAL** and **NOT intended for production use**. It will remain in experimental status even after the 8.8 release.
 > 
 > We encourage users to try the runtime migrator in development/testing environments and provide feedback to help us improve the tool before the 8.8 release.
 
