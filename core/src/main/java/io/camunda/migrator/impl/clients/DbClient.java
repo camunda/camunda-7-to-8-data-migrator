@@ -59,14 +59,14 @@ public class DbClient {
   /**
    * Finds the latest legacy ID by type.
    */
-  public String findLatestIdByType(TYPE type){
+  public String findLatestIdByType(TYPE type) {
     return callApi(() -> idKeyMapper.findLatestIdByType(type), FAILED_TO_FIND_LATEST_ID + type);
   }
 
   /**
    * Finds the key by legacy ID.
    */
-  public Long findKeyById(String legacyId){
+  public Long findKeyById(String legacyId) {
     return callApi(() -> idKeyMapper.findKeyById(legacyId), FAILED_TO_FIND_KEY_BY_ID + legacyId);
   }
 
@@ -87,7 +87,6 @@ public class DbClient {
     var model = createIdKeyDbModel(legacyId, startDate, entityKey, type);
     callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + legacyId);
   }
-
 
   /**
    * Lists skipped process instances with pagination and prints them.
