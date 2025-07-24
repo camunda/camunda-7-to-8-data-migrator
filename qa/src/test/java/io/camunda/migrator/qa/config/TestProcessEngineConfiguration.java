@@ -25,7 +25,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Profile("history-level-full")
 public class TestProcessEngineConfiguration {
 
-  @Bean
+  @Bean()
   @Primary
   public ProcessEngineConfigurationImpl processEngineConfiguration(
       DataSource c7DataSource,
