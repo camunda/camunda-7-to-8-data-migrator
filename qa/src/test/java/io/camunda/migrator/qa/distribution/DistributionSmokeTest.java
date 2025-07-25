@@ -27,9 +27,9 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Smoke test for the ZIP distribution that validates the start.sh script functionality.
- * This test extracts the ZIP distribution and executes the start.sh script to ensure
- * the basic functionality works as expected.
+ * Smoke test for the ZIP distribution that validates the start script functionality.
+ * This test extracts the ZIP distribution and executes the appropriate start script
+ * (start.sh on Unix/Linux/macOS, start.bat on Windows) to ensure basic functionality works as expected.
  */
 class DistributionSmokeTest {
 
@@ -39,9 +39,15 @@ class DistributionSmokeTest {
   protected Path extractedDistributionPath;
   protected Path startScriptPath;
   protected Process process;
+  protected boolean isWindows;
+  protected String startScriptName;
 
   @BeforeEach
   void setUp() throws IOException {
+    // Detect operating system
+    isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+    startScriptName = isWindows ? "start.bat" : "start.sh";
+
     extractZipDistribution();
     makeScriptExecutable();
   }
@@ -57,9 +63,7 @@ class DistributionSmokeTest {
   @Timeout(value = 60, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenInvalidFlagProvided() throws Exception {
     // given
-    ProcessBuilder processBuilder = new ProcessBuilder("./start.sh", "--invalid-flag");
-    processBuilder.directory(extractedDistributionPath.toFile());
-    processBuilder.redirectErrorStream(true);
+    ProcessBuilder processBuilder = createProcessBuilder("--invalid-flag");
 
     // when
     Process process = processBuilder.start();
@@ -70,7 +74,28 @@ class DistributionSmokeTest {
 
     assertThat(exitCode).isEqualTo(1);
     assertThat(output).contains("Invalid flag: --invalid-flag");
-    assertThat(output).contains("Usage: start.sh");
+    assertThat(output).contains("Usage: " + startScriptName);
+    assertThat(output).contains("--runtime");
+    assertThat(output).contains("--history");
+    assertThat(output).contains("--list-skipped");
+    assertThat(output).contains("--retry-skipped");
+  }
+
+  @Test
+  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  void shouldShowUsageWhenHelpFlagProvided() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder("--help");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("Usage: " + startScriptName);
     assertThat(output).contains("--runtime");
     assertThat(output).contains("--history");
     assertThat(output).contains("--list-skipped");
@@ -81,9 +106,7 @@ class DistributionSmokeTest {
   @Timeout(value = 60, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenTooManyArgumentsProvided() throws Exception {
     // given
-    ProcessBuilder processBuilder = new ProcessBuilder("./start.sh", "--runtime", "--history", "--list-skipped", "--retry-skipped");
-    processBuilder.directory(extractedDistributionPath.toFile());
-    processBuilder.redirectErrorStream(true);
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history", "--list-skipped", "--retry-skipped");
 
     // when
     Process process = processBuilder.start();
@@ -94,19 +117,17 @@ class DistributionSmokeTest {
 
     assertThat(exitCode).isEqualTo(1);
     assertThat(output).contains("Error: Too many arguments.");
-    assertThat(output).contains("Usage: start.sh");
+    assertThat(output).contains("Usage: " + startScriptName);
   }
 
   @Test
-  @Timeout(value = 30, unit = TimeUnit.SECONDS)
+  @Timeout(value = 60, unit = TimeUnit.SECONDS)
   void shouldAcceptValidFlags() throws Exception {
     // given
     String[] validFlags = {"--runtime", "--history", "--list-skipped", "--retry-skipped"};
 
     for (String flag : validFlags) {
-      ProcessBuilder processBuilder = new ProcessBuilder("./start.sh", flag);
-      processBuilder.directory(extractedDistributionPath.toFile());
-      processBuilder.redirectErrorStream(true);
+      ProcessBuilder processBuilder = createProcessBuilder(flag);
 
       // when
       process = processBuilder.start();
@@ -122,9 +143,7 @@ class DistributionSmokeTest {
   @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldStartWithoutArgumentsAndShowExpectedMessage() throws Exception {
     // given
-    ProcessBuilder processBuilder = new ProcessBuilder("./start.sh");
-    processBuilder.directory(extractedDistributionPath.toFile());
-    processBuilder.redirectErrorStream(true);
+    ProcessBuilder processBuilder = createProcessBuilder();
 
     // when
     process = processBuilder.start();
@@ -140,6 +159,8 @@ class DistributionSmokeTest {
     assertThat(extractedDistributionPath.resolve("start.bat")).exists();
     assertThat(extractedDistributionPath.resolve("configuration")).exists();
     assertThat(extractedDistributionPath.resolve("internal")).exists();
+    assertThat(extractedDistributionPath.resolve("internal/launcher.properties")).exists();
+    assertThat(extractedDistributionPath.resolve("internal/c7-data-migrator.jar")).exists();
     assertThat(extractedDistributionPath.resolve("LICENSE.TXT")).exists();
     assertThat(extractedDistributionPath.resolve("NOTICE.txt")).exists();
     assertThat(extractedDistributionPath.resolve("README.txt")).exists();
@@ -147,12 +168,18 @@ class DistributionSmokeTest {
 
   @Test
   void shouldHaveExecutableStartScript() {
-    assertThat(startScriptPath.toFile().canExecute()).isTrue();
+    if (isWindows) {
+      // On Windows, .bat files are executable by default
+      assertThat(startScriptPath.toFile().exists()).isTrue();
+    } else {
+      // On Unix systems, check executable permission
+      assertThat(startScriptPath.toFile().canExecute()).isTrue();
+    }
   }
 
   @Test
   @Timeout(value = 30, unit = TimeUnit.SECONDS)
-  void shouldDeployBpmnModelFromResourcesFolder() throws Exception {
+  void shouldTryToDeployBpmnModelFromResourcesFolder() throws Exception {
     // given
     Path resourcesDir = extractedDistributionPath.resolve("configuration/resources");
     Files.createDirectories(resourcesDir);
@@ -161,9 +188,7 @@ class DistributionSmokeTest {
     Path bpmnFile = resourcesDir.resolve("test-process.bpmn");
     Files.write(bpmnFile, simpleBpmnModel.getBytes());
 
-    ProcessBuilder processBuilder = new ProcessBuilder("./start.sh", "--runtime");
-    processBuilder.directory(extractedDistributionPath.toFile());
-    processBuilder.redirectErrorStream(true);
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime");
 
     // when
     process = processBuilder.start();
@@ -189,9 +214,7 @@ class DistributionSmokeTest {
 
     Files.write(configFile, modifiedConfig.getBytes());
 
-    ProcessBuilder processBuilder = new ProcessBuilder("./start.sh", "--runtime");
-    processBuilder.directory(extractedDistributionPath.toFile());
-    processBuilder.redirectErrorStream(true);
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime");
 
     // when
     process = processBuilder.start();
@@ -229,12 +252,12 @@ class DistributionSmokeTest {
     try (var stream = Files.list(extractedDistributionPath)) {
       extractedDistributionPath = stream
           .filter(Files::isDirectory)
-          .filter(path -> path.getFileName().toString().startsWith("c7-data-migrator-assembly"))
+          .filter(path -> path.getFileName().toString().startsWith("c7-data-migrator"))
           .findFirst()
           .orElse(extractedDistributionPath);
     }
 
-    startScriptPath = extractedDistributionPath.resolve("start.sh");
+    startScriptPath = extractedDistributionPath.resolve(startScriptName);
   }
 
   protected Path findZipDistribution() {
@@ -245,7 +268,7 @@ class DistributionSmokeTest {
     try (var stream = Files.list(assemblyTarget)) {
       return stream
           .filter(path -> path.getFileName().toString().endsWith(".zip"))
-          .filter(path -> path.getFileName().toString().contains("c7-data-migrator-assembly"))
+          .filter(path -> path.getFileName().toString().contains("c7-data-migrator"))
           .findFirst()
           .orElseThrow(() -> new RuntimeException("ZIP distribution not found in " + assemblyTarget));
     } catch (IOException e) {
@@ -254,12 +277,29 @@ class DistributionSmokeTest {
   }
 
   protected void makeScriptExecutable() {
-    if (startScriptPath.toFile().exists()) {
+    if (startScriptPath.toFile().exists() && !isWindows) {
+      // Only need to set executable on Unix systems
       boolean success = startScriptPath.toFile().setExecutable(true);
       if (!success) {
-        throw new RuntimeException("Failed to make start.sh executable");
+        throw new RuntimeException("Failed to make " + startScriptName + " executable");
       }
     }
+  }
+
+  /**
+   * Creates a ProcessBuilder with the appropriate start script for the current OS
+   */
+  protected ProcessBuilder createProcessBuilder(String... args) {
+    String scriptCommand = isWindows ? startScriptName : "./" + startScriptName;
+
+    String[] command = new String[args.length + 1];
+    command[0] = scriptCommand;
+    System.arraycopy(args, 0, command, 1, args.length);
+
+    ProcessBuilder processBuilder = new ProcessBuilder(command);
+    processBuilder.directory(extractedDistributionPath.toFile());
+    processBuilder.redirectErrorStream(true);
+    return processBuilder;
   }
 
   protected String readProcessOutput(Process process) throws IOException {

@@ -29,7 +29,7 @@
     </dependency>
     <dependency>
       <groupId>io.camunda</groupId>
-      <artifactId>c7-data-migrator-assembly</artifactId>
+      <artifactId>c7-data-migrator</artifactId>
       <version>${project.version}</version>
       <type>zip</type>
       <scope>test</scope>

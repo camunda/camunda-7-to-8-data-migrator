@@ -29,6 +29,7 @@ public class MigratorApp {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(MigratorApp.class);
 
+  protected static final String RUN_HELP = "help";
   protected static final String RUN_HISTORY_MIGRATION = "history";
   protected static final String RUN_RUNTIME_MIGRATION = "runtime";
   protected static final String RUN_RETRY_SKIPPED = "retry-skipped";
@@ -38,7 +39,8 @@ public class MigratorApp {
       "--" + RUN_RUNTIME_MIGRATION,
       "--" + RUN_HISTORY_MIGRATION,
       "--" + RUN_LIST_SKIPPED,
-      "--" + RUN_RETRY_SKIPPED
+      "--" + RUN_RETRY_SKIPPED,
+      "--" + RUN_HELP
   );
 
   protected static final int MAX_ARGUMENTS = 3;
@@ -61,12 +63,14 @@ public class MigratorApp {
       try {
         AutoDeployer autoDeployer = context.getBean(AutoDeployer.class);
         autoDeployer.deploy();
-        if (shouldRunFullMigration(appArgs)) {
+        if (appArgs.containsOption(RUN_HELP)) {
+          printUsage();
+          System.exit(1);
+        } else if (shouldRunFullMigration(appArgs)) {
           LOGGER.info("Migrating both runtime and history");
           migrateRuntime(context, mode);
           migrateHistory(context, mode);
-        }
-        else if (appArgs.containsOption(RUN_RUNTIME_MIGRATION)) {
+        } else if (appArgs.containsOption(RUN_RUNTIME_MIGRATION)) {
           migrateRuntime(context, mode);
         } else if (appArgs.containsOption(RUN_HISTORY_MIGRATION)) {
           migrateHistory(context, mode);
@@ -100,7 +104,7 @@ public class MigratorApp {
     System.out.println("Usage: start.sh [--runtime] [--history] [--list-skipped|--retry-skipped]");
     System.out.println("Options:");
     System.out.println("  --runtime         - Migrate runtime data only");
-    System.out.println("  --history         - Migrate history data only");
+    System.out.println("  --history         - Migrate history data only. This options is still EXPERIMENTAL and not meant for production use.");
     System.out.println("  --list-skipped    - List previously skipped data");
     System.out.println("  --retry-skipped   - Retry only previously skipped data");
   }

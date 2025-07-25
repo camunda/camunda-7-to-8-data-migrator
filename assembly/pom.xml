@@ -9,7 +9,7 @@
     <relativePath>../</relativePath>
   </parent>
 
-  <artifactId>c7-data-migrator-assembly</artifactId>
+  <artifactId>c7-data-migrator</artifactId>
   <name>C7 Data Migrator - Assembly</name>
   <packaging>pom</packaging>
   
