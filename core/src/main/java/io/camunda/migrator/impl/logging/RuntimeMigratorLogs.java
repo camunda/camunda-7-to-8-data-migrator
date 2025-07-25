@@ -43,6 +43,7 @@ public class RuntimeMigratorLogs {
   public static final String FAILED_TO_ACTIVATE_JOBS = "Failed to activate jobs for type: ";
   public static final String FAILED_TO_FETCH_VARIABLE = "Failed to fetch variable '%s' from job: %s";
   public static final String FAILED_TO_MODIFY_PROCESS_INSTANCE = "Failed to modify process instance with activation for key: ";
+  public static final String FAILED_TO_DEPLOY_DEFINITIONS = "Failed to deploy C8 definitions";
   public static final String FAILED_TO_FETCH_DEPLOYMENT_TIME = "Failed to fetch deployment time for definition with legacyId: ";
   public static final String FAILED_TO_FETCH_BPMN_XML = "Failed to fetch BPMN model instance for process definition Id: ";
 
