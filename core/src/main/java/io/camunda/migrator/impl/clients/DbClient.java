@@ -116,7 +116,7 @@ public class DbClient {
   /**
    * Processes skipped process instances with pagination.
    */
-  public void fetch(Consumer<IdKeyDbModel> callback) {
+  public void fetchAndProcessSkippedProcessInstances(Consumer<IdKeyDbModel> callback) {
     new Pagination<IdKeyDbModel>()
         .pageSize(properties.getPageSize())
         .maxCount(idKeyMapper::findSkippedCount)
