@@ -5,14 +5,14 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.config;
+package io.camunda.migrator.impl.logging;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Centralized logging utility for InterceptorConfiguration class.
- * Contains all log messages and string constants used in interceptor configuration.
+ * Centralized logging utility for Configuration class.
+ * Contains all log messages and string constants used in configuration.
  */
 public class ConfigurationLogs {
 
@@ -28,6 +28,7 @@ public class ConfigurationLogs {
   public static final String INFO_CONFIGURING_INTERCEPTORS = "Configuring variable interceptors from Spring context and YAML";
   public static final String INFO_TOTAL_INTERCEPTORS_CONFIGURED = "Total {} variable interceptors configured";
   public static final String INFO_SUCCESSFULLY_REGISTERED = "Successfully registered variable interceptor: {}";
+  public static final String INFO_LIQUIBASE_CREATING_TABLE_SCHEMA = "Creating table schema with Liquibase change log file '{}' with table prefix '{}'.";
 
   // Debug Messages
   public static final String DEBUG_NO_YAML_INTERCEPTORS = "No variable interceptors configured in YAML";
@@ -95,6 +96,16 @@ public class ConfigurationLogs {
   }
 
   /**
+   * Logs when creating table schema properties for an interceptor.
+   *
+   * @param changeLogFile the changeLog file used for Liquibase
+   * @param tablePrefix   the prefix for the tables
+   */
+  public static void logCreatingTableSchema(String changeLogFile, String tablePrefix) {
+    LOGGER.info(INFO_LIQUIBASE_CREATING_TABLE_SCHEMA, changeLogFile, tablePrefix);
+  }
+
+  /**
    * Gets the error message for null or empty class name.
    *
    * @return the error message
@@ -131,4 +142,5 @@ public class ConfigurationLogs {
   public static String getParsingConfigurationError() {
     return ERROR_PARSING_CONFIGURATION;
   }
+
 }

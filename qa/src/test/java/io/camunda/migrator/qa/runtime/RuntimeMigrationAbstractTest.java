@@ -82,7 +82,7 @@ public abstract class RuntimeMigrationAbstractTest extends AbstractMigratorTest 
     }
 
     // Migrator table
-    idKeyMapper.findAllIds().forEach(id -> idKeyMapper.delete(id));
+    dbClient.deleteAllMappings();
 
     // reset runtime migrator
     runtimeMigrator.setMode(MIGRATE);

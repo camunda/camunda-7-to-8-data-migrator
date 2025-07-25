@@ -7,6 +7,10 @@
  */
 package io.camunda.migrator.impl.clients;
 
+import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_CHECK_EXISTENCE;
+import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_DELETE;
+import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_ALL;
+import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_ALL_SKIPPED;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_KEY_BY_ID;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_LATEST_ID;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_CHECK_KEY;
@@ -18,13 +22,14 @@ import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_SKIPP
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_INSERT_RECORD;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_UPDATE_KEY;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE;
+import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.Pagination;
-import io.camunda.migrator.impl.util.PrintUtils;
 import io.camunda.migrator.impl.logging.DbClientLogs;
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import io.camunda.migrator.impl.util.PrintUtils;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
@@ -63,7 +68,10 @@ public class DbClient {
    * Finds the latest start date by type.
    */
   public Date findLatestStartDateByType(TYPE type) {
-    return callApi(() -> idKeyMapper.findLatestStartDateByType(type), FAILED_TO_FIND_LATEST_START_DATE + type);
+    Date latestStartDate = callApi(() -> idKeyMapper.findLatestStartDateByType(type),
+        FAILED_TO_FIND_LATEST_START_DATE + type);
+    DbClientLogs.foundLatestStartDate(latestStartDate, type);
+    return latestStartDate;
   }
 
   /**
@@ -78,6 +86,13 @@ public class DbClient {
    */
   public Long findKeyById(String legacyId) {
     return callApi(() -> idKeyMapper.findKeyById(legacyId), FAILED_TO_FIND_KEY_BY_ID + legacyId);
+  }
+
+  /**
+   * Finds all legacy IDs.
+   */
+  public List<String> findAllIds() {
+    return callApi(() -> idKeyMapper.findAllIds(), FAILED_TO_FIND_ALL);
   }
 
   /**
@@ -133,7 +148,7 @@ public class DbClient {
   /**
    * Processes skipped entities with pagination.
    */
-  public void fetchSkipped(TYPE type, Consumer<IdKeyDbModel> callback) {
+  public void fetchAndProcessSkipped(TYPE type, Consumer<IdKeyDbModel> callback) {
     new Pagination<IdKeyDbModel>()
         .pageSize(properties.getPageSize())
         .maxCount(() -> idKeyMapper.countSkippedByType(type))
@@ -149,6 +164,30 @@ public class DbClient {
     return callApi(() -> idKeyMapper.countSkippedByType(type), FAILED_TO_FIND_SKIPPED_COUNT);
   }
 
+  /**
+   * Finds the Ids of all skipped process instances.
+   */
+  public List<IdKeyDbModel> findSkipped() {
+    return callApi(() -> idKeyMapper.findSkipped(), FAILED_TO_FIND_ALL_SKIPPED);
+  }
+
+  /**
+   * Deletes all mappings from the database.
+   */
+  public void deleteAllMappings() {
+    findAllIds().forEach(this::delete);
+  }
+
+  /**
+   * Deletes a mapping by legacy ID.
+   */
+  protected void delete(String legacyId) {
+    callApi(() -> idKeyMapper.delete(legacyId), FAILED_TO_DELETE + legacyId);
+  }
+
+  /**
+   * Creates a new IdKeyDbModel instance with the provided parameters.
+   */
   protected IdKeyDbModel createIdKeyDbModel(String id, Date startDate, Long key, TYPE type) {
     var keyIdDbModel = new IdKeyDbModel();
     keyIdDbModel.setId(id);

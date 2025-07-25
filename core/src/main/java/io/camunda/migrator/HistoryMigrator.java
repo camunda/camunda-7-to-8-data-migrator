@@ -44,34 +44,24 @@ import io.camunda.migrator.converter.ProcessDefinitionConverter;
 import io.camunda.migrator.converter.ProcessInstanceConverter;
 import io.camunda.migrator.converter.UserTaskConverter;
 import io.camunda.migrator.converter.VariableConverter;
-import io.camunda.migrator.impl.Pagination;
 import io.camunda.migrator.impl.clients.C7Client;
 import io.camunda.migrator.impl.clients.DbClient;
-import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import io.camunda.migrator.impl.logging.HistoryMigratorLogs;
+import io.camunda.migrator.impl.util.ExceptionUtils;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
 import java.util.Date;
 import java.util.List;
-import org.camunda.bpm.engine.HistoryService;
-import org.camunda.bpm.engine.RepositoryService;
+import java.util.function.Consumer;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.history.HistoricIncident;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricTaskInstance;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
-import org.camunda.bpm.engine.impl.HistoricActivityInstanceQueryImpl;
-import org.camunda.bpm.engine.impl.HistoricIncidentQueryImpl;
-import org.camunda.bpm.engine.impl.HistoricProcessInstanceQueryImpl;
-import org.camunda.bpm.engine.impl.HistoricTaskInstanceQueryImpl;
-import org.camunda.bpm.engine.impl.HistoricVariableInstanceQueryImpl;
-import org.camunda.bpm.engine.impl.ProcessDefinitionQueryImpl;
 import org.camunda.bpm.engine.repository.DecisionDefinition;
-import org.camunda.bpm.engine.repository.DecisionDefinitionQuery;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
@@ -79,8 +69,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Conditional(C8DataSourceConfigured.class)
 public class HistoryMigrator {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(HistoryMigrator.class);
 
   // Mappers
 
@@ -106,12 +94,6 @@ public class HistoryMigrator {
   private FlowNodeInstanceMapper flowNodeMapper;
 
   // Services
-
-  @Autowired
-  private HistoryService historyService;
-
-  @Autowired
-  private RepositoryService repositoryService;
 
   @Autowired
   protected MigratorProperties migratorProperties;
@@ -158,8 +140,7 @@ public class HistoryMigrator {
   }
 
   public void migrate() {
-    LOGGER.info("Migrating C7 data...");
-    // Start process instance
+    ExceptionUtils.setContext(ExceptionUtils.ExceptionContext.HISTORY);
     migrateProcessDefinitions();
     migrateProcessInstances();
     migrateFlowNodes();
@@ -297,7 +278,7 @@ public class HistoryMigrator {
     LOGGER.info("Migrating incidents");
 
     if (RETRY_SKIPPED.equals(mode)) {
-      // TODO: handle retry 
+      // TODO: handle retry
     } else {
       HistoricIncidentQueryImpl legacyIncidentQuery = (HistoricIncidentQueryImpl) historyService.createHistoricIncidentQuery()
           .orderByCreateTime()
@@ -526,12 +507,6 @@ public class HistoryMigrator {
     }
 
     return processInstanceMapper.findOne(key);
-  }
-
-  protected Date getLatestStartDateByType(IdKeyMapper.TYPE type) {
-    Date latestStartDate = dbClient.findLatestStartDateByType(type);
-    LOGGER.debug("Latest start date for {}: {}", type, latestStartDate);
-    return latestStartDate;
   }
 
   private Long findProcessDefinitionKey(String processDefinitionId) {

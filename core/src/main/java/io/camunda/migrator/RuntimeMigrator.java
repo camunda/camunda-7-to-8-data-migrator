@@ -21,6 +21,7 @@ import io.camunda.migrator.impl.clients.C7Client;
 import io.camunda.migrator.impl.clients.C8Client;
 import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.util.C7Utils;
+import io.camunda.migrator.impl.util.ExceptionUtils;
 import io.camunda.migrator.impl.util.PrintUtils;
 import io.camunda.migrator.impl.model.FlowNode;
 import io.camunda.migrator.impl.model.FlowNodeActivation;
@@ -60,6 +61,7 @@ public class RuntimeMigrator {
   protected MigratorMode mode = MIGRATE;
 
   public void start() {
+    ExceptionUtils.setContext(ExceptionUtils.ExceptionContext.RUNTIME);
     if (LIST_SKIPPED.equals(mode)) {
       PrintUtils.printSkippedInstancesHeader(dbClient.countSkippedByType(TYPE.RUNTIME_PROCESS_INSTANCE));
       dbClient.listSkippedRuntimeProcessInstances();
@@ -143,13 +145,13 @@ public class RuntimeMigrator {
     RuntimeMigratorLogs.fetchingProcessInstances();
 
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.fetchSkipped(TYPE.RUNTIME_PROCESS_INSTANCE, storeMappingConsumer);
+      dbClient.fetchAndProcessSkipped(TYPE.RUNTIME_PROCESS_INSTANCE, storeMappingConsumer);
     } else {
       RuntimeMigratorLogs.fetchingLatestStartDate();
       Date latestStartDate = dbClient.findLatestStartDateByType(TYPE.RUNTIME_PROCESS_INSTANCE);
       RuntimeMigratorLogs.latestStartDate(latestStartDate);
 
-      c7Client.fetch(storeMappingConsumer, latestStartDate);
+      c7Client.fetchAndProcessHistoricRootProcessInstances(storeMappingConsumer, latestStartDate);
     }
   }
 
