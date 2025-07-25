@@ -37,8 +37,7 @@ public class AutoDeployer {
   protected MigratorProperties migratorProperties;
 
   public void deploy() {
-    Set<Path> models = getDeploymentResources();
-    c8Client.deployResources(models);
+    c8Client.deploy(getDeploymentResources());
   }
 
   public Set<Path> getDeploymentResources() {
