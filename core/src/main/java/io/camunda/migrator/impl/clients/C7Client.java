@@ -7,9 +7,10 @@
  */
 package io.camunda.migrator.impl.clients;
 
-import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_FETCH_ACTIVITY_INSTANCE;
+import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_FETCH_DEPLOYMENT_TIME;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.PROCESS_INSTANCE_FETCHING_FAILED;
+import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.Pagination;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.camunda.bpm.engine.HistoryService;
+import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.ActivityInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
@@ -36,6 +38,9 @@ public class C7Client {
 
   @Autowired
   protected HistoryService historyService;
+
+  @Autowired
+  private RepositoryService repositoryService;
 
   @Autowired
   protected MigratorProperties properties;
@@ -66,10 +71,7 @@ public class C7Client {
     VariableInstanceQuery variableQuery = runtimeService.createVariableInstanceQuery()
         .processInstanceIdIn(legacyProcessInstanceId);
 
-    return new Pagination<VariableInstance>()
-        .pageSize(properties.getPageSize())
-        .query(variableQuery)
-        .toList();
+    return new Pagination<VariableInstance>().pageSize(properties.getPageSize()).query(variableQuery).toList();
   }
 
   /**
@@ -79,10 +81,7 @@ public class C7Client {
     VariableInstanceQuery variableQuery = runtimeService.createVariableInstanceQuery()
         .activityInstanceIdIn(activityInstanceId);
 
-    return new Pagination<VariableInstance>()
-        .pageSize(properties.getPageSize())
-        .query(variableQuery)
-        .toList();
+    return new Pagination<VariableInstance>().pageSize(properties.getPageSize()).query(variableQuery).toList();
   }
 
   /**
@@ -100,14 +99,19 @@ public class C7Client {
         .orderByProcessInstanceId()
         .asc();
 
-    new Pagination<IdKeyDbModel>()
-        .pageSize(properties.getPageSize())
+    new Pagination<IdKeyDbModel>().pageSize(properties.getPageSize())
         .maxCount(query::count)
         .page(offset -> query.listPage(offset, properties.getPageSize())
             .stream()
             .map(hpi -> new IdKeyDbModel(hpi.getId(), hpi.getStartTime()))
             .collect(Collectors.toList()))
         .callback(callback);
+  }
+
+  public Date getDefinitionDeploymentTime(String legacyDefinitionDeploymentId) {
+    var query = repositoryService.createDeploymentQuery().deploymentId(legacyDefinitionDeploymentId);
+    return callApi(query::singleResult,
+        FAILED_TO_FETCH_DEPLOYMENT_TIME + legacyDefinitionDeploymentId).getDeploymentTime();
   }
 
 }

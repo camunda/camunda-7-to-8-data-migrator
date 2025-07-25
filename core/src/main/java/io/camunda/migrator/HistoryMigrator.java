@@ -43,7 +43,6 @@ import io.camunda.migrator.converter.UserTaskConverter;
 import io.camunda.migrator.converter.VariableConverter;
 import io.camunda.migrator.impl.Pagination;
 import io.camunda.migrator.impl.clients.C7Client;
-import io.camunda.migrator.impl.clients.C8Client;
 import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
@@ -119,6 +118,9 @@ public class HistoryMigrator {
   @Autowired
   protected DbClient dbClient;
 
+  @Autowired
+  protected C7Client c7Client;
+
   // Converters
 
   @Autowired
@@ -176,10 +178,7 @@ public class HistoryMigrator {
           LOGGER.debug("Migrating legacy decision definition with id: [{}]", legacyId);
           DecisionDefinitionDbModel dbModel = decisionDefinitionConverter.apply(legacyDecisionDefinition);
           decisionDefinitionMapper.insert(dbModel);
-          Date deploymentTime = repositoryService.createDeploymentQuery()
-              .deploymentId(legacyDecisionDefinition.getDeploymentId())
-              .singleResult()
-              .getDeploymentTime();
+          Date deploymentTime = c7Client.getDefinitionDeploymentTime(legacyDecisionDefinition.getDeploymentId());
           dbClient.insert(legacyId, deploymentTime, dbModel.decisionDefinitionKey(), HISTORY_DECISION_DEFINITION);
           LOGGER.debug("Migration of legacy decision definition with id [{}] completed", legacyId);
         });
@@ -207,10 +206,7 @@ public class HistoryMigrator {
             LOGGER.debug("Migrating legacy process definition with id: [{}]", legacyId);
             ProcessDefinitionDbModel dbModel = processDefinitionConverter.apply(legacyProcessDefinition);
             processDefinitionMapper.insert(dbModel);
-            Date deploymentTime = repositoryService.createDeploymentQuery()
-                .deploymentId(legacyProcessDefinition.getDeploymentId())
-                .singleResult()
-                .getDeploymentTime();
+            Date deploymentTime = c7Client.getDefinitionDeploymentTime(legacyProcessDefinition.getDeploymentId());
             dbClient.insert(legacyId, deploymentTime, dbModel.processDefinitionKey(), HISTORY_PROCESS_DEFINITION);
             LOGGER.debug("Migration of legacy process definition with id [{}] completed", legacyId);
           }
@@ -448,7 +444,7 @@ public class HistoryMigrator {
   }
 
   protected Date getLatestStartDateByType(IdKeyMapper.TYPE type) {
-    Date latestStartDate = callApi(() -> dbClient.findLatestStartDateByType(type));
+    Date latestStartDate = dbClient.findLatestStartDateByType(type);
     LOGGER.debug("Latest start date for {}: {}", type, latestStartDate);
     return latestStartDate;
   }
