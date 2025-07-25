@@ -8,7 +8,7 @@
 package io.camunda.migrator.converter;
 
 import io.camunda.db.rdbms.write.domain.ProcessDefinitionDbModel;
-import org.camunda.bpm.engine.RepositoryService;
+import io.camunda.migrator.impl.clients.C7Client;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,13 +26,12 @@ public class ProcessDefinitionConverter {
   private static final Logger LOGGER = LoggerFactory.getLogger(ProcessDefinitionConverter.class);
 
   @Autowired
-  private RepositoryService repositoryService;
+  private C7Client c7Client;
 
   public ProcessDefinitionDbModel apply(ProcessDefinition legacyProcessDefinition) {
     String bpmnXml = getBpmnXmlAsString(legacyProcessDefinition);
 
-    return new ProcessDefinitionDbModel.ProcessDefinitionDbModelBuilder()
-        .processDefinitionKey(getNextKey())
+    return new ProcessDefinitionDbModel.ProcessDefinitionDbModelBuilder().processDefinitionKey(getNextKey())
         .processDefinitionId(legacyProcessDefinition.getKey())
         .resourceName(legacyProcessDefinition.getResourceName())
         .name(legacyProcessDefinition.getName())
@@ -46,12 +45,13 @@ public class ProcessDefinitionConverter {
 
   private String getBpmnXmlAsString(ProcessDefinition processDefinition) {
     try {
-      var resourceStream = repositoryService.getResourceAsStream(processDefinition.getDeploymentId(),
+      var resourceStream = c7Client.getResourceAsStream(processDefinition.getDeploymentId(),
           processDefinition.getResourceName());
 
       return readInputStreamToString(resourceStream);
     } catch (IOException e) {
-      LOGGER.error("Error while fetching resource stream for process definition with id={} due to: {}", processDefinition.getId(), e.getMessage());
+      LOGGER.error("Error while fetching resource stream for process definition with id={} due to: {}",
+          processDefinition.getId(), e.getMessage());
       return null;
     }
   }

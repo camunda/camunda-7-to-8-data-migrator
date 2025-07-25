@@ -8,12 +8,15 @@
 package io.camunda.migrator.impl.clients;
 
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.CREATING_PROCESS_INSTANCE_FAILED;
+import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
+import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_CREATE_PROCESS_INSTANCE;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_ACTIVATE_JOBS;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_FETCH_PROCESS_DEFINITION_XML;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_FETCH_VARIABLE;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_MODIFY_PROCESS_INSTANCE;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.PROCESS_DEFINITION_SEARCH_FAILED;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
+import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_SEARCH_PROCESS_DEFINITIONS;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.DeployResourceCommandStep1.DeployResourceCommandStep2;
@@ -53,7 +56,7 @@ public class C8Client {
         .latestVersion()
         .variables(variables);
 
-    return callApi(createProcessInstance::execute, CREATING_PROCESS_INSTANCE_FAILED + bpmnProcessId);
+    return callApi(createProcessInstance::execute, FAILED_TO_CREATE_PROCESS_INSTANCE + bpmnProcessId);
   }
 
   /**
@@ -64,7 +67,7 @@ public class C8Client {
         .filter(filter -> filter.processDefinitionId(processDefinitionId))
         .sort(s -> s.version().desc());
 
-    return callApi(searchRequest::execute, PROCESS_DEFINITION_SEARCH_FAILED + processDefinitionId);
+    return callApi(searchRequest::execute, FAILED_TO_SEARCH_PROCESS_DEFINITIONS + processDefinitionId);
   }
 
   /**
