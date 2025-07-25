@@ -43,6 +43,7 @@ public class RuntimeMigratorLogs {
   public static final String FAILED_TO_ACTIVATE_JOBS = "Failed to activate jobs for type: ";
   public static final String FAILED_TO_FETCH_VARIABLE = "Failed to fetch variable '%s' from job: %s";
   public static final String FAILED_TO_MODIFY_PROCESS_INSTANCE = "Failed to modify process instance with activation for key: ";
+  public static final String FAILED_TO_FETCH_DEPLOYMENT_TIME = "Failed to fetch deployment time for definition with legacyId: ";
 
   public static void startingNewC8ProcessInstance(String legacyProcessInstanceId) {
     LOGGER.debug(STARTING_NEW_C8_PROCESS_INSTANCE, legacyProcessInstanceId);

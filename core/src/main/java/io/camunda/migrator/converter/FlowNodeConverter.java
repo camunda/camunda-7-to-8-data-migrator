@@ -7,22 +7,21 @@
  */
 package io.camunda.migrator.converter;
 
-import io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel;
-import org.camunda.bpm.engine.ActivityTypes;
-import org.camunda.bpm.engine.history.HistoricActivityInstance;
-
 import static io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel.FlowNodeInstanceDbModelBuilder;
 import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType;
+
+import io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel;
+import org.camunda.bpm.engine.ActivityTypes;
+import org.camunda.bpm.engine.history.HistoricActivityInstance;
 
 public class FlowNodeConverter {
 
   public FlowNodeInstanceDbModel apply(HistoricActivityInstance flowNode,
                                        Long processDefinitionKey,
                                        Long processInstanceKey) {
-    return new FlowNodeInstanceDbModelBuilder()
-        .flowNodeInstanceKey(getNextKey())
+    return new FlowNodeInstanceDbModelBuilder().flowNodeInstanceKey(getNextKey())
         .flowNodeId(flowNode.getActivityId())
         .processInstanceKey(processInstanceKey)
         .processDefinitionKey(processDefinitionKey)
@@ -45,7 +44,8 @@ public class FlowNodeConverter {
       case ActivityTypes.TASK_SERVICE -> FlowNodeType.SERVICE_TASK;
       case ActivityTypes.TASK_USER_TASK -> FlowNodeType.USER_TASK;
       case ActivityTypes.GATEWAY_EXCLUSIVE -> FlowNodeType.EXCLUSIVE_GATEWAY;
-      case ActivityTypes.INTERMEDIATE_EVENT_TIMER -> FlowNodeType.INTERMEDIATE_CATCH_EVENT;
+      case ActivityTypes.INTERMEDIATE_EVENT_TIMER, ActivityTypes.INTERMEDIATE_EVENT_SIGNAL ->
+          FlowNodeType.INTERMEDIATE_CATCH_EVENT;
       case ActivityTypes.GATEWAY_PARALLEL -> FlowNodeType.PARALLEL_GATEWAY;
       case ActivityTypes.TASK_BUSINESS_RULE -> FlowNodeType.BUSINESS_RULE_TASK;
       case ActivityTypes.CALL_ACTIVITY -> FlowNodeType.CALL_ACTIVITY;

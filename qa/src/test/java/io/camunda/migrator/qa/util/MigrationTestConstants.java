@@ -9,4 +9,5 @@ package io.camunda.migrator.qa.util;
 
 public class MigrationTestConstants {
   public static final String LEGACY_ID_VAR_NAME = "legacyId";
+  public static final String USER_TASK_ID = "userTaskId";
 }

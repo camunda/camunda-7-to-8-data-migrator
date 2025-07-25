@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_18lok8y" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.24.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.21.0">
+  <bpmn:process id="multipleSignalProcessId" name="multipleSignalProcess" isExecutable="true" camunda:historyTimeToLive="180">
+    <bpmn:startEvent id="startEventId" name="startEvent">
+      <bpmn:outgoing>Flow_0f8gd9a</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:intermediateCatchEvent id="signal1Id" name="signal1">
+      <bpmn:incoming>Flow_0f8gd9a</bpmn:incoming>
+      <bpmn:outgoing>Flow_1f5cowr</bpmn:outgoing>
+      <bpmn:signalEventDefinition id="SignalEventDefinition_1de9klh" signalRef="Signal_280ck2c" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_0f8gd9a" sourceRef="startEventId" targetRef="signal1Id" />
+    <bpmn:sequenceFlow id="Flow_1f5cowr" sourceRef="signal1Id" targetRef="signal2Id" />
+    <bpmn:intermediateCatchEvent id="signal2Id" name="signal2">
+      <bpmn:incoming>Flow_1f5cowr</bpmn:incoming>
+      <bpmn:outgoing>Flow_0rznhaw</bpmn:outgoing>
+      <bpmn:signalEventDefinition id="SignalEventDefinition_16jtik1" signalRef="Signal_14r6qc5" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_0rznhaw" sourceRef="signal2Id" targetRef="signal3Id" />
+    <bpmn:intermediateCatchEvent id="signal3Id" name="signal3">
+      <bpmn:incoming>Flow_0rznhaw</bpmn:incoming>
+      <bpmn:outgoing>Flow_0pyzfhx</bpmn:outgoing>
+      <bpmn:signalEventDefinition id="SignalEventDefinition_14ovdax" signalRef="Signal_3t8cg29" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="endEventID" name="endEvent">
+      <bpmn:incoming>Flow_0pyzfhx</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0pyzfhx" sourceRef="signal3Id" targetRef="endEventID" />
+  </bpmn:process>
+  <bpmn:signal id="Signal_280ck2c" name="signalRef1" />
+  <bpmn:signal id="Signal_14r6qc5" name="signalRef2" />
+  <bpmn:signal id="Signal_3t8cg29" name="signalRef3" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="multipleSignalProcessId">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="startEventId">
+        <dc:Bounds x="179" y="79" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="173" y="122" width="50" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1baf0ab_di" bpmnElement="signal1Id">
+        <dc:Bounds x="292" y="79" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="293" y="122" width="35" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1am6ynu_di" bpmnElement="signal2Id">
+        <dc:Bounds x="412" y="79" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="413" y="122" width="35" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1rpzhz7_di" bpmnElement="signal3Id">
+        <dc:Bounds x="532" y="79" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="533" y="122" width="35" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0v84gmu_di" bpmnElement="endEventID">
+        <dc:Bounds x="652" y="79" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="647" y="122" width="47" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0f8gd9a_di" bpmnElement="Flow_0f8gd9a">
+        <di:waypoint x="215" y="97" />
+        <di:waypoint x="292" y="97" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1f5cowr_di" bpmnElement="Flow_1f5cowr">
+        <di:waypoint x="328" y="97" />
+        <di:waypoint x="412" y="97" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0rznhaw_di" bpmnElement="Flow_0rznhaw">
+        <di:waypoint x="448" y="97" />
+        <di:waypoint x="532" y="97" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0pyzfhx_di" bpmnElement="Flow_0pyzfhx">
+        <di:waypoint x="568" y="97" />
+        <di:waypoint x="652" y="97" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

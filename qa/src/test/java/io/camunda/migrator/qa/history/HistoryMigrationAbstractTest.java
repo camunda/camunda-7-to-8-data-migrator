@@ -7,62 +7,46 @@
  */
 package io.camunda.migrator.qa.history;
 
+import static io.camunda.migrator.qa.util.MigrationTestConstants.USER_TASK_ID;
+
 import io.camunda.db.rdbms.RdbmsService;
 import io.camunda.db.rdbms.config.VendorDatabaseProperties;
 import io.camunda.db.rdbms.sql.PurgeMapper;
 import io.camunda.db.rdbms.write.service.RdbmsPurger;
 import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.config.C8DataSourceConfigured;
-import io.camunda.migrator.impl.persistence.IdKeyMapper;
-import io.camunda.migrator.qa.util.ProcessDefinitionDeployer;
-import io.camunda.migrator.qa.util.WithMultiDb;
+import io.camunda.migrator.qa.AbstractMigratorTest;
+import io.camunda.migrator.qa.config.TestProcessEngineConfiguration;
 import io.camunda.migrator.qa.util.WithSpringProfile;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
+import io.camunda.search.entities.IncidentEntity;
+import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.entities.UserTaskEntity;
 import io.camunda.search.query.FlowNodeInstanceQuery;
+import io.camunda.search.query.IncidentQuery;
+import io.camunda.search.query.ProcessDefinitionQuery;
 import io.camunda.search.query.ProcessInstanceQuery;
 import io.camunda.search.query.UserTaskQuery;
 import java.util.List;
-import org.camunda.bpm.engine.RepositoryService;
-import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.impl.util.ClockUtil;
+import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-@SpringBootTest
-@WithMultiDb
-@Import(HistoryMigrationAbstractTest.HistoryCustomConfiguration.class)
-@WithSpringProfile("history")
-public abstract class HistoryMigrationAbstractTest {
 
-  @Autowired
-  protected ProcessDefinitionDeployer deployer;
+@Import({ HistoryMigrationAbstractTest.HistoryCustomConfiguration.class, TestProcessEngineConfiguration.class })
+@WithSpringProfile("history")
+public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest {
 
   // Migrator ---------------------------------------
 
   @Autowired
   protected HistoryMigrator historyMigrator;
-
-  @Autowired
-  private IdKeyMapper idKeyMapper;
-
-  // C7 ---------------------------------------
-
-  @Autowired
-  protected RuntimeService runtimeService;
-
-  @Autowired
-  protected TaskService taskService;
-
-  @Autowired
-  protected RepositoryService repositoryService;
 
   // C8 ---------------------------------------
 
@@ -83,6 +67,14 @@ public abstract class HistoryMigrationAbstractTest {
 
     // C8
     rdbmsPurger.purgeRdbms();
+  }
+
+  public List<ProcessDefinitionEntity> searchHistoricProcessDefinitions(String processDefinitionId) {
+    return rdbmsService.getProcessDefinitionReader()
+        .search(ProcessDefinitionQuery.of(queryBuilder ->
+            queryBuilder.filter(filterBuilder ->
+                filterBuilder.processDefinitionIds(processDefinitionId))))
+        .items();
   }
 
   public List<ProcessInstanceEntity> searchHistoricProcessInstances(String processDefinitionId) {
@@ -109,6 +101,14 @@ public abstract class HistoryMigrationAbstractTest {
         .items();
   }
 
+  public List<IncidentEntity> searchHistoricIncidents(String processDefinitionId) {
+    return rdbmsService.getIncidentReader()
+        .search(IncidentQuery.of(queryBuilder ->
+            queryBuilder.filter(filterBuilder ->
+                filterBuilder.processDefinitionIds(processDefinitionId))))
+        .items();
+  }
+
   @Configuration
   public static class HistoryCustomConfiguration {
 
@@ -120,5 +120,11 @@ public abstract class HistoryMigrationAbstractTest {
       return new RdbmsPurger(purgeMapper, vendorDatabaseProperties);
     }
 
+  }
+
+  protected void completeAllUserTasksWithDefaultUserTaskId() {
+    for (Task task : taskService.createTaskQuery().taskDefinitionKey(USER_TASK_ID).list()) {
+      taskService.complete(task.getId());
+    }
   }
 }

@@ -38,6 +38,7 @@ import org.camunda.bpm.engine.spring.SpringProcessEngineServicesConfiguration;
 import org.camunda.spin.plugin.impl.SpinProcessEnginePlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -153,6 +154,7 @@ public class MigratorAutoConfiguration {
   }
 
   @Bean
+  @ConditionalOnMissingBean(ProcessEngineConfigurationImpl.class)
   public ProcessEngineConfigurationImpl processEngineConfiguration() {
     var config = new SpringProcessEngineConfiguration();
     config.setDataSource(c7DataSource);
