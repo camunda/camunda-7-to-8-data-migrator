@@ -7,6 +7,7 @@
  */
 package io.camunda.migrator.impl;
 
+import static io.camunda.migrator.constants.MigratorConstants.LEGACY_ID_VAR_NAME;
 import static io.camunda.migrator.impl.util.C7Utils.getActiveActivityIdsById;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.FAILED_TO_PARSE_BPMN_MODEL;
@@ -158,7 +159,7 @@ public class RuntimeValidator {
 
             boolean hasLegacyIdMapping = ioMappings.stream()
                 .flatMap(mapping -> mapping.getInputs().stream())
-                .anyMatch(input -> "legacyId".equals(input.getTarget()));
+                .anyMatch(input -> LEGACY_ID_VAR_NAME.equals(input.getTarget()));
 
             if (!hasLegacyIdMapping) {
               throw new IllegalStateException(String.format(CALL_ACTIVITY_LEGACY_ID_ERROR, activityId));
