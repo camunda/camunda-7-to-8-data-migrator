@@ -143,7 +143,7 @@ public class RuntimeMigrator {
     RuntimeMigratorLogs.fetchingProcessInstances();
 
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.fetch(storeMappingConsumer);
+      dbClient.fetchSkipped(TYPE.RUNTIME_PROCESS_INSTANCE, storeMappingConsumer);
     } else {
       RuntimeMigratorLogs.fetchingLatestStartDate();
       Date latestStartDate = dbClient.findLatestStartDateByType(TYPE.RUNTIME_PROCESS_INSTANCE);

@@ -9,6 +9,7 @@ package io.camunda.migrator.impl.clients;
 
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_KEY_BY_ID;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_LATEST_ID;
+import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_CHECK_KEY;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_CHECK_EXISTENCE;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_LATEST_START_DATE;
@@ -23,6 +24,7 @@ import io.camunda.migrator.impl.util.PrintUtils;
 import io.camunda.migrator.impl.logging.DbClientLogs;
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -47,6 +49,13 @@ public class DbClient {
    */
   public boolean checkExists(String legacyEntityId) {
     return callApi(() -> idKeyMapper.checkExists(legacyEntityId), FAILED_TO_CHECK_EXISTENCE + legacyEntityId);
+  }
+
+  /**
+   * Checks if a process instance exists in the mapping table.
+   */
+  public boolean checkHasKey(String legacyId) {
+    return callApi(() -> idKeyMapper.checkHasKey(legacyId), FAILED_TO_CHECK_KEY + legacyId);
   }
 
   /**
@@ -80,11 +89,29 @@ public class DbClient {
   }
 
   /**
+   * Updates a record by setting the key for an existing ID.
+   */
+  public void updateKeyById(String legacyId, Date startDate, Long entityKey, TYPE type) {
+    DbClientLogs.updatingKeyForLegacyId(legacyId, entityKey);
+    var model = createIdKeyDbModel(legacyId, startDate, entityKey, type);
+    callApi(() -> idKeyMapper.updateKeyById(model), FAILED_TO_UPDATE_KEY + entityKey);
+  }
+
+  /**
    * Inserts a new process instance record into the mapping table.
    */
   public void insert(String legacyId, Date startDate, Long entityKey, TYPE type) {
     DbClientLogs.insertingRecord(legacyId, startDate, entityKey);
     var model = createIdKeyDbModel(legacyId, startDate, entityKey, type);
+    callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + legacyId);
+  }
+
+  /**
+   * Inserts a new record into the mapping table.
+   */
+  public void insert(String legacyId, Long key, TYPE type) {
+    DbClientLogs.insertingRecord(legacyId, null, key);
+    var model = createIdKeyDbModel(legacyId, null, key, type);
     callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + legacyId);
   }
 
@@ -105,12 +132,12 @@ public class DbClient {
   /**
    * Processes skipped process instances with pagination.
    */
-  public void fetch(Consumer<IdKeyDbModel> callback) {
+  public void fetchSkipped(TYPE type, Consumer<IdKeyDbModel> callback) {
     new Pagination<IdKeyDbModel>()
         .pageSize(properties.getPageSize())
         .maxCount(idKeyMapper::findSkippedCount)
         // Hardcode offset to 0 since each callback updates the database and leads to fresh results.
-        .page(offset -> idKeyMapper.findSkipped(0, properties.getPageSize()))
+        .page(offset -> idKeyMapper.findSkippedByType(type, 0, properties.getPageSize()))
         .callback(callback);
   }
 
