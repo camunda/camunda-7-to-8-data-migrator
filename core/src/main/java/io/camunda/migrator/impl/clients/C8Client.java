@@ -7,9 +7,16 @@
  */
 package io.camunda.migrator.impl.clients;
 
+import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_DEPLOY_DEFINITIONS;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_DEPLOY_DEFINITIONS;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.CREATING_PROCESS_INSTANCE_FAILED;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
+import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_CREATE_PROCESS_INSTANCE;
+import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_ACTIVATE_JOBS;
+import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_FETCH_PROCESS_DEFINITION_XML;
+import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_FETCH_VARIABLE;
+import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_MODIFY_PROCESS_INSTANCE;
+import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_SEARCH_PROCESS_DEFINITIONS;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_CREATE_PROCESS_INSTANCE;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_ACTIVATE_JOBS;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_FETCH_PROCESS_DEFINITION_XML;

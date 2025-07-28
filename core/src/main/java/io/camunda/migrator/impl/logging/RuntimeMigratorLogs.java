@@ -34,19 +34,6 @@ public class RuntimeMigratorLogs {
   public static final String FOUND_ACTIVE_ACTIVITIES_TO_ACTIVATE = "Found {} active activity instances to activate";
   public static final String EXTERNALLY_STARTED_PROCESS_INSTANCE = "Process instance with key [{}] was externally started, skipping migrator job activation.";
 
-  // RuntimeMigrator Error Messages
-  public static final String FAILED_TO_FETCH_PROCESS_INSTANCE = "Process instance fetching failed for legacyId: ";
-  public static final String FAILED_TO_CREATE_PROCESS_INSTANCE = "Creating process instance failed for bpmnProcessId: ";
-  public static final String FAILED_TO_FETCH_ACTIVITY_INSTANCE = "Failed to fetch activity instance for processInstanceId: ";
-  public static final String FAILED_TO_SEARCH_PROCESS_DEFINITIONS = "Process definition search failed for processDefinitionId: ";
-  public static final String FAILED_TO_FETCH_PROCESS_DEFINITION_XML = "Failed to fetch process definition XML for key: ";
-  public static final String FAILED_TO_ACTIVATE_JOBS = "Failed to activate jobs for type: ";
-  public static final String FAILED_TO_FETCH_VARIABLE = "Failed to fetch variable '%s' from job: %s";
-  public static final String FAILED_TO_MODIFY_PROCESS_INSTANCE = "Failed to modify process instance with activation for key: ";
-  public static final String FAILED_TO_DEPLOY_DEFINITIONS = "Failed to deploy C8 definitions";
-  public static final String FAILED_TO_FETCH_DEPLOYMENT_TIME = "Failed to fetch deployment time for definition with legacyId: ";
-  public static final String FAILED_TO_FETCH_BPMN_XML = "Failed to fetch BPMN model instance for process definition Id: ";
-
   public static void startingNewC8ProcessInstance(String legacyProcessInstanceId) {
     LOGGER.debug(STARTING_NEW_C8_PROCESS_INSTANCE, legacyProcessInstanceId);
   }

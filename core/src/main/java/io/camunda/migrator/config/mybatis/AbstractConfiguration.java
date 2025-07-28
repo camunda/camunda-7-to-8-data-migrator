@@ -7,6 +7,7 @@
  */
 package io.camunda.migrator.config.mybatis;
 
+import io.camunda.migrator.impl.logging.ConfigurationLogs;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.exception.MigratorException;
 import java.io.IOException;
@@ -21,14 +22,10 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.OffsetDateTimeTypeHandler;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.mapper.MapperFactoryBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 public class AbstractConfiguration {
-
-  protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractConfiguration.class);
 
   @Autowired
   protected MigratorProperties configProperties;
@@ -77,8 +74,7 @@ public class AbstractConfiguration {
 
   protected MultiTenantSpringLiquibase createSchema(DataSource dataSource, String tablePrefix, String changeLogFile) {
     String prefix = StringUtils.trimToEmpty(tablePrefix);
-    LOGGER.info("Creating table schema with Liquibase change log file '{}' with table prefix '{}'.", changeLogFile,
-        prefix);
+    ConfigurationLogs.logCreatingTableSchema(changeLogFile, prefix);
 
     var moduleConfig = new MultiTenantSpringLiquibase();
     moduleConfig.setDataSource(dataSource);

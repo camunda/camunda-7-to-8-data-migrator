@@ -8,6 +8,8 @@
 package io.camunda.migrator.impl.logging;
 
 import io.camunda.migrator.impl.clients.DbClient;
+import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +23,7 @@ public class DbClientLogs {
   // DbClient Messages
   public static final String UPDATING_KEY_FOR_LEGACY_ID = "Updating key for legacyId [{}] with value [{}]";
   public static final String INSERTING_RECORD = "Inserting record [{}], [{}], [{}]";
+  public static final String FOUND_START_DATE_FOR_TYPE = "Latest start date for {}: {}";
 
   // DbClient Error Messages
   public static final String FAILED_TO_CHECK_EXISTENCE = "Failed to check existence for legacyId: ";
@@ -40,5 +43,9 @@ public class DbClientLogs {
 
   public static void insertingRecord(String legacyProcessInstanceId, Object startDate, Long processInstanceKey) {
     LOGGER.debug(INSERTING_RECORD, legacyProcessInstanceId, startDate, processInstanceKey);
+  }
+
+  public static void foundLatestStartDate(Date latestStartDate, IdKeyMapper.TYPE type) {
+    LOGGER.debug(FOUND_START_DATE_FOR_TYPE, type, latestStartDate);
   }
 }

@@ -7,10 +7,10 @@
  */
 package io.camunda.migrator.impl.clients;
 
-import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_FETCH_ACTIVITY_INSTANCE;
-import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_FETCH_BPMN_XML;
-import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_FETCH_DEPLOYMENT_TIME;
-import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_FETCH_PROCESS_INSTANCE;
+import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_ACTIVITY_INSTANCE;
+import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_BPMN_XML;
+import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_DEPLOYMENT_TIME;
+import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_PROCESS_INSTANCE;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 
 import io.camunda.migrator.config.property.MigratorProperties;

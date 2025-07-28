@@ -7,25 +7,25 @@
  */
 package io.camunda.migrator.impl.clients;
 
+import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_CHECK_EXISTENCE;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_DELETE;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_ALL;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_ALL_SKIPPED;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_KEY_BY_ID;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_LATEST_ID;
-import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
-import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_CHECK_EXISTENCE;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_LATEST_START_DATE;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_SKIPPED_COUNT;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_INSERT_RECORD;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_UPDATE_KEY;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE;
+import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.Pagination;
-import io.camunda.migrator.impl.util.PrintUtils;
 import io.camunda.migrator.impl.logging.DbClientLogs;
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import io.camunda.migrator.impl.util.PrintUtils;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
@@ -57,7 +57,10 @@ public class DbClient {
    * Finds the latest start date by type.
    */
   public Date findLatestStartDateByType(TYPE type) {
-    return callApi(() -> idKeyMapper.findLatestStartDateByType(type), FAILED_TO_FIND_LATEST_START_DATE + type);
+    Date latestStartDate = callApi(() -> idKeyMapper.findLatestStartDateByType(type),
+        FAILED_TO_FIND_LATEST_START_DATE + type);
+    DbClientLogs.foundLatestStartDate(latestStartDate, type);
+    return latestStartDate;
   }
 
   /**
@@ -103,26 +106,22 @@ public class DbClient {
    * Lists skipped process instances with pagination and prints them.
    */
   public void listSkippedProcessInstances() {
-  new Pagination<String>()
-      .pageSize(properties.getPageSize())
-      .maxCount(idKeyMapper::findSkippedCount)
-      .page(offset -> idKeyMapper.findSkipped(offset, properties.getPageSize())
-          .stream()
-          .map(IdKeyDbModel::id)
-          .collect(Collectors.toList()))
-      .callback(PrintUtils::print);
+    new Pagination<String>().pageSize(properties.getPageSize())
+        .maxCount(idKeyMapper::findSkippedCount)
+        .page(offset -> idKeyMapper.findSkipped(offset, properties.getPageSize())
+            .stream()
+            .map(IdKeyDbModel::id)
+            .collect(Collectors.toList()))
+        .callback(PrintUtils::print);
   }
 
   /**
    * Processes skipped process instances with pagination.
    */
   public void fetchAndProcessSkippedProcessInstances(Consumer<IdKeyDbModel> callback) {
-    new Pagination<IdKeyDbModel>()
-        .pageSize(properties.getPageSize())
-        .maxCount(idKeyMapper::findSkippedCount)
+    new Pagination<IdKeyDbModel>().pageSize(properties.getPageSize()).maxCount(idKeyMapper::findSkippedCount)
         // Hardcode offset to 0 since each callback updates the database and leads to fresh results.
-        .page(offset -> idKeyMapper.findSkipped(0, properties.getPageSize()))
-        .callback(callback);
+        .page(offset -> idKeyMapper.findSkipped(0, properties.getPageSize())).callback(callback);
   }
 
   /**
