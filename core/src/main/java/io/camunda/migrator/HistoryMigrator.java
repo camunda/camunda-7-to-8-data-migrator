@@ -43,6 +43,7 @@ import io.camunda.migrator.converter.VariableConverter;
 import io.camunda.migrator.impl.clients.C7Client;
 import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.logging.HistoryMigratorLogs;
+import io.camunda.migrator.impl.util.ExceptionUtils;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
@@ -125,6 +126,7 @@ public class HistoryMigrator {
   private DecisionDefinitionConverter decisionDefinitionConverter;
 
   public void migrate() {
+    ExceptionUtils.setContext(ExceptionUtils.ExceptionContext.HISTORY);
     migrateProcessDefinitions();
     migrateProcessInstances();
     migrateFlowNodes();

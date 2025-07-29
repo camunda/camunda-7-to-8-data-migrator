@@ -21,6 +21,7 @@ import io.camunda.migrator.impl.clients.C7Client;
 import io.camunda.migrator.impl.clients.C8Client;
 import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.util.C7Utils;
+import io.camunda.migrator.impl.util.ExceptionUtils;
 import io.camunda.migrator.impl.util.PrintUtils;
 import io.camunda.migrator.impl.model.FlowNode;
 import io.camunda.migrator.impl.model.FlowNodeActivation;
@@ -60,6 +61,7 @@ public class RuntimeMigrator {
   protected MigratorMode mode = MIGRATE;
 
   public void start() {
+    ExceptionUtils.setContext(ExceptionUtils.ExceptionContext.RUNTIME);
     if (LIST_SKIPPED.equals(mode)) {
       PrintUtils.printSkippedInstancesHeader(dbClient.findSkippedCount());
       dbClient.listSkippedProcessInstances();
