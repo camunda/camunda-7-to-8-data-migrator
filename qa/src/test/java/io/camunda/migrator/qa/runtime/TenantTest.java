@@ -19,7 +19,7 @@ class TenantTest extends RuntimeMigrationAbstractTest {
   @Test
   public void shouldMigrateSkippedProcessInstances() {
     // given
-    deployer.deployProcessInC7AndC8("simpleProcess.bpmn");
+    deployer.deployProcessInC7AndC8("simpleProcess.bpmn", "fooTenant");
 
     runtimeService.startProcessInstanceByKey("simpleProcess");
 
