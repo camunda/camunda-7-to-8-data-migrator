@@ -1,4 +1,4 @@
-# C7 Data Migrator
+# Camunda 7 to 8 Data Migrator
 
 [![Java Version](https://img.shields.io/badge/Java-21-blue)](https://www.oracle.com/java/technologies/downloads/#java21)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)](https://spring.io/projects/spring-boot)
@@ -32,7 +32,7 @@ A tool for migrating Camunda 7 process instances and related data to Camunda 8. 
 
 ## Overview
 
-The C7 Data Migrator is designed to help organizations migrate from Camunda 7 to Camunda 8 while preserving the state of running process instances. Unlike starting fresh with new process instances, this tool maintains variable states, and current positions within process flows.
+The Data Migrator is designed to help organizations migrate from Camunda 7 to Camunda 8 while preserving the state of running process instances. Unlike starting fresh with new process instances, this tool maintains variable states, and current positions within process flows.
 
 **What this tool migrates:**
 - Running process instances with their current state
@@ -47,7 +47,7 @@ The C7 Data Migrator is designed to help organizations migrate from Camunda 7 to
 
 ## Migration Modes
 
-The C7 Data Migrator offers two modes of operation:
+The Data Migrator offers two modes of operation:
 
 1. **Runtime Migration**: Migrate running process instances to Camunda 8 while preserving their current state.
 2. **History Migration**: Migrate historical data.
@@ -68,7 +68,7 @@ The C7 Data Migrator offers two modes of operation:
 
 ## Prerequisites
 
-Before using the C7 Data Migrator, ensure you have:
+Before using the Data Migrator, ensure you have:
 
 - **Java 21 or higher** - Required for running the migrator
 - **Maven 3.6+** - For building from source (if not using pre-built releases)
@@ -700,7 +700,7 @@ mvn integration-test
 
 ## Contributing
 
-We welcome contributions to the C7 Data Migrator! Here's how you can help:
+We welcome contributions to the Data Migrator! Here's how you can help:
 
 ### Ways to Contribute
 
