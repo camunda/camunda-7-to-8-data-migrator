@@ -1,0 +1,19 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "packageRules": [
+    {
+      "description": "Automerge all updates with green CI.",
+      "matchPackageNames": [
+        "*"
+      ],
+      "automerge": true,
+      "addLabels": [
+        "automerge"
+      ]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": false
+  }
+}
