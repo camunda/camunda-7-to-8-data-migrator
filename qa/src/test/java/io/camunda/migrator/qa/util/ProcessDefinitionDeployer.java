@@ -7,6 +7,7 @@
  */
 package io.camunda.migrator.qa.util;
 
+import static io.camunda.zeebe.protocol.record.value.TenantOwned.DEFAULT_TENANT_IDENTIFIER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.client.CamundaClient;
@@ -31,15 +32,32 @@ public class ProcessDefinitionDeployer {
   protected CamundaClient camundaClient;
 
   public void deployCamunda7Process(String fileName) {
-    Deployment deployment = repositoryService.createDeployment().addClasspathResource("io/camunda/migrator/bpmn/c7/" + fileName).deploy();
+    deployCamunda7Process(fileName, null);
+  }
+
+  public void deployCamunda7Process(String fileName, String tenantId) {
+    Deployment deployment = repositoryService.createDeployment()
+        .tenantId(tenantId)
+        .addClasspathResource("io/camunda/migrator/bpmn/c7/" + fileName)
+        .deploy();
     if (deployment == null) {
       throw new IllegalStateException("Could not deploy process");
     }
   }
 
   public void deployCamunda8Process(String fileName) {
-    DeploymentEvent deployment = camundaClient.newDeployResourceCommand().addResourceFromClasspath("io/camunda/migrator/bpmn/c8/" + fileName).send()
-        .join();
+    deployCamunda8Process(fileName, null);
+  }
+
+  public void deployCamunda8Process(String fileName, String tenantId) {
+    if (tenantId == null) {
+      tenantId = DEFAULT_TENANT_IDENTIFIER;
+    }
+
+    DeploymentEvent deployment = camundaClient.newDeployResourceCommand()
+        .addResourceFromClasspath("io/camunda/migrator/bpmn/c8/" + fileName)
+        .tenantId(tenantId)
+        .execute();
 
     if (deployment == null) {
       throw new IllegalStateException("Could not deploy process");
@@ -59,6 +77,11 @@ public class ProcessDefinitionDeployer {
       // assume
       assertThat(items).hasSize(1);
     });
+  }
+
+  public void deployProcessInC7AndC8(String fileName, String tenantId) {
+    deployCamunda7Process(fileName, tenantId);
+    deployCamunda8Process(fileName, tenantId);
   }
 
   public void deployProcessInC7AndC8(String fileName) {
