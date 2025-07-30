@@ -50,14 +50,6 @@ import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
 import java.util.Date;
 import java.util.List;
-import java.util.function.Consumer;
-import org.camunda.bpm.engine.history.HistoricActivityInstance;
-import org.camunda.bpm.engine.history.HistoricIncident;
-import org.camunda.bpm.engine.history.HistoricProcessInstance;
-import org.camunda.bpm.engine.history.HistoricTaskInstance;
-import org.camunda.bpm.engine.history.HistoricVariableInstance;
-import org.camunda.bpm.engine.repository.DecisionDefinition;
-import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
@@ -139,8 +131,7 @@ public class HistoryMigrator {
 
   private void migrateDecisionDefinitions() {
     HistoryMigratorLogs.migratingDecisionDefinitions();
-
-    Consumer<DecisionDefinition> callback = legacyDecisionDefinition -> {
+    c7Client.fetchAndHandleDecisionDefinitions(legacyDecisionDefinition -> {
       String legacyId = legacyDecisionDefinition.getId();
       HistoryMigratorLogs.migratingDecisionDefinition(legacyId);
       DecisionDefinitionDbModel dbModel = decisionDefinitionConverter.apply(legacyDecisionDefinition);
@@ -148,14 +139,12 @@ public class HistoryMigrator {
       Date deploymentTime = c7Client.getDefinitionDeploymentTime(legacyDecisionDefinition.getDeploymentId());
       dbClient.insert(legacyId, deploymentTime, dbModel.decisionDefinitionKey(), HISTORY_DECISION_DEFINITION);
       HistoryMigratorLogs.migratingDecisionDefinitionCompleted(legacyId);
-    };
-    c7Client.fetchAndHandleDecisionDefinitions(callback,
-        dbClient.findLatestStartDateByType((HISTORY_DECISION_DEFINITION)));
+    }, dbClient.findLatestStartDateByType((HISTORY_DECISION_DEFINITION)));
   }
 
   private void migrateProcessDefinitions() {
     HistoryMigratorLogs.migratingProcessDefinitions();
-    Consumer<ProcessDefinition> callback = legacyProcessDefinition -> {
+    c7Client.fetchAndHandleProcessDefinitions(legacyProcessDefinition -> {
       String legacyId = legacyProcessDefinition.getId();
       if (!dbClient.checkExists(legacyId)) {
         HistoryMigratorLogs.migratingProcessDefinition(legacyId);
@@ -165,15 +154,12 @@ public class HistoryMigrator {
         dbClient.insert(legacyId, deploymentTime, dbModel.processDefinitionKey(), HISTORY_PROCESS_DEFINITION);
         HistoryMigratorLogs.migratingProcessDefinitionCompleted(legacyId);
       }
-    };
-
-    c7Client.fetchAndHandleProcessDefinitions(callback,
-        dbClient.findLatestStartDateByType((HISTORY_PROCESS_DEFINITION)));
+    }, dbClient.findLatestStartDateByType((HISTORY_PROCESS_DEFINITION)));
   }
 
   private void migrateProcessInstances() {
     HistoryMigratorLogs.migratingProcessInstances();
-    Consumer<HistoricProcessInstance> callback = legacyProcessInstance -> {
+    c7Client.fetchAndHandleHistoricProcessInstances(legacyProcessInstance -> {
       String legacyProcessInstanceId = legacyProcessInstance.getId();
       if (!dbClient.checkExists(legacyProcessInstanceId)) {
         HistoryMigratorLogs.migratingProcessInstance(legacyProcessInstanceId);
@@ -202,15 +188,12 @@ public class HistoryMigrator {
           HistoryMigratorLogs.skippingProcessInstanceDueToMissingDefinition(legacyProcessInstanceId);
         }
       }
-    };
-
-    c7Client.fetchAndHandleHistoricProcessInstances(callback,
-        dbClient.findLatestStartDateByType((HISTORY_PROCESS_INSTANCE)));
+    }, dbClient.findLatestStartDateByType((HISTORY_PROCESS_INSTANCE)));
   }
 
   private void migrateIncidents() {
     HistoryMigratorLogs.migratingHistoricIncidents();
-    Consumer<HistoricIncident> callback = legacyIncident -> {
+    c7Client.fetchAndHandleHistoricIncidents(legacyIncident -> {
       String legacyIncidentId = legacyIncident.getId();
       if (!dbClient.checkExists(legacyIncidentId)) {
         HistoryMigratorLogs.migratingHistoricIncident(legacyIncidentId);
@@ -233,14 +216,12 @@ public class HistoryMigrator {
           }
         }
       }
-    };
-
-    c7Client.fetchAndHandleHistoricIncidents(callback, dbClient.findLatestStartDateByType((HISTORY_INCIDENT)));
+    }, dbClient.findLatestStartDateByType((HISTORY_INCIDENT)));
   }
 
   private void migrateVariables() {
     HistoryMigratorLogs.migratingHistoricVariables();
-    Consumer<HistoricVariableInstance> callback = legacyVariable -> {
+    c7Client.fetchAndHandleHistoricVariables(legacyVariable -> {
       String legacyVariableId = legacyVariable.getId();
       if (!dbClient.checkExists(legacyVariableId)) {
         HistoryMigratorLogs.migratingHistoricVariable(legacyVariableId);
@@ -263,14 +244,12 @@ public class HistoryMigrator {
           HistoryMigratorLogs.skippingHistoricVariableDueToMissingProcessInstance(legacyVariableId);
         }
       }
-    };
-
-    c7Client.fetchAndHandleHistoricVariables(callback, dbClient.findLatestIdByType(HISTORY_VARIABLE));
+    }, dbClient.findLatestIdByType(HISTORY_VARIABLE));
   }
 
   private void migrateUserTasks() {
     HistoryMigratorLogs.migratingHistoricUserTasks();
-    Consumer<HistoricTaskInstance> callback = legacyUserTask -> {
+    c7Client.fetchAndHandleHistoricUserTasks(legacyUserTask -> {
       String legacyUserTaskId = legacyUserTask.getId();
       if (!dbClient.checkExists(legacyUserTaskId)) {
         HistoryMigratorLogs.migratingHistoricUserTask(legacyUserTaskId);
@@ -291,14 +270,12 @@ public class HistoryMigrator {
           HistoryMigratorLogs.skippingHistoricUserTaskDueToMissingProcessInstance(legacyUserTaskId);
         }
       }
-    };
-
-    c7Client.fetchAndHandleHistoricUserTasks(callback, dbClient.findLatestStartDateByType((HISTORY_USER_TASK)));
+    }, dbClient.findLatestStartDateByType((HISTORY_USER_TASK)));
   }
 
   private void migrateFlowNodes() {
     HistoryMigratorLogs.migratingHistoricFlowNodes();
-    Consumer<HistoricActivityInstance> callback = legacyFlowNode -> {
+    c7Client.fetchAndHandleHistoricFlowNodes(legacyFlowNode -> {
       String legacyFlowNodeId = legacyFlowNode.getId();
       if (!dbClient.checkExists(legacyFlowNodeId)) {
         HistoryMigratorLogs.migratingHistoricFlowNode(legacyFlowNodeId);
@@ -316,8 +293,7 @@ public class HistoryMigrator {
           HistoryMigratorLogs.skippingHistoricFlowNode(legacyFlowNodeId);
         }
       }
-    };
-    c7Client.fetchAndHandleHistoricFlowNodes(callback, dbClient.findLatestStartDateByType((HISTORY_FLOW_NODE)));
+    }, dbClient.findLatestStartDateByType((HISTORY_FLOW_NODE)));
   }
 
   protected ProcessInstanceEntity findProcessInstanceByLegacyId(String processInstanceId) {
