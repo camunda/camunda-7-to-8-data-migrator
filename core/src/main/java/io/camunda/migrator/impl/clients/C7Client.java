@@ -137,7 +137,7 @@ public class C7Client {
   /**
    * Processes process instances for a given root process instance ID with pagination.
    */
-  public void fetchAndProcessProcessInstances(Consumer<ProcessInstance> validator, String rootProcessInstanceId) {
+  public void fetchAndHandleProcessInstances(Consumer<ProcessInstance> callback, String rootProcessInstanceId) {
     ProcessInstanceQuery query = runtimeService.createProcessInstanceQuery()
         .rootProcessInstanceId(rootProcessInstanceId);
 
@@ -145,13 +145,13 @@ public class C7Client {
         .pageSize(properties.getPageSize())
         .maxCount(query::count)
         .query(query)
-        .callback(validator);
+        .callback(callback);
   }
 
   /**
    * Processes historic root process instances with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessHistoricRootProcessInstances(Consumer<IdKeyDbModel> callback, Date startedAfter) {
+  public void fetchAndHandleHistoricRootProcessInstances(Consumer<IdKeyDbModel> callback, Date startedAfter) {
     var query = historyService.createHistoricProcessInstanceQuery()
         .startedAfter(startedAfter)
         .rootProcessInstances()
@@ -176,7 +176,7 @@ public class C7Client {
   /**
    * Processes historic process instances with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessHistoricProcessInstances(Consumer<HistoricProcessInstance> callback, Date startedAfter) {
+  public void fetchAndHandleHistoricProcessInstances(Consumer<HistoricProcessInstance> callback, Date startedAfter) {
     HistoricProcessInstanceQueryImpl query = (HistoricProcessInstanceQueryImpl) historyService.createHistoricProcessInstanceQuery()
         .orderByProcessInstanceStartTime()
         .asc()
@@ -197,7 +197,7 @@ public class C7Client {
   /**
    * Processes process definitions with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessProcessDefinitions(Consumer<ProcessDefinition> callback, Date deployedAfter) {
+  public void fetchAndHandleProcessDefinitions(Consumer<ProcessDefinition> callback, Date deployedAfter) {
     ProcessDefinitionQueryImpl query = (ProcessDefinitionQueryImpl) repositoryService.createProcessDefinitionQuery()
         .orderByDeploymentTime()
         .asc()
@@ -218,7 +218,7 @@ public class C7Client {
   /**
    * Processes decision definitions with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessDecisionDefinitions(Consumer<DecisionDefinition> callback, Date deployedAfter) {
+  public void fetchAndHandleDecisionDefinitions(Consumer<DecisionDefinition> callback, Date deployedAfter) {
     DecisionDefinitionQuery query = repositoryService.createDecisionDefinitionQuery()
         .orderByDeploymentTime()
         .asc()
@@ -239,7 +239,7 @@ public class C7Client {
   /**
    * Processes historic incidents with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessHistoricIncidents(Consumer<HistoricIncident> callback, Date createdAfter) {
+  public void fetchAndHandleHistoricIncidents(Consumer<HistoricIncident> callback, Date createdAfter) {
     HistoricIncidentQueryImpl query = (HistoricIncidentQueryImpl) historyService.createHistoricIncidentQuery()
         .orderByCreateTime()
         .asc()
@@ -260,7 +260,7 @@ public class C7Client {
   /**
    * Processes variables with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessHistoricVariables(Consumer<HistoricVariableInstance> callback, String latestLegacyId) {
+  public void fetchAndHandleHistoricVariables(Consumer<HistoricVariableInstance> callback, String latestLegacyId) {
     HistoricVariableInstanceQueryImpl query = (HistoricVariableInstanceQueryImpl) historyService.createHistoricVariableInstanceQuery()
         .orderByVariableId()
         .asc();
@@ -279,7 +279,7 @@ public class C7Client {
   /**
    * Processes historic user task instances with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessHistoricUserTasks(Consumer<HistoricTaskInstance> callback, Date startedAfter) {
+  public void fetchAndHandleHistoricUserTasks(Consumer<HistoricTaskInstance> callback, Date startedAfter) {
     HistoricTaskInstanceQueryImpl query = (HistoricTaskInstanceQueryImpl) historyService.createHistoricTaskInstanceQuery()
         .orderByHistoricActivityInstanceStartTime()
         .asc()
@@ -300,7 +300,7 @@ public class C7Client {
   /**
    * Processes historic flow node instances with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessHistoricFlowNodes(Consumer<HistoricActivityInstance> callback, Date startedAfter) {
+  public void fetchAndHandleHistoricFlowNodes(Consumer<HistoricActivityInstance> callback, Date startedAfter) {
     HistoricActivityInstanceQueryImpl query = (HistoricActivityInstanceQueryImpl) historyService.createHistoricActivityInstanceQuery()
         .orderByHistoricActivityInstanceStartTime()
         .asc()

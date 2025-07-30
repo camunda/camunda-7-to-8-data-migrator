@@ -205,7 +205,7 @@ public class RuntimeValidator {
       }
     };
 
-    c7Client.fetchAndProcessProcessInstances(validator, legacyProcessInstanceId);
+    c7Client.fetchAndHandleProcessInstances(validator, legacyProcessInstanceId);
   }
 
 }
