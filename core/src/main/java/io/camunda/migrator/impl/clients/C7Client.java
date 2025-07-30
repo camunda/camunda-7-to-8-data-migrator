@@ -90,7 +90,10 @@ public class C7Client {
         .disableCustomObjectDeserialization()
         .processInstanceIdIn(legacyProcessInstanceId);
 
-    return new Pagination<VariableInstance>().pageSize(properties.getPageSize()).query(variableQuery).toList();
+    return new Pagination<VariableInstance>()
+        .pageSize(properties.getPageSize())
+        .query(variableQuery)
+        .toList();
   }
 
   /**
@@ -101,7 +104,10 @@ public class C7Client {
         .disableCustomObjectDeserialization()
         .activityInstanceIdIn(activityInstanceId);
 
-    return new Pagination<VariableInstance>().pageSize(properties.getPageSize()).query(variableQuery).toList();
+    return new Pagination<VariableInstance>()
+        .pageSize(properties.getPageSize())
+        .query(variableQuery)
+        .toList();
   }
 
   /**
@@ -135,7 +141,11 @@ public class C7Client {
     ProcessInstanceQuery query = runtimeService.createProcessInstanceQuery()
         .rootProcessInstanceId(rootProcessInstanceId);
 
-    new Pagination<ProcessInstance>().pageSize(properties.getPageSize()).maxCount(query::count).query(query).callback(validator);
+    new Pagination<ProcessInstance>()
+        .pageSize(properties.getPageSize())
+        .maxCount(query::count)
+        .query(query)
+        .callback(validator);
   }
 
   /**
@@ -153,7 +163,8 @@ public class C7Client {
         .orderByProcessInstanceId()
         .asc();
 
-    new Pagination<IdKeyDbModel>().pageSize(properties.getPageSize())
+    new Pagination<IdKeyDbModel>()
+        .pageSize(properties.getPageSize())
         .maxCount(query::count)
         .page(offset -> query.listPage(offset, properties.getPageSize())
             .stream()
@@ -176,7 +187,8 @@ public class C7Client {
       query.startedAfter(startedAfter);
     }
 
-    new Pagination<HistoricProcessInstance>().pageSize(properties.getPageSize())
+    new Pagination<HistoricProcessInstance>()
+        .pageSize(properties.getPageSize())
         .query(query)
         .maxCount(query::count)
         .callback(callback);
@@ -196,7 +208,11 @@ public class C7Client {
       query.deployedAfter(deployedAfter);
     }
 
-    new Pagination<ProcessDefinition>().pageSize(properties.getPageSize()).query(query).maxCount(query::count).callback(callback);
+    new Pagination<ProcessDefinition>()
+        .pageSize(properties.getPageSize())
+        .query(query)
+        .maxCount(query::count)
+        .callback(callback);
   }
 
   /**
@@ -213,7 +229,11 @@ public class C7Client {
       query.deployedAfter(deployedAfter);
     }
 
-    new Pagination<DecisionDefinition>().pageSize(properties.getPageSize()).query(query).maxCount(query::count).callback(callback);
+    new Pagination<DecisionDefinition>()
+        .pageSize(properties.getPageSize())
+        .query(query)
+        .maxCount(query::count)
+        .callback(callback);
   }
 
   /**
@@ -230,7 +250,11 @@ public class C7Client {
       query.createTimeAfter(createdAfter);
     }
 
-    new Pagination<HistoricIncident>().pageSize(properties.getPageSize()).query(query).maxCount(query::count).callback(callback);
+    new Pagination<HistoricIncident>()
+        .pageSize(properties.getPageSize())
+        .query(query)
+        .maxCount(query::count)
+        .callback(callback);
   }
 
   /**
@@ -245,7 +269,8 @@ public class C7Client {
       query.idAfter(latestLegacyId);
     }
 
-    new Pagination<HistoricVariableInstance>().pageSize(properties.getPageSize())
+    new Pagination<HistoricVariableInstance>()
+        .pageSize(properties.getPageSize())
         .query(query)
         .maxCount(query::count)
         .callback(callback);
@@ -265,7 +290,11 @@ public class C7Client {
       query.startedAfter(startedAfter);
     }
 
-    new Pagination<HistoricTaskInstance>().pageSize(properties.getPageSize()).query(query).maxCount(query::count).callback(callback);
+    new Pagination<HistoricTaskInstance>()
+        .pageSize(properties.getPageSize())
+        .query(query)
+        .maxCount(query::count)
+        .callback(callback);
   }
 
   /**
@@ -282,7 +311,9 @@ public class C7Client {
       query.startedAfter(startedAfter);
     }
 
-    new Pagination<HistoricActivityInstance>().pageSize(properties.getPageSize()).query(query)
+    new Pagination<HistoricActivityInstance>()
+        .pageSize(properties.getPageSize())
+        .query(query)
         .maxCount(query::count)
         .callback(callback);
   }
