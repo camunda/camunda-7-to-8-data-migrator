@@ -149,7 +149,7 @@ public class HistoryMigrator {
       dbClient.insert(legacyId, deploymentTime, dbModel.decisionDefinitionKey(), HISTORY_DECISION_DEFINITION);
       HistoryMigratorLogs.migratingDecisionDefinitionCompleted(legacyId);
     };
-    c7Client.fetchAndProcessDecisionDefinitions(callback,
+    c7Client.fetchAndHandleDecisionDefinitions(callback,
         dbClient.findLatestStartDateByType((HISTORY_DECISION_DEFINITION)));
   }
 
@@ -167,7 +167,7 @@ public class HistoryMigrator {
       }
     };
 
-    c7Client.fetchAndProcessProcessDefinitions(callback,
+    c7Client.fetchAndHandleProcessDefinitions(callback,
         dbClient.findLatestStartDateByType((HISTORY_PROCESS_DEFINITION)));
   }
 
@@ -204,7 +204,7 @@ public class HistoryMigrator {
       }
     };
 
-    c7Client.fetchAndProcessHistoricProcessInstances(callback,
+    c7Client.fetchAndHandleHistoricProcessInstances(callback,
         dbClient.findLatestStartDateByType((HISTORY_PROCESS_INSTANCE)));
   }
 
@@ -235,7 +235,7 @@ public class HistoryMigrator {
       }
     };
 
-    c7Client.fetchAndProcessHistoricIncidents(callback, dbClient.findLatestStartDateByType((HISTORY_INCIDENT)));
+    c7Client.fetchAndHandleHistoricIncidents(callback, dbClient.findLatestStartDateByType((HISTORY_INCIDENT)));
   }
 
   private void migrateVariables() {
@@ -265,7 +265,7 @@ public class HistoryMigrator {
       }
     };
 
-    c7Client.fetchAndProcessHistoricVariables(callback, dbClient.findLatestIdByType(HISTORY_VARIABLE));
+    c7Client.fetchAndHandleHistoricVariables(callback, dbClient.findLatestIdByType(HISTORY_VARIABLE));
   }
 
   private void migrateUserTasks() {
@@ -293,7 +293,7 @@ public class HistoryMigrator {
       }
     };
 
-    c7Client.fetchAndProcessHistoricUserTasks(callback, dbClient.findLatestStartDateByType((HISTORY_USER_TASK)));
+    c7Client.fetchAndHandleHistoricUserTasks(callback, dbClient.findLatestStartDateByType((HISTORY_USER_TASK)));
   }
 
   private void migrateFlowNodes() {
@@ -317,7 +317,7 @@ public class HistoryMigrator {
         }
       }
     };
-    c7Client.fetchAndProcessHistoricFlowNodes(callback, dbClient.findLatestStartDateByType((HISTORY_FLOW_NODE)));
+    c7Client.fetchAndHandleHistoricFlowNodes(callback, dbClient.findLatestStartDateByType((HISTORY_FLOW_NODE)));
   }
 
   protected ProcessInstanceEntity findProcessInstanceByLegacyId(String processInstanceId) {
