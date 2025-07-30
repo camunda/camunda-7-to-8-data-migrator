@@ -106,7 +106,8 @@ public class DbClient {
    * Lists skipped process instances with pagination and prints them.
    */
   public void listSkippedProcessInstances() {
-    new Pagination<String>().pageSize(properties.getPageSize())
+    new Pagination<String>()
+        .pageSize(properties.getPageSize())
         .maxCount(idKeyMapper::findSkippedCount)
         .page(offset -> idKeyMapper.findSkipped(offset, properties.getPageSize())
             .stream()
@@ -119,9 +120,12 @@ public class DbClient {
    * Processes skipped process instances with pagination.
    */
   public void fetchAndProcessSkippedProcessInstances(Consumer<IdKeyDbModel> callback) {
-    new Pagination<IdKeyDbModel>().pageSize(properties.getPageSize()).maxCount(idKeyMapper::findSkippedCount)
+    new Pagination<IdKeyDbModel>()
+        .pageSize(properties.getPageSize())
+        .maxCount(idKeyMapper::findSkippedCount)
         // Hardcode offset to 0 since each callback updates the database and leads to fresh results.
-        .page(offset -> idKeyMapper.findSkipped(0, properties.getPageSize())).callback(callback);
+        .page(offset -> idKeyMapper.findSkipped(0, properties.getPageSize()))
+        .callback(callback);
   }
 
   /**
