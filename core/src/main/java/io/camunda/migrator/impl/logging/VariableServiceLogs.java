@@ -29,7 +29,7 @@ public class VariableServiceLogs {
   public static final String START_EXECUTION_LOG = "Start {} execution for variable: {}";
   public static final String END_EXECUTION_LOG = "End {} execution for variable: {}";
   public static final String CONVERTING_DATE_LOG = "Converting date variable: {}";
-  public static final String CONVERTED_DATE_LOG = "Converted date {} to {}";
+  public static final String CONVERTED_DATE_LOG = "Converted date from variable with name {} from {} to {}";
 
   // Error message templates
   public static final String VARIABLE_INTERCEPTOR_FAILED_MSG = "%s failed for variable with name '%s'";
@@ -94,11 +94,12 @@ public class VariableServiceLogs {
   /**
    * Logs the result of date conversion.
    *
-   * @param originalValue the original date value
+   * @param name           the name of the date variable
+   * @param originalValue  the original date value
    * @param formattedValue the formatted date string
    */
-  public static void logConvertedDate(Object originalValue, String formattedValue) {
-    LOGGER.debug(CONVERTED_DATE_LOG, originalValue, formattedValue);
+  public static void logConvertedDate(String name, Object originalValue, String formattedValue) {
+    LOGGER.debug(CONVERTED_DATE_LOG, name, originalValue, formattedValue);
   }
 
 }

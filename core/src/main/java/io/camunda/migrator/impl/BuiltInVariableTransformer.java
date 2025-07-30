@@ -53,6 +53,11 @@ public class BuiltInVariableTransformer implements VariableInterceptor {
       // For JSON Object, convert the value into a C8 compatible Map format
       setJsonVariable(invocation, ((ObjectValueImpl)typedValue).getValueSerialized());
 
+    } else if (ValueType.OBJECT.equals(typedValue.getType()) &&
+        XML.getName().equals(((ObjectValueImpl)typedValue).getSerializationDataFormat())) {
+      // Store raw string for unsupported types
+      invocation.setVariableValue(((ObjectValueImpl)typedValue).getValueSerialized());
+
     } else if (SpinValueType.JSON.equals(typedValue.getType())) {
       // For Spin JSON, convert the value into a C8 compatible Map format
       setJsonVariable(invocation, typedValue.getValue().toString());
@@ -68,12 +73,7 @@ public class BuiltInVariableTransformer implements VariableInterceptor {
 
       invocation.setVariableValue(variable.getValue());
 
-    } else if (ValueType.OBJECT.equals(typedValue.getType()) &&
-        XML.getName().equals(((ObjectValueImpl)typedValue).getSerializationDataFormat())) {
-      // Store raw string for unsupported types
-      invocation.setVariableValue(((ObjectValueImpl)typedValue).getValueSerialized());
-
-    } else if (typedValue.getType() instanceof FileValueType) {
+    }else if (typedValue.getType() instanceof FileValueType) {
       throw new VariableInterceptorException(FILE_TYPE_UNSUPPORTED_ERROR, null);
 
     } else if (ValueType.OBJECT.equals(typedValue.getType()) &&

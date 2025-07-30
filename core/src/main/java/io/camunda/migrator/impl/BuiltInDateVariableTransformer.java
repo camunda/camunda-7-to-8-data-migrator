@@ -14,7 +14,6 @@ import static io.camunda.migrator.impl.logging.VariableServiceLogs.logConverting
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInvocation;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import org.camunda.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
 import org.camunda.bpm.engine.variable.value.DateValue;
 import org.camunda.bpm.engine.variable.value.TypedValue;
@@ -41,7 +40,7 @@ public class BuiltInDateVariableTransformer implements VariableInterceptor {
       logConvertingDate(variable.getName());
 
       String formattedDate = new SimpleDateFormat(DATE_FORMAT_PATTERN).format(value.getValue());
-      logConvertedDate(value.getValue(), formattedDate);
+      logConvertedDate(variable.getName(), value.getValue(), formattedDate);
       invocation.setVariableValue(formattedDate);
     }
 

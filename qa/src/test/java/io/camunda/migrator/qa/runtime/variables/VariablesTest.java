@@ -8,6 +8,8 @@
 package io.camunda.migrator.qa.runtime.variables;
 
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.SKIPPING_PROCESS_INSTANCE_VARIABLE_ERROR;
+import static io.camunda.migrator.impl.logging.VariableServiceLogs.BYTE_ARRAY_UNSUPPORTED_ERROR;
+import static io.camunda.migrator.impl.logging.VariableServiceLogs.FILE_TYPE_UNSUPPORTED_ERROR;
 import static io.camunda.migrator.impl.logging.VariableServiceLogs.JAVA_SERIALIZED_UNSUPPORTED_ERROR;
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -84,6 +86,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     variables.putValue("integerVar", 1234);
     variables.putValue("doubleVar", 1.5d);
     variables.putValue("shortVar", (short) 1);
+    variables.putValue("longVar", 2_147_483_648L);
 
     runtimeService.startProcessInstanceByKey("simpleProcess", variables);
 
@@ -95,7 +98,8 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
         .hasVariable("booleanVar", true)
         .hasVariable("integerVar", 1234)
         .hasVariable("doubleVar", 1.5d)
-        .hasVariable("shortVar", (short) 1);
+        .hasVariable("shortVar", (short) 1)
+        .hasVariable("longVar", 2_147_483_648L);
   }
 
   @Test
@@ -135,7 +139,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     assertThatProcessInstanceCountIsEqualTo(0);
     LOGS.assertContains(
         String.format(SKIPPING_PROCESS_INSTANCE_VARIABLE_ERROR.replace("{}", "%s"), legacyId,
-            "Type 'byte[]' is unsupported in C8."));
+            BYTE_ARRAY_UNSUPPORTED_ERROR));
   }
 
   @Test
@@ -309,7 +313,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     assertThatProcessInstanceCountIsEqualTo(0);
     LOGS.assertContains(
         String.format(SKIPPING_PROCESS_INSTANCE_VARIABLE_ERROR.replace("{}", "%s"), legacyId,
-            "Type 'file' is unsupported in C8."));
+            FILE_TYPE_UNSUPPORTED_ERROR));
   }
 
   @Test
