@@ -7,9 +7,7 @@
  */
 package io.camunda.migrator.impl.clients;
 
-import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_DEPLOY_DEFINITIONS;
-import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_DEPLOY_DEFINITIONS;
-import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.CREATING_PROCESS_INSTANCE_FAILED;
+import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_DEPLOY_C8_RESOURCES;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_CREATE_PROCESS_INSTANCE;
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_ACTIVATE_JOBS;
@@ -17,18 +15,9 @@ import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_FETCH_PROC
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_FETCH_VARIABLE;
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_MODIFY_PROCESS_INSTANCE;
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_SEARCH_PROCESS_DEFINITIONS;
-import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_CREATE_PROCESS_INSTANCE;
-import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_ACTIVATE_JOBS;
-import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_FETCH_PROCESS_DEFINITION_XML;
-import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_FETCH_VARIABLE;
-import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_MODIFY_PROCESS_INSTANCE;
-import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.PROCESS_DEFINITION_SEARCH_FAILED;
-import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
-import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.FAILED_TO_SEARCH_PROCESS_DEFINITIONS;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.DeployResourceCommandStep1;
-import io.camunda.client.api.command.DeployResourceCommandStep1.DeployResourceCommandStep2;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.response.ProcessInstanceEvent;
@@ -128,15 +117,14 @@ public class C8Client {
    * Deploys C8 models from the given set of model files.
    */
   public void deployResources(Set<Path> models) {
+    DeployResourceCommandStep1.DeployResourceCommandStep2 deployResourceCmd = null;
     var deployResource = camundaClient.newDeployResourceCommand();
-
-    DeployResourceCommandStep1.DeployResourceCommandStep2 deployResourceCommandStep2 = null;
     for (Path model : models) {
-      deployResourceCommandStep2 = deployResource.addResourceFile(model.toString());
+      deployResourceCmd = deployResource.addResourceFile(model.toString());
     }
 
-    if (deployResourceCommandStep2 != null) {
-      callApi(deployResourceCommandStep2::execute, FAILED_TO_DEPLOY_DEFINITIONS);
+    if (deployResourceCmd != null) {
+      callApi(deployResourceCmd::execute, FAILED_TO_DEPLOY_C8_RESOURCES + models);
     }
   }
 

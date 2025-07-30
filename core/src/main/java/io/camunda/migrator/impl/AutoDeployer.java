@@ -33,7 +33,7 @@ public class AutoDeployer {
   protected MigratorProperties migratorProperties;
 
   public void deploy() {
-    c8Client.deploy(getDeploymentResources());
+    c8Client.deployResources(getDeploymentResources());
   }
 
   public Set<Path> getDeploymentResources() {

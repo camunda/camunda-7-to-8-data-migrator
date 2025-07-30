@@ -37,8 +37,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
-import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.Activity;
 import org.camunda.bpm.model.bpmn.instance.FlowElement;
@@ -180,7 +178,7 @@ public class RuntimeValidator {
    */
   public void validateProcessInstanceState(String legacyProcessInstanceId) {
     RuntimeValidatorLogs.validateLegacyProcessInstance(legacyProcessInstanceId);
-    Consumer<ProcessInstance> validator = processInstance -> {
+    c7Client.fetchAndHandleProcessInstances(processInstance -> {
       String processInstanceId = processInstance.getId();
       String c7DefinitionId = processInstance.getProcessDefinitionId();
       String c8DefinitionId = processInstance.getProcessDefinitionKey();
@@ -203,9 +201,7 @@ public class RuntimeValidator {
         validateC7FlowNodes(c7DefinitionId, flowNode.activityId());
         validateC8FlowNodes(c8XmlString, flowNode.activityId());
       }
-    };
-
-    c7Client.fetchAndProcessProcessInstances(validator, legacyProcessInstanceId);
+    }, legacyProcessInstanceId);
   }
 
 }

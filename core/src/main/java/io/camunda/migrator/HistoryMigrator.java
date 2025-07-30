@@ -54,14 +54,6 @@ import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
 import java.util.Date;
 import java.util.List;
-import java.util.function.Consumer;
-import org.camunda.bpm.engine.history.HistoricActivityInstance;
-import org.camunda.bpm.engine.history.HistoricIncident;
-import org.camunda.bpm.engine.history.HistoricProcessInstance;
-import org.camunda.bpm.engine.history.HistoricTaskInstance;
-import org.camunda.bpm.engine.history.HistoricVariableInstance;
-import org.camunda.bpm.engine.repository.DecisionDefinition;
-import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
@@ -148,7 +140,7 @@ public class HistoryMigrator {
     migrateVariables();
     migrateIncidents();
 
-    //migrateDecisionDefinitions();
+    // migrateDecisionDefinitions();
   }
 
   private void migrateDecisionDefinitions() {

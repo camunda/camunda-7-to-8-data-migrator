@@ -90,7 +90,10 @@ public class C7Client {
         .disableCustomObjectDeserialization()
         .processInstanceIdIn(legacyProcessInstanceId);
 
-    return new Pagination<VariableInstance>().pageSize(properties.getPageSize()).query(variableQuery).toList();
+    return new Pagination<VariableInstance>()
+        .pageSize(properties.getPageSize())
+        .query(variableQuery)
+        .toList();
   }
 
   /**
@@ -101,7 +104,10 @@ public class C7Client {
         .disableCustomObjectDeserialization()
         .activityInstanceIdIn(activityInstanceId);
 
-    return new Pagination<VariableInstance>().pageSize(properties.getPageSize()).query(variableQuery).toList();
+    return new Pagination<VariableInstance>()
+        .pageSize(properties.getPageSize())
+        .query(variableQuery)
+        .toList();
   }
 
   /**
@@ -131,17 +137,21 @@ public class C7Client {
   /**
    * Processes process instances for a given root process instance ID with pagination.
    */
-  public void fetchAndProcessProcessInstances(Consumer<ProcessInstance> validator, String rootProcessInstanceId) {
+  public void fetchAndHandleProcessInstances(Consumer<ProcessInstance> callback, String rootProcessInstanceId) {
     ProcessInstanceQuery query = runtimeService.createProcessInstanceQuery()
         .rootProcessInstanceId(rootProcessInstanceId);
 
-    new Pagination<ProcessInstance>().pageSize(properties.getPageSize()).maxCount(query::count).query(query).callback(validator);
+    new Pagination<ProcessInstance>()
+        .pageSize(properties.getPageSize())
+        .maxCount(query::count)
+        .query(query)
+        .callback(callback);
   }
 
   /**
    * Processes historic root process instances with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessHistoricRootProcessInstances(Consumer<IdKeyDbModel> callback, Date startedAfter) {
+  public void fetchAndHandleHistoricRootProcessInstances(Consumer<IdKeyDbModel> callback, Date startedAfter) {
     var query = historyService.createHistoricProcessInstanceQuery()
         .startedAfter(startedAfter)
         .rootProcessInstances()
@@ -153,7 +163,8 @@ public class C7Client {
         .orderByProcessInstanceId()
         .asc();
 
-    new Pagination<IdKeyDbModel>().pageSize(properties.getPageSize())
+    new Pagination<IdKeyDbModel>()
+        .pageSize(properties.getPageSize())
         .maxCount(query::count)
         .page(offset -> query.listPage(offset, properties.getPageSize())
             .stream()
@@ -165,7 +176,7 @@ public class C7Client {
   /**
    * Processes historic process instances with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessHistoricProcessInstances(Consumer<HistoricProcessInstance> callback, Date startedAfter) {
+  public void fetchAndHandleHistoricProcessInstances(Consumer<HistoricProcessInstance> callback, Date startedAfter) {
     HistoricProcessInstanceQueryImpl query = (HistoricProcessInstanceQueryImpl) historyService.createHistoricProcessInstanceQuery()
         .orderByProcessInstanceStartTime()
         .asc()
@@ -176,7 +187,8 @@ public class C7Client {
       query.startedAfter(startedAfter);
     }
 
-    new Pagination<HistoricProcessInstance>().pageSize(properties.getPageSize())
+    new Pagination<HistoricProcessInstance>()
+        .pageSize(properties.getPageSize())
         .query(query)
         .maxCount(query::count)
         .callback(callback);
@@ -185,7 +197,7 @@ public class C7Client {
   /**
    * Processes process definitions with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessProcessDefinitions(Consumer<ProcessDefinition> callback, Date deployedAfter) {
+  public void fetchAndHandleProcessDefinitions(Consumer<ProcessDefinition> callback, Date deployedAfter) {
     ProcessDefinitionQueryImpl query = (ProcessDefinitionQueryImpl) repositoryService.createProcessDefinitionQuery()
         .orderByDeploymentTime()
         .asc()
@@ -196,13 +208,17 @@ public class C7Client {
       query.deployedAfter(deployedAfter);
     }
 
-    new Pagination<ProcessDefinition>().pageSize(properties.getPageSize()).query(query).maxCount(query::count).callback(callback);
+    new Pagination<ProcessDefinition>()
+        .pageSize(properties.getPageSize())
+        .query(query)
+        .maxCount(query::count)
+        .callback(callback);
   }
 
   /**
    * Processes decision definitions with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessDecisionDefinitions(Consumer<DecisionDefinition> callback, Date deployedAfter) {
+  public void fetchAndHandleDecisionDefinitions(Consumer<DecisionDefinition> callback, Date deployedAfter) {
     DecisionDefinitionQuery query = repositoryService.createDecisionDefinitionQuery()
         .orderByDeploymentTime()
         .asc()
@@ -213,13 +229,17 @@ public class C7Client {
       query.deployedAfter(deployedAfter);
     }
 
-    new Pagination<DecisionDefinition>().pageSize(properties.getPageSize()).query(query).maxCount(query::count).callback(callback);
+    new Pagination<DecisionDefinition>()
+        .pageSize(properties.getPageSize())
+        .query(query)
+        .maxCount(query::count)
+        .callback(callback);
   }
 
   /**
    * Processes historic incidents with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessHistoricIncidents(Consumer<HistoricIncident> callback, Date createdAfter) {
+  public void fetchAndHandleHistoricIncidents(Consumer<HistoricIncident> callback, Date createdAfter) {
     HistoricIncidentQueryImpl query = (HistoricIncidentQueryImpl) historyService.createHistoricIncidentQuery()
         .orderByCreateTime()
         .asc()
@@ -230,13 +250,17 @@ public class C7Client {
       query.createTimeAfter(createdAfter);
     }
 
-    new Pagination<HistoricIncident>().pageSize(properties.getPageSize()).query(query).maxCount(query::count).callback(callback);
+    new Pagination<HistoricIncident>()
+        .pageSize(properties.getPageSize())
+        .query(query)
+        .maxCount(query::count)
+        .callback(callback);
   }
 
   /**
    * Processes variables with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessHistoricVariables(Consumer<HistoricVariableInstance> callback, String latestLegacyId) {
+  public void fetchAndHandleHistoricVariables(Consumer<HistoricVariableInstance> callback, String latestLegacyId) {
     HistoricVariableInstanceQueryImpl query = (HistoricVariableInstanceQueryImpl) historyService.createHistoricVariableInstanceQuery()
         .orderByVariableId()
         .asc();
@@ -245,7 +269,8 @@ public class C7Client {
       query.idAfter(latestLegacyId);
     }
 
-    new Pagination<HistoricVariableInstance>().pageSize(properties.getPageSize())
+    new Pagination<HistoricVariableInstance>()
+        .pageSize(properties.getPageSize())
         .query(query)
         .maxCount(query::count)
         .callback(callback);
@@ -254,7 +279,7 @@ public class C7Client {
   /**
    * Processes historic user task instances with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessHistoricUserTasks(Consumer<HistoricTaskInstance> callback, Date startedAfter) {
+  public void fetchAndHandleHistoricUserTasks(Consumer<HistoricTaskInstance> callback, Date startedAfter) {
     HistoricTaskInstanceQueryImpl query = (HistoricTaskInstanceQueryImpl) historyService.createHistoricTaskInstanceQuery()
         .orderByHistoricActivityInstanceStartTime()
         .asc()
@@ -265,13 +290,17 @@ public class C7Client {
       query.startedAfter(startedAfter);
     }
 
-    new Pagination<HistoricTaskInstance>().pageSize(properties.getPageSize()).query(query).maxCount(query::count).callback(callback);
+    new Pagination<HistoricTaskInstance>()
+        .pageSize(properties.getPageSize())
+        .query(query)
+        .maxCount(query::count)
+        .callback(callback);
   }
 
   /**
    * Processes historic flow node instances with pagination using the provided callback consumer.
    */
-  public void fetchAndProcessHistoricFlowNodes(Consumer<HistoricActivityInstance> callback, Date startedAfter) {
+  public void fetchAndHandleHistoricFlowNodes(Consumer<HistoricActivityInstance> callback, Date startedAfter) {
     HistoricActivityInstanceQueryImpl query = (HistoricActivityInstanceQueryImpl) historyService.createHistoricActivityInstanceQuery()
         .orderByHistoricActivityInstanceStartTime()
         .asc()
@@ -282,7 +311,9 @@ public class C7Client {
       query.startedAfter(startedAfter);
     }
 
-    new Pagination<HistoricActivityInstance>().pageSize(properties.getPageSize()).query(query)
+    new Pagination<HistoricActivityInstance>()
+        .pageSize(properties.getPageSize())
+        .query(query)
         .maxCount(query::count)
         .callback(callback);
   }

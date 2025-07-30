@@ -8,7 +8,6 @@
 
 package io.camunda.migrator.impl.logging;
 
-import io.camunda.migrator.impl.DateVariableInterceptor;
 import io.camunda.migrator.impl.Pagination;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
