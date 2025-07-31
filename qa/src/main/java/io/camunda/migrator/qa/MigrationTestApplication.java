@@ -9,8 +9,13 @@ package io.camunda.migrator.qa;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
+@ComponentScan(basePackages = {
+    "io.camunda.migrator",
+    "io.camunda.migrator.qa"
+})
 public class MigrationTestApplication {
 
   public static void main(String[] args) {

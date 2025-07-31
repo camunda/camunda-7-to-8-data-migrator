@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:conversion="http://camunda.org/schema/conversion/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0mh8pnn" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.31.0" conversion:converterVersion="0.12.4" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <bpmn:process id="failingServiceTaskProcessId" name="serviceTaskProcess" processType="None" isClosed="false" isExecutable="true">
+    <bpmn:extensionElements>
+      <conversion:message severity="INFO">Unused attribute 'historyTimeToLive' on 'process' is removed.</conversion:message>
+    </bpmn:extensionElements>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:extensionElements>
+        <zeebe:executionListeners>
+          <zeebe:executionListener eventType="end" type="migrator" />
+        </zeebe:executionListeners>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_1m6b0ji</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1m6b0ji" sourceRef="StartEvent_1" targetRef="serviceTaskId" />
+    <bpmn:endEvent id="Event_1uk5gek">
+      <bpmn:incoming>Flow_0rrjag8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0rrjag8" sourceRef="serviceTaskId" targetRef="Event_1uk5gek" />
+    <bpmn:serviceTask id="serviceTaskId" name="serviceTaskIdName" implementation="##WebService">
+      <bpmn:extensionElements>
+        <conversion:message severity="REVIEW">Attribute 'topic' on 'serviceTask' was mapped. Is set as job type.</conversion:message>
+        <conversion:message severity="INFO">Unused attribute 'asyncBefore' on 'serviceTask' is removed.</conversion:message>
+        <conversion:message severity="INFO">Unused attribute 'type' on 'serviceTask' is removed.</conversion:message>
+        <zeebe:taskDefinition type="${true}" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1m6b0ji</bpmn:incoming>
+      <bpmn:outgoing>Flow_0rrjag8</bpmn:outgoing>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="failingServiceTaskProcessId">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1uk5gek_di" bpmnElement="Event_1uk5gek">
+        <dc:Bounds x="432" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0p8v9y4_di" bpmnElement="serviceTaskId">
+        <dc:Bounds x="270" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1m6b0ji_di" bpmnElement="Flow_1m6b0ji">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="270" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0rrjag8_di" bpmnElement="Flow_0rrjag8">
+        <di:waypoint x="370" y="117" />
+        <di:waypoint x="432" y="117" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

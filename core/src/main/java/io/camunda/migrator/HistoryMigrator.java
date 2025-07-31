@@ -592,4 +592,9 @@ public class HistoryMigrator {
       dbClient.insert(entityId, date, entityKey, type);
     }
   }
+
+  public void setMode(MigratorMode mode) {
+    this.mode = mode;
+  }
+
 }
