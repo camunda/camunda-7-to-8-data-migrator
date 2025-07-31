@@ -320,7 +320,7 @@ public class HistoryMigrator {
 
   private void migrateHistoricIncident(HistoricIncident legacyIncident) {
     String legacyIncidentId = legacyIncident.getId();
-    if (isMigrated(legacyIncident.getProcessInstanceId())) {
+    if (!dbClient.checkExists(legacyIncidentId)) {
       LOGGER.debug("Migrating legacy incident with id: [{}]", legacyIncidentId);
       ProcessInstanceEntity legacyProcessInstance = findProcessInstanceByLegacyId(
           legacyIncident.getProcessInstanceId());
@@ -342,6 +342,10 @@ public class HistoryMigrator {
           LOGGER.debug("Migration of legacy incident with id [{}] skipped. Process instance not yet available.",
               legacyIncidentId);
         }
+      } else {
+        saveRecord(legacyIncidentId, null, IdKeyMapper.TYPE.HISTORY_INCIDENT);
+        LOGGER.debug("Migration of legacy incident with id [{}] skipped. Process instance not yet available.",
+            legacyIncidentId);
       }
     }
   }
@@ -425,7 +429,7 @@ public class HistoryMigrator {
 // One more if, and what do we need to check?
     private void migrateHistoricUserTask(HistoricTaskInstance legacyUserTask) {
       String legacyUserTaskId = legacyUserTask.getId();
-      if (isMigrated(legacyUserTask.getProcessInstanceId())) {
+      if (!dbClient.checkExists(legacyUserTaskId)) {
         LOGGER.debug("Migrating legacy user task with id: [{}]", legacyUserTaskId);
         ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(legacyUserTask.getProcessInstanceId());
         if (isMigrated(legacyUserTask.getProcessInstanceId())) {
@@ -477,7 +481,7 @@ public class HistoryMigrator {
 
     private void migrateHistoricFlowNode(HistoricActivityInstance legacyFlowNode) {
       String legacyFlowNodeId = legacyFlowNode.getId();
-      if (isMigrated(legacyFlowNode.getProcessInstanceId())) {
+      if (!dbClient.checkExists(legacyFlowNodeId)) {
         LOGGER.debug("Migrating legacy flow node with id: [{}]", legacyFlowNodeId);
         ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(
             legacyFlowNode.getProcessInstanceId());
