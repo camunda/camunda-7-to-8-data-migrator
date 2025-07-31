@@ -126,7 +126,9 @@ public class HistoryMigrator {
     migrateVariables();
     migrateIncidents();
 
-    //migrateDecisionDefinitions();
+    // migrateDecisionDefinitions();
+    // dont care about decision defs coming from business rule tasks, can import all decision defs
+    // import root decision instances first then children
   }
 
   private void migrateDecisionDefinitions() {
