@@ -15,7 +15,7 @@ package io.camunda.migrator.impl.logging;
 public class C8ClientLogs {
 
   // C8 Client Error Messages
-  public static final String FAILED_TO_DEPLOY_DEFINITIONS = "Failed to deploy C8 definitions";
+  public static final String FAILED_TO_DEPLOY_C8_RESOURCES = "Failed to deploy C8 resources: ";
   public static final String FAILED_TO_CREATE_PROCESS_INSTANCE = "Creating process instance failed for bpmnProcessId: ";
   public static final String FAILED_TO_ACTIVATE_JOBS = "Failed to activate jobs for type: ";
   public static final String FAILED_TO_FETCH_PROCESS_DEFINITION_XML = "Failed to fetch process definition XML for key: ";

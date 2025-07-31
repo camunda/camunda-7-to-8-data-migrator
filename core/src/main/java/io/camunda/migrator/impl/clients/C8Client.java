@@ -7,7 +7,7 @@
  */
 package io.camunda.migrator.impl.clients;
 
-import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_DEPLOY_DEFINITIONS;
+import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_DEPLOY_C8_RESOURCES;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_CREATE_PROCESS_INSTANCE;
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_ACTIVATE_JOBS;
@@ -117,15 +117,14 @@ public class C8Client {
    * Deploys C8 models from the given set of model files.
    */
   public void deployResources(Set<Path> models) {
+    DeployResourceCommandStep1.DeployResourceCommandStep2 deployResourceCmd = null;
     var deployResource = camundaClient.newDeployResourceCommand();
-
-    DeployResourceCommandStep1.DeployResourceCommandStep2 deployResourceCommandStep2 = null;
     for (Path model : models) {
-      deployResourceCommandStep2 = deployResource.addResourceFile(model.toString());
+      deployResourceCmd = deployResource.addResourceFile(model.toString());
     }
 
-    if (deployResourceCommandStep2 != null) {
-      callApi(deployResourceCommandStep2::execute, FAILED_TO_DEPLOY_DEFINITIONS);
+    if (deployResourceCmd != null) {
+      callApi(deployResourceCmd::execute, FAILED_TO_DEPLOY_C8_RESOURCES + models);
     }
   }
 
