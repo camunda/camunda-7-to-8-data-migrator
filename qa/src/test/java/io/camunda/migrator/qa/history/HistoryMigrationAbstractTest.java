@@ -15,14 +15,17 @@ import io.camunda.db.rdbms.sql.PurgeMapper;
 import io.camunda.db.rdbms.write.service.RdbmsPurger;
 import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.config.C8DataSourceConfigured;
+import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.qa.AbstractMigratorTest;
 import io.camunda.migrator.qa.config.TestProcessEngineConfiguration;
 import io.camunda.migrator.qa.util.WithSpringProfile;
+import io.camunda.search.entities.DecisionDefinitionEntity;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.IncidentEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.entities.UserTaskEntity;
+import io.camunda.search.query.DecisionDefinitionQuery;
 import io.camunda.search.query.FlowNodeInstanceQuery;
 import io.camunda.search.query.IncidentQuery;
 import io.camunda.search.query.ProcessDefinitionQuery;
@@ -63,7 +66,7 @@ public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest 
     repositoryService.createDeploymentQuery().list().forEach(d -> repositoryService.deleteDeployment(d.getId(), true));
 
     // Migrator table
-    idKeyMapper.findAllIds().forEach(id -> idKeyMapper.delete(id));
+    dbClient.deleteAllMappings();
 
     // C8
     rdbmsPurger.purgeRdbms();
@@ -74,6 +77,14 @@ public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest 
         .search(ProcessDefinitionQuery.of(queryBuilder ->
             queryBuilder.filter(filterBuilder ->
                 filterBuilder.processDefinitionIds(processDefinitionId))))
+        .items();
+  }
+
+  public List<DecisionDefinitionEntity> searchHistoricDecisionDefinitions(String decisionDefinitionId) {
+    return rdbmsService.getDecisionDefinitionReader()
+        .search(DecisionDefinitionQuery.of(queryBuilder ->
+            queryBuilder.filter(filterBuilder ->
+                filterBuilder.decisionDefinitionIds(decisionDefinitionId))))
         .items();
   }
 
