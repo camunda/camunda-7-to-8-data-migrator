@@ -320,7 +320,7 @@ public class HistoryMigrator {
 
   private void migrateHistoricIncident(HistoricIncident legacyIncident) {
     String legacyIncidentId = legacyIncident.getId();
-    if (!dbClient.checkExists(legacyIncidentId)) {
+    if (shouldMigrate(legacyIncidentId)) {
       LOGGER.debug("Migrating legacy incident with id: [{}]", legacyIncidentId);
       ProcessInstanceEntity legacyProcessInstance = findProcessInstanceByLegacyId(
           legacyIncident.getProcessInstanceId());
@@ -374,7 +374,7 @@ public class HistoryMigrator {
 
   private void migrateHistoricVariable(HistoricVariableInstance legacyVariable) {
     String legacyVariableId = legacyVariable.getId();
-    if (isMigrated(legacyVariable.getProcessInstanceId())) {
+    if (shouldMigrate(legacyVariableId)) {
       LOGGER.debug("Migrating legacy variable with id: [{}]", legacyVariableId);
       String legacyProcessInstanceId = legacyVariable.getProcessInstanceId();
       ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(legacyProcessInstanceId);
@@ -425,11 +425,9 @@ public class HistoryMigrator {
     }
   }
 
-// TODO double check what is happening here. 5261
-// One more if, and what do we need to check?
     private void migrateHistoricUserTask(HistoricTaskInstance legacyUserTask) {
       String legacyUserTaskId = legacyUserTask.getId();
-      if (!dbClient.checkExists(legacyUserTaskId)) {
+      if (shouldMigrate(legacyUserTaskId)) {
         LOGGER.debug("Migrating legacy user task with id: [{}]", legacyUserTaskId);
         ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(legacyUserTask.getProcessInstanceId());
         if (isMigrated(legacyUserTask.getProcessInstanceId())) {
@@ -481,7 +479,7 @@ public class HistoryMigrator {
 
     private void migrateHistoricFlowNode(HistoricActivityInstance legacyFlowNode) {
       String legacyFlowNodeId = legacyFlowNode.getId();
-      if (!dbClient.checkExists(legacyFlowNodeId)) {
+      if (shouldMigrate(legacyFlowNodeId)) {
         LOGGER.debug("Migrating legacy flow node with id: [{}]", legacyFlowNodeId);
         ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(
             legacyFlowNode.getProcessInstanceId());
@@ -575,6 +573,13 @@ public class HistoryMigrator {
 
   private boolean isMigrated(String id) {
     return dbClient.checkHasKey(id);
+  }
+
+  private boolean shouldMigrate(String id) {
+    if( mode == RETRY_SKIPPED) {
+      return !dbClient.checkHasKey(id);
+    }
+    return !dbClient.checkExists(id);
   }
 
   protected void saveRecord(String entityId, Long entityKey, IdKeyMapper.TYPE type) {
