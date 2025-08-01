@@ -30,7 +30,7 @@ public class HistoryMigratorLogs {
   public static final String MIGRATING_INSTANCE_COMPLETE = "Migration of historic {} instance with legacyId "
       + "[{}] completed";
   public static final String SKIPPING_INSTANCE_MISSING_PARENT = "Migration of historic {} instance with legacyId [{}] skipped. Parent instance not yet available.";
-  public static final String SKIPPING_INSTANCE_MISSING_DEFINITION = "Migration of historic {} instance with legacyId [{}] skipped. Process definition not yet available.";
+  public static final String SKIPPING_INSTANCE_MISSING_DEFINITION = "Migration of historic {} instance with legacyId [{}] skipped. {} definition not yet available.";
 
   public static final String MIGRATING_INCIDENTS = "Migrating historic incidents";
   public static final String MIGRATING_INCIDENT = "Migrating historic incident with legacyId: [{}]";
@@ -95,7 +95,7 @@ public class HistoryMigratorLogs {
   }
 
   public static void skippingProcessInstanceDueToMissingDefinition(String legacyProcessInstanceId) {
-    LOGGER.debug(SKIPPING_INSTANCE_MISSING_DEFINITION, "process", legacyProcessInstanceId);
+    LOGGER.debug(SKIPPING_INSTANCE_MISSING_DEFINITION, "process", legacyProcessInstanceId, "process");
   }
 
   public static void migratingHistoricIncidents() {

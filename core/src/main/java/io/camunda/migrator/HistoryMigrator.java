@@ -32,7 +32,6 @@ import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
 import io.camunda.db.rdbms.write.domain.VariableDbModel;
 import io.camunda.migrator.config.C8DataSourceConfigured;
-import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.converter.DecisionDefinitionConverter;
 import io.camunda.migrator.converter.FlowNodeConverter;
 import io.camunda.migrator.converter.IncidentConverter;
@@ -81,11 +80,6 @@ public class HistoryMigrator {
   @Autowired
   private FlowNodeInstanceMapper flowNodeMapper;
 
-  // Services
-
-  @Autowired
-  protected MigratorProperties migratorProperties;
-
   // Clients
 
   @Autowired
@@ -125,23 +119,7 @@ public class HistoryMigrator {
     migrateUserTasks();
     migrateVariables();
     migrateIncidents();
-
-    // migrateDecisionDefinitions();
-    // dont care about decision defs coming from business rule tasks, can import all decision defs
-    // import root decision instances first then children
-  }
-
-  private void migrateDecisionDefinitions() {
-    HistoryMigratorLogs.migratingDecisionDefinitions();
-    c7Client.fetchAndHandleDecisionDefinitions(legacyDecisionDefinition -> {
-      String legacyId = legacyDecisionDefinition.getId();
-      HistoryMigratorLogs.migratingDecisionDefinition(legacyId);
-      DecisionDefinitionDbModel dbModel = decisionDefinitionConverter.apply(legacyDecisionDefinition);
-      decisionDefinitionMapper.insert(dbModel);
-      Date deploymentTime = c7Client.getDefinitionDeploymentTime(legacyDecisionDefinition.getDeploymentId());
-      dbClient.insert(legacyId, deploymentTime, dbModel.decisionDefinitionKey(), HISTORY_DECISION_DEFINITION);
-      HistoryMigratorLogs.migratingDecisionDefinitionCompleted(legacyId);
-    }, dbClient.findLatestStartDateByType((HISTORY_DECISION_DEFINITION)));
+    migrateDecisionDefinitions();
   }
 
   private void migrateProcessDefinitions() {
@@ -191,6 +169,22 @@ public class HistoryMigrator {
         }
       }
     }, dbClient.findLatestStartDateByType((HISTORY_PROCESS_INSTANCE)));
+  }
+
+  private void migrateDecisionDefinitions() {
+    HistoryMigratorLogs.migratingDecisionDefinitions();
+
+    c7Client.fetchAndHandleDecisionDefinitions(legacyDecisionDefinition -> {
+      String legacyId = legacyDecisionDefinition.getId();
+      if (!dbClient.checkExists(legacyId)) {
+        HistoryMigratorLogs.migratingDecisionDefinition(legacyId);
+        DecisionDefinitionDbModel dbModel = decisionDefinitionConverter.apply(legacyDecisionDefinition);
+        decisionDefinitionMapper.insert(dbModel);
+        Date deploymentTime = c7Client.getDefinitionDeploymentTime(legacyDecisionDefinition.getDeploymentId());
+        dbClient.insert(legacyId, deploymentTime, dbModel.decisionDefinitionKey(), HISTORY_DECISION_DEFINITION);
+        HistoryMigratorLogs.migratingDecisionDefinitionCompleted(legacyId);
+      }
+    }, dbClient.findLatestStartDateByType((HISTORY_DECISION_DEFINITION)));
   }
 
   private void migrateIncidents() {

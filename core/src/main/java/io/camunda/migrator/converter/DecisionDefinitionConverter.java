@@ -22,8 +22,8 @@ public class DecisionDefinitionConverter {
         .decisionDefinitionId(legacyDecisionDefinition.getKey())
         .tenantId(legacyDecisionDefinition.getTenantId())
         .version(legacyDecisionDefinition.getVersion())
-        .decisionRequirementsId(legacyDecisionDefinition.getDecisionRequirementsDefinitionId())
-        .decisionRequirementsKey(null) //TODO C7 decision requirement key is String ?
+        .decisionRequirementsId(legacyDecisionDefinition.getDecisionRequirementsDefinitionKey()) // TODO is this correct?
+        .decisionRequirementsKey(getNextKey()) // TODO is this correct?
         .build();
   }
 
