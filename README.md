@@ -1,8 +1,8 @@
-# C7 Data Migrator
+# Camunda 7 to 8 Data Migrator
 
 [![Java Version](https://img.shields.io/badge/Java-21-blue)](https://www.oracle.com/java/technologies/downloads/#java21)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)](https://spring.io/projects/spring-boot)
-[![Status](https://img.shields.io/badge/Status-In%20Development-yellow)](https://github.com/camunda/c7-data-migrator)
+[![Status](https://img.shields.io/badge/Status-In%20Development-yellow)](https://github.com/camunda/camunda-7-to-8-data-migrator)
 
 A tool for migrating Camunda 7 process instances and related data to Camunda 8. This migrator helps organizations seamlessly transition their process instances while preserving execution state and variables ensuring minimal disruption to ongoing business processes.
 
@@ -32,7 +32,7 @@ A tool for migrating Camunda 7 process instances and related data to Camunda 8. 
 
 ## Overview
 
-The C7 Data Migrator is designed to help organizations migrate from Camunda 7 to Camunda 8 while preserving the state of running process instances. Unlike starting fresh with new process instances, this tool maintains variable states, and current positions within process flows.
+The Data Migrator is designed to help organizations migrate from Camunda 7 to Camunda 8 while preserving the state of running process instances. Unlike starting fresh with new process instances, this tool maintains variable states, and current positions within process flows.
 
 **What this tool migrates:**
 - Running process instances with their current state
@@ -47,7 +47,7 @@ The C7 Data Migrator is designed to help organizations migrate from Camunda 7 to
 
 ## Migration Modes
 
-The C7 Data Migrator offers two modes of operation:
+The Data Migrator offers two modes of operation:
 
 1. **Runtime Migration**: Migrate running process instances to Camunda 8 while preserving their current state.
 2. **History Migration**: Migrate historical data.
@@ -68,7 +68,7 @@ The C7 Data Migrator offers two modes of operation:
 
 ## Prerequisites
 
-Before using the C7 Data Migrator, ensure you have:
+Before using the Data Migrator, ensure you have:
 
 - **Java 21 or higher** - Required for running the migrator
 - **Maven 3.6+** - For building from source (if not using pre-built releases)
@@ -80,15 +80,15 @@ Before using the C7 Data Migrator, ensure you have:
 ## Installation & Setup
 
 ### Option 1: Download Pre-built Release
-1. Download the latest release from the [releases page](https://github.com/camunda/c7-data-migrator/releases)
+1. Download the latest release from the [releases page](https://github.com/camunda/camunda-7-to-8-data-migrator/releases)
 2. Extract the archive to your preferred directory
 3. Navigate to the extracted directory
 
 ### Option 2: Build from Source
 ```bash
 # Clone the repository
-git clone https://github.com/camunda/c7-data-migrator.git
-cd c7-data-migrator
+git clone https://github.com/camunda/camunda-7-to-8-data-migrator.git
+cd camunda-7-to-8-data-migrator
 
 # Build the project
 mvn clean install -DskipTests
@@ -733,8 +733,8 @@ The migration process consists of three main phases to ensure a successful trans
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/camunda/c7-data-migrator.git
-   cd c7-data-migrator
+   git clone https://github.com/camunda/camunda-7-to-8-data-migrator.git
+   cd camunda-7-to-8-data-migrator
    ```
 
 2. **Build the project**:
@@ -784,7 +784,7 @@ mvn integration-test
 
 ## Contributing
 
-We welcome contributions to the C7 Data Migrator! Here's how you can help:
+We welcome contributions to the Data Migrator! Here's how you can help:
 
 ### Ways to Contribute
 
@@ -835,7 +835,7 @@ The source files in this repository are made available under the [Camunda Licens
 - **[Migration Guide](https://docs.camunda.io/docs/guides/migrating-from-camunda-platform-7/)** - General migration guidance
 - **[Migration Analyzer](https://migration-analyzer.consulting-sandbox.camunda.cloud/)** - Tool for migrating BPMN models
 - **[Community Forum](https://forum.camunda.io/)** - Get help from the community
-- **[GitHub Issues](https://github.com/camunda/c7-data-migrator/issues)** - Report bugs and request features
+- **[GitHub Issues](https://github.com/camunda/camunda-7-to-8-data-migrator/issues)** - Report bugs and request features
 
 ---
 
