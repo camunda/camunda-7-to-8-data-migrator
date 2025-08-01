@@ -18,7 +18,6 @@ import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_PROC
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_USER_TASK;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_VARIABLE;
-import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 
 import io.camunda.db.rdbms.read.domain.FlowNodeInstanceDbQuery;
 import io.camunda.db.rdbms.read.domain.ProcessDefinitionDbQuery;
@@ -377,17 +376,33 @@ public class HistoryMigrator {
     if (shouldMigrate(legacyVariableId)) {
       LOGGER.debug("Migrating legacy variable with id: [{}]", legacyVariableId);
       String legacyProcessInstanceId = legacyVariable.getProcessInstanceId();
-      ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(legacyProcessInstanceId);
-      if (isMigrated(legacyVariable.getActivityInstanceId())) {
-        Long processInstanceKey = processInstance.processInstanceKey();
-        Long scopeKey = findFlowNodeKey(
-            legacyVariable.getActivityInstanceId()); // TODO does this cover scope correctly?
-        if (scopeKey != null) {
-          VariableDbModel dbModel = variableConverter.apply(legacyVariable, processInstanceKey, scopeKey);
-          variableMapper.insert(dbModel);
-          saveRecord(legacyVariableId, legacyVariable.getCreateTime(), dbModel.variableKey(),
-              HISTORY_VARIABLE);
-          LOGGER.debug("Migration of legacy variable with id [{}] completed.", legacyVariableId);
+
+      // Skip variable if it belongs to a skipped task
+      String taskId = legacyVariable.getTaskId();
+      if (taskId != null && !isMigrated(taskId)) {
+        saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE);
+        LOGGER.debug("Migration of legacy variable with id [{}] skipped. Associated task [{}] was skipped.",
+            legacyVariableId, taskId);
+        return;
+      }
+
+      if (isMigrated(legacyProcessInstanceId)) {
+        ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(legacyProcessInstanceId);
+        if (isMigrated(legacyVariable.getActivityInstanceId())) {
+          Long processInstanceKey = processInstance.processInstanceKey();
+          Long scopeKey = findFlowNodeKey(
+              legacyVariable.getActivityInstanceId()); // TODO does this cover scope correctly?
+          if (scopeKey != null) {
+            VariableDbModel dbModel = variableConverter.apply(legacyVariable, processInstanceKey, scopeKey);
+            variableMapper.insert(dbModel);
+            saveRecord(legacyVariableId, legacyVariable.getCreateTime(), dbModel.variableKey(),
+                HISTORY_VARIABLE);
+            LOGGER.debug("Migration of legacy variable with id [{}] completed.", legacyVariableId);
+          } else {
+            saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE);
+            LOGGER.debug("Migration of legacy variable with id [{}] skipped. Scope key is not yet available.",
+                legacyVariableId);
+          }
         } else {
           saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE);
           LOGGER.debug("Migration of legacy variable with id [{}] skipped. Activity instance not yet available.",
