@@ -19,16 +19,12 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
 public class AutoDeployer {
-
-  protected static final Logger LOGGER = LoggerFactory.getLogger(AutoDeployer.class);
 
   @Autowired
   protected C8Client c8Client;
@@ -37,8 +33,7 @@ public class AutoDeployer {
   protected MigratorProperties migratorProperties;
 
   public void deploy() {
-    Set<Path> models = getDeploymentResources();
-    c8Client.deployResources(models);
+    c8Client.deployResources(getDeploymentResources());
   }
 
   public Set<Path> getDeploymentResources() {

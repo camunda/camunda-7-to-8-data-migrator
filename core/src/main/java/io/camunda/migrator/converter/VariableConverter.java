@@ -10,19 +10,16 @@ package io.camunda.migrator.converter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.db.rdbms.write.domain.VariableDbModel;
+import io.camunda.migrator.impl.logging.VariableConverterLogs;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
 import org.camunda.bpm.engine.variable.impl.value.NullValueImpl;
 import org.camunda.bpm.engine.variable.impl.value.ObjectValueImpl;
 import org.camunda.bpm.engine.variable.impl.value.PrimitiveTypeValueImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
 
 public class VariableConverter {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(VariableConverter.class);
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -44,12 +41,12 @@ public class VariableConverter {
     var variableId = variable.getId();
 
     if (isNullValueType(variable)) {
-      LOGGER.info("Converting variable id={} of type: NullValue", variableId);
+      VariableConverterLogs.convertingOfType(variableId, "NullValue");
       return null;
     }
 
     if (isPrimitiveType(variable)) {
-      LOGGER.info("Converting variable id={} of type: Primitive", variableId);
+      VariableConverterLogs.convertingOfType(variableId, "Primitive");
       var typedValue = variable.getTypedValue().getValue();
 
       return typedValue != null ? typedValue.toString() : null;
@@ -58,12 +55,12 @@ public class VariableConverter {
     if (isObjectType(variable)) {
       ObjectValueImpl typedValue = (ObjectValueImpl) (variable.getTypedValue());
       Class<?> objectType = typedValue.getObjectType();
-      LOGGER.info("Converting variable id={} of type: {}", variableId, objectType.getSimpleName());
+      VariableConverterLogs.convertingOfType(variableId, objectType.getSimpleName());
 
       return getJsonValue(typedValue);
     }
 
-    LOGGER.warn("No existing handling for variable with id= {}, type: {}, returning null.", variableId, "unknown"/*variable.getTypeName()*/);
+    VariableConverterLogs.warnNoHandlingAvailable(variableId, "unknown"/*variable.getTypeName()*/);
     return null;
   }
 
@@ -83,7 +80,7 @@ public class VariableConverter {
     try {
       return objectMapper.writeValueAsString(typedValue.getValue());
     } catch (JsonProcessingException e) {
-      LOGGER.error("Error converting typed value to json: {}, exception: {}. Mapped to null", typedValue, e.getMessage());
+      VariableConverterLogs.failedConvertingJson(typedValue, e.getMessage());
       return null;
     }
   }
