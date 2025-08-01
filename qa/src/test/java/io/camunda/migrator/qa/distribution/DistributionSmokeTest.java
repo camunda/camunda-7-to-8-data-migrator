@@ -75,6 +75,7 @@ class DistributionSmokeTest {
     assertThat(exitCode).isEqualTo(1);
     assertThat(output).contains("Invalid flag: --invalid-flag");
     assertThat(output).contains("Usage: " + startScriptName);
+    assertThat(output).contains("--help");
     assertThat(output).contains("--runtime");
     assertThat(output).contains("--history");
     assertThat(output).contains("--list-skipped");
@@ -96,6 +97,7 @@ class DistributionSmokeTest {
 
     assertThat(exitCode).isEqualTo(1);
     assertThat(output).contains("Usage: " + startScriptName);
+    assertThat(output).contains("--help");
     assertThat(output).contains("--runtime");
     assertThat(output).contains("--history");
     assertThat(output).contains("--list-skipped");
