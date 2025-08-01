@@ -61,8 +61,8 @@ public class RuntimeMigrator {
 
   public void start() {
     if (LIST_SKIPPED.equals(mode)) {
-      PrintUtils.printSkippedInstancesHeader(dbClient.findSkippedCount());
-      dbClient.listSkippedProcessInstances();
+      PrintUtils.printSkippedInstancesHeader(dbClient.countSkippedByType(TYPE.RUNTIME_PROCESS_INSTANCE));
+      dbClient.listSkippedRuntimeProcessInstances();
     } else {
       migrate();
     }
@@ -143,7 +143,7 @@ public class RuntimeMigrator {
     RuntimeMigratorLogs.fetchingProcessInstances();
 
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.fetch(storeMappingConsumer);
+      dbClient.fetchSkipped(TYPE.RUNTIME_PROCESS_INSTANCE, storeMappingConsumer);
     } else {
       RuntimeMigratorLogs.fetchingLatestStartDate();
       Date latestStartDate = dbClient.findLatestStartDateByType(TYPE.RUNTIME_PROCESS_INSTANCE);
