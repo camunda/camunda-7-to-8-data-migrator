@@ -67,7 +67,14 @@ public class ProcessDefinitionDeployer {
   }
 
   public void deployCamunda7Decision(String fileName) {
-    Deployment deployment = repositoryService.createDeployment().addClasspathResource("io/camunda/migrator/dmn/c7/" + fileName).deploy();
+    deployCamunda7Decision(fileName, null);
+  }
+
+  public void deployCamunda7Decision(String fileName, String tenantId) {
+    Deployment deployment = repositoryService.createDeployment()
+        .tenantId(tenantId)
+        .addClasspathResource("io/camunda/migrator/dmn/c7/" + fileName)
+        .deploy();
     if (deployment == null) {
       throw new IllegalStateException("Could not deploy decision");
     }

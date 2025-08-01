@@ -568,7 +568,7 @@ When a process instance is skipped:
    - Ensure all active flow nodes in the C7 process have corresponding elements in the C8 process
    - Modify process instance to a supported state
 
-#### Limitations
+#### General Limitations
 
 - Multi-tenancy is currently not supported. I.e., a runtime process instance can only be migrated if it is not associated with a tenant.
   - See https://github.com/camunda/camunda-bpm-platform/issues/5315
@@ -688,6 +688,11 @@ When a process instance is skipped:
 - Tenant value `null` from Camunda 7 is migrated `<default>` in Camunda 8.
 Read more about tenant handling in Camunda 8 [here](https://docs.camunda.io/docs/self-managed/concepts/multi-tenancy/#the-tenant-identifier).
 All other tenantIds will be migrated as-is.
+- Decision Instance data
+  - the data migrator only migrates instances which are linked to process definition business rule tasks
+  - `evaluationFailure` and `evaluationFailureMessage` are not populated in migrated decision instances
+  - decision instance `inputs` an `outputs` are not yet migrated. This will be addressed with [issue #5364](https://github.com/camunda/camunda-bpm-platform/issues/5364)
+
 
 ## Troubleshooting
 

@@ -8,9 +8,9 @@
 package io.camunda.migrator.converter;
 
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
+import static io.camunda.migrator.impl.util.ConverterUtil.getTenantId;
 
 import io.camunda.db.rdbms.write.domain.DecisionRequirementsDbModel;
-import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.repository.DecisionRequirementsDefinition;
 
 public class DecisionRequirementsDefinitionConverter {
@@ -23,9 +23,7 @@ public class DecisionRequirementsDefinitionConverter {
         .resourceName(legacyDecisionRequirements.getResourceName())
         .version(legacyDecisionRequirements.getVersion())
         .xml(null) // TODO not stored in C7 DecisionRequirementsDefinition
-        .tenantId(StringUtils.isEmpty(legacyDecisionRequirements.getTenantId())
-            ? "<default>"
-            : legacyDecisionRequirements.getTenantId())
+        .tenantId(getTenantId(legacyDecisionRequirements.getTenantId()))
         .build();
   }
 }

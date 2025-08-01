@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:camunda="http://camunda.org/schema/1.0/dmn" id="simpleDmnId" name="simpleDmnName" namespace="http://camunda.org/schema/1.0/dmn" exporter="Camunda Modeler" exporterVersion="5.24.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.21.0">
   <decision id="simpleDecisionId" name="simpleDecisionName" camunda:historyTimeToLive="180">
-    <decisionTable id="DecisionTable_0mnlytf">
-      <input id="Input_1" label="InputA">
+    <decisionTable id="simpleDecisionTableId">
+      <input id="Input_1" label="inputA" camunda:inputVariable="inputA">
         <inputExpression id="InputExpression_1" typeRef="string">
           <text>inputA</text>
         </inputExpression>
+        <inputValues id="UnaryTests_11zmcor">
+          <text>"A"</text>
+        </inputValues>
       </input>
-      <output id="Output_1" label="OutputB" name="outputB" typeRef="string" />
+      <output id="Output_1" label="outputB" name="outputB" typeRef="string">
+        <outputValues id="UnaryTests_0mn8p5u">
+          <text>"B"</text>
+        </outputValues>
+      </output>
       <rule id="DecisionRule_0rh3id4">
         <inputEntry id="UnaryTests_1kbouhu">
           <text>"A"</text>

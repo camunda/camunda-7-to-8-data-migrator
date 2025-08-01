@@ -8,9 +8,9 @@
 package io.camunda.migrator.converter;
 
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
+import static io.camunda.migrator.impl.util.ConverterUtil.getTenantId;
 
 import io.camunda.db.rdbms.write.domain.DecisionDefinitionDbModel;
-import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.repository.DecisionDefinition;
 
 public class DecisionDefinitionConverter {
@@ -20,9 +20,7 @@ public class DecisionDefinitionConverter {
     return new DecisionDefinitionDbModel.DecisionDefinitionDbModelBuilder().decisionDefinitionKey(getNextKey())
         .name(legacyDecisionDefinition.getName())
         .decisionDefinitionId(legacyDecisionDefinition.getKey())
-        .tenantId(StringUtils.isEmpty(legacyDecisionDefinition.getTenantId())
-            ? "<default>"
-            : legacyDecisionDefinition.getTenantId())
+        .tenantId(getTenantId(legacyDecisionDefinition.getTenantId()))
         .version(legacyDecisionDefinition.getVersion())
         .decisionRequirementsId(legacyDecisionDefinition.getDecisionRequirementsDefinitionKey())
         .decisionRequirementsKey(decisionRequirementsKey)
