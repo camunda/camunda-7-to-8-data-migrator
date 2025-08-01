@@ -49,41 +49,41 @@ public class MigratorApp {
     try {
       // Early validation before Spring Boot starts
       validateArguments(args);
-
-      if (args.length == 0) {
-        LOGGER.info("Starting application without migration flags");
-      } else {
-        LOGGER.info("Starting migration with flags: {}", String.join(" ", args));
-      }
-
-      // Continue with Spring Boot application
-      ConfigurableApplicationContext context = SpringApplication.run(MigratorApp.class, args);
-      ApplicationArguments appArgs = new DefaultApplicationArguments(args);
-      MigratorMode mode = getMigratorMode(appArgs);
-      try {
-        AutoDeployer autoDeployer = context.getBean(AutoDeployer.class);
-        autoDeployer.deploy();
-        if (appArgs.containsOption(RUN_HELP)) {
-          printUsage();
-          System.exit(1);
-        } else if (shouldRunFullMigration(appArgs)) {
-          LOGGER.info("Migrating both runtime and history");
-          migrateRuntime(context, mode);
-          migrateHistory(context, mode);
-        } else if (appArgs.containsOption(RUN_RUNTIME_MIGRATION)) {
-          migrateRuntime(context, mode);
-        } else if (appArgs.containsOption(RUN_HISTORY_MIGRATION)) {
-          migrateHistory(context, mode);
-        } else {
-          LOGGER.warn("Invalid argument combination");
-        }
-      } finally {
-        SpringApplication.exit(context);
-      }
     } catch (IllegalArgumentException e) {
       LOGGER.error("Error: {}", e.getMessage());
       printUsage();
       System.exit(1);
+    }
+
+    if (args.length == 0) {
+      LOGGER.info("Starting application without migration flags");
+    } else {
+      LOGGER.info("Starting migration with flags: {}", String.join(" ", args));
+    }
+
+    // Continue with Spring Boot application
+    ConfigurableApplicationContext context = SpringApplication.run(MigratorApp.class, args);
+    ApplicationArguments appArgs = new DefaultApplicationArguments(args);
+    MigratorMode mode = getMigratorMode(appArgs);
+    try {
+      AutoDeployer autoDeployer = context.getBean(AutoDeployer.class);
+      autoDeployer.deploy();
+      if (appArgs.containsOption(RUN_HELP)) {
+        printUsage();
+        System.exit(1);
+      } else if (shouldRunFullMigration(appArgs)) {
+        LOGGER.info("Migrating both runtime and history");
+        migrateRuntime(context, mode);
+        migrateHistory(context, mode);
+      } else if (appArgs.containsOption(RUN_RUNTIME_MIGRATION)) {
+        migrateRuntime(context, mode);
+      } else if (appArgs.containsOption(RUN_HISTORY_MIGRATION)) {
+        migrateHistory(context, mode);
+      } else {
+        LOGGER.warn("Invalid argument combination");
+      }
+    } finally {
+      SpringApplication.exit(context);
     }
   }
 
@@ -101,10 +101,11 @@ public class MigratorApp {
 
   protected static void printUsage() {
     System.out.println();
-    System.out.println("Usage: start.sh [--runtime] [--history] [--list-skipped|--retry-skipped]");
+    System.out.println("Usage: start.sh [--help] [--runtime] [--history] [--list-skipped|--retry-skipped]");
     System.out.println("Options:");
+    System.out.println("  --help            - Show this help message");
     System.out.println("  --runtime         - Migrate runtime data only");
-    System.out.println("  --history         - Migrate history data only. This options is still EXPERIMENTAL and not meant for production use.");
+    System.out.println("  --history         - Migrate history data only. This option is still EXPERIMENTAL and not meant for production use.");
     System.out.println("  --list-skipped    - List previously skipped data");
     System.out.println("  --retry-skipped   - Retry only previously skipped data");
   }

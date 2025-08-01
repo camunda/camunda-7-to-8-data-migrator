@@ -39,7 +39,7 @@ public class FlowNodeConverter {
 
   protected FlowNodeType convertType(String activityType) {
     return switch (activityType) {
-      case ActivityTypes.START_EVENT -> FlowNodeType.START_EVENT;
+      case ActivityTypes.START_EVENT, ActivityTypes.START_EVENT_TIMER, ActivityTypes.START_EVENT_MESSAGE -> FlowNodeType.START_EVENT;
       case ActivityTypes.END_EVENT_NONE -> FlowNodeType.END_EVENT;
       case ActivityTypes.TASK_SERVICE -> FlowNodeType.SERVICE_TASK;
       case ActivityTypes.TASK_USER_TASK -> FlowNodeType.USER_TASK;
