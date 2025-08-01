@@ -605,7 +605,7 @@ public class HistoryMigrator {
     }
   }
 
-    protected void saveRecord(String entityId, Date date  ,Long entityKey, IdKeyMapper.TYPE type) {
+    protected void saveRecord(String entityId, Date date, Long entityKey, IdKeyMapper.TYPE type) {
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.updateKeyById(entityId, date, entityKey, type);
     } else if (MIGRATE.equals(mode)) {
