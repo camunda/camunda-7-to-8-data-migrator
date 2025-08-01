@@ -11,6 +11,7 @@ import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_DEFINITION;
+import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENTS;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_FLOW_NODE;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_INCIDENT;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION;
@@ -21,6 +22,7 @@ import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_VARI
 import io.camunda.db.rdbms.read.domain.FlowNodeInstanceDbQuery;
 import io.camunda.db.rdbms.read.domain.ProcessDefinitionDbQuery;
 import io.camunda.db.rdbms.sql.DecisionDefinitionMapper;
+import io.camunda.db.rdbms.sql.DecisionRequirementsMapper;
 import io.camunda.db.rdbms.sql.FlowNodeInstanceMapper;
 import io.camunda.db.rdbms.sql.IncidentMapper;
 import io.camunda.db.rdbms.sql.ProcessDefinitionMapper;
@@ -28,6 +30,7 @@ import io.camunda.db.rdbms.sql.ProcessInstanceMapper;
 import io.camunda.db.rdbms.sql.UserTaskMapper;
 import io.camunda.db.rdbms.sql.VariableMapper;
 import io.camunda.db.rdbms.write.domain.DecisionDefinitionDbModel;
+import io.camunda.db.rdbms.write.domain.DecisionRequirementsDbModel;
 import io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel;
 import io.camunda.db.rdbms.write.domain.IncidentDbModel;
 import io.camunda.db.rdbms.write.domain.ProcessDefinitionDbModel;
@@ -36,6 +39,7 @@ import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
 import io.camunda.db.rdbms.write.domain.VariableDbModel;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.converter.DecisionDefinitionConverter;
+import io.camunda.migrator.converter.DecisionRequirementsDefinitionConverter;
 import io.camunda.migrator.converter.FlowNodeConverter;
 import io.camunda.migrator.converter.IncidentConverter;
 import io.camunda.migrator.converter.ProcessDefinitionConverter;
@@ -58,6 +62,8 @@ import org.camunda.bpm.engine.history.HistoricIncident;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricTaskInstance;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
+import org.camunda.bpm.engine.repository.DecisionDefinition;
+import org.camunda.bpm.engine.repository.DecisionRequirementsDefinition;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
@@ -90,6 +96,9 @@ public class HistoryMigrator {
   @Autowired
   private FlowNodeInstanceMapper flowNodeMapper;
 
+  @Autowired
+  private DecisionRequirementsMapper decisionRequirementsMapper;
+
   // Clients
 
   @Autowired
@@ -121,6 +130,9 @@ public class HistoryMigrator {
   @Autowired
   private DecisionDefinitionConverter decisionDefinitionConverter;
 
+  @Autowired
+  private DecisionRequirementsDefinitionConverter decisionRequirementsConverter;
+
   protected MigratorMode mode = MIGRATE;
 
   public void start() {
@@ -143,22 +155,8 @@ public class HistoryMigrator {
     migrateUserTasks();
     migrateVariables();
     migrateIncidents();
-
-    // migrateDecisionDefinitions(); TODO with #5307
-  }
-
-  private void migrateDecisionDefinitions() {
-    // Will be done with #5307
-    HistoryMigratorLogs.migratingDecisionDefinitions();
-    c7Client.fetchAndHandleDecisionDefinitions(legacyDecisionDefinition -> {
-      String legacyId = legacyDecisionDefinition.getId();
-      HistoryMigratorLogs.migratingDecisionDefinition(legacyId);
-      DecisionDefinitionDbModel dbModel = decisionDefinitionConverter.apply(legacyDecisionDefinition);
-      decisionDefinitionMapper.insert(dbModel);
-      Date deploymentTime = c7Client.getDefinitionDeploymentTime(legacyDecisionDefinition.getDeploymentId());
-      dbClient.insert(legacyId, deploymentTime, dbModel.decisionDefinitionKey(), HISTORY_DECISION_DEFINITION);
-      HistoryMigratorLogs.migratingDecisionDefinitionCompleted(legacyId);
-    }, dbClient.findLatestStartDateByType((HISTORY_DECISION_DEFINITION)));
+    migrateDecisionRequirementsDefinitions();
+    migrateDecisionDefinitions();
   }
 
   public void migrateProcessDefinitions() {
@@ -224,6 +222,70 @@ public class HistoryMigrator {
         saveRecord(legacyProcessInstanceId, null, HISTORY_PROCESS_INSTANCE);
         HistoryMigratorLogs.skippingProcessInstanceDueToMissingDefinition(legacyProcessInstanceId);
       }
+    }
+  }
+
+  private void migrateDecisionRequirementsDefinitions() {
+    HistoryMigratorLogs.migratingDecisionRequirements();
+
+    if (RETRY_SKIPPED.equals(mode)) {
+      dbClient.fetchAndHandleSkippedForType(HISTORY_DECISION_REQUIREMENTS, idKeyDbModel -> {
+        DecisionRequirementsDefinition legacyDecisionRequirements = c7Client.getDecisionRequirementsDefinition(
+            idKeyDbModel.id());
+        migrateDecisionRequirementsDefinition(legacyDecisionRequirements);
+      });
+    } else {
+      c7Client.fetchAndHandleDecisionRequirementsDefinitions(this::migrateDecisionRequirementsDefinition);
+    }
+  }
+
+  private void migrateDecisionRequirementsDefinition(DecisionRequirementsDefinition legacyDecisionRequirements) {
+    String legacyId = legacyDecisionRequirements.getId();
+    if (shouldMigrate(legacyId)) {
+      HistoryMigratorLogs.migratingDecisionRequirements(legacyId);
+      DecisionRequirementsDbModel dbModel = decisionRequirementsConverter.apply(legacyDecisionRequirements);
+      decisionRequirementsMapper.insert(dbModel);
+      saveRecord(legacyId, dbModel.decisionRequirementsKey(), HISTORY_DECISION_REQUIREMENTS);
+      HistoryMigratorLogs.migratingDecisionRequirementsCompleted(legacyId);
+    }
+  }
+
+  private void migrateDecisionDefinitions() {
+    HistoryMigratorLogs.migratingDecisionDefinitions();
+
+    if (RETRY_SKIPPED.equals(mode)) {
+      dbClient.fetchAndHandleSkippedForType(HISTORY_DECISION_DEFINITION, idKeyDbModel -> {
+        DecisionDefinition legacyDecisionDefinition = c7Client.getDecisionDefinition(idKeyDbModel.id());
+        migrateDecisionDefinition(legacyDecisionDefinition);
+      });
+    } else {
+      c7Client.fetchAndHandleDecisionDefinitions(this::migrateDecisionDefinition,
+          dbClient.findLatestStartDateByType((HISTORY_DECISION_DEFINITION)));
+    }
+  }
+
+  private void migrateDecisionDefinition(DecisionDefinition legacyDecisionDefinition) {
+    String legacyId = legacyDecisionDefinition.getId();
+    if (shouldMigrate(legacyId)) {
+      HistoryMigratorLogs.migratingDecisionDefinition(legacyId);
+      Long decisionRequirementsKey = null;
+
+      if (legacyDecisionDefinition.getDecisionRequirementsDefinitionId() != null) {
+        decisionRequirementsKey = dbClient.findKeyById(legacyDecisionDefinition.getDecisionRequirementsDefinitionId());
+
+        if (decisionRequirementsKey == null) {
+          saveRecord(legacyId, null, HISTORY_DECISION_DEFINITION);
+          HistoryMigratorLogs.skippingDecisionDefinition(legacyId);
+          return;
+        }
+      }
+
+      DecisionDefinitionDbModel dbModel = decisionDefinitionConverter.apply(legacyDecisionDefinition,
+          decisionRequirementsKey);
+      decisionDefinitionMapper.insert(dbModel);
+      Date deploymentTime = c7Client.getDefinitionDeploymentTime(legacyDecisionDefinition.getDeploymentId());
+      saveRecord(legacyId, deploymentTime, dbModel.decisionDefinitionKey(), HISTORY_DECISION_DEFINITION);
+      HistoryMigratorLogs.migratingDecisionDefinitionCompleted(legacyId);
     }
   }
 
