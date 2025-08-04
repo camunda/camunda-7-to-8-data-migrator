@@ -8,7 +8,7 @@
 
 package io.camunda.migrator.qa;
 
-import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.qa.util.ProcessDefinitionDeployer;
 import io.camunda.migrator.qa.util.WithMultiDb;
 import io.camunda.migrator.qa.util.WithSpringProfile;
@@ -27,7 +27,7 @@ public class AbstractMigratorTest {
   protected ProcessDefinitionDeployer deployer;
 
   @Autowired
-  protected IdKeyMapper idKeyMapper;
+  protected DbClient dbClient;
 
   // C7 ---------------------------------------
 

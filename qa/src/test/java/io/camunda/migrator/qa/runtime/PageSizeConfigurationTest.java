@@ -47,10 +47,10 @@ class PageSizeConfigurationTest extends RuntimeMigrationAbstractTest {
     // then
     List<ProcessInstance> processInstances = camundaClient.newProcessInstanceSearchRequest().execute().items();
     assertThat(processInstances.size()).isEqualTo(5);
-    assertThat(output.getOut()).contains("Method: #fetch, max count: 5, offset: 0, page size: 2");
-    assertThat(output.getOut()).contains("Method: #fetch, max count: 5, offset: 2, page size: 2");
-    assertThat(output.getOut()).contains("Method: #fetch, max count: 5, offset: 4, page size: 2");
-    Matcher matcher = Pattern.compile("Method: #validateProcessInstanceState, max count: 1, offset: 0, page size: 2").matcher(output.getOut());
+    assertThat(output.getOut()).contains("Method: #fetchAndHandleHistoricRootProcessInstances, max count: 5, offset: 0, page size: 2");
+    assertThat(output.getOut()).contains("Method: #fetchAndHandleHistoricRootProcessInstances, max count: 5, offset: 2, page size: 2");
+    assertThat(output.getOut()).contains("Method: #fetchAndHandleHistoricRootProcessInstances, max count: 5, offset: 4, page size: 2");
+    Matcher matcher = Pattern.compile("Method: #fetchAndHandleProcessInstances, max count: 1, offset: 0, page size: 2").matcher(output.getOut());
     assertThat(matcher.results().count()).isEqualTo(5);
   }
 
@@ -98,8 +98,8 @@ class PageSizeConfigurationTest extends RuntimeMigrationAbstractTest {
 
     Matcher matcher = Pattern.compile(MIGRATOR_JOBS_FOUND + "1").matcher(output.getOut());
     assertThat(matcher.results().count()).isEqualTo(3);
-    assertThat(output.getOut()).contains("Method: #fetch, max count: 1, offset: 0, page size: 2");
-    assertThat(output.getOut()).contains("Method: #validateProcessInstanceState, max count: 3, offset: 0, page size: 2");
+    assertThat(output.getOut()).contains("Method: #fetchAndHandleHistoricRootProcessInstances, max count: 1, offset: 0, page size: 2");
+    assertThat(output.getOut()).contains("Method: #fetchAndHandleProcessInstances, max count: 3, offset: 0, page size: 2");
   }
 
   private void deployModels(String rootId, String level1Id, String level2Id) {

@@ -15,6 +15,7 @@ import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.github.netmikey.logunit.api.LogCapturer;
 import java.util.Map;
+import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.Disabled;
@@ -83,7 +84,7 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
         // then process instance and user task were skipped
         assertThat(searchHistoricProcessInstances("userTaskProcessId").size()).isEqualTo(0);
         assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_USER_TASK)).isEqualTo(1);
-        logs.assertContains("Migration of legacy user task with id [" + task.getId() + "] skipped");
+        logs.assertContains("Migration of historic user task with legacyId [" + task.getId() + "] skipped");
     }
 
     @Test
@@ -145,7 +146,7 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
         // then process instance and incidents were skipped
         assertThat(searchHistoricProcessInstances("failingServiceTaskProcessId").size()).isEqualTo(0);
         assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_INCIDENT)).isEqualTo(1);
-        logs.assertContains("Migration of legacy incident with id [" + incidentId + "] skipped");
+        logs.assertContains("Migration of historic incident with legacyId [" + incidentId + "] skipped");
     }
 
     @Test
@@ -269,8 +270,8 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
         assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_VARIABLE)).isEqualTo(2);
 
         // and verify logs don't contain any additional skip operations for this variable
-        logs.assertDoesNotContain("Migration of legacy variable with id [" + variableToSkip.getId() + "] skipped");
-        logs.assertContains("Migration of legacy variable with id [" + historicVariables.getLast().getId() + "] skipped");
+        logs.assertDoesNotContain("Migration of historic variable with legacyId [" + variableToSkip.getId() + "] skipped");
+        logs.assertContains("Migration of historic variable with legacyId [" + historicVariables.getLast().getId() + "] skipped");
     }
 
     @Test
@@ -307,7 +308,7 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
             .taskIdIn(taskId)
             .singleResult();
 
-        logs.assertContains("Migration of legacy variable with id [" + taskVariable.getId() + "] skipped");
+        logs.assertContains("Migration of historic variable with legacyId [" + taskVariable.getId() + "] skipped");
     }
 
     @Test
@@ -351,6 +352,6 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
         assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_VARIABLE)).isEqualTo(1);
 
         // Verify appropriate logging
-        logs.assertContains("Migration of legacy variable with id [" + serviceTaskVariable.getId() + "] skipped");
+        logs.assertContains("Migration of historic variable with legacyId [" + serviceTaskVariable.getId() + "] skipped");
     }
 }

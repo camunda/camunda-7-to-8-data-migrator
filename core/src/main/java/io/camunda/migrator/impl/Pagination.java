@@ -7,20 +7,18 @@
  */
 package io.camunda.migrator.impl;
 
+import static io.camunda.migrator.impl.logging.PaginationLogs.ERROR_QUERY_AND_PAGE_NULL;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 
+import io.camunda.migrator.impl.logging.PaginationLogs;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.camunda.bpm.engine.query.Query;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Pagination<T> {
-
-  protected static final Logger LOGGER = LoggerFactory.getLogger(Pagination.class);
 
   protected int pageSize;
   protected Supplier<Long> maxCount;
@@ -61,14 +59,15 @@ public class Pagination<T> {
       result = (offset) -> page.apply(offset).stream().toList();
 
     } else {
-      throw new IllegalStateException("Query and page cannot be null");
+      PaginationLogs.errorQueryAndPageNull();
+      throw new IllegalStateException(ERROR_QUERY_AND_PAGE_NULL);
     }
 
     for (int i = 0; i < maxCount; i = i + pageSize) {
       StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
       int offset = i;
       String methodName = stackTrace[2].getMethodName();
-      LOGGER.debug("Method: #{}, max count: {}, offset: {}, page size: {}", methodName, maxCount, offset, pageSize);
+      PaginationLogs.paginationDebugInfo(methodName, maxCount, offset, pageSize);
 
       callApi(() -> result.apply(offset)).forEach(callback);
     }

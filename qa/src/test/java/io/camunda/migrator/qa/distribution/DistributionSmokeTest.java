@@ -7,6 +7,7 @@
  */
 package io.camunda.migrator.qa.distribution;
 
+import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_DEPLOY_C8_RESOURCES;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.BufferedReader;
@@ -197,7 +198,7 @@ class DistributionSmokeTest {
 
     // then
     String output = readProcessOutput(process);
-    assertThat(output).contains("Failed to deploy resources: [./configuration/resources/test-process.bpmn]");
+    assertThat(output).contains(FAILED_TO_DEPLOY_C8_RESOURCES + "[./configuration/resources/test-process.bpmn]");
   }
 
   @Test

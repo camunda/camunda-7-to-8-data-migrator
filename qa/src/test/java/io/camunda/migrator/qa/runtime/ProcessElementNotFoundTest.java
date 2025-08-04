@@ -14,20 +14,15 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
-import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.github.netmikey.logunit.api.LogCapturer;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProcessElementNotFoundTest  extends RuntimeMigrationAbstractTest {
 
   @RegisterExtension
   protected final LogCapturer logs = LogCapturer.create().captureForType(RuntimeMigrator.class);
-
-  @Autowired
-  private IdKeyMapper idKeyMapper;
 
   @Test
   public void shouldSkipOnMissingElementInC8Deployment() {
@@ -43,7 +38,7 @@ public class ProcessElementNotFoundTest  extends RuntimeMigrationAbstractTest {
         String.format(SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("{}", "%s"), c7Instance.getId(),
             String.format(FLOW_NODE_NOT_EXISTS_ERROR, "userTaskId")));
     assertThatProcessInstanceCountIsEqualTo(0);
-    List<IdKeyDbModel> skippedProcessInstanceIds = findSkippedRuntimeProcessInstances().stream().toList();
+    List<IdKeyDbModel> skippedProcessInstanceIds = dbClient.findSkippedProcessInstances();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
     assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(c7Instance.getId());
   }

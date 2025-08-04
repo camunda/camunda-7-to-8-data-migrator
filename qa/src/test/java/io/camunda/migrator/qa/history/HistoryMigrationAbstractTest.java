@@ -16,7 +16,6 @@ import io.camunda.db.rdbms.write.service.RdbmsPurger;
 import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.config.MigratorAutoConfiguration;
-import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.migrator.qa.AbstractMigratorTest;
 import io.camunda.migrator.qa.config.TestProcessEngineConfiguration;
 import io.camunda.migrator.qa.util.WithSpringProfile;
@@ -31,10 +30,6 @@ import io.camunda.search.query.ProcessDefinitionQuery;
 import io.camunda.search.query.ProcessInstanceQuery;
 import io.camunda.search.query.UserTaskQuery;
 import java.util.List;
-import org.camunda.bpm.engine.HistoryService;
-import org.camunda.bpm.engine.RepositoryService;
-import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.impl.util.ClockUtil;
 import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.AfterEach;
@@ -58,23 +53,6 @@ public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest 
   @Autowired
   protected HistoryMigrator historyMigrator;
 
-  @Autowired
-  protected IdKeyMapper idKeyMapper;
-
-  // C7 ---------------------------------------
-
-  @Autowired
-  protected RuntimeService runtimeService;
-
-  @Autowired
-  protected HistoryService historyService;
-
-  @Autowired
-  protected TaskService taskService;
-
-  @Autowired
-  protected RepositoryService repositoryService;
-
   // C8 ---------------------------------------
 
   @Autowired
@@ -90,7 +68,7 @@ public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest 
     repositoryService.createDeploymentQuery().list().forEach(d -> repositoryService.deleteDeployment(d.getId(), true));
 
     // Migrator table
-    idKeyMapper.findAllIds().forEach(id -> idKeyMapper.delete(id));
+    dbClient.deleteAllMappings();
 
     // C8
     rdbmsPurger.purgeRdbms();

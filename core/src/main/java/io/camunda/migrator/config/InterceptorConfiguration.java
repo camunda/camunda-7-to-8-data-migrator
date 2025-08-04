@@ -10,10 +10,9 @@ package io.camunda.migrator.config;
 import io.camunda.migrator.config.property.InterceptorProperty;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.exception.MigratorException;
+import io.camunda.migrator.impl.logging.ConfigurationLogs;
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.bind.BindHandler;
 import org.springframework.boot.context.properties.bind.Bindable;
@@ -35,8 +34,6 @@ import java.util.List;
  */
 @Configuration
 public class InterceptorConfiguration {
-
-  protected static final Logger LOGGER = LoggerFactory.getLogger(InterceptorConfiguration.class);
 
   @Autowired
   protected ApplicationContext context;
