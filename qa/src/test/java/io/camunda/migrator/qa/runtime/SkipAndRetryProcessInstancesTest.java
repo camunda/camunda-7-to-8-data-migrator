@@ -90,7 +90,8 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     // then
     assertThatProcessInstanceCountIsEqualTo(0);
 
-    List<IdKeyDbModel> skippedProcessInstanceIds = idKeyMapper.findSkipped().stream().toList();
+    List<IdKeyDbModel> skippedProcessInstanceIds =
+        idKeyMapper.findSkippedByType(IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE, 0 ,10).stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
     assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(process.getId());
 
