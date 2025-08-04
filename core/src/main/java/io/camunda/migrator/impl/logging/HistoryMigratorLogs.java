@@ -35,13 +35,16 @@ public class HistoryMigratorLogs {
   public static final String MIGRATING_INCIDENTS = "Migrating historic incidents";
   public static final String MIGRATING_INCIDENT = "Migrating historic incident with legacyId: [{}]";
   public static final String MIGRATING_INCIDENT_COMPLETED = "Migration of historic incident with legacyId [{}] completed.";
-  public static final String SKIPPING_INCIDENT = "Migration of historic incident with id [{}] skipped. Process instance not yet available.";
+  public static final String SKIPPING_INCIDENT = "Migration of historic incident with legacyId [{}] skipped. Process "
+      + "instance not yet available.";
 
   public static final String MIGRATING_VARIABLES = "Migrating historic variables";
   public static final String MIGRATING_VARIABLE = "Migrating historic variables with legacyId: [{}]";
   public static final String MIGRATING_VARIABLE_COMPLETED = "Migration of historic variable with legacyId [{}] completed.";
   public static final String SKIPPING_VARIABLE_MISSING_FLOW_NODE = "Migration of historic variable with legacyId [{}] skipped. Flow node instance not yet available.";
   public static final String SKIPPING_VARIABLE_MISSING_PROCESS = "Migration of historic variable with legacyId [{}] skipped. Process instance not yet available.";
+  public static final String SKIPPING_VARIABLE_MISSING_TASK = "Migration of historic variable with legacyId [{}] skipped. Associated task [{}] was skipped.";
+  public static final String SKIPPING_VARIABLE_MISSING_SCOPE = "Migration of historic variable with legacyId [{}] skipped. Scope key is not yet available.";
 
   public static final String MIGRATING_USER_TASKS = "Migrating historic user tasks";
   public static final String MIGRATING_USER_TASK = "Migrating historic user task with legacyId: [{}]";
@@ -132,6 +135,14 @@ public class HistoryMigratorLogs {
 
   public static void skippingHistoricVariableDueToMissingProcessInstance(String legacyVariableId) {
     LOGGER.debug(SKIPPING_VARIABLE_MISSING_PROCESS, legacyVariableId);
+  }
+
+  public static void skippingHistoricVariableDueToMissingTask(String legacyVariableId, String taskId) {
+    LOGGER.debug(SKIPPING_VARIABLE_MISSING_TASK, legacyVariableId, taskId);
+  }
+
+  public static void skippingHistoricVariableDueToMissingScopeKey(String legacyVariableId) {
+    LOGGER.debug(SKIPPING_VARIABLE_MISSING_SCOPE, legacyVariableId);
   }
 
   public static void migratingHistoricUserTasks() {

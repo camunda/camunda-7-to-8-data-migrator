@@ -38,7 +38,7 @@ public class ProcessElementNotFoundTest  extends RuntimeMigrationAbstractTest {
         String.format(SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("{}", "%s"), c7Instance.getId(),
             String.format(FLOW_NODE_NOT_EXISTS_ERROR, "userTaskId")));
     assertThatProcessInstanceCountIsEqualTo(0);
-    List<IdKeyDbModel> skippedProcessInstanceIds = dbClient.findSkipped();
+    List<IdKeyDbModel> skippedProcessInstanceIds = dbClient.findSkippedProcessInstances();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
     assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(c7Instance.getId());
   }

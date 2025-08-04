@@ -8,15 +8,12 @@
 package io.camunda.migrator.impl.clients;
 
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_CHECK_EXISTENCE;
+import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_CHECK_KEY;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_DELETE;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_ALL;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_ALL_SKIPPED;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_KEY_BY_ID;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_LATEST_ID;
-import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_CHECK_KEY;
-import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_SKIPPED_INSTANCES;
-import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
-import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_CHECK_EXISTENCE;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_LATEST_START_DATE;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_SKIPPED_COUNT;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_INSERT_RECORD;
@@ -135,22 +132,20 @@ public class DbClient {
    * Lists skipped process instances with pagination and prints them.
    */
   public void listSkippedRuntimeProcessInstances() {
-  new Pagination<String>()
-      .pageSize(properties.getPageSize())
-      .maxCount(() -> idKeyMapper.countSkippedByType(TYPE.RUNTIME_PROCESS_INSTANCE))
-      .page(offset -> idKeyMapper.findSkippedByType(TYPE.RUNTIME_PROCESS_INSTANCE, offset, properties.getPageSize())
-          .stream()
-          .map(IdKeyDbModel::id)
-          .collect(Collectors.toList()))
-      .callback(PrintUtils::print);
+    new Pagination<String>().pageSize(properties.getPageSize())
+        .maxCount(() -> idKeyMapper.countSkippedByType(TYPE.RUNTIME_PROCESS_INSTANCE))
+        .page(offset -> idKeyMapper.findSkippedByType(TYPE.RUNTIME_PROCESS_INSTANCE, offset, properties.getPageSize())
+            .stream()
+            .map(IdKeyDbModel::id)
+            .collect(Collectors.toList()))
+        .callback(PrintUtils::print);
   }
 
   /**
    * Processes skipped entities with pagination.
    */
   public void fetchAndHandleSkipped(TYPE type, Consumer<IdKeyDbModel> callback) {
-    new Pagination<IdKeyDbModel>()
-        .pageSize(properties.getPageSize())
+    new Pagination<IdKeyDbModel>().pageSize(properties.getPageSize())
         .maxCount(() -> idKeyMapper.countSkippedByType(type))
         // Hardcode offset to 0 since each callback updates the database and leads to fresh results.
         .page(offset -> idKeyMapper.findSkippedByType(type, 0, properties.getPageSize()))
@@ -167,8 +162,9 @@ public class DbClient {
   /**
    * Finds the Ids of all skipped process instances.
    */
-  public List<IdKeyDbModel> findSkipped() {
-    return callApi(() -> idKeyMapper.findSkipped(), FAILED_TO_FIND_ALL_SKIPPED);
+  public List<IdKeyDbModel> findSkippedProcessInstances() {
+    return callApi(() -> idKeyMapper.findSkippedByType(TYPE.RUNTIME_PROCESS_INSTANCE, 0, properties.getPageSize()),
+        FAILED_TO_FIND_ALL_SKIPPED);
   }
 
   /**
