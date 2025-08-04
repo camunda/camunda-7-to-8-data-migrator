@@ -27,7 +27,7 @@ public class C7Utils {
     Arrays.asList(activityInstance.getChildActivityInstances()).forEach(actInst -> {
       activeActivities.putAll(getActiveActivityIdsById(actInst, activeActivities));
 
-      if (!SUB_PROCESS_ACTIVITY_TYPE.equals(actInst.getActivityType()) && !actInst.getActivityId().endsWith(MULTI_INSTANCE_BODY_SUFFIX)) {
+      if (!SUB_PROCESS_ACTIVITY_TYPE.equals(actInst.getActivityType())) {
         activeActivities.put(actInst.getId(),
             new FlowNode(actInst.getActivityId(), ((ActivityInstanceImpl) actInst).getSubProcessInstanceId()));
       }
