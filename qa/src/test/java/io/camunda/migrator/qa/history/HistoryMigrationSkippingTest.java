@@ -213,7 +213,7 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
         logs.assertDoesNotContain("Skipping historic incident " + incidentId);
     }
 
-    @Disabled("TODO: Job table doesn't exist yet")
+    @Disabled("TODO: CAM-5331")
     @Test
     public void shouldNotMigrateIncidentsWhenJobIsSkipped() {
         // given state in c7 with a failing service task
