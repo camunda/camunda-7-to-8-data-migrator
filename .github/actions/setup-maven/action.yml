@@ -46,7 +46,7 @@ runs:
   steps:
   - name: Import secrets
     id: secrets
-    uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b
+    uses: hashicorp/vault-action@2c5827061f1ad91ca97897d6257ebe638e033699
     with:
       url: ${{ inputs.vault-address }}
       method: approle
