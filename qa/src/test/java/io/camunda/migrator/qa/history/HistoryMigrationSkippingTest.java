@@ -39,6 +39,9 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
     @Autowired
     private ManagementService managementService;
 
+    @Autowired
+    protected HistoryService historyService;
+
     @Test
     public void shouldSkipElementsWhenProcessDefinitionIsSkipped() {
         // given state in c7
