@@ -8,6 +8,7 @@
 package io.camunda.migrator.impl;
 
 import static io.camunda.migrator.constants.MigratorConstants.LEGACY_ID_VAR_NAME;
+import static io.camunda.migrator.impl.util.C7Utils.MULTI_INSTANCE_BODY_SUFFIX;
 import static io.camunda.migrator.impl.util.C7Utils.getActiveActivityIdsById;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.FAILED_TO_PARSE_BPMN_MODEL;
@@ -86,14 +87,9 @@ public class RuntimeValidator {
    */
   public void validateC7FlowNodes(String processDefinitionId, String activityId) {
     BpmnModelInstance c7BpmnModelInstance = repositoryService.getBpmnModelInstance(processDefinitionId);
-    String multiInstanceBodySuffix = "#multiInstanceBody";
-
     FlowElement element = c7BpmnModelInstance.getModelElementById(activityId);
-    boolean isMultiInstanceBody = activityId.endsWith(multiInstanceBodySuffix);
-    boolean hasMultiInstanceCharacteristics = element instanceof Activity activity
-        && activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics;
 
-    if (isMultiInstanceBody || hasMultiInstanceCharacteristics) {
+    if (isMultiInstanceActivity(activityId, element)) {
       throw new IllegalStateException(String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, activityId));
     }
   }
@@ -189,6 +185,19 @@ public class RuntimeValidator {
    */
   private io.camunda.zeebe.model.bpmn.BpmnModelInstance parseBpmnModel(String xmlString) {
     return callApi(() -> readModelFromStream(new ByteArrayInputStream(xmlString.getBytes(StandardCharsets.UTF_8))), FAILED_TO_PARSE_BPMN_MODEL);
+  }
+
+  /**
+   * Checks if an activity is a multi-instance activity either by its ID suffix or its characteristics
+   */
+  private boolean isMultiInstanceActivity(String activityId, FlowElement element) {
+    boolean isMultiInstanceBody = activityId.endsWith(MULTI_INSTANCE_BODY_SUFFIX);
+    if (isMultiInstanceBody) {
+      return true;
+    }
+    boolean hasMultiInstanceCharacteristics = element instanceof Activity activity
+        && activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics;
+    return hasMultiInstanceCharacteristics;
   }
 
   /**
