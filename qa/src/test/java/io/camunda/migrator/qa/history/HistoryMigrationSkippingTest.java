@@ -17,40 +17,26 @@ import io.github.netmikey.logunit.api.LogCapturer;
 import java.util.Map;
 import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.task.Task;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import ch.qos.logback.classic.Level;
-import org.slf4j.LoggerFactory;
+
+import org.slf4j.event.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(properties = {
-    "logging.level.io.camunda.migrator.HistoryMigrator=DEBUG"
-})
-@ActiveProfiles("test")
 @ExtendWith({OutputCaptureExtension.class})
 public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
 
     @RegisterExtension
-    protected LogCapturer logs = LogCapturer.create().captureForLogger("io.camunda.migrator.HistoryMigrator");
+    protected LogCapturer logs = LogCapturer.create().captureForType(HistoryMigrator.class, Level.DEBUG);
 
     @Autowired
     protected DbClient dbClient;
 
     @Autowired
     private ManagementService managementService;
-
-    @BeforeEach
-    void ensureLoggingLevel() {
-        // Set the log level before each test to ensure it's applied after Spring context is ready
-        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(HistoryMigrator.class);
-        logger.setLevel(Level.DEBUG);
-    }
 
     @Test
     public void shouldSkipElementsWhenProcessDefinitionIsSkipped() {
@@ -82,8 +68,6 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
 
     @Test
     public void shouldSkipUserTasksWhenProcessInstanceIsSkipped() {
-        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(HistoryMigrator.class);
-        logger.setLevel(Level.DEBUG);
         // given state in c7
         deployer.deployCamunda7Process("userTaskProcess.bpmn");
         var processInstance = runtimeService.startProcessInstanceByKey("userTaskProcessId");
@@ -104,8 +88,6 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
 
     @Test
     public void shouldNotMigrateAlreadySkippedUserTask() {
-        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(HistoryMigrator.class);
-        logger.setLevel(Level.DEBUG);
         // given state in c7
         deployer.deployCamunda7Process("userTaskProcess.bpmn");
         runtimeService.startProcessInstanceByKey("userTaskProcessId");
@@ -135,8 +117,6 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
 
     @Test
     public void shouldSkipIncidentsWhenProcessInstanceIsSkipped() {
-      ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(HistoryMigrator.class);
-      logger.setLevel(Level.DEBUG);
         // given state in c7
         deployer.deployCamunda7Process("failingServiceTaskProcess.bpmn");
         var processInstance = runtimeService.startProcessInstanceByKey("failingServiceTaskProcessId");
@@ -263,8 +243,6 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
 
     @Test
     public void shouldNotMigrateAlreadySkippedVariable() {
-        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(HistoryMigrator.class);
-        logger.setLevel(Level.DEBUG);
         // given state in c7
         deployer.deployCamunda7Process("userTaskProcess.bpmn");
         var processInstance = runtimeService.startProcessInstanceByKey("userTaskProcessId",
@@ -297,8 +275,6 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
 
     @Test
     public void shouldSkipTaskVariablesWhenTaskIsSkipped() {
-        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(HistoryMigrator.class);
-        logger.setLevel(Level.DEBUG);
         // given state in c7
         deployer.deployCamunda7Process("userTaskProcess.bpmn");
         runtimeService.startProcessInstanceByKey("userTaskProcessId");
@@ -336,9 +312,6 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
 
     @Test
     public void shouldSkipServiceTaskVariablesWhenServiceTaskIsSkipped() {
-        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(HistoryMigrator.class);
-        logger.setLevel(Level.DEBUG);
-
         // given state in c7 with a service task using JUEL expression
         deployer.deployCamunda7Process("serviceTaskWithInputMappingProcess.bpmn");
         var processInstance = runtimeService.startProcessInstanceByKey("serviceTaskWithInputMappingProcessId");
