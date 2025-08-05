@@ -32,16 +32,29 @@ function injectLiveReload() {
 
 function SkippedEntities({camundaAPI}) {
   const [skippedEntities, setSkippedEntities] = useState();
+  const [selectedType, setSelectedType] = useState("RUNTIME_PROCESS_INSTANCE");
 
   const cockpitApi = camundaAPI.cockpitApi;
   const engine = camundaAPI.engine;
+
+  const TYPE = {
+    HISTORY_PROCESS_DEFINITION: "HISTORY_PROCESS_DEFINITION",
+    HISTORY_PROCESS_INSTANCE: "HISTORY_PROCESS_INSTANCE",
+    HISTORY_INCIDENT: "HISTORY_INCIDENT",
+    HISTORY_VARIABLE: "HISTORY_VARIABLE",
+    HISTORY_USER_TASK: "HISTORY_USER_TASK",
+    HISTORY_FLOW_NODE: "HISTORY_FLOW_NODE",
+    HISTORY_DECISION_INSTANCE: "HISTORY_DECISION_INSTANCE",
+    HISTORY_DECISION_DEFINITION: "HISTORY_DECISION_DEFINITION",
+    RUNTIME_PROCESS_INSTANCE: "RUNTIME_PROCESS_INSTANCE"
+  }
 
   useEffect(() => {
     // Inject LiveReload for development
     injectLiveReload();
 
     fetch(
-      `${cockpitApi}/plugin/migrator-plugin/${engine}/migrator/skipped?type=RUNTIME_PROCESS_INSTANCE&offset=0&limit=10`,
+      `${cockpitApi}/plugin/migrator-plugin/${engine}/migrator/skipped?type=${selectedType}&offset=0&limit=10`,
       {
         headers: {
           'Accept': 'application/json'
@@ -54,7 +67,7 @@ function SkippedEntities({camundaAPI}) {
       .catch(err => {
         console.error(err);
       });
-  }, []);
+  }, [selectedType]);
 
   if (!skippedEntities) {
     return <div>Loading...</div>;
@@ -67,6 +80,24 @@ function SkippedEntities({camundaAPI}) {
           <header>
             <h1 className="section-title">Camunda 7 to 8 Data Migrator</h1>
           </header>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label htmlFor="type-selector" style={{ marginRight: '10px' }}>
+              Entity Type:
+            </label>
+            <select
+              id="type-selector"
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              style={{ padding: '5px', minWidth: '200px' }}
+            >
+              {Object.entries(TYPE).map(([key, value]) => (
+                <option key={key} value={value}>
+                  {key.replace(/_/g, ' ')}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <Table
             head={
