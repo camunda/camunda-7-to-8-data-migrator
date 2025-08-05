@@ -11,6 +11,7 @@ import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_ACTI
 import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_BPMN_XML;
 import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_DEPLOYMENT_TIME;
 import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_PROCESS_INSTANCE;
+import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_REPOSITORY_SERVICE;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 
 import io.camunda.migrator.config.property.MigratorProperties;
@@ -72,6 +73,14 @@ public class C7Client {
   public ProcessInstance getProcessInstance(String processInstanceId) {
     var query = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId);
     return callApi(query::singleResult, FAILED_TO_FETCH_PROCESS_INSTANCE + processInstanceId);
+  }
+
+  /**
+   * TODO
+   */
+  public ProcessDefinition getHistoricProcessDefinition(String legacyId) {
+    var query = repositoryService.createProcessDefinitionQuery().processDefinitionId(legacyId);
+    return callApi(query::singleResult, FAILED_TO_FETCH_REPOSITORY_SERVICE + legacyId);
   }
 
   /**
@@ -208,6 +217,24 @@ public class C7Client {
       query.deployedAfter(deployedAfter);
     }
 
+    fetchAndHandleProcessDefinitions(query, callback);
+  }
+
+  /**
+   * Processes process definitions with pagination using the provided callback consumer.
+   */
+  public void fetchAndHandleProcessDefinitions(Consumer<ProcessDefinition> callback, String[] ids) {
+    ProcessDefinitionQueryImpl query = (ProcessDefinitionQueryImpl) repositoryService.createProcessDefinitionQuery()
+        .orderByDeploymentTime()
+        .processDefinitionIdIn(ids);
+
+    fetchAndHandleProcessDefinitions(query, callback);
+  }
+
+  /**
+   * Processes process definitions with pagination using the provided callback consumer.
+   */
+  public void fetchAndHandleProcessDefinitions(ProcessDefinitionQueryImpl query, Consumer<ProcessDefinition> callback) {
     new Pagination<ProcessDefinition>()
         .pageSize(properties.getPageSize())
         .query(query)

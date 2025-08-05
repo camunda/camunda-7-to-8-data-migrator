@@ -45,6 +45,7 @@ import io.camunda.migrator.converter.VariableConverter;
 import io.camunda.migrator.impl.clients.C7Client;
 import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.logging.HistoryMigratorLogs;
+import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.migrator.impl.util.ExceptionUtils;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
@@ -53,6 +54,8 @@ import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Consumer;
+import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
@@ -158,20 +161,28 @@ public class HistoryMigrator {
   public void migrateProcessDefinitions() {
     HistoryMigratorLogs.migratingProcessDefinitions();
     if (RETRY_SKIPPED.equals(mode)) {
-      // TODO: handle retry
+      dbClient.fetchAndHandleSkippedForType(HISTORY_PROCESS_DEFINITION, migrateSkippedProcessDefinition());
     } else {
-      c7Client.fetchAndHandleProcessDefinitions(legacyProcessDefinition -> {
-        String legacyId = legacyProcessDefinition.getId();
-        if (shouldMigrate(legacyId)) {
-          HistoryMigratorLogs.migratingProcessDefinition(legacyId);
-          ProcessDefinitionDbModel dbModel = processDefinitionConverter.apply(legacyProcessDefinition);
-          processDefinitionMapper.insert(dbModel);
-          Date deploymentTime = c7Client.getDefinitionDeploymentTime(legacyProcessDefinition.getDeploymentId());
-          saveRecord(legacyId, deploymentTime, dbModel.processDefinitionKey(), HISTORY_PROCESS_DEFINITION);
-          HistoryMigratorLogs.migratingProcessDefinitionCompleted(legacyId);
-        }
-      }, dbClient.findLatestStartDateByType((HISTORY_PROCESS_DEFINITION)));
+      c7Client.fetchAndHandleProcessDefinitions(migrateProcessDefinition(), dbClient.findLatestStartDateByType((HISTORY_PROCESS_DEFINITION)));
     }
+  }
+
+  private Consumer<IdKeyDbModel> migrateSkippedProcessDefinition() {
+    return idKeyDbModel -> migrateProcessDefinition().accept(c7Client.getHistoricProcessDefinition(idKeyDbModel.id()));
+  }
+
+  private Consumer<ProcessDefinition> migrateProcessDefinition() {
+    return legacyProcessDefinition -> {
+      String legacyId = legacyProcessDefinition.getId();
+      if (shouldMigrate(legacyId)) {
+        HistoryMigratorLogs.migratingProcessDefinition(legacyId);
+        ProcessDefinitionDbModel dbModel = processDefinitionConverter.apply(legacyProcessDefinition);
+        processDefinitionMapper.insert(dbModel);
+        Date deploymentTime = c7Client.getDefinitionDeploymentTime(legacyProcessDefinition.getDeploymentId());
+        saveRecord(legacyId, deploymentTime, dbModel.processDefinitionKey(), HISTORY_PROCESS_DEFINITION);
+        HistoryMigratorLogs.migratingProcessDefinitionCompleted(legacyId);
+      }
+    };
   }
 
   private void migrateProcessInstances() {
