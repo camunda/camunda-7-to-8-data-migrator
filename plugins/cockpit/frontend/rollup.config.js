@@ -20,6 +20,7 @@ import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 import scss from "rollup-plugin-scss";
+import copy from "rollup-plugin-copy";
 
 export default {
   input: "src/plugin.js",
@@ -37,12 +38,23 @@ export default {
       include: "node_modules/**"
     }),
     replace({
-      "process.env.NODE_ENV": JSON.stringify("production"),
+      "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "development"),
       preventAssignment: true
     }),
     scss({
       failOnError: true,
       fileName: 'plugin.css',
+    }),
+    copy({
+      targets: [
+        {
+          src: 'dist/*',
+          dest: '../target/classes/plugin-webapp/sample-plugin/app'
+        }
+      ],
+      hook: 'writeBundle',
+      copyOnce: false,
+      verbose: true
     })
   ]
 };
