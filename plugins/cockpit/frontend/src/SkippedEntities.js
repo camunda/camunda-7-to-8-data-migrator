@@ -15,7 +15,14 @@
  * limitations under the License.
  */
 
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useMemo} from "react";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  createColumnHelper,
+  flexRender,
+} from '@tanstack/react-table';
 
 import {Table} from "./Table";
 
@@ -31,8 +38,12 @@ function injectLiveReload() {
 }
 
 function SkippedEntities({camundaAPI}) {
-  const [skippedEntities, setSkippedEntities] = useState();
+  const [skippedEntities, setSkippedEntities] = useState([]);
   const [selectedType, setSelectedType] = useState("RUNTIME_PROCESS_INSTANCE");
+  const [loading, setLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
   const cockpitApi = camundaAPI.cockpitApi;
   const engine = camundaAPI.engine;
@@ -59,27 +70,105 @@ function SkippedEntities({camundaAPI}) {
     }
   }
 
+  const columnHelper = createColumnHelper();
+
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('id', {
+        header: 'C7 ID',
+        cell: info => getEntityLink(info.row.original),
+      }),
+      columnHelper.accessor('instanceKey', {
+        header: 'C8 Key',
+        cell: info => info.getValue() == null ? "❌" : info.getValue() + "✅",
+      }),
+      columnHelper.accessor('type', {
+        header: 'Type',
+        cell: info => <code>{info.getValue()}</code>,
+      }),
+      columnHelper.accessor('skipReason', {
+        header: 'Skip reason',
+        cell: () => 'Found multi-instance loop characteristics for flow node with id [MessageTask_2] in C7 process instance.',
+      }),
+    ],
+    []
+  );
+
+  const table = useReactTable({
+    data: skippedEntities,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+    pageCount: totalCount > 0 ? Math.ceil(totalCount / pageSize) : -1, // Use state pageSize
+    state: {
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+    },
+    onPaginationChange: (updater) => {
+      if (typeof updater === 'function') {
+        const newPagination = updater({ pageIndex, pageSize });
+        setPageIndex(newPagination.pageIndex);
+        setPageSize(newPagination.pageSize);
+      }
+    },
+  });
+
+  const fetchTotalCount = async () => {
+    try {
+      const response = await fetch(
+        `${cockpitApi}/plugin/migrator-plugin/${engine}/migrator/skipped/count?type=${selectedType}`,
+        {
+          headers: {
+            'Accept': 'application/json'
+          }
+        }
+      );
+      const count = await response.json();
+      setTotalCount(typeof count === 'number' ? count : count.total || count.count || 0);
+    } catch (err) {
+      console.error('Failed to fetch total count:', err);
+      setTotalCount(0);
+    }
+  };
+
+  const fetchData = async (offset = 0, limit = 10) => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${cockpitApi}/plugin/migrator-plugin/${engine}/migrator/skipped?type=${selectedType}&offset=${offset}&limit=${limit}`,
+        {
+          headers: {
+            'Accept': 'application/json'
+          }
+        }
+      );
+      const data = await response.json();
+      setSkippedEntities(Array.isArray(data) ? data : data.items || []); // Handle array or object response
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Inject LiveReload for development
     injectLiveReload();
 
-    fetch(
-      `${cockpitApi}/plugin/migrator-plugin/${engine}/migrator/skipped?type=${selectedType}&offset=0&limit=10`,
-      {
-        headers: {
-          'Accept': 'application/json'
-        }
-      }
-    )
-      .then(async res => {
-        setSkippedEntities(await res.json());
-      })
-      .catch(err => {
-        console.error(err);
-      });
+    // Fetch total count first, then fetch data
+    fetchTotalCount().then(() => {
+      fetchData(pageIndex * pageSize, pageSize);
+    });
   }, [selectedType]);
 
-  if (!skippedEntities) {
+  // Separate effect for pagination changes (don't refetch count on pagination)
+  useEffect(() => {
+    fetchData(pageIndex * pageSize, pageSize);
+  }, [pageIndex, pageSize]);
+
+  if (loading && skippedEntities.length === 0) {
     return <div>Loading...</div>;
   }
 
@@ -112,32 +201,96 @@ function SkippedEntities({camundaAPI}) {
           <Table
             head={
               <>
-                <Table.Head key="entityId">C7 ID</Table.Head>
-                <Table.Head key="type">C8 Key</Table.Head>
-                <Table.Head key="type">Type</Table.Head>
-                <Table.Head key="type">Skip reason</Table.Head>
+                {table.getHeaderGroups().map(headerGroup =>
+                  headerGroup.headers.map(header => (
+                    <Table.Head key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </Table.Head>
+                  ))
+                )}
               </>
             }
           >
-            {skippedEntities.map(entity => {
-              return (
-                <Table.Row key={entity.id}>
-                  <Table.Cell key="entityId">
-                    {getEntityLink(entity)}
+            {table.getRowModel().rows.map(row => (
+              <Table.Row key={row.id}>
+                {row.getVisibleCells().map(cell => (
+                  <Table.Cell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </Table.Cell>
-                  <Table.Cell key="type">
-                    {entity.instanceKey == null ? "❌" : entity.instanceKey + "✅"}
-                  </Table.Cell>
-                  <Table.Cell key="type">
-                    <code>{entity.type}</code>
-                  </Table.Cell>
-                  <Table.Cell key="skipReason">
-                    Found multi-instance loop characteristics for flow node with id [MessageTask_2] in C7 process instance.
-                  </Table.Cell>
-                </Table.Row>
-              );
-            })}
+                ))}
+              </Table.Row>
+            ))}
           </Table>
+
+          {/* Pagination Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '20px' }}>
+            <button
+              onClick={() => table.setPageIndex(0)}
+              disabled={!table.getCanPreviousPage()}
+              style={{ padding: '5px 10px' }}
+            >
+              {'<<'}
+            </button>
+            <button
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              style={{ padding: '5px 10px' }}
+            >
+              {'<'}
+            </button>
+            <button
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              style={{ padding: '5px 10px' }}
+            >
+              {'>'}
+            </button>
+            <button
+              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+              disabled={!table.getCanNextPage()}
+              style={{ padding: '5px 10px' }}
+            >
+              {'>>'}
+            </button>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div>Page</div>
+              <strong>
+                {table.getState().pagination.pageIndex + 1} of{' '}
+                {table.getPageCount()}
+              </strong>
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              | Go to page:
+              <input
+                type="number"
+                defaultValue={table.getState().pagination.pageIndex + 1}
+                onChange={e => {
+                  const page = e.target.value ? Number(e.target.value) - 1 : 0
+                  table.setPageIndex(page)
+                }}
+                style={{ width: '60px', padding: '2px 5px' }}
+              />
+            </span>
+            <select
+              value={table.getState().pagination.pageSize}
+              onChange={e => {
+                table.setPageSize(Number(e.target.value))
+              }}
+              style={{ padding: '2px 5px' }}
+            >
+              {[5, 10, 20, 30, 40, 50].map(pageSize => (
+                <option key={pageSize} value={pageSize}>
+                  Show {pageSize}
+                </option>
+              ))}
+            </select>
+            {loading && <span>Loading...</span>}
+          </div>
         </div>
       </section>
     </>
