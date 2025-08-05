@@ -96,7 +96,7 @@ public class C7Client {
    * Gets a single historic activity instance by ID.
    */
   public HistoricActivityInstance getHistoricActivityInstance(String legacyId) {
-    var query = historyService.createHistoricActivityInstanceQuery().activityId(legacyId);
+    var query = historyService.createHistoricActivityInstanceQuery().activityInstanceId(legacyId);
     return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricActivityInstance", legacyId));
   }
 

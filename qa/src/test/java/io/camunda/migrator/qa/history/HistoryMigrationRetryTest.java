@@ -11,9 +11,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.migrator.MigratorMode;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import io.camunda.search.entities.ProcessInstanceEntity;
+import java.util.List;
+import org.camunda.bpm.engine.HistoryService;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
+
+  @Autowired
+  private HistoryService historyService;
 
     @Test
     public void shouldMigratePreviouslySkippedProcessDefinition() {
@@ -31,5 +38,68 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
         // then process definition is migrated and no longer skipped
         assertThat(searchHistoricProcessDefinitions("userTaskProcessId").size()).isEqualTo(1);
         assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION)).isEqualTo(0);
+    }
+
+    @Test
+    public void shouldMigrateOnlyPreviouslySkippedElementsOnRetry() {
+        // given state in c7
+        deployer.deployCamunda7Process("userTaskProcess.bpmn");
+        for(int i = 0; i < 5; i++) {
+            runtimeService.startProcessInstanceByKey("userTaskProcessId");
+        }
+        completeAllUserTasksWithDefaultUserTaskId();
+
+        // and some entities manually set as skipped
+        String procDefId = repositoryService.createProcessDefinitionQuery().singleResult().getId();
+        String procInstId = historyService.createHistoricProcessInstanceQuery().list().getFirst().getId();
+        String actInstId = historyService.createHistoricActivityInstanceQuery().activityType("userTask").processInstanceId(procInstId).list().getFirst().getId();
+        String taskId = historyService.createHistoricTaskInstanceQuery().activityInstanceIdIn(actInstId).list().getFirst().getId();
+
+        dbClient.insert(procDefId, null, IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION);
+        dbClient.insert(procInstId, null, IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE);
+        dbClient.insert(actInstId, null, IdKeyMapper.TYPE.HISTORY_FLOW_NODE);
+        dbClient.insert(taskId, null, IdKeyMapper.TYPE.HISTORY_USER_TASK);
+
+        // when migration is retried
+        historyMigrator.setMode(MigratorMode.RETRY_SKIPPED);
+        historyMigrator.migrate();
+
+        // then only previously skipped entities are migrated
+        assertThat(searchHistoricProcessDefinitions("userTaskProcessId").size()).isEqualTo(1);
+        List<ProcessInstanceEntity> processInstances = searchHistoricProcessInstances("userTaskProcessId");
+        assertThat(processInstances.size()).isEqualTo(1);
+        assertThat(searchHistoricUserTasks(processInstances.getFirst().processInstanceKey()).size()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldNotMigratePreviouslySkippedElementsOnRerun() {
+        // given state in c7
+        deployer.deployCamunda7Process("userTaskProcess.bpmn");
+        for(int i = 0; i < 5; i++) {
+            runtimeService.startProcessInstanceByKey("userTaskProcessId");
+        }
+        completeAllUserTasksWithDefaultUserTaskId();
+
+        // and some entities manually set as skipped
+        String procInstId = historyService.createHistoricProcessInstanceQuery().list().getFirst().getId();
+        String actInstId = historyService.createHistoricActivityInstanceQuery().activityType("userTask").processInstanceId(procInstId).list().getFirst().getId();
+        String taskId = historyService.createHistoricTaskInstanceQuery().activityInstanceIdIn(actInstId).list().getFirst().getId();
+
+        dbClient.insert(procInstId, null, IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE);
+        dbClient.insert(actInstId, null, IdKeyMapper.TYPE.HISTORY_FLOW_NODE);
+        dbClient.insert(taskId, null, IdKeyMapper.TYPE.HISTORY_USER_TASK);
+
+        // when migration is run on migrate mode
+        historyMigrator.migrate();
+
+        // then only non skipped entities are migrated
+        assertThat(searchHistoricProcessDefinitions("userTaskProcessId").size()).isEqualTo(1);
+        List<ProcessInstanceEntity> processInstances = searchHistoricProcessInstances("userTaskProcessId");
+        assertThat(processInstances.size()).isEqualTo(4);
+
+        // and skipped entities are still skipped
+        assertThat(dbClient.checkHasKey(procInstId)).isFalse();
+        assertThat(dbClient.checkHasKey(actInstId)).isFalse();
+        assertThat(dbClient.checkHasKey(taskId)).isFalse();
     }
 }
