@@ -16,15 +16,8 @@
  */
 
 import React, {useState, useEffect, useMemo} from "react";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
-  createColumnHelper,
-  flexRender,
-} from '@tanstack/react-table';
-
-import {Table} from "./Table";
+import {createColumnHelper} from '@tanstack/react-table';
+import PaginatedTable from "./PaginatedTable";
 
 // Function to inject LiveReload script for development
 function injectLiveReload() {
@@ -42,8 +35,6 @@ function SkippedEntities({camundaAPI}) {
   const [selectedType, setSelectedType] = useState("RUNTIME_PROCESS_INSTANCE");
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
 
   const cockpitApi = camundaAPI.cockpitApi;
   const engine = camundaAPI.engine;
@@ -94,27 +85,6 @@ function SkippedEntities({camundaAPI}) {
     []
   );
 
-  const table = useReactTable({
-    data: skippedEntities,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-    pageCount: totalCount > 0 ? Math.ceil(totalCount / pageSize) : -1, // Use state pageSize
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
-      },
-    },
-    onPaginationChange: (updater) => {
-      if (typeof updater === 'function') {
-        const newPagination = updater({ pageIndex, pageSize });
-        setPageIndex(newPagination.pageIndex);
-        setPageSize(newPagination.pageSize);
-      }
-    },
-  });
-
   const fetchTotalCount = async () => {
     try {
       const response = await fetch(
@@ -133,11 +103,18 @@ function SkippedEntities({camundaAPI}) {
     }
   };
 
-  const fetchData = async (offset = 0, limit = 10) => {
+  const fetchData = async (pageIndex = 0, pageSize = 10) => {
     setLoading(true);
     try {
+      // If totalCount is 0, short-circuit and set empty array
+      if (totalCount === 0) {
+        setSkippedEntities([]);
+        return;
+      }
+
+      const offset = pageIndex * pageSize;
       const response = await fetch(
-        `${cockpitApi}/plugin/migrator-plugin/${engine}/migrator/skipped?type=${selectedType}&offset=${offset}&limit=${limit}`,
+        `${cockpitApi}/plugin/migrator-plugin/${engine}/migrator/skipped?type=${selectedType}&offset=${offset}&limit=${pageSize}`,
         {
           headers: {
             'Accept': 'application/json'
@@ -145,28 +122,30 @@ function SkippedEntities({camundaAPI}) {
         }
       );
       const data = await response.json();
-      setSkippedEntities(Array.isArray(data) ? data : data.items || []); // Handle array or object response
+      setSkippedEntities(Array.isArray(data) ? data : data.items || []);
     } catch (err) {
       console.error(err);
+      setSkippedEntities([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // Initial data load and when entity type changes
   useEffect(() => {
     // Inject LiveReload for development
     injectLiveReload();
 
     // Fetch total count first, then fetch data
     fetchTotalCount().then(() => {
-      fetchData(pageIndex * pageSize, pageSize);
+      fetchData(0, 10);
     });
   }, [selectedType]);
 
-  // Separate effect for pagination changes (don't refetch count on pagination)
-  useEffect(() => {
-    fetchData(pageIndex * pageSize, pageSize);
-  }, [pageIndex, pageSize]);
+  // Handle pagination changes
+  const handlePageChange = (pageIndex, pageSize) => {
+    fetchData(pageIndex, pageSize);
+  };
 
   if (loading && skippedEntities.length === 0) {
     return <div>Loading...</div>;
@@ -198,99 +177,15 @@ function SkippedEntities({camundaAPI}) {
             </select>
           </div>
 
-          <Table
-            head={
-              <>
-                {table.getHeaderGroups().map(headerGroup =>
-                  headerGroup.headers.map(header => (
-                    <Table.Head key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </Table.Head>
-                  ))
-                )}
-              </>
-            }
-          >
-            {table.getRowModel().rows.map(row => (
-              <Table.Row key={row.id}>
-                {row.getVisibleCells().map(cell => (
-                  <Table.Cell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </Table.Cell>
-                ))}
-              </Table.Row>
-            ))}
-          </Table>
-
-          {/* Pagination Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '20px' }}>
-            <button
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
-              style={{ padding: '5px 10px' }}
-            >
-              {'<<'}
-            </button>
-            <button
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-              style={{ padding: '5px 10px' }}
-            >
-              {'<'}
-            </button>
-            <button
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-              style={{ padding: '5px 10px' }}
-            >
-              {'>'}
-            </button>
-            <button
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled={!table.getCanNextPage()}
-              style={{ padding: '5px 10px' }}
-            >
-              {'>>'}
-            </button>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <div>Page</div>
-              <strong>
-                {table.getState().pagination.pageIndex + 1} of{' '}
-                {table.getPageCount()}
-              </strong>
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              | Go to page:
-              <input
-                type="number"
-                defaultValue={table.getState().pagination.pageIndex + 1}
-                onChange={e => {
-                  const page = e.target.value ? Number(e.target.value) - 1 : 0
-                  table.setPageIndex(page)
-                }}
-                style={{ width: '60px', padding: '2px 5px' }}
-              />
-            </span>
-            <select
-              value={table.getState().pagination.pageSize}
-              onChange={e => {
-                table.setPageSize(Number(e.target.value))
-              }}
-              style={{ padding: '2px 5px' }}
-            >
-              {[5, 10, 20, 30, 40, 50].map(pageSize => (
-                <option key={pageSize} value={pageSize}>
-                  Show {pageSize}
-                </option>
-              ))}
-            </select>
-            {loading && <span>Loading...</span>}
-          </div>
+          <PaginatedTable
+            columns={columns}
+            data={skippedEntities}
+            totalCount={totalCount}
+            loading={loading}
+            onPageChange={handlePageChange}
+            initialPageSize={10}
+            pageSizeOptions={[5, 10, 20, 30, 40, 50]}
+          />
         </div>
       </section>
     </>
