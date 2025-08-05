@@ -10,9 +10,10 @@ package io.camunda.migrator.impl.clients;
 import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_ACTIVITY_INSTANCE;
 import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_BPMN_XML;
 import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_DEPLOYMENT_TIME;
+import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_HISTORIC_ELEMENT;
 import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_PROCESS_INSTANCE;
-import static io.camunda.migrator.impl.logging.C7ClientLogs.FAILED_TO_FETCH_REPOSITORY_SERVICE;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
+import static java.lang.String.format;
 
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.Pagination;
@@ -76,11 +77,51 @@ public class C7Client {
   }
 
   /**
-   * TODO
+   * Gets a single historic process definition by ID.
    */
   public ProcessDefinition getHistoricProcessDefinition(String legacyId) {
     var query = repositoryService.createProcessDefinitionQuery().processDefinitionId(legacyId);
-    return callApi(query::singleResult, FAILED_TO_FETCH_REPOSITORY_SERVICE + legacyId);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "ProcessDefinition", legacyId));
+  }
+
+  /**
+   * Gets a single historic process instance by ID.
+   */
+  public HistoricProcessInstance getHistoricProcessInstance(String legacyId) {
+    var query = historyService.createHistoricProcessInstanceQuery().processInstanceId(legacyId);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricProcessInstance", legacyId));
+  }
+
+  /**
+   * Gets a single historic activity instance by ID.
+   */
+  public HistoricActivityInstance getHistoricActivityInstance(String legacyId) {
+    var query = historyService.createHistoricActivityInstanceQuery().activityId(legacyId);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricActivityInstance", legacyId));
+  }
+
+  /**
+   * Gets a single historic task instance by ID.
+   */
+  public HistoricTaskInstance getHistoricTaskInstance(String legacyId) {
+    var query = historyService.createHistoricTaskInstanceQuery().taskId(legacyId);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricTaskInstance", legacyId));
+  }
+
+  /**
+   * Gets a single historic variable instance by ID.
+   */
+  public HistoricVariableInstance getHistoricVariableInstance(String legacyId) {
+    var query = historyService.createHistoricVariableInstanceQuery().variableId(legacyId);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricVariableInstance", legacyId));
+  }
+
+  /**
+   * Gets a single historic incident by ID.
+   */
+  public HistoricIncident getHistoricIncident(String legacyId) {
+    var query = historyService.createHistoricIncidentQuery().incidentId(legacyId);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricIncident", legacyId));
   }
 
   /**

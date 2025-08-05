@@ -55,6 +55,7 @@ import io.camunda.search.filter.FlowNodeInstanceFilter;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
+import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
@@ -188,40 +189,46 @@ public class HistoryMigrator {
   private void migrateProcessInstances() {
     HistoryMigratorLogs.migratingProcessInstances();
     if (RETRY_SKIPPED.equals(mode)) {
-      // TODO: handle retry
+      dbClient.fetchAndHandleSkippedForType(HISTORY_PROCESS_INSTANCE, migrateSkippedProcessInstance());
     } else {
-      c7Client.fetchAndHandleHistoricProcessInstances(legacyProcessInstance -> {
-        String legacyProcessInstanceId = legacyProcessInstance.getId();
-        if (shouldMigrate(legacyProcessInstanceId)) {
-          HistoryMigratorLogs.migratingProcessInstance(legacyProcessInstanceId);
-          Long processDefinitionKey = findProcessDefinitionKey(legacyProcessInstance.getProcessDefinitionId());
-          if (processDefinitionKey != null) {
-            String legacySuperProcessInstanceId = legacyProcessInstance.getSuperProcessInstanceId();
-            Long parentProcessInstanceKey = null;
-            if (legacySuperProcessInstanceId != null) {
-              ProcessInstanceEntity parentInstance = findProcessInstanceByLegacyId(legacySuperProcessInstanceId);
-              if (parentInstance != null) {
-                parentProcessInstanceKey = parentInstance.processInstanceKey();
-              }
+      c7Client.fetchAndHandleHistoricProcessInstances(migrateProcessInstance(), dbClient.findLatestStartDateByType((HISTORY_PROCESS_INSTANCE)));
+    }
+  }
+
+  private Consumer<IdKeyDbModel> migrateSkippedProcessInstance() {
+    return idKeyDbModel -> migrateProcessInstance().accept(c7Client.getHistoricProcessInstance(idKeyDbModel.id()));
+  }
+
+  private Consumer<HistoricProcessInstance> migrateProcessInstance() {
+    return legacyProcessInstance -> {
+      String legacyProcessInstanceId = legacyProcessInstance.getId();
+      if (shouldMigrate(legacyProcessInstanceId)) {
+        HistoryMigratorLogs.migratingProcessInstance(legacyProcessInstanceId);
+        Long processDefinitionKey = findProcessDefinitionKey(legacyProcessInstance.getProcessDefinitionId());
+        if (processDefinitionKey != null) {
+          String legacySuperProcessInstanceId = legacyProcessInstance.getSuperProcessInstanceId();
+          Long parentProcessInstanceKey = null;
+          if (legacySuperProcessInstanceId != null) {
+            ProcessInstanceEntity parentInstance = findProcessInstanceByLegacyId(legacySuperProcessInstanceId);
+            if (parentInstance != null) {
+              parentProcessInstanceKey = parentInstance.processInstanceKey();
             }
-            if (parentProcessInstanceKey != null || legacySuperProcessInstanceId == null) {
-              ProcessInstanceDbModel dbModel = processInstanceConverter.apply(legacyProcessInstance,
-                  processDefinitionKey, parentProcessInstanceKey);
-              processInstanceMapper.insert(dbModel);
-              saveRecord(legacyProcessInstanceId, legacyProcessInstance.getStartTime(), dbModel.processInstanceKey(),
-                  HISTORY_PROCESS_INSTANCE);
-              HistoryMigratorLogs.migratingProcessInstanceCompleted(legacyProcessInstanceId);
-            } else {
-              saveRecord(legacyProcessInstanceId, null, HISTORY_PROCESS_INSTANCE);
-              HistoryMigratorLogs.skippingProcessInstanceDueToMissingParent(legacyProcessInstanceId);
-            }
+          }
+          if (parentProcessInstanceKey != null || legacySuperProcessInstanceId == null) {
+            ProcessInstanceDbModel dbModel = processInstanceConverter.apply(legacyProcessInstance, processDefinitionKey, parentProcessInstanceKey);
+            processInstanceMapper.insert(dbModel);
+            saveRecord(legacyProcessInstanceId, legacyProcessInstance.getStartTime(), dbModel.processInstanceKey(), HISTORY_PROCESS_INSTANCE);
+            HistoryMigratorLogs.migratingProcessInstanceCompleted(legacyProcessInstanceId);
           } else {
             saveRecord(legacyProcessInstanceId, null, HISTORY_PROCESS_INSTANCE);
-            HistoryMigratorLogs.skippingProcessInstanceDueToMissingDefinition(legacyProcessInstanceId);
+            HistoryMigratorLogs.skippingProcessInstanceDueToMissingParent(legacyProcessInstanceId);
           }
+        } else {
+          saveRecord(legacyProcessInstanceId, null, HISTORY_PROCESS_INSTANCE);
+          HistoryMigratorLogs.skippingProcessInstanceDueToMissingDefinition(legacyProcessInstanceId);
         }
-      }, dbClient.findLatestStartDateByType((HISTORY_PROCESS_INSTANCE)));
-    }
+      }
+    };
   }
 
   public void migrateIncidents() {
