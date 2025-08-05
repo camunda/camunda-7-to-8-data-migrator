@@ -9,6 +9,7 @@ package io.camunda.migrator.plugin.cockpit.resources;
 
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import io.camunda.migrator.plugin.cockpit.MigratorQueryService;
+import io.camunda.migrator.plugin.cockpit.MigratorCountQueryService;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
@@ -37,4 +38,12 @@ public class MigratorResource extends AbstractCockpitPluginResource {
     return getCommandExecutor().executeCommand(new MigratorQueryService(parameters));
   }
 
+  @GET
+  @Path("/skipped/count")
+  @Produces("application/json")
+  public Long getSkippedCount(@QueryParam("type") String type) {
+    var parameters = new HashMap<String, Object>();
+    parameters.put("type", type);
+    return getCommandExecutor().executeCommand(new MigratorCountQueryService(parameters));
+  }
 }
