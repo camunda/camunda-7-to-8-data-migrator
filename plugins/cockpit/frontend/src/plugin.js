@@ -18,17 +18,17 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
-import ProcessInstanceCount from "./ProcessInstanceCount";
+import SkippedEntities from "./SkippedEntities.js";
 
 let container = null;
 
 export default {
-  id: "process-instance-count",
+  id: "camunda-7-to-8-data-migrator",
   pluginPoint: "cockpit.processes.dashboard",
   render: (node, { api }) => {
     container = node;
     ReactDOM.render(
-      <ProcessInstanceCount camundaAPI={ api } />,
+      <SkippedEntities camundaAPI={ api } />,
       container
     );
   },

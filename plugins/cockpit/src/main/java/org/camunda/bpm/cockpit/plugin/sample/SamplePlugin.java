@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.camunda.bpm.cockpit.plugin.sample.resources.SamplePluginRootResource;
+import org.camunda.bpm.cockpit.plugin.sample.resources.PluginRootResource;
 import org.camunda.bpm.cockpit.plugin.spi.impl.AbstractCockpitPlugin;
 
 /**
@@ -31,7 +31,7 @@ public class SamplePlugin extends AbstractCockpitPlugin {
   public Set<Class<?>> getResourceClasses() {
     Set<Class<?>> classes = new HashSet<>();
 
-    classes.add(SamplePluginRootResource.class);
+    classes.add(PluginRootResource.class);
 
     return classes;
   }

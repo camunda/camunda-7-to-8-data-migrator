@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect} from "react";
 
-import { Table } from "./Table";
+import {Table} from "./Table";
 
-function ProcessInstanceCount({ camundaAPI }) {
-  const [processInstanceCounts, setProcessInstanceCounts] = useState();
+function SkippedEntities({camundaAPI}) {
+  const [skippedEntities, setSkippedEntities] = useState();
 
   const cockpitApi = camundaAPI.cockpitApi;
   const engine = camundaAPI.engine;
 
   useEffect(() => {
     fetch(
-      `${cockpitApi}/plugin/sample-plugin/${engine}/process-instance`,
+      `${cockpitApi}/plugin/sample-plugin/${engine}/migrator/skipped?type=RUNTIME_PROCESS_INSTANCE&offset=0&limit=10`,
       {
         headers: {
           'Accept': 'application/json'
@@ -35,40 +35,44 @@ function ProcessInstanceCount({ camundaAPI }) {
       }
     )
       .then(async res => {
-        setProcessInstanceCounts(await res.json());
+        setSkippedEntities(await res.json());
       })
       .catch(err => {
         console.error(err);
       });
   }, []);
 
-  if (!processInstanceCounts) {
+  if (!skippedEntities) {
     return <div>Loading...</div>;
   }
 
   return (
     <>
-    <h1>Process Instances per Definition</h1>
+      <section>
+        <div className="inner">
+          <h1 className="section-title">Camunda 7 to 8 Data Migrator</h1>
 
-    <Table
-      head={
-        <>
-          <Table.Head key="processDefinitionKey">Key</Table.Head>
-          <Table.Head key="instancesCount">Instances</Table.Head>
-        </>
-      }
-    >
-      {processInstanceCounts.map(processDefinition => {
-        return (
-          <Table.Row key={processDefinition.key}>
-            <Table.Cell key="processDefinitionKey">{processDefinition.key}</Table.Cell>
-            <Table.Cell key="instancesCount">{processDefinition.instanceCount}</Table.Cell>
-          </Table.Row>
-        );
-      })}
-    </Table>
-  </>
+          <Table
+            head={
+              <>
+                <Table.Head key="processInstanceId">Process Instance ID</Table.Head>
+                <Table.Head key="type">Type</Table.Head>
+              </>
+            }
+          >
+            {skippedEntities.map(entity => {
+              return (
+                <Table.Row key={entity.id}>
+                  <Table.Cell key="processInstanceId">{entity.id}</Table.Cell>
+                  <Table.Cell key="type">{entity.type}</Table.Cell>
+                </Table.Row>
+              );
+            })}
+          </Table>
+        </div>
+      </section>
+    </>
   );
 }
 
-export default ProcessInstanceCount;
+export default SkippedEntities;
