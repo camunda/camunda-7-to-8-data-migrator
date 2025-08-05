@@ -49,6 +49,16 @@ function SkippedEntities({camundaAPI}) {
     RUNTIME_PROCESS_INSTANCE: "RUNTIME_PROCESS_INSTANCE"
   }
 
+  const getEntityLink = (entity) => {
+    if (entity.type === TYPE.RUNTIME_PROCESS_INSTANCE) {
+      return <a href={`#/process-instance/${entity.id}/runtime`}>{entity.id}</a>;
+    } else if (entity.type === TYPE.HISTORY_PROCESS_INSTANCE) {
+      return <a href={`#/process-instance/${entity.id}/history`}>{entity.id}</a>;
+    } else {
+      return entity.id;
+    }
+  }
+
   useEffect(() => {
     // Inject LiveReload for development
     injectLiveReload();
@@ -102,7 +112,7 @@ function SkippedEntities({camundaAPI}) {
           <Table
             head={
               <>
-                <Table.Head key="processInstanceId">C7 ID</Table.Head>
+                <Table.Head key="entityId">C7 ID</Table.Head>
                 <Table.Head key="type">C8 Key</Table.Head>
                 <Table.Head key="type">Type</Table.Head>
                 <Table.Head key="type">Skip reason</Table.Head>
@@ -112,8 +122,8 @@ function SkippedEntities({camundaAPI}) {
             {skippedEntities.map(entity => {
               return (
                 <Table.Row key={entity.id}>
-                  <Table.Cell key="processInstanceId">
-                    <a href={`#/process-instance/${entity.id}/runtime`}>{entity.id}</a>
+                  <Table.Cell key="entityId">
+                    {getEntityLink(entity)}
                   </Table.Cell>
                   <Table.Cell key="type">
                     {entity.instanceKey == null ? "❌" : entity.instanceKey + "✅"}
