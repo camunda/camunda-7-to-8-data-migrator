@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Watch the target directory where files are copied
-const watchPath = path.resolve(__dirname, '../target/classes/plugin-webapp/sample-plugin/app');
+const watchPath = path.resolve(__dirname, '../target/classes/plugin-webapp/migrator-plugin/app');
 
 console.log('🔄 LiveReload server starting...');
 console.log(`📁 Watching: ${watchPath}`);

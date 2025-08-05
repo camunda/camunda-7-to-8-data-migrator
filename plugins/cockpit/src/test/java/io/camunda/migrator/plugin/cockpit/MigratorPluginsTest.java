@@ -12,17 +12,12 @@ import java.util.List;
 import org.camunda.bpm.cockpit.Cockpit;
 import org.camunda.bpm.cockpit.db.QueryParameters;
 import org.camunda.bpm.cockpit.db.QueryService;
-import io.camunda.migrator.plugin.cockpit.db.ProcessInstanceCountDto;
 import org.camunda.bpm.cockpit.plugin.spi.CockpitPlugin;
 import org.camunda.bpm.cockpit.plugin.test.AbstractCockpitPluginTest;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
-*
-* @author nico.rehwaldt
-*/
-public class SamplePluginsTest extends AbstractCockpitPluginTest {
+public class MigratorPluginsTest extends AbstractCockpitPluginTest {
 
   @Test
   public void testPluginDiscovery() {
@@ -36,7 +31,7 @@ public class SamplePluginsTest extends AbstractCockpitPluginTest {
 
     QueryService queryService = getQueryService();
 
-    List<ProcessInstanceCountDto> instanceCounts =
+    List<Object> instanceCounts =
       queryService
         .executeQuery(
           "cockpit.sample.selectProcessInstanceCountsByProcessDefinition",

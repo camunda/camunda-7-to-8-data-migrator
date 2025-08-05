@@ -15,13 +15,9 @@ import java.util.Set;
 import io.camunda.migrator.plugin.cockpit.resources.PluginRootResource;
 import org.camunda.bpm.cockpit.plugin.spi.impl.AbstractCockpitPlugin;
 
-/**
- *
- * @author nico.rehwaldt
- */
-public class SamplePlugin extends AbstractCockpitPlugin {
+public class MigratorPlugin extends AbstractCockpitPlugin {
 
-  public static final String ID = "sample-plugin";
+  public static final String ID = "migrator-plugin";
 
   public String getId() {
     return ID;

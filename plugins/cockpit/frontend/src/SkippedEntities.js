@@ -41,7 +41,7 @@ function SkippedEntities({camundaAPI}) {
     injectLiveReload();
 
     fetch(
-      `${cockpitApi}/plugin/sample-plugin/${engine}/migrator/skipped?type=RUNTIME_PROCESS_INSTANCE&offset=0&limit=10`,
+      `${cockpitApi}/plugin/migrator-plugin/${engine}/migrator/skipped?type=RUNTIME_PROCESS_INSTANCE&offset=0&limit=10`,
       {
         headers: {
           'Accept': 'application/json'

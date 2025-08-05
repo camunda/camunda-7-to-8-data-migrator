@@ -7,17 +7,17 @@
  */
 package io.camunda.migrator.plugin.cockpit.resources;
 
+import io.camunda.migrator.plugin.cockpit.MigratorPlugin;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 
 import org.camunda.bpm.cockpit.plugin.resource.AbstractCockpitPluginRootResource;
-import io.camunda.migrator.plugin.cockpit.SamplePlugin;
 
-@Path("plugin/" + SamplePlugin.ID)
+@Path("plugin/" + MigratorPlugin.ID)
 public class PluginRootResource extends AbstractCockpitPluginRootResource {
 
   public PluginRootResource() {
-    super(SamplePlugin.ID);
+    super(MigratorPlugin.ID);
   }
 
   @Path("{engineName}/migrator")

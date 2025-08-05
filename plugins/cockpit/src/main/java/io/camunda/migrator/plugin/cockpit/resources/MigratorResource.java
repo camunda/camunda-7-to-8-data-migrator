@@ -8,6 +8,7 @@
 package io.camunda.migrator.plugin.cockpit.resources;
 
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
+import io.camunda.migrator.plugin.cockpit.MigratorQueryService;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
@@ -33,7 +34,7 @@ public class MigratorResource extends AbstractCockpitPluginResource {
     parameters.put("type", type);
     parameters.put("offset", offset);
     parameters.put("limit", limit);
-    return getCommandExecutor().executeCommand(new ListCommand(getCommandExecutor(), parameters));
+    return getCommandExecutor().executeCommand(new MigratorQueryService(parameters));
   }
 
 }

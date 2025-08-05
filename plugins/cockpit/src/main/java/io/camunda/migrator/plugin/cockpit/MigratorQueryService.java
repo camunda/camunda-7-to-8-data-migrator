@@ -5,7 +5,7 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.plugin.cockpit.resources;
+package io.camunda.migrator.plugin.cockpit;
 
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import java.io.IOException;
@@ -17,15 +17,14 @@ import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.db.ListQueryParameterObject;
 import org.camunda.bpm.engine.impl.interceptor.Command;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
-import org.camunda.bpm.webapp.db.CommandExecutor;
 import org.camunda.bpm.webapp.impl.db.QueryServiceImpl;
 
-class ListCommand extends QueryServiceImpl implements Command<List<IdKeyDbModel>> {
+public class MigratorQueryService extends QueryServiceImpl implements Command<List<IdKeyDbModel>> {
 
   protected Map<String, Object> parameters;
 
-  public ListCommand(CommandExecutor commandExecutor, Map<String, Object> parameters) {
-    super(commandExecutor);
+  public MigratorQueryService(Map<String, Object> parameters) {
+    super(null);
     this.parameters = parameters;
   }
 

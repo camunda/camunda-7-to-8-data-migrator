@@ -49,7 +49,7 @@ export default {
       targets: [
         {
           src: 'dist/*',
-          dest: '../target/classes/plugin-webapp/sample-plugin/app'
+          dest: '../target/classes/plugin-webapp/migrator-plugin/app'
         }
       ],
       hook: 'writeBundle',
