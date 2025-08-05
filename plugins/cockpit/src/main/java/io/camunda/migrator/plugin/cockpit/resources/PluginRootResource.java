@@ -5,13 +5,13 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package org.camunda.bpm.cockpit.plugin.sample.resources;
+package io.camunda.migrator.plugin.cockpit.resources;
 
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 
 import org.camunda.bpm.cockpit.plugin.resource.AbstractCockpitPluginRootResource;
-import org.camunda.bpm.cockpit.plugin.sample.SamplePlugin;
+import io.camunda.migrator.plugin.cockpit.SamplePlugin;
 
 @Path("plugin/" + SamplePlugin.ID)
 public class PluginRootResource extends AbstractCockpitPluginRootResource {

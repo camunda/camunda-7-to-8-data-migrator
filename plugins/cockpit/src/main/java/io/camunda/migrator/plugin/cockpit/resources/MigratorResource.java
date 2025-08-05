@@ -5,7 +5,7 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package org.camunda.bpm.cockpit.plugin.sample.resources;
+package io.camunda.migrator.plugin.cockpit.resources;
 
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import jakarta.ws.rs.Path;

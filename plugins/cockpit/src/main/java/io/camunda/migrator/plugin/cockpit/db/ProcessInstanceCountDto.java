@@ -5,7 +5,7 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package org.camunda.bpm.cockpit.plugin.sample.db;
+package io.camunda.migrator.plugin.cockpit.db;
 
 /**
  *
