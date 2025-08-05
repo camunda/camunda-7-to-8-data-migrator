@@ -24,7 +24,7 @@ let container = null;
 
 export default {
   id: "process-instance-count",
-  pluginPoint: "cockpit.dashboard",
+  pluginPoint: "cockpit.processes.dashboard",
   render: (node, { api }) => {
     container = node;
     ReactDOM.render(

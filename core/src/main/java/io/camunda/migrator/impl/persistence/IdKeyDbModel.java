@@ -7,10 +7,12 @@
  */
 package io.camunda.migrator.impl.persistence;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE;
 import java.util.Date;
 import java.util.Objects;
 
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class IdKeyDbModel {
 
   protected Long instanceKey;

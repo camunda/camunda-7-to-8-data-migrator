@@ -2,12 +2,18 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.camunda.bpm.cockpit.plugin</groupId>
-  <artifactId>cockpit-sample-plugin</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <parent>
+    <groupId>io.camunda</groupId>
+    <artifactId>c7-data-migrator-root</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../</relativePath>
+  </parent>
+
+  <artifactId>c7-data-migrator-cockpit-plugin</artifactId>
+
   <packaging>jar</packaging>
 
-  <name>Camunda Cockpit Plugin: Sample</name>
+  <name>C7 Data Migrator - Plugins – Cockpit</name>
   <description>This is a simple plugin that showcases the plugin system of Cockpit, the process monitoring tool of Camunda Platform.</description>
   <url>https://github.com/camunda/camunda-bpm-examples/tree/7.23/cockpit/cockpit-sample-plugin</url>
 
@@ -42,7 +48,7 @@
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>c7-data-migrator-core</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>${project.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.liquibase</groupId>
@@ -143,6 +149,25 @@
                 </resource>
               </resources>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <configuration>
+          <licenseSets>
+            <licenseSet>
+              <header>${project.basedir}/../../license/header.txt</header>
+            </licenseSet>
+          </licenseSets>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
