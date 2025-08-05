@@ -82,7 +82,11 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
         assertThat(historyService.createHistoricActivityInstanceQuery().count()).isEqualTo(12); // multiple flow nodes per instance
 
         // Mark the process definition as skipped
-        String processDefinitionId = repositoryService.createProcessDefinitionQuery().singleResult().getId();
+        String processDefinitionId = repositoryService.createProcessDefinitionQuery()
+            .processDefinitionKey("comprehensiveSkippingTestProcessId")
+            .latestVersion()
+            .singleResult()
+            .getId();
         dbClient.insert(processDefinitionId, null, IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION);
 
         // Run history migration to skip all entities
@@ -127,6 +131,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
 
         // Assert user tasks - verify the actual user task IDs from C7
         List<String> expectedUserTaskIds = historyService.createHistoricTaskInstanceQuery()
+            .processDefinitionId(processDefinitionId)
             .list()
             .stream()
             .map(task -> task.getId())
@@ -137,6 +142,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
 
         // Assert incidents - verify the actual incident IDs from C7
         List<String> expectedIncidentIds = historyService.createHistoricIncidentQuery()
+            .processDefinitionId(processDefinitionId)
             .list()
             .stream()
             .map(incident -> incident.getId())
@@ -147,6 +153,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
 
         // Assert variables - verify the actual variable IDs from C7
         List<String> expectedVariableIds = historyService.createHistoricVariableInstanceQuery()
+            .processDefinitionId(processDefinitionId)
             .list()
             .stream()
             .map(variable -> variable.getId())
@@ -157,6 +164,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
 
         // Assert flow nodes - verify the actual flow node (activity instance) IDs from C7
         List<String> expectedFlowNodeIds = historyService.createHistoricActivityInstanceQuery()
+            .processDefinitionId(processDefinitionId)
             .list()
             .stream()
             .map(activity -> activity.getId())
@@ -214,10 +222,11 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
 
             List<String> entityIds = new ArrayList<>();
             if (!sectionContent.isEmpty()) {
-                // Split by lines and filter out empty lines
+                // Split by lines and filter out empty lines and debug log messages
                 entityIds = Arrays.stream(sectionContent.split("\\R"))
                     .map(String::trim)
                     .filter(line -> !line.isEmpty())
+                    .filter(line -> !isDebugLogLine(line))
                     .collect(Collectors.toList());
             }
 
@@ -225,5 +234,26 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
         }
 
         return result;
+    }
+
+    /**
+     * Checks if a line is a debug log message that should be filtered out.
+     * Debug log lines typically contain timestamps, log levels, and logger names.
+     */
+    private boolean isDebugLogLine(String line) {
+        // Filter out lines that look like debug logs:
+        // - Lines starting with ISO timestamp pattern (e.g., "2025-08-05T13:12:14.152Z")
+        // - Lines containing log levels (DEBUG, INFO, WARN, ERROR)
+        // - Lines containing SQL preparation/execution patterns
+        return line.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z.*") ||
+               line.contains("DEBUG") ||
+               line.contains("INFO") ||
+               line.contains("WARN") ||
+               line.contains("ERROR") ||
+               line.contains("==>") ||
+               line.contains("<==") ||
+               line.contains("Preparing:") ||
+               line.contains("Parameters:") ||
+               line.contains("Total:");
     }
 }
