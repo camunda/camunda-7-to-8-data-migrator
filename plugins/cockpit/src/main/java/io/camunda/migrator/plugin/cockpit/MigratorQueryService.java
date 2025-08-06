@@ -7,34 +7,37 @@
  */
 package io.camunda.migrator.plugin.cockpit;
 
-import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.BiFunction;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.db.ListQueryParameterObject;
 import org.camunda.bpm.engine.impl.interceptor.Command;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.webapp.impl.db.QueryServiceImpl;
 
-public class MigratorQueryService extends QueryServiceImpl implements Command<List<IdKeyDbModel>> {
+public class MigratorQueryService<T> extends QueryServiceImpl implements Command<T> {
 
-  protected Map<String, Object> parameters;
+  protected Map<String, Object> params;
+  protected BiFunction<Map<String, Object>, CommandContext, T> queryExecutor;
 
-  public MigratorQueryService(Map<String, Object> parameters) {
+  public MigratorQueryService(Map<String, Object> params,
+                              BiFunction<Map<String, Object>, CommandContext, T> queryExecutor) {
     super(null);
-    this.parameters = parameters;
+    this.params = params;
+    this.queryExecutor = queryExecutor;
   }
 
-  @SuppressWarnings("unchecked")
-  public List<IdKeyDbModel> execute(CommandContext commandContext) {
+  @Override
+  public T execute(CommandContext commandContext) {
     ProcessEngineConfigurationImpl engineConfig = getProcessEngineConfiguration(commandContext);
     configureAuthCheck(new ListQueryParameterObject(), engineConfig, commandContext);
 
     Properties props = new Properties();
-    try (InputStream is = getClass().getClassLoader().getResourceAsStream(String.format("db/properties/%s.properties", getDatabaseType(engineConfig)))) {
+    ClassLoader classLoader = getClass().getClassLoader();
+    try (InputStream is = classLoader.getResourceAsStream(String.format("db/properties/%s.properties", getDatabaseType(engineConfig)))) {
       if (is != null) {
         props.load(is);
       }
@@ -42,9 +45,8 @@ public class MigratorQueryService extends QueryServiceImpl implements Command<Li
       throw new RuntimeException(e);
     }
 
-    parameters.putAll((Map<String, Object>) (Map<?, ?>) props);
-    return (List<IdKeyDbModel>) commandContext.getDbSqlSession()
-        .selectList("io.camunda.migrator.impl.persistence.IdKeyMapper.findSkippedByType", parameters);
+    params.putAll((Map<String, Object>) (Map<?, ?>) props);
+    return queryExecutor.apply(params, commandContext);
   }
 
   protected Object getDatabaseType(ProcessEngineConfigurationImpl engineConfig) {
@@ -55,5 +57,4 @@ public class MigratorQueryService extends QueryServiceImpl implements Command<Li
       return databaseType;
     }
   }
-
 }
