@@ -226,7 +226,7 @@ public class HistoryMigrator {
               Long flowNodeInstanceKey = findFlowNodeKey(legacyIncident.getActivityId(),
                   legacyIncident.getProcessInstanceId());
               Long processDefinitionKey = findProcessDefinitionKey(legacyIncident.getProcessDefinitionId());
-              Long jobDefinitionKey = null; // TODO Job table doesn't exist yet. CAM-5331
+              Long jobDefinitionKey = null; // TODO Job table doesn't exist yet. https://github.com/camunda/camunda-bpm-platform/issues/5331
               IncidentDbModel dbModel = incidentConverter.apply(legacyIncident, processDefinitionKey,
                   processInstanceKey, jobDefinitionKey, flowNodeInstanceKey);
               incidentMapper.insert(dbModel);
