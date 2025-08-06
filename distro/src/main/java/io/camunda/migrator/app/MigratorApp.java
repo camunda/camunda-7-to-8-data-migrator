@@ -7,9 +7,6 @@
  */
 package io.camunda.migrator.app;
 
-import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
-import static io.camunda.migrator.MigratorMode.MIGRATE;
-import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
 
 import io.camunda.migrator.impl.AutoDeployer;
 import io.camunda.migrator.HistoryMigrator;
@@ -29,21 +26,21 @@ public class MigratorApp {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(MigratorApp.class);
 
-  protected static final String RUN_HELP = "help";
-  protected static final String RUN_HISTORY_MIGRATION = "history";
-  protected static final String RUN_RUNTIME_MIGRATION = "runtime";
-  protected static final String RUN_RETRY_SKIPPED = "retry-skipped";
-  protected static final String RUN_LIST_SKIPPED = "list-skipped";
+  protected static final int MAX_ARGUMENTS = 3;
+
+  protected static final String ARG_HELP = "help";
+  protected static final String ARG_HISTORY_MIGRATION = "history";
+  protected static final String ARG_RUNTIME_MIGRATION = "runtime";
+  protected static final String ARG_RETRY_SKIPPED = "retry-skipped";
+  protected static final String ARG_LIST_SKIPPED = "list-skipped";
 
   protected static final Set<String> VALID_FLAGS = Set.of(
-      "--" + RUN_RUNTIME_MIGRATION,
-      "--" + RUN_HISTORY_MIGRATION,
-      "--" + RUN_LIST_SKIPPED,
-      "--" + RUN_RETRY_SKIPPED,
-      "--" + RUN_HELP
+      "--" + ARG_RUNTIME_MIGRATION,
+      "--" + ARG_HISTORY_MIGRATION,
+      "--" + ARG_LIST_SKIPPED,
+      "--" + ARG_RETRY_SKIPPED,
+      "--" + ARG_HELP
   );
-
-  protected static final int MAX_ARGUMENTS = 3;
 
   public static void main(String[] args) {
     try {
@@ -68,16 +65,16 @@ public class MigratorApp {
     try {
       AutoDeployer autoDeployer = context.getBean(AutoDeployer.class);
       autoDeployer.deploy();
-      if (appArgs.containsOption(RUN_HELP)) {
+      if (appArgs.containsOption(ARG_HELP)) {
         printUsage();
         System.exit(1);
       } else if (shouldRunFullMigration(appArgs)) {
         LOGGER.info("Migrating both runtime and history");
         migrateRuntime(context, mode);
         migrateHistory(context, mode);
-      } else if (appArgs.containsOption(RUN_RUNTIME_MIGRATION)) {
+      } else if (appArgs.containsOption(ARG_RUNTIME_MIGRATION)) {
         migrateRuntime(context, mode);
-      } else if (appArgs.containsOption(RUN_HISTORY_MIGRATION)) {
+      } else if (appArgs.containsOption(ARG_HISTORY_MIGRATION)) {
         migrateHistory(context, mode);
       } else {
         LOGGER.warn("Invalid argument combination");
@@ -118,27 +115,23 @@ public class MigratorApp {
   }
 
   public static void migrateHistory(ConfigurableApplicationContext context, MigratorMode mode) {
-    if (!MIGRATE.equals(mode)) {
-      LOGGER.warn("Retrying history migration is not implemented yet, history migration will not be executed");
-      return;
-    }
     LOGGER.info("Migrating history data...");
     HistoryMigrator historyMigrator = context.getBean(HistoryMigrator.class);
+    historyMigrator.setMode(mode);
     historyMigrator.migrate();
   }
 
   protected static boolean shouldRunFullMigration(ApplicationArguments appArgs) {
-    // Return true either when both --runtime and --history are present
-    return appArgs.containsOption(RUN_RUNTIME_MIGRATION) && appArgs.containsOption(RUN_HISTORY_MIGRATION);
+    return appArgs.containsOption(ARG_RUNTIME_MIGRATION) && appArgs.containsOption(ARG_HISTORY_MIGRATION);
   }
 
   protected static MigratorMode getMigratorMode(ApplicationArguments appArgs) {
-    if (appArgs.containsOption(RUN_LIST_SKIPPED)) {
-      return LIST_SKIPPED;
-    } else if (appArgs.containsOption(RUN_RETRY_SKIPPED)) {
-      return RETRY_SKIPPED;
+    if (appArgs.containsOption(ARG_LIST_SKIPPED)) {
+      return MigratorMode.LIST_SKIPPED;
+    } else if (appArgs.containsOption(ARG_RETRY_SKIPPED)) {
+      return MigratorMode.RETRY_SKIPPED;
     } else {
-      return MIGRATE;
+      return MigratorMode.MIGRATE;
     }
   }
 }
