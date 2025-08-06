@@ -27,7 +27,8 @@ function SkippedEntities({camundaAPI}) {
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [processInstanceIds, setProcessInstanceIds] = useState({});
-  const [showSkipped, setShowSkipped] = useState(true); // New toggle state
+  const [showSkipped, setShowSkipped] = useState(true);
+  const [viewMode, setViewMode] = useState('runtime'); // New state for runtime/history mode
 
   const cockpitApi = camundaAPI.cockpitApi;
   const engine = camundaAPI.engine;
@@ -60,11 +61,15 @@ function SkippedEntities({camundaAPI}) {
         }));
       }
 
+      if (viewMode === 'history') {
+        baseColumns.push(
+          columnHelper.accessor('type', {
+            header: 'Type',
+            cell: info => <code>{info.getValue()}</code>,
+          }));
+      }
+
       baseColumns = [...baseColumns,
-        columnHelper.accessor('type', {
-          header: 'Type',
-          cell: info => <code>{info.getValue()}</code>,
-        }),
         columnHelper.accessor('skipReason', {
           header: 'Skip reason',
           cell: info => info.getValue(),
@@ -93,6 +98,37 @@ function SkippedEntities({camundaAPI}) {
     },
     [selectedType, processInstanceIds, showSkipped]
   );
+
+  const getEntityTypeLabel = (entityType) => {
+    const labels = {
+      HISTORY_PROCESS_DEFINITION: "Process Definition",
+      HISTORY_PROCESS_INSTANCE: "Process Instance",
+      HISTORY_INCIDENT: "Incident",
+      HISTORY_VARIABLE: "Variable",
+      HISTORY_USER_TASK: "User Task",
+      HISTORY_FLOW_NODE: "Flow Node",
+      HISTORY_DECISION_INSTANCE: "Decision Instance",
+      HISTORY_DECISION_DEFINITION: "Decision Definition",
+      RUNTIME_PROCESS_INSTANCE: "Process Instance"
+    };
+    return labels[entityType] || entityType;
+  };
+
+  // Filter entity types based on view mode
+  const getAvailableEntityTypes = () => {
+    if (viewMode === 'runtime') {
+      return {RUNTIME_PROCESS_INSTANCE: ENTITY_TYPES.RUNTIME_PROCESS_INSTANCE};
+    } else {
+      // Return all history types
+      const historyTypes = {};
+      Object.entries(ENTITY_TYPES).forEach(([key, value]) => {
+        if (key.startsWith('HISTORY_')) {
+          historyTypes[key] = value;
+        }
+      });
+      return historyTypes;
+    }
+  };
 
   const fetchTotalCount = async () => {
     try {
@@ -195,11 +231,19 @@ function SkippedEntities({camundaAPI}) {
       setProcessInstanceIds({});
     }
 
+    // When switching to runtime mode, set entity type to runtime process instance
+    if (viewMode === 'runtime') {
+      setSelectedType(ENTITY_TYPES.RUNTIME_PROCESS_INSTANCE);
+    } else if (viewMode === 'history' && selectedType === ENTITY_TYPES.RUNTIME_PROCESS_INSTANCE) {
+      // When switching to history mode from runtime, default to history process instance
+      setSelectedType(ENTITY_TYPES.HISTORY_PROCESS_INSTANCE);
+    }
+
     // Fetch total count first, then fetch data
     fetchTotalCount().then(() => {
       fetchData(0, 10);
     });
-  }, [selectedType, showSkipped]); // Add showSkipped to dependency array
+  }, [selectedType, showSkipped, viewMode]); // Add viewMode to dependency array
 
   // Handle pagination changes
   const handlePageChange = (pageIndex, pageSize) => {
@@ -215,14 +259,9 @@ function SkippedEntities({camundaAPI}) {
       <section>
         <div className="inner">
           <header>
-            <h1 className="section-title">Camunda 7 to 8 Data Migrator</h1>
-          </header>
+            <h1 style={{float: 'left'}} className="section-title">Camunda 7 to 8 Data Migrator</h1>
 
-          <div style={{marginBottom: '20px'}}>
-            <div style={{marginBottom: '10px'}}>
-              <label style={{marginRight: '10px'}}>
-                View:
-              </label>
+            <div style={{marginTop: '5px', float: 'right'}}>
               <label style={{marginRight: '20px'}}>
                 <input
                   type="radio"
@@ -231,7 +270,7 @@ function SkippedEntities({camundaAPI}) {
                   onChange={() => setShowSkipped(true)}
                   style={{marginRight: '5px'}}
                 />
-                Skipped Entities
+                Skipped
               </label>
               <label>
                 <input
@@ -241,27 +280,53 @@ function SkippedEntities({camundaAPI}) {
                   onChange={() => setShowSkipped(false)}
                   style={{marginRight: '5px'}}
                 />
-                Migrated Entities
+                Migrated
+              </label>
+              <label style={{marginRight: '40px'}}>
+              </label>
+              <label style={{marginRight: '20px'}}>
+                <input
+                  type="radio"
+                  value="runtime"
+                  checked={viewMode === 'runtime'}
+                  onChange={() => setViewMode('runtime')}
+                  style={{marginRight: '5px'}}
+                />
+                Runtime
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="history"
+                  checked={viewMode === 'history'}
+                  onChange={() => setViewMode('history')}
+                  style={{marginRight: '5px'}}
+                />
+                History
               </label>
             </div>
+          </header>
 
-            <div>
-              <label htmlFor="type-selector" style={{marginRight: '10px'}}>
-                Entity Type:
-              </label>
-              <select
-                id="type-selector"
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                style={{padding: '5px', minWidth: '200px'}}
-              >
-                {Object.entries(ENTITY_TYPES).map(([key, value]) => (
-                  <option key={key} value={value}>
-                    {key.replace(/_/g, ' ')}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div style={{marginBottom: '20px'}}>
+            {viewMode === 'history' && (
+              <div>
+                <label htmlFor="type-selector" style={{marginRight: '10px'}}>
+                  Type:
+                </label>
+                <select
+                  id="type-selector"
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value)}
+                  style={{padding: '5px', minWidth: '200px'}}
+                >
+                  {Object.entries(getAvailableEntityTypes()).map(([key, value]) => (
+                    <option key={key} value={value}>
+                      {getEntityTypeLabel(value)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <PaginatedTable
