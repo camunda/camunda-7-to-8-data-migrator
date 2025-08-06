@@ -45,7 +45,6 @@ import io.camunda.migrator.converter.VariableConverter;
 import io.camunda.migrator.impl.clients.C7Client;
 import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.logging.HistoryMigratorLogs;
-import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.migrator.impl.util.ExceptionUtils;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
@@ -54,7 +53,6 @@ import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
 import java.util.Date;
 import java.util.List;
-import java.util.function.Consumer;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.history.HistoricIncident;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
@@ -166,14 +164,13 @@ public class HistoryMigrator {
   public void migrateProcessDefinitions() {
     HistoryMigratorLogs.migratingProcessDefinitions();
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.fetchAndHandleSkippedForType(HISTORY_PROCESS_DEFINITION, migrateSkippedProcessDefinition());
+      dbClient.fetchAndHandleSkippedForType(HISTORY_PROCESS_DEFINITION, idKeyDbModel -> {
+        ProcessDefinition historicProcessDefinition = c7Client.getHistoricProcessDefinition(idKeyDbModel.id());
+        migrateProcessDefinition(historicProcessDefinition);
+      });
     } else {
       c7Client.fetchAndHandleProcessDefinitions(this::migrateProcessDefinition, dbClient.findLatestStartDateByType((HISTORY_PROCESS_DEFINITION)));
     }
-  }
-
-  private Consumer<IdKeyDbModel> migrateSkippedProcessDefinition() {
-    return idKeyDbModel -> migrateProcessDefinition(c7Client.getHistoricProcessDefinition(idKeyDbModel.id()));
   }
 
   private void migrateProcessDefinition(ProcessDefinition legacyProcessDefinition) {
@@ -191,14 +188,13 @@ public class HistoryMigrator {
   private void migrateProcessInstances() {
     HistoryMigratorLogs.migratingProcessInstances();
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.fetchAndHandleSkippedForType(HISTORY_PROCESS_INSTANCE, migrateSkippedProcessInstance());
+      dbClient.fetchAndHandleSkippedForType(HISTORY_PROCESS_INSTANCE, idKeyDbModel -> {
+        HistoricProcessInstance historicProcessInstance = c7Client.getHistoricProcessInstance(idKeyDbModel.id());
+        migrateProcessInstance(historicProcessInstance);
+      });
     } else {
       c7Client.fetchAndHandleHistoricProcessInstances(this::migrateProcessInstance, dbClient.findLatestStartDateByType((HISTORY_PROCESS_INSTANCE)));
     }
-  }
-
-  private Consumer<IdKeyDbModel> migrateSkippedProcessInstance() {
-    return idKeyDbModel -> migrateProcessInstance(c7Client.getHistoricProcessInstance(idKeyDbModel.id()));
   }
 
   private void migrateProcessInstance(HistoricProcessInstance legacyProcessInstance) {
@@ -234,14 +230,13 @@ public class HistoryMigrator {
   public void migrateIncidents() {
     HistoryMigratorLogs.migratingHistoricIncidents();
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.fetchAndHandleSkippedForType(HISTORY_INCIDENT, migrateSkippedIncident());
+      dbClient.fetchAndHandleSkippedForType(HISTORY_INCIDENT, idKeyDbModel -> {
+        HistoricIncident historicIncident = c7Client.getHistoricIncident(idKeyDbModel.id());
+        migrateIncident(historicIncident);
+      });
     } else {
       c7Client.fetchAndHandleHistoricIncidents(this::migrateIncident, dbClient.findLatestStartDateByType((HISTORY_INCIDENT)));
     }
-  }
-
-  private Consumer<IdKeyDbModel> migrateSkippedIncident() {
-    return idKeyDbModel -> migrateIncident(c7Client.getHistoricIncident(idKeyDbModel.id()));
   }
 
   private void migrateIncident(HistoricIncident legacyIncident) {
@@ -274,17 +269,13 @@ public class HistoryMigrator {
     HistoryMigratorLogs.migratingHistoricVariables();
 
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.fetchAndHandleSkippedForType(HISTORY_VARIABLE, migrateSkippedVariable());
+      dbClient.fetchAndHandleSkippedForType(HISTORY_VARIABLE, idKeyDbModel -> {
+        HistoricVariableInstance historicVariableInstance = c7Client.getHistoricVariableInstance(idKeyDbModel.id());
+        migrateVariable(historicVariableInstance);
+      });
     } else {
       c7Client.fetchAndHandleHistoricVariables(this::migrateVariable, dbClient.findLatestIdByType(HISTORY_VARIABLE));
     }
-  }
-
-  private Consumer<IdKeyDbModel> migrateSkippedVariable() {
-    return idKeyDbModel -> {
-      HistoricVariableInstance historicVariableInstance = c7Client.getHistoricVariableInstance(idKeyDbModel.id());
-      migrateVariable(historicVariableInstance);
-    };
   }
 
   private void migrateVariable(HistoricVariableInstance legacyVariable) {
@@ -330,17 +321,13 @@ public class HistoryMigrator {
     HistoryMigratorLogs.migratingHistoricUserTasks();
 
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.fetchAndHandleSkippedForType(HISTORY_USER_TASK, migrateSkippedUserTask());
+      dbClient.fetchAndHandleSkippedForType(HISTORY_USER_TASK, idKeyDbModel -> {
+        HistoricTaskInstance historicTaskInstance = c7Client.getHistoricTaskInstance(idKeyDbModel.id());
+        migrateUserTask(historicTaskInstance);
+      });
     } else {
       c7Client.fetchAndHandleHistoricUserTasks(this::migrateUserTask, dbClient.findLatestStartDateByType((HISTORY_USER_TASK)));
     }
-  }
-
-  private Consumer<IdKeyDbModel> migrateSkippedUserTask() {
-    return idKeyDbModel -> {
-      HistoricTaskInstance historicTaskInstance = c7Client.getHistoricTaskInstance(idKeyDbModel.id());
-      migrateUserTask(historicTaskInstance);
-    };
   }
 
   private void migrateUserTask(HistoricTaskInstance legacyUserTask) {
@@ -371,14 +358,13 @@ public class HistoryMigrator {
     HistoryMigratorLogs.migratingHistoricFlowNodes();
 
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.fetchAndHandleSkippedForType(HISTORY_FLOW_NODE, migrateSkippedFlowNode());
+      dbClient.fetchAndHandleSkippedForType(HISTORY_FLOW_NODE, idKeyDbModel -> {
+        HistoricActivityInstance historicActivityInstance = c7Client.getHistoricActivityInstance(idKeyDbModel.id());
+        migrateFlowNode(historicActivityInstance);
+      });
     } else {
       c7Client.fetchAndHandleHistoricFlowNodes(this::migrateFlowNode, dbClient.findLatestStartDateByType((HISTORY_FLOW_NODE)));
     }
-  }
-
-  private Consumer<IdKeyDbModel> migrateSkippedFlowNode() {
-    return idKeyDbModel -> migrateFlowNode(c7Client.getHistoricActivityInstance(idKeyDbModel.id()));
   }
 
   private void migrateFlowNode(HistoricActivityInstance legacyFlowNode) {
