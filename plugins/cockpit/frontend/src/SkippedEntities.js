@@ -18,8 +18,8 @@
 import React, {useState, useEffect, useMemo} from "react";
 import {createColumnHelper} from '@tanstack/react-table';
 import PaginatedTable from "./PaginatedTable";
-import { ENTITY_TYPES } from "./utils/types";
-import { injectLiveReload } from "./utils/utils";
+import {ENTITY_TYPES} from "./utils/types";
+import {injectLiveReload} from "./utils/utils";
 
 function SkippedEntities({camundaAPI}) {
   const [skippedEntities, setSkippedEntities] = useState([]);
@@ -27,6 +27,7 @@ function SkippedEntities({camundaAPI}) {
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [processInstanceIds, setProcessInstanceIds] = useState({});
+  const [showSkipped, setShowSkipped] = useState(true); // New toggle state
 
   const cockpitApi = camundaAPI.cockpitApi;
   const engine = camundaAPI.engine;
@@ -46,15 +47,20 @@ function SkippedEntities({camundaAPI}) {
 
   const columns = useMemo(
     () => {
-      const baseColumns = [
+      let baseColumns = [
         columnHelper.accessor('id', {
-          header: 'C7 ID',
+          header: 'C7 Legacy ID',
           cell: info => getEntityLink(info.row.original),
-        }),
-        columnHelper.accessor('instanceKey', {
+        })];
+
+      if (!showSkipped) {
+        baseColumns.push(columnHelper.accessor('instanceKey', {
           header: 'C8 Key',
-          cell: info => info.getValue() == null ? "❌" : info.getValue() + "✅",
-        }),
+          cell: info => info.getValue(),
+        }));
+      }
+
+      baseColumns = [...baseColumns,
         columnHelper.accessor('type', {
           header: 'Type',
           cell: info => <code>{info.getValue()}</code>,
@@ -85,16 +91,17 @@ function SkippedEntities({camundaAPI}) {
 
       return baseColumns;
     },
-    [selectedType, processInstanceIds]
+    [selectedType, processInstanceIds, showSkipped]
   );
 
   const fetchTotalCount = async () => {
     try {
+      const endpoint = showSkipped ? 'skipped' : 'migrated';
       const response = await fetch(
-        `${cockpitApi}/plugin/migrator-plugin/${engine}/migrator/skipped/count?type=${selectedType}`,
+        `${cockpitApi}/plugin/migrator-plugin/${engine}/migrator/${endpoint}/count?type=${selectedType}`,
         {
           headers: {
-            'Accept': 'application/json'
+            'Accept': 'text/plain'
           }
         }
       );
@@ -116,8 +123,9 @@ function SkippedEntities({camundaAPI}) {
       }
 
       const offset = pageIndex * pageSize;
+      const endpoint = showSkipped ? 'skipped' : 'migrated';
       const response = await fetch(
-        `${cockpitApi}/plugin/migrator-plugin/${engine}/migrator/skipped?type=${selectedType}&offset=${offset}&limit=${pageSize}`,
+        `${cockpitApi}/plugin/migrator-plugin/${engine}/migrator/${endpoint}?type=${selectedType}&offset=${offset}&limit=${pageSize}`,
         {
           headers: {
             'Accept': 'application/json'
@@ -142,7 +150,7 @@ function SkippedEntities({camundaAPI}) {
 
   // Fetch process instance IDs for HISTORY_VARIABLE entities
   const fetchProcessInstanceIds = async (entities) => {
-    const newProcessInstanceIds = { ...processInstanceIds };
+    const newProcessInstanceIds = {...processInstanceIds};
     let hasChanges = false;
 
     const fetchPromises = entities.map(async (entity) => {
@@ -191,7 +199,7 @@ function SkippedEntities({camundaAPI}) {
     fetchTotalCount().then(() => {
       fetchData(0, 10);
     });
-  }, [selectedType]);
+  }, [selectedType, showSkipped]); // Add showSkipped to dependency array
 
   // Handle pagination changes
   const handlePageChange = (pageIndex, pageSize) => {
@@ -210,22 +218,50 @@ function SkippedEntities({camundaAPI}) {
             <h1 className="section-title">Camunda 7 to 8 Data Migrator</h1>
           </header>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label htmlFor="type-selector" style={{ marginRight: '10px' }}>
-              Entity Type:
-            </label>
-            <select
-              id="type-selector"
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              style={{ padding: '5px', minWidth: '200px' }}
-            >
-              {Object.entries(ENTITY_TYPES).map(([key, value]) => (
-                <option key={key} value={value}>
-                  {key.replace(/_/g, ' ')}
-                </option>
-              ))}
-            </select>
+          <div style={{marginBottom: '20px'}}>
+            <div style={{marginBottom: '10px'}}>
+              <label style={{marginRight: '10px'}}>
+                View:
+              </label>
+              <label style={{marginRight: '20px'}}>
+                <input
+                  type="radio"
+                  value="skipped"
+                  checked={showSkipped}
+                  onChange={() => setShowSkipped(true)}
+                  style={{marginRight: '5px'}}
+                />
+                Skipped Entities
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="migrated"
+                  checked={!showSkipped}
+                  onChange={() => setShowSkipped(false)}
+                  style={{marginRight: '5px'}}
+                />
+                Migrated Entities
+              </label>
+            </div>
+
+            <div>
+              <label htmlFor="type-selector" style={{marginRight: '10px'}}>
+                Entity Type:
+              </label>
+              <select
+                id="type-selector"
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                style={{padding: '5px', minWidth: '200px'}}
+              >
+                {Object.entries(ENTITY_TYPES).map(([key, value]) => (
+                  <option key={key} value={value}>
+                    {key.replace(/_/g, ' ')}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <PaginatedTable

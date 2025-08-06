@@ -26,6 +26,11 @@
     <include refid="findSkippedByQueryCriteriaSql"/>
   </select>
 
+  <select id="countMigratedByType" resultType="long">
+    SELECT COUNT(ID) FROM ${prefix}MIGRATION_MAPPING
+    WHERE TYPE = #{type} AND INSTANCE_KEY IS NOT NULL
+  </select>
+
   <!-- findMigratedByType is used by the migrator cockpit plugin -->
   <select id="findMigratedByType" resultMap="idKeyResultMap">
     SELECT ID, INSTANCE_KEY, START_DATE, TYPE FROM ${prefix}MIGRATION_MAPPING
