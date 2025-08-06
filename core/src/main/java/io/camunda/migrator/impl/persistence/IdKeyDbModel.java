@@ -19,6 +19,7 @@ public class IdKeyDbModel {
   protected String id;
   protected TYPE type;
   protected Date startDate;
+  protected String skipReason;
 
   public IdKeyDbModel() {
   }
@@ -44,6 +45,10 @@ public class IdKeyDbModel {
     return startDate;
   }
 
+  public String skipReason() {
+    return skipReason;
+  }
+
   public void setInstanceKey(Long instanceKey) {
     this.instanceKey = instanceKey;
   }
@@ -58,6 +63,10 @@ public class IdKeyDbModel {
 
   public void setStartDate(Date startDate) {
     this.startDate = startDate;
+  }
+
+  public void setSkipReason(String skipReason) {
+    this.skipReason = skipReason;
   }
 
   @Override

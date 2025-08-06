@@ -79,23 +79,19 @@ public class RuntimeMigrator {
       String legacyProcessInstanceId = legacyProcessInstance.id();
       Date startDate = legacyProcessInstance.startDate();
 
-      if (shouldStartProcessInstance(legacyProcessInstanceId)) {
+      try {
+        runtimeValidator.validateProcessInstanceState(legacyProcessInstanceId);
         startProcessInstance(legacyProcessInstanceId, startDate);
 
-      } else if (isUnknown(legacyProcessInstanceId)) {
-        dbClient.insert(legacyProcessInstanceId, startDate, null, TYPE.RUNTIME_PROCESS_INSTANCE);
+      } catch (IllegalStateException e) {
+        RuntimeMigratorLogs.skippingProcessInstanceValidationError(legacyProcessInstanceId, e.getMessage());
+        if (isUnknown(legacyProcessInstanceId)) {
+          dbClient.insert(legacyProcessInstanceId, startDate, null, TYPE.RUNTIME_PROCESS_INSTANCE, e.getMessage());
+        }
       }
     });
 
     activateMigratorJobs();
-  }
-
-  protected boolean shouldStartProcessInstance(String legacyProcessInstanceId) {
-    if (skipProcessInstance(legacyProcessInstanceId)) {
-      return false;
-    }
-
-    return RETRY_SKIPPED.equals(mode) || isUnknown(legacyProcessInstanceId);
   }
 
   protected boolean isUnknown(String legacyProcessInstanceId) {
@@ -122,7 +118,7 @@ public class RuntimeMigrator {
     RuntimeMigratorLogs.stacktrace(e);
 
     if (MIGRATE.equals(mode)) {
-      dbClient.insert(legacyProcessInstanceId, startDate, null, TYPE.RUNTIME_PROCESS_INSTANCE);
+      dbClient.insert(legacyProcessInstanceId, startDate, null, TYPE.RUNTIME_PROCESS_INSTANCE, e.getMessage());
     }
   }
 

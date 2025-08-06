@@ -14,6 +14,7 @@
     <result property="instanceKey" column="INSTANCE_KEY" jdbcType="BIGINT"/>
     <result property="startDate" column="START_DATE" jdbcType="TIMESTAMP"/>
     <result property="type" column="TYPE" jdbcType="VARCHAR"/>
+    <result property="skipReason" column="SKIP_REASON" jdbcType="VARCHAR"/>
   </resultMap>
 
   <select id="countSkippedByType" resultType="long">
@@ -33,7 +34,7 @@
   </select>
 
   <sql id="findSkippedByQueryCriteriaSql">
-    SELECT ID, INSTANCE_KEY, START_DATE, TYPE FROM ${prefix}MIGRATION_MAPPING
+    SELECT ID, INSTANCE_KEY, START_DATE, TYPE, SKIP_REASON FROM ${prefix}MIGRATION_MAPPING
     WHERE TYPE = #{type} AND INSTANCE_KEY IS NULL
     <include refid="io.camunda.migrator.Commons.pageSql"/>
   </sql>
@@ -82,8 +83,8 @@
     id="insert"
     parameterType="io.camunda.migrator.impl.persistence.IdKeyDbModel"
     flushCache="true">
-    INSERT INTO ${prefix}MIGRATION_MAPPING (ID, INSTANCE_KEY, START_DATE, TYPE)
-    VALUES (#{id, jdbcType=VARCHAR}, #{instanceKey, jdbcType=BIGINT}, #{startDate, jdbcType=TIMESTAMP}, #{type, jdbcType=VARCHAR})
+    INSERT INTO ${prefix}MIGRATION_MAPPING (ID, INSTANCE_KEY, START_DATE, TYPE, SKIP_REASON)
+    VALUES (#{id, jdbcType=VARCHAR}, #{instanceKey, jdbcType=BIGINT}, #{startDate, jdbcType=TIMESTAMP}, #{type, jdbcType=VARCHAR}, #{skipReason, jdbcType=VARCHAR})
   </insert>
 
   <delete id="delete">

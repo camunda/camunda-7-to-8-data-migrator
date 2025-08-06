@@ -20,6 +20,7 @@
       <column name="INSTANCE_KEY" type="BIGINT" />
       <column name="TYPE" type="VARCHAR(255)" />
       <column name="START_DATE" type="TIMESTAMP WITH TIME ZONE(3)" />
+      <column name="SKIP_REASON" type="VARCHAR(1024)" />
     </createTable>
 
     <createIndex tableName="${prefix}MIGRATION_MAPPING" indexName="${prefix}IDX_MIGRATION_MAPPING_INSTANCE_KEY">
