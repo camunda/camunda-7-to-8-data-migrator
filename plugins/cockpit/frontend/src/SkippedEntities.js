@@ -44,13 +44,32 @@ function SkippedEntities({camundaAPI}) {
     }
   }
 
+  const getColumnHeader = () => {
+    if (viewMode === 'runtime') {
+      return 'Process Instance ID';
+    } else {
+      // For history mode, extract the entity type from the selectedType
+      const entityTypeMap = {
+        HISTORY_PROCESS_DEFINITION: "Process Definition ID",
+        HISTORY_PROCESS_INSTANCE: "Process Instance ID",
+        HISTORY_INCIDENT: "Incident ID",
+        HISTORY_VARIABLE: "Variable ID",
+        HISTORY_USER_TASK: "User Task ID",
+        HISTORY_FLOW_NODE: "Flow Node ID",
+        HISTORY_DECISION_INSTANCE: "Decision Instance ID",
+        HISTORY_DECISION_DEFINITION: "Decision Definition ID"
+      };
+      return entityTypeMap[selectedType] || 'ID';
+    }
+  };
+
   const columnHelper = createColumnHelper();
 
   const columns = useMemo(
     () => {
       let baseColumns = [
         columnHelper.accessor('id', {
-          header: 'C7 Legacy ID',
+          header: getColumnHeader(),
           cell: info => getEntityLink(info.row.original),
           size: 370
         })];
@@ -60,14 +79,6 @@ function SkippedEntities({camundaAPI}) {
           header: 'C8 Key',
           cell: info => info.getValue(),
         }));
-      }
-
-      if (viewMode === 'history') {
-        baseColumns.push(
-          columnHelper.accessor('type', {
-            header: 'Type',
-            cell: info => <code>{info.getValue()}</code>,
-          }));
       }
 
       baseColumns = [...baseColumns,
