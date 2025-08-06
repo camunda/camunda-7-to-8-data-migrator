@@ -30,14 +30,14 @@ export default function Table({ head, children }) {
   );
 }
 
-Table.Head = function Head({ children }) {
-  return <th className="TableHead">{children}</th>;
+Table.Head = function Head({ children, style }) {
+  return <th className="TableHead" style={style}>{children}</th>;
 };
 
 Table.Row = function Row({ children }) {
   return <tr className="TableRow">{children}</tr>;
 };
 
-Table.Cell = function Cell({ children }) {
-  return <td className="TableCell">{children}</td>;
+Table.Cell = function Cell({ children, style, colSpan }) {
+  return <td className="TableCell" style={style} colSpan={colSpan}>{children}</td>;
 };

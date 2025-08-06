@@ -52,6 +52,7 @@ function SkippedEntities({camundaAPI}) {
         columnHelper.accessor('id', {
           header: 'C7 Legacy ID',
           cell: info => getEntityLink(info.row.original),
+          size: 370
         })];
 
       if (!showSkipped) {
@@ -96,7 +97,7 @@ function SkippedEntities({camundaAPI}) {
 
       return baseColumns;
     },
-    [selectedType, processInstanceIds, showSkipped]
+    [selectedType, processInstanceIds, showSkipped, viewMode]
   );
 
   const getEntityTypeLabel = (entityType) => {

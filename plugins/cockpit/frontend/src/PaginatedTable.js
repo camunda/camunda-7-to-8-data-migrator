@@ -70,7 +70,9 @@ export default function PaginatedTable({
         head={
           <>
             {columns.map((column, i) => (
-              <Table.Head key={i}>{column.header}</Table.Head>
+              <Table.Head key={i} style={{ width: column.size ? `${column.size}px` : 'auto' }}>
+                {column.header}
+              </Table.Head>
             ))}
           </>
         }
@@ -85,7 +87,7 @@ export default function PaginatedTable({
           data.map((row, rowIndex) => (
             <Table.Row key={rowIndex}>
               {columns.map((column, colIndex) => (
-                <Table.Cell key={colIndex}>
+                <Table.Cell key={colIndex} style={{ width: column.size ? `${column.size}px` : 'auto' }}>
                   {column.cell({ row: { original: row }, getValue: () => row[column.accessorKey] })}
                 </Table.Cell>
               ))}
