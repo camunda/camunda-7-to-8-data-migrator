@@ -79,19 +79,30 @@ public class RuntimeMigrator {
       String legacyProcessInstanceId = legacyProcessInstance.id();
       Date startDate = legacyProcessInstance.startDate();
 
-      try {
-        runtimeValidator.validateProcessInstanceState(legacyProcessInstanceId);
+      String skipReason = getSkipReason(legacyProcessInstanceId);
+      if (skipReason == null && shouldStartProcessInstance(legacyProcessInstanceId)) {
         startProcessInstance(legacyProcessInstanceId, startDate);
-
-      } catch (IllegalStateException e) {
-        RuntimeMigratorLogs.skippingProcessInstanceValidationError(legacyProcessInstanceId, e.getMessage());
-        if (isUnknown(legacyProcessInstanceId)) {
-          dbClient.insert(legacyProcessInstanceId, startDate, null, TYPE.RUNTIME_PROCESS_INSTANCE, e.getMessage());
-        }
+      } else if (isUnknown(legacyProcessInstanceId)) {
+        dbClient.insert(legacyProcessInstanceId, startDate, TYPE.RUNTIME_PROCESS_INSTANCE, skipReason);
       }
     });
 
     activateMigratorJobs();
+  }
+
+  protected String getSkipReason(String legacyProcessInstanceId) {
+    try {
+      runtimeValidator.validateProcessInstanceState(legacyProcessInstanceId);
+      return null; // No skip reason, validation passed
+    } catch (IllegalStateException e) {
+      RuntimeMigratorLogs.skippingProcessInstanceValidationError(legacyProcessInstanceId, e.getMessage());
+      return e.getMessage();
+    }
+  }
+
+  protected boolean shouldStartProcessInstance(String legacyProcessInstanceId) {
+    // Skip reason is now handled in migrate() method
+    return RETRY_SKIPPED.equals(mode) || isUnknown(legacyProcessInstanceId);
   }
 
   protected boolean isUnknown(String legacyProcessInstanceId) {
@@ -118,7 +129,7 @@ public class RuntimeMigrator {
     RuntimeMigratorLogs.stacktrace(e);
 
     if (MIGRATE.equals(mode)) {
-      dbClient.insert(legacyProcessInstanceId, startDate, null, TYPE.RUNTIME_PROCESS_INSTANCE, e.getMessage());
+      dbClient.insert(legacyProcessInstanceId, startDate, TYPE.RUNTIME_PROCESS_INSTANCE, e.getMessage());
     }
   }
 
@@ -128,17 +139,6 @@ public class RuntimeMigrator {
     } else if (MIGRATE.equals(mode)) {
       dbClient.insert(legacyProcessInstanceId, startDate, processInstanceKey, TYPE.RUNTIME_PROCESS_INSTANCE);
     }
-  }
-
-  protected boolean skipProcessInstance(String legacyProcessInstanceId) {
-    try {
-      runtimeValidator.validateProcessInstanceState(legacyProcessInstanceId);
-    } catch (IllegalStateException e) {
-      RuntimeMigratorLogs.skippingProcessInstanceValidationError(legacyProcessInstanceId, e.getMessage());
-      return true;
-    }
-
-    return false;
   }
 
   protected void fetchProcessInstancesToMigrate(Consumer<IdKeyDbModel> storeMappingConsumer) {

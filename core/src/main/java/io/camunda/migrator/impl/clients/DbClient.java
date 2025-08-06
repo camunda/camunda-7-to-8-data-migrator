@@ -131,9 +131,9 @@ public class DbClient {
   /**
    * Inserts a new process instance record into the mapping table.
    */
-  public void insert(String legacyId, Date startDate, Long entityKey, TYPE type, String skipReason) {
-    DbClientLogs.insertingRecord(legacyId, startDate, entityKey, skipReason);
-    var model = createIdKeyDbModel(legacyId, startDate, entityKey, type, skipReason);
+  public void insert(String legacyId, Date startDate, TYPE type, String skipReason) {
+    DbClientLogs.insertingRecord(legacyId, startDate, null, skipReason);
+    var model = createIdKeyDbModel(legacyId, startDate, null, type, skipReason);
     callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + legacyId);
   }
 

@@ -292,7 +292,7 @@ function SkippedEntities({camundaAPI}) {
                   onChange={() => setViewMode('runtime')}
                   style={{marginRight: '5px'}}
                 />
-                Runtime
+                Running
               </label>
               <label>
                 <input
@@ -302,7 +302,7 @@ function SkippedEntities({camundaAPI}) {
                   onChange={() => setViewMode('history')}
                   style={{marginRight: '5px'}}
                 />
-                History
+                History (completed or running)
               </label>
             </div>
           </header>
