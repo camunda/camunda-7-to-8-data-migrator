@@ -61,7 +61,7 @@ function SkippedEntities({camundaAPI}) {
         }),
         columnHelper.accessor('skipReason', {
           header: 'Skip reason',
-          cell: () => 'Found multi-instance loop characteristics for flow node with id [MessageTask_2] in C7 process instance.',
+          cell: info => info.getValue(),
         }),
       ];
 
