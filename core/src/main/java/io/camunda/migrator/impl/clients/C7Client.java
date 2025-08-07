@@ -77,9 +77,9 @@ public class C7Client {
   }
 
   /**
-   * Gets a single historic process definition by ID.
+   * Gets a single process definition by ID.
    */
-  public ProcessDefinition getHistoricProcessDefinition(String legacyId) {
+  public ProcessDefinition getProcessDefinition(String legacyId) {
     var query = repositoryService.createProcessDefinitionQuery().processDefinitionId(legacyId);
     return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "ProcessDefinition", legacyId));
   }

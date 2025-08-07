@@ -165,7 +165,7 @@ public class HistoryMigrator {
     HistoryMigratorLogs.migratingProcessDefinitions();
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_PROCESS_DEFINITION, idKeyDbModel -> {
-        ProcessDefinition historicProcessDefinition = c7Client.getHistoricProcessDefinition(idKeyDbModel.id());
+        ProcessDefinition historicProcessDefinition = c7Client.getProcessDefinition(idKeyDbModel.id());
         migrateProcessDefinition(historicProcessDefinition);
       });
     } else {
