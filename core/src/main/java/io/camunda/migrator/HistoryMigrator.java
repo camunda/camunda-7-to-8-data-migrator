@@ -118,15 +118,19 @@ public class HistoryMigrator {
   protected MigratorMode mode = MIGRATE;
 
   public void start() {
-    if (LIST_SKIPPED.equals(mode)) {
-      // TODO: list entities
-    } else {
-      migrate();
+    try {
+      ExceptionUtils.setContext(ExceptionUtils.ExceptionContext.HISTORY);
+      if (LIST_SKIPPED.equals(mode)) {
+        // TODO: list entities
+      } else {
+        migrate();
+      }
+    } finally {
+      ExceptionUtils.clearContext();
     }
   }
 
   public void migrate() {
-    ExceptionUtils.setContext(ExceptionUtils.ExceptionContext.HISTORY);
     migrateProcessDefinitions();
     migrateProcessInstances();
     migrateFlowNodes();
