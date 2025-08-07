@@ -61,12 +61,16 @@ public class RuntimeMigrator {
   protected MigratorMode mode = MIGRATE;
 
   public void start() {
-    ExceptionUtils.setContext(ExceptionUtils.ExceptionContext.RUNTIME);
-    if (LIST_SKIPPED.equals(mode)) {
-      PrintUtils.printSkippedInstancesHeader(dbClient.countSkippedByType(TYPE.RUNTIME_PROCESS_INSTANCE));
-      dbClient.listSkippedRuntimeProcessInstances();
-    } else {
-      migrate();
+    try {
+      ExceptionUtils.setContext(ExceptionUtils.ExceptionContext.RUNTIME);
+      if (LIST_SKIPPED.equals(mode)) {
+        PrintUtils.printSkippedInstancesHeader(dbClient.countSkippedByType(TYPE.RUNTIME_PROCESS_INSTANCE));
+        dbClient.listSkippedRuntimeProcessInstances();
+      } else {
+        migrate();
+      }
+    } finally {
+      ExceptionUtils.clearContext();
     }
   }
 
