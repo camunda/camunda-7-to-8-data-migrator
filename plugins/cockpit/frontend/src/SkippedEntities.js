@@ -102,6 +102,14 @@ function SkippedEntities({camundaAPI}) {
                 <a href={`#/process-instance/${processInstanceId}/history`}>{processInstanceId}</a> :
                 <span>Loading...</span>;
             },
+          }),
+          columnHelper.accessor('name', {
+            header: 'Variable Name',
+            cell: info => info.getValue(),
+          }),
+          columnHelper.accessor('type', {
+            header: 'Variable Type',
+            cell: info => info.getValue(),
           })
         );
       }
@@ -219,6 +227,12 @@ function SkippedEntities({camundaAPI}) {
         if (data && data.processInstanceId) {
           newProcessInstanceIds[entity.id] = data.processInstanceId;
           hasChanges = true;
+        }
+
+        // Also populate the name and type from the variable instance data
+        if (data && data.name && data.type) {
+          entity.name = data.name;
+          entity.type = data.type;
         }
       } catch (err) {
         console.error(`Failed to fetch process instance ID for variable ${entity.id}:`, err);
