@@ -98,4 +98,4 @@ logging:
     # Uncomment to enable debug logging for C7
     # org.camunda.bpm: INFO  # C7
   file:
-    name: logs/c7-data-migrator.log
+    name: logs/camunda-7-to-8-data-migrator.log

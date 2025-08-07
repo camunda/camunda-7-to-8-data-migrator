@@ -359,11 +359,11 @@ logging:
 | `logging` |                             |           |                                                                                                                                                                    |
 | | `.level.root`               | `string`  | Root logger level. Default: `INFO`                                                                                                                                 |
 | | `.level.io.camunda.migrator` | `string`  | Migrator logging level. Default: `INFO`                                                                                                                            |
-| | `.file.name`                | `string`  | Log file location. Set to: `logs/c7-data-migrator.log`. If not specified, logs are output to the console.                                                          |
+| | `.file.name`                | `string`  | Log file location. Set to: `logs/camunda-7-to-8-data-migrator.log`. If not specified, logs are output to the console.                                                          |
 
 ## Variable transformation
 
-The C7 Data Migrator automatically handles the transformation of Camunda 7 variables to Camunda 8 compatible formats during migration. This section documents which variable types are supported and how they are transformed.
+The Data Migrator automatically handles the transformation of Camunda 7 variables to Camunda 8 compatible formats during migration. This section documents which variable types are supported and how they are transformed.
 
 For complete details on Camunda 7 variable types, see the [official Camunda 7 documentation](https://docs.camunda.org/manual/latest/user-guide/process-engine/variables/#supported-variable-values).
 
@@ -441,7 +441,7 @@ The `VariableInterceptor` interface allows you to define custom logic that execu
 #### How to Implement a VariableInterceptor
 
 1. Create a new Maven project with the provided `pom.xml` structure
-2. Add a dependency on `c7-data-migrator-core` (scope: provided)
+2. Add a dependency on `camunda-7-to-8-data-migrator-core` (scope: provided)
 3. Implement the `VariableInterceptor` interface
 4. Add setter methods for any configurable properties
 5. Package as JAR and deploy to the `userlib` folder
@@ -694,7 +694,7 @@ logging:
     io.camunda.migrator: DEBUG
     io.camunda.migrator.RuntimeMigrator: TRACE
   file:
-    name: logs/c7-data-migrator.log
+    name: logs/camunda-7-to-8-data-migrator.log
 ```
 
 ## Migration Process

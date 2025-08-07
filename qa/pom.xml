@@ -4,15 +4,15 @@
 
   <parent>
     <groupId>io.camunda</groupId>
-    <artifactId>c7-data-migrator-root</artifactId>
+    <artifactId>camunda-7-to-8-data-migrator-root</artifactId>
     <version>0.1.0-SNAPSHOT</version>
   </parent>
 
-  <name>C7 Data Migrator - QA</name>
+  <name>Camunda 7 to 8 Data Migrator - QA</name>
 
   <packaging>jar</packaging>
 
-  <artifactId>c7-data-migrator-qa</artifactId>
+  <artifactId>camunda-7-to-8-data-migrator-qa</artifactId>
 
   <properties>
     <version.testcontainers>1.21.3</version.testcontainers>
@@ -24,7 +24,7 @@
   <dependencies>
     <dependency>
       <groupId>io.camunda</groupId>
-      <artifactId>c7-data-migrator-core</artifactId>
+      <artifactId>camunda-7-to-8-data-migrator-core</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -41,7 +41,7 @@
     </dependency>
     <dependency>
       <groupId>io.camunda</groupId>
-      <artifactId>c7-data-migrator</artifactId>
+      <artifactId>camunda-7-to-8-data-migrator</artifactId>
       <version>${project.version}</version>
       <type>zip</type>
       <scope>test</scope>

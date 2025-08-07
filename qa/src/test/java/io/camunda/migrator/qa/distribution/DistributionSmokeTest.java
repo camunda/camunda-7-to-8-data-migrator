@@ -163,7 +163,7 @@ class DistributionSmokeTest {
     assertThat(extractedDistributionPath.resolve("configuration")).exists();
     assertThat(extractedDistributionPath.resolve("internal")).exists();
     assertThat(extractedDistributionPath.resolve("internal/launcher.properties")).exists();
-    assertThat(extractedDistributionPath.resolve("internal/c7-data-migrator.jar")).exists();
+    assertThat(extractedDistributionPath.resolve("internal/camunda-7-to-8-data-migrator.jar")).exists();
     assertThat(extractedDistributionPath.resolve("LICENSE.TXT")).exists();
     assertThat(extractedDistributionPath.resolve("NOTICE.txt")).exists();
     assertThat(extractedDistributionPath.resolve("README.txt")).exists();
@@ -255,7 +255,7 @@ class DistributionSmokeTest {
     try (var stream = Files.list(extractedDistributionPath)) {
       extractedDistributionPath = stream
           .filter(Files::isDirectory)
-          .filter(path -> path.getFileName().toString().startsWith("c7-data-migrator"))
+          .filter(path -> path.getFileName().toString().startsWith("camunda-7-to-8-data-migrator"))
           .findFirst()
           .orElse(extractedDistributionPath);
     }
@@ -271,7 +271,7 @@ class DistributionSmokeTest {
     try (var stream = Files.list(assemblyTarget)) {
       return stream
           .filter(path -> path.getFileName().toString().endsWith(".zip"))
-          .filter(path -> path.getFileName().toString().contains("c7-data-migrator"))
+          .filter(path -> path.getFileName().toString().contains("camunda-7-to-8-data-migrator"))
           .findFirst()
           .orElseThrow(() -> new RuntimeException("ZIP distribution not found in " + assemblyTarget));
     } catch (IOException e) {

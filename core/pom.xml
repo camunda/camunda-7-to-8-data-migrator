@@ -4,16 +4,16 @@
 
   <parent>
     <groupId>io.camunda</groupId>
-    <artifactId>c7-data-migrator-root</artifactId>
+    <artifactId>camunda-7-to-8-data-migrator-root</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <relativePath>../</relativePath>
   </parent>
 
-  <artifactId>c7-data-migrator-core</artifactId>
+  <artifactId>camunda-7-to-8-data-migrator-core</artifactId>
 
   <packaging>jar</packaging>
 
-  <name>C7 Data Migrator – Core</name>
+  <name>Camunda 7 to 8 Data Migrator – Core</name>
 
   <dependencyManagement>
     <dependencies>
