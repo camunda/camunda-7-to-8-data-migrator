@@ -71,6 +71,28 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
     }
 
     @Test
+    public void shouldNotMigrateAlreadySkippedProcessInstance() {
+        // given state in c7
+        deployer.deployCamunda7Process("userTaskProcess.bpmn");
+        var processInstance = runtimeService.startProcessInstanceByKey("userTaskProcessId");
+
+        // and the process instance is manually set as skipped
+        dbClient.insert(processInstance.getId(), null, IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE);
+
+        // when history is migrated
+        historyMigrator.migrate();
+
+        // then no process instances were migrated
+        assertThat(searchHistoricProcessInstances("userTaskProcessId").size()).isEqualTo(0);
+
+        // verify the process instance was skipped exactly once
+        assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE)).isEqualTo(1);
+
+        // and verify logs don't contain any additional skip operations for this process instance
+        logs.assertDoesNotContain("Migration of historic process instance with legacyId [" + processInstance.getId() + "] skipped");
+    }
+
+    @Test
     public void shouldSkipUserTasksWhenProcessInstanceIsSkipped() {
         // given state in c7
         deployer.deployCamunda7Process("userTaskProcess.bpmn");
@@ -191,7 +213,7 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
         logs.assertDoesNotContain("Skipping historic incident " + incidentId);
     }
 
-    @Disabled("TODO: Job table doesn't exist yet")
+    @Disabled("TODO: https://github.com/camunda/camunda-bpm-platform/issues/5331")
     @Test
     public void shouldNotMigrateIncidentsWhenJobIsSkipped() {
         // given state in c7 with a failing service task
