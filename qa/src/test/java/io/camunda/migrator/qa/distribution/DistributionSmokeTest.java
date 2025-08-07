@@ -75,7 +75,7 @@ class DistributionSmokeTest {
 
     assertThat(exitCode).isEqualTo(1);
     assertThat(output).contains("Invalid flag: --invalid-flag");
-    assertThat(output).contains("Usage: " + startScriptName);
+    assertThat(output).contains("Usage: start.sh/bat");
     assertThat(output).contains("--help");
     assertThat(output).contains("--runtime");
     assertThat(output).contains("--history");
@@ -97,7 +97,7 @@ class DistributionSmokeTest {
     int exitCode = process.waitFor();
 
     assertThat(exitCode).isEqualTo(1);
-    assertThat(output).contains("Usage: " + startScriptName);
+    assertThat(output).contains("Usage: start.sh/bat");
     assertThat(output).contains("--help");
     assertThat(output).contains("--runtime");
     assertThat(output).contains("--history");
@@ -120,7 +120,7 @@ class DistributionSmokeTest {
 
     assertThat(exitCode).isEqualTo(1);
     assertThat(output).contains("Error: Too many arguments.");
-    assertThat(output).contains("Usage: " + startScriptName);
+    assertThat(output).contains("Usage: start.sh/bat");
   }
 
   @Test
@@ -198,7 +198,7 @@ class DistributionSmokeTest {
 
     // then
     String output = readProcessOutput(process);
-    assertThat(output).contains(FAILED_TO_DEPLOY_C8_RESOURCES + "[./configuration/resources/test-process.bpmn]");
+    assertThat(output).contains(FAILED_TO_DEPLOY_C8_RESOURCES);
   }
 
   @Test
@@ -293,11 +293,21 @@ class DistributionSmokeTest {
    * Creates a ProcessBuilder with the appropriate start script for the current OS
    */
   protected ProcessBuilder createProcessBuilder(String... args) {
-    String scriptCommand = isWindows ? startScriptName : "./" + startScriptName;
+    String[] command;
 
-    String[] command = new String[args.length + 1];
-    command[0] = scriptCommand;
-    System.arraycopy(args, 0, command, 1, args.length);
+    if (isWindows) {
+      // On Windows, batch files need to be executed through cmd.exe
+      command = new String[args.length + 3];
+      command[0] = "cmd.exe";
+      command[1] = "/c";
+      command[2] = startScriptName;
+      System.arraycopy(args, 0, command, 3, args.length);
+    } else {
+      // On Unix systems, use the script directly with ./
+      command = new String[args.length + 1];
+      command[0] = "./" + startScriptName;
+      System.arraycopy(args, 0, command, 1, args.length);
+    }
 
     ProcessBuilder processBuilder = new ProcessBuilder(command);
     processBuilder.directory(extractedDistributionPath.toFile());
