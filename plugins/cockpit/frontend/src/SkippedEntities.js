@@ -77,7 +77,8 @@ function SkippedEntities({camundaAPI}) {
       if (!showSkipped) {
         baseColumns.push(columnHelper.accessor('instanceKey', {
           header: 'C8 Key',
-          cell: info => info.getValue(),
+          cell: info =>
+            <a href={`http://localhost:8080/operate/processes/${info.getValue()}`} target={"_blank"}>{info.getValue()}</a>,
         }));
       }
 
