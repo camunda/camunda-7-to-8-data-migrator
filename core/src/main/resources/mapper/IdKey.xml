@@ -9,13 +9,26 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.camunda.migrator.impl.persistence.IdKeyMapper">
 
+  <resultMap id="idKeyResultMap" type="io.camunda.migrator.impl.persistence.IdKeyDbModel">
+    <id property="id" column="ID" jdbcType="VARCHAR"/>
+    <result property="instanceKey" column="INSTANCE_KEY" jdbcType="BIGINT"/>
+    <result property="startDate" column="START_DATE" jdbcType="TIMESTAMP"/>
+    <result property="type" column="TYPE" jdbcType="VARCHAR"/>
+  </resultMap>
+
   <select id="countSkippedByType" resultType="long">
     SELECT COUNT(ID) FROM ${prefix}MIGRATION_MAPPING
     WHERE TYPE = #{type} AND INSTANCE_KEY IS NULL
   </select>
 
-  <select id="findSkippedByType" resultType="io.camunda.migrator.impl.persistence.IdKeyDbModel">
+  <select id="findSkippedByType" resultMap="idKeyResultMap">
     <include refid="findSkippedByQueryCriteriaSql"/>
+  </select>
+
+  <select id="findMigratedByType" resultMap="idKeyResultMap">
+    SELECT ID, INSTANCE_KEY, START_DATE, TYPE FROM ${prefix}MIGRATION_MAPPING
+    WHERE TYPE = #{type} AND INSTANCE_KEY IS NOT NULL
+    <include refid="io.camunda.migrator.Commons.pageSql"/>
   </select>
 
   <sql id="findSkippedByQueryCriteriaSql">
