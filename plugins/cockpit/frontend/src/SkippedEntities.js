@@ -28,6 +28,7 @@ function SkippedEntities({camundaAPI}) {
   const [totalCount, setTotalCount] = useState(0);
   const [processInstanceIds, setProcessInstanceIds] = useState({});
   const [processDefinitionKeys, setProcessDefinitionKeys] = useState({});
+  const [variableMetadata, setVariableMetadata] = useState({}); // New state for variable name and type
   const [showSkipped, setShowSkipped] = useState(true);
   const [viewMode, setViewMode] = useState('runtime'); // New state for runtime/history mode
 
@@ -132,12 +133,15 @@ function SkippedEntities({camundaAPI}) {
         }));
       }
 
-      baseColumns = [...baseColumns,
-        columnHelper.accessor('skipReason', {
-          header: 'Skip reason',
-          cell: info => renderSkipReasonWithLinks(info.getValue(), info.row.original),
-        }),
-      ];
+      // Only add skip reason column when showing skipped entities
+      if (showSkipped) {
+        baseColumns = [...baseColumns,
+          columnHelper.accessor('skipReason', {
+            header: 'Skip reason',
+            cell: info => renderSkipReasonWithLinks(info.getValue(), info.row.original),
+          }),
+        ];
+      }
 
       // Add process instance column for HISTORY_VARIABLE type
       if (selectedType === ENTITY_TYPES.HISTORY_VARIABLE) {
@@ -156,11 +160,17 @@ function SkippedEntities({camundaAPI}) {
           }),
           columnHelper.accessor('name', {
             header: 'Variable Name',
-            cell: info => info.getValue(),
+            cell: info => {
+              const variableId = info.row.original.id;
+              return variableMetadata[variableId]?.name || <span>Loading...</span>;
+            },
           }),
           columnHelper.accessor('type', {
             header: 'Variable Type',
-            cell: info => info.getValue(),
+            cell: info => {
+              const variableId = info.row.original.id;
+              return variableMetadata[variableId]?.type || <span>Loading...</span>;
+            },
           })
         );
       }
@@ -199,7 +209,7 @@ function SkippedEntities({camundaAPI}) {
 
       return baseColumns;
     },
-    [selectedType, processInstanceIds, showSkipped, viewMode, processDefinitionKeys]
+    [selectedType, processInstanceIds, showSkipped, viewMode, processDefinitionKeys, variableMetadata]
   );
 
   const getEntityTypeLabel = (entityType) => {
@@ -321,8 +331,14 @@ function SkippedEntities({camundaAPI}) {
 
         // Also populate the name and type from the variable instance data
         if (data && data.name && data.type) {
-          entity.name = data.name;
-          entity.type = data.type;
+          // entity.name = data.name;
+          // entity.type = data.type;
+
+          // Store variable metadata separately
+          setVariableMetadata(prevMetadata => ({
+            ...prevMetadata,
+            [entity.id]: {name: data.name, type: data.type}
+          }));
         }
       } catch (err) {
         console.error(`Failed to fetch process instance ID for variable ${entity.id}:`, err);
@@ -409,11 +425,17 @@ function SkippedEntities({camundaAPI}) {
     // Reset process instance IDs when changing entity type
     if (selectedType !== ENTITY_TYPES.HISTORY_VARIABLE) {
       setProcessInstanceIds({});
+      setVariableMetadata({}); // Also reset variable metadata
     }
 
     // Reset process definition keys when changing entity type
     if (selectedType !== ENTITY_TYPES.RUNTIME_PROCESS_INSTANCE && selectedType !== ENTITY_TYPES.HISTORY_PROCESS_INSTANCE) {
       setProcessDefinitionKeys({});
+    }
+
+    // Reset variable metadata when switching between skipped/migrated modes for variables
+    if (selectedType === ENTITY_TYPES.HISTORY_VARIABLE) {
+      setVariableMetadata({});
     }
 
     // When switching to runtime mode, set entity type to runtime process instance
