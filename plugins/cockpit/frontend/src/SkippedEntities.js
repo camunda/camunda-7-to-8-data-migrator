@@ -88,6 +88,7 @@ function SkippedEntities({camundaAPI}) {
         : entity.id;
 
       if (processInstanceId) {
+        parts.push("flow node with id ");
         parts.push(
           <a
             key={match.index}
