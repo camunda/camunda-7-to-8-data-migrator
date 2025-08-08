@@ -26,6 +26,7 @@ import io.camunda.migrator.impl.Pagination;
 import io.camunda.migrator.impl.logging.DbClientLogs;
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import io.camunda.migrator.impl.persistence.SkippedVariablesByProcessInstanceDbModel;
 import io.camunda.migrator.impl.util.PrintUtils;
 import java.util.Date;
 import java.util.List;
@@ -189,6 +190,26 @@ public class DbClient {
     return callApi(() -> idKeyMapper.findSkippedByType(TYPE.RUNTIME_PROCESS_INSTANCE, 0, properties.getPageSize()),
         FAILED_TO_FIND_ALL_SKIPPED);
   }
+
+  /**
+   * Finds skipped historic variables grouped by process instance ID.
+   */
+  public List<SkippedVariablesByProcessInstanceDbModel> findSkippedVariablesByProcessInstance(int offset, int limit) {
+    return callApi(() -> idKeyMapper.findSkippedVariablesByProcessInstance(offset, limit),
+        "Failed to find skipped variables by process instance");
+  }
+//
+//  /**
+//   * Finds skipped historic variables grouped by process instance ID with pagination.
+//   */
+//  public void fetchAndHandleSkippedVariablesByProcessInstance(Consumer<SkippedVariablesByProcessInstanceDbModel> consumer, int offset) {
+//    Pagination<SkippedVariablesByProcessInstanceDbModel> pagination = new Pagination<>(
+//        (pageOffset, pageLimit) -> findSkippedVariablesByProcessInstance(pageOffset, pageLimit),
+//        properties.getPageSize(),
+//        offset
+//    );
+//    pagination.handleAllPages(results -> results.forEach(consumer));
+//  }
 
   /**
    * Deletes all mappings from the database.
