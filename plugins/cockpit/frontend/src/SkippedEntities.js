@@ -31,6 +31,8 @@ function SkippedEntities({camundaAPI}) {
   const [variableMetadata, setVariableMetadata] = useState({}); // New state for variable name and type
   const [showSkipped, setShowSkipped] = useState(true);
   const [viewMode, setViewMode] = useState('runtime'); // New state for runtime/history mode
+  const [groupBy, setGroupBy] = useState('None'); // New state for grouping
+  const [groupedData, setGroupedData] = useState([]); // New state for grouped data
 
   const cockpitApi = camundaAPI.cockpitApi;
   const engine = camundaAPI.engine;
@@ -417,6 +419,141 @@ function SkippedEntities({camundaAPI}) {
     }
   };
 
+  // Fetch grouped data based on groupBy selection
+  const fetchGroupedData = async (pageIndex = 0, pageSize = 10) => {
+    if (groupBy === 'None' || !showSkipped || viewMode !== 'history' || selectedType !== ENTITY_TYPES.HISTORY_VARIABLE) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const offset = pageIndex * pageSize;
+      let endpoint = '';
+
+      switch (groupBy) {
+        case 'ProcessInstance':
+          endpoint = 'skipped-variables-by-process-instance';
+          break;
+        case 'ProcessDefinition':
+          endpoint = 'skipped-variables-by-process-definition';
+          break;
+        case 'SkipReason':
+          endpoint = 'skipped-variables-by-skip-reason';
+          break;
+        default:
+          return;
+      }
+
+      const response = await fetch(
+        `${cockpitApi}/plugin/migrator-plugin/${engine}/migrator/${endpoint}?offset=${offset}&limit=${pageSize}`,
+        {
+          headers: {
+            'Accept': 'application/json'
+          }
+        }
+      );
+      const data = await response.json();
+      const groupedEntities = Array.isArray(data) ? data : data.items || [];
+
+      setGroupedData(groupedEntities);
+    } catch (err) {
+      console.error('Failed to fetch grouped data:', err);
+      setGroupedData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create columns for grouped data
+  const groupedColumns = useMemo(() => {
+    if (groupBy === 'None') return [];
+
+    const baseGroupedColumns = [
+      columnHelper.accessor('skippedVariableCount', {
+        header: 'Skipped Count',
+        cell: info => info.getValue(),
+        size: 120
+      }),
+      columnHelper.accessor('skippedVariableNames', {
+        header: 'Variable Names',
+        cell: info => {
+          const names = info.getValue();
+          return names ? (
+            <span title={names}>
+              {names.length > 50 ? names.substring(0, 50) + '...' : names}
+            </span>
+          ) : '';
+        },
+        size: 200
+      }),
+      columnHelper.accessor('skipReasons', {
+        header: 'Skip Reasons',
+        cell: info => {
+          const reasons = info.getValue();
+          return reasons ? (
+            <span title={reasons}>
+              {reasons.length > 100 ? reasons.substring(0, 100) + '...' : reasons}
+            </span>
+          ) : '';
+        },
+        size: 300
+      })
+    ];
+
+    switch (groupBy) {
+      case 'ProcessInstance':
+        return [
+          columnHelper.accessor('processInstanceId', {
+            header: 'Process Instance ID',
+            cell: info => (
+              <a href={`#/process-instance/${info.getValue()}/history`}>
+                {info.getValue()}
+              </a>
+            ),
+            size: 300
+          }),
+          ...baseGroupedColumns
+        ];
+      case 'ProcessDefinition':
+        return [
+          columnHelper.accessor('processDefinitionKey', {
+            header: 'Process Definition Key',
+            cell: info => info.getValue(),
+            size: 200
+          }),
+          columnHelper.accessor('processDefinitionId', {
+            header: 'Process Definition ID',
+            cell: info => info.getValue(),
+            size: 300
+          }),
+          ...baseGroupedColumns
+        ];
+      case 'SkipReason':
+        return [
+          columnHelper.accessor('skipReason', {
+            header: 'Skip Reason',
+            cell: info => info.getValue(),
+            size: 300
+          }),
+          ...baseGroupedColumns,
+          columnHelper.accessor('processInstanceIds', {
+            header: 'Process Instance IDs',
+            cell: info => {
+              const ids = info.getValue();
+              return ids ? (
+                <span title={ids}>
+                  {ids.length > 100 ? ids.substring(0, 100) + '...' : ids}
+                </span>
+              ) : '';
+            },
+            size: 200
+          })
+        ];
+      default:
+        return [];
+    }
+  }, [groupBy]);
+
   // Initial data load and when entity type changes
   useEffect(() => {
     // Inject LiveReload for development
@@ -452,9 +589,23 @@ function SkippedEntities({camundaAPI}) {
     });
   }, [selectedType, showSkipped, viewMode]); // Add viewMode to dependency array
 
-  // Handle pagination changes
+  // Handle groupBy changes
+  useEffect(() => {
+    if (groupBy !== 'None' && showSkipped && viewMode === 'history' && selectedType === ENTITY_TYPES.HISTORY_VARIABLE) {
+      fetchGroupedData(0, 10);
+    } else {
+      setGroupedData([]);
+    }
+  }, [groupBy, showSkipped, viewMode, selectedType]);
+
+  // Handle pagination changes for regular data
   const handlePageChange = (pageIndex, pageSize) => {
     fetchData(pageIndex, pageSize);
+  };
+
+  // Handle pagination changes for grouped data
+  const handleGroupedPageChange = (pageIndex, pageSize) => {
+    fetchGroupedData(pageIndex, pageSize);
   };
 
   if (loading && skippedEntities.length === 0) {
@@ -532,19 +683,52 @@ function SkippedEntities({camundaAPI}) {
                     </option>
                   ))}
                 </select>
+
+                {/* Group by selector - only show for skipped history variables */}
+                {showSkipped && selectedType === ENTITY_TYPES.HISTORY_VARIABLE && (
+                  <div style={{marginTop: '10px'}}>
+                    <label htmlFor="group-by-selector" style={{marginRight: '10px'}}>
+                      Group by:
+                    </label>
+                    <select
+                      id="group-by-selector"
+                      value={groupBy}
+                      onChange={(e) => setGroupBy(e.target.value)}
+                      style={{padding: '5px', minWidth: '200px'}}
+                    >
+                      <option value="None">None</option>
+                      <option value="ProcessInstance">Process Instance</option>
+                      <option value="ProcessDefinition">Process Definition</option>
+                      <option value="SkipReason">Skip Reason</option>
+                    </select>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          <PaginatedTable
-            columns={columns}
-            data={skippedEntities}
-            totalCount={totalCount}
-            loading={loading}
-            onPageChange={handlePageChange}
-            initialPageSize={10}
-            pageSizeOptions={[5, 10, 20, 30, 40, 50]}
-          />
+          {/* Show grouped table when groupBy is not 'None', otherwise show regular table */}
+          {groupBy !== 'None' && showSkipped && viewMode === 'history' && selectedType === ENTITY_TYPES.HISTORY_VARIABLE ? (
+            <PaginatedTable
+              columns={groupedColumns}
+              data={groupedData}
+              totalCount={groupedData.length} // For grouped data, we don't have a separate count endpoint
+              loading={loading}
+              onPageChange={handleGroupedPageChange}
+              initialPageSize={10}
+              pageSizeOptions={[5, 10, 20, 30, 40, 50]}
+            />
+          ) : (
+            <PaginatedTable
+              columns={columns}
+              data={skippedEntities}
+              totalCount={totalCount}
+              loading={loading}
+              onPageChange={handlePageChange}
+              initialPageSize={10}
+              pageSizeOptions={[5, 10, 20, 30, 40, 50]}
+            />
+          )}
         </div>
       </section>
     </>
