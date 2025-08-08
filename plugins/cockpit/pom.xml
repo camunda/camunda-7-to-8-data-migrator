@@ -13,7 +13,7 @@
 
   <packaging>jar</packaging>
 
-  <name>C7 Data Migrator - Plugins – Cockpit</name>
+  <name>Camunda 7 to 8 Data Migrator - Plugins – Cockpit</name>
   <description>This is a simple plugin that showcases the plugin system of Cockpit, the process monitoring tool of Camunda Platform.</description>
   <url>https://github.com/camunda/camunda-bpm-examples/tree/7.23/cockpit/cockpit-sample-plugin</url>
 
@@ -47,7 +47,7 @@
     </dependency>
     <dependency>
       <groupId>io.camunda</groupId>
-      <artifactId>c7-data-migrator-core</artifactId>
+      <artifactId>camunda-7-to-8-data-migrator-core</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
