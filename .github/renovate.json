@@ -3,6 +3,12 @@
   "extends": ["config:recommended"],
   "packageRules": [
     {
+      "description": "Ignore SNAPSHOT versions for all packages.",
+      "matchPackageNames": ["*"],
+      "allowedVersions": "!/.*-SNAPSHOT$/",
+      "enabled": true
+    },
+    {
       "description": "Automerge all updates with green CI.",
       "matchPackageNames": [
         "*"
