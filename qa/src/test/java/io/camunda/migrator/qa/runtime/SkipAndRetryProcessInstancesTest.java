@@ -90,9 +90,11 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
     assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(process.getId());
 
+    // Logs should contains the activityId without the multi-instance body suffix
+    String activityIdWithoutMultiInstanceBody = "ServiceTask_1";
     logs.assertContains(
         String.format(SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("{}", "%s"), process.getId(),
-            String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, "ServiceTask_1#multiInstanceBody")));
+            String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, activityIdWithoutMultiInstanceBody)));
   }
 
   @Test

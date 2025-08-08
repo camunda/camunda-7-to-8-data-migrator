@@ -70,7 +70,8 @@ public class RuntimeValidator {
     FlowElement element = c7BpmnModelInstance.getModelElementById(activityId);
 
     if (isMultiInstanceActivity(activityId, element)) {
-      throw new IllegalStateException(String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, activityId));
+      String activityIdWithoutSuffix = activityId.replace(MULTI_INSTANCE_BODY_SUFFIX, "");
+      throw new IllegalStateException(String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, activityIdWithoutSuffix));
     }
   }
 
