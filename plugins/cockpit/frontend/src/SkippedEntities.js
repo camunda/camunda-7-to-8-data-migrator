@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import React, {useState, useEffect, useMemo} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {createColumnHelper} from '@tanstack/react-table';
 import PaginatedTable from "./PaginatedTable";
 import {ENTITY_TYPES} from "./utils/types";
@@ -27,6 +27,7 @@ function SkippedEntities({camundaAPI}) {
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [processInstanceIds, setProcessInstanceIds] = useState({});
+  const [processDefinitionKeys, setProcessDefinitionKeys] = useState({});
   const [showSkipped, setShowSkipped] = useState(true);
   const [viewMode, setViewMode] = useState('runtime'); // New state for runtime/history mode
 
@@ -164,9 +165,41 @@ function SkippedEntities({camundaAPI}) {
         );
       }
 
+      // Add process definition key column for RUNTIME_PROCESS_INSTANCE type
+      if (selectedType === ENTITY_TYPES.RUNTIME_PROCESS_INSTANCE) {
+        baseColumns.splice(1, 0,
+          columnHelper.accessor('id', {
+            id: 'processDefinitionKey',
+            header: 'Process Definition Key',
+            cell: info => {
+              const processInstanceId = info.getValue();
+              const definitionKey = processDefinitionKeys[processInstanceId];
+
+              return definitionKey || <span>Loading...</span>;
+            },
+          })
+        );
+      }
+
+      // Add process definition key column for HISTORY_PROCESS_INSTANCE type
+      if (selectedType === ENTITY_TYPES.HISTORY_PROCESS_INSTANCE) {
+        baseColumns.splice(1, 0,
+          columnHelper.accessor('id', {
+            id: 'historyProcessDefinitionKey',
+            header: 'Process Definition Key',
+            cell: info => {
+              const processInstanceId = info.getValue();
+              const definitionKey = processDefinitionKeys[processInstanceId];
+
+              return definitionKey || <span>Loading...</span>;
+            },
+          })
+        );
+      }
+
       return baseColumns;
     },
-    [selectedType, processInstanceIds, showSkipped, viewMode]
+    [selectedType, processInstanceIds, showSkipped, viewMode, processDefinitionKeys]
   );
 
   const getEntityTypeLabel = (entityType) => {
@@ -240,11 +273,18 @@ function SkippedEntities({camundaAPI}) {
       );
       const data = await response.json();
       const entities = Array.isArray(data) ? data : data.items || [];
+
+
       setSkippedEntities(entities);
 
       // Fetch process instance IDs for HISTORY_VARIABLE entities
       if (selectedType === ENTITY_TYPES.HISTORY_VARIABLE && entities.length > 0) {
         fetchProcessInstanceIds(entities);
+      }
+
+      // Fetch process definition keys for process instances
+      if ((selectedType === ENTITY_TYPES.RUNTIME_PROCESS_INSTANCE || selectedType === ENTITY_TYPES.HISTORY_PROCESS_INSTANCE) && entities.length > 0) {
+        fetchProcessDefinitionKeys(entities);
       }
     } catch (err) {
       console.error(err);
@@ -297,6 +337,70 @@ function SkippedEntities({camundaAPI}) {
     }
   };
 
+  // Fetch process definition keys for process instances
+  const fetchProcessDefinitionKeys = async (entities) => {
+    const newProcessDefinitionKeys = {...processDefinitionKeys};
+    let hasChanges = false;
+
+    const fetchPromises = entities.map(async (entity) => {
+      // Skip if we already have the process definition key
+      if (newProcessDefinitionKeys[entity.id]) return;
+
+      try {
+        let response;
+
+        // Use different endpoints for runtime vs history
+        if (selectedType === ENTITY_TYPES.RUNTIME_PROCESS_INSTANCE) {
+          response = await fetch(
+            `${restApi}/process-instance/${entity.id}`,
+            {
+              headers: {
+                'Accept': 'application/json'
+              }
+            }
+          );
+        } else if (selectedType === ENTITY_TYPES.HISTORY_PROCESS_INSTANCE) {
+          response = await fetch(
+            `${restApi}/history/process-instance/${entity.id}`,
+            {
+              headers: {
+                'Accept': 'application/json'
+              }
+            }
+          );
+        }
+
+        if (!response.ok) {
+          console.error(`Failed to fetch process instance ${entity.id}:`, response.status, response.statusText);
+          newProcessDefinitionKeys[entity.id] = 'Error';
+          hasChanges = true;
+          return;
+        }
+
+        const data = await response.json();
+
+        if (data && (data.processDefinitionKey || data.definitionKey)) {
+          newProcessDefinitionKeys[entity.id] = data.processDefinitionKey || data.definitionKey;
+          hasChanges = true;
+        } else {
+          console.warn('No processDefinitionKey found for process instance:', entity.id, 'Available fields:', Object.keys(data || {}));
+          newProcessDefinitionKeys[entity.id] = 'Unknown';
+          hasChanges = true;
+        }
+      } catch (err) {
+        console.error(`Failed to fetch process definition key for process instance ${entity.id}:`, err);
+        newProcessDefinitionKeys[entity.id] = 'Error';
+        hasChanges = true;
+      }
+    });
+
+    await Promise.all(fetchPromises);
+
+    if (hasChanges) {
+      setProcessDefinitionKeys({...newProcessDefinitionKeys});
+    }
+  };
+
   // Initial data load and when entity type changes
   useEffect(() => {
     // Inject LiveReload for development
@@ -305,6 +409,11 @@ function SkippedEntities({camundaAPI}) {
     // Reset process instance IDs when changing entity type
     if (selectedType !== ENTITY_TYPES.HISTORY_VARIABLE) {
       setProcessInstanceIds({});
+    }
+
+    // Reset process definition keys when changing entity type
+    if (selectedType !== ENTITY_TYPES.RUNTIME_PROCESS_INSTANCE && selectedType !== ENTITY_TYPES.HISTORY_PROCESS_INSTANCE) {
+      setProcessDefinitionKeys({});
     }
 
     // When switching to runtime mode, set entity type to runtime process instance
