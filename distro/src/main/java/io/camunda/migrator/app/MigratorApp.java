@@ -98,7 +98,7 @@ public class MigratorApp {
 
   protected static void printUsage() {
     System.out.println();
-    System.out.println("Usage: start.sh [--help] [--runtime] [--history] [--list-skipped|--retry-skipped]");
+    System.out.println("Usage: start.sh/bat [--help] [--runtime] [--history] [--list-skipped|--retry-skipped]");
     System.out.println("Options:");
     System.out.println("  --help            - Show this help message");
     System.out.println("  --runtime         - Migrate runtime data only");
