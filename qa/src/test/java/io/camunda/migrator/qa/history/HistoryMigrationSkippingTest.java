@@ -10,6 +10,7 @@ package io.camunda.migrator.qa.history;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.migrator.HistoryMigrator;
+import io.camunda.migrator.MigratorMode;
 import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.search.entities.ProcessInstanceEntity;
@@ -34,9 +35,6 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
     protected LogCapturer logs = LogCapturer.create().captureForType(HistoryMigrator.class, Level.DEBUG);
 
     @Autowired
-    protected DbClient dbClient;
-
-    @Autowired
     private ManagementService managementService;
 
     @Autowired
@@ -54,7 +52,7 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
             taskService.complete(task.getId());
         }
 
-        // and the process definitions is manually set as skipped
+        // and the process definition is manually set as skipped
         String legacyId = repositoryService.createProcessDefinitionQuery().singleResult().getId();
         dbClient.insert(legacyId, null, IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION);
 

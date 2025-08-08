@@ -144,7 +144,7 @@ public class DbClient {
   /**
    * Processes skipped entities with pagination.
    */
-  public void fetchAndHandleSkipped(TYPE type, Consumer<IdKeyDbModel> callback) {
+  public void fetchAndHandleSkippedForType(TYPE type, Consumer<IdKeyDbModel> callback) {
     new Pagination<IdKeyDbModel>().pageSize(properties.getPageSize())
         .maxCount(() -> idKeyMapper.countSkippedByType(type))
         // Hardcode offset to 0 since each callback updates the database and leads to fresh results.

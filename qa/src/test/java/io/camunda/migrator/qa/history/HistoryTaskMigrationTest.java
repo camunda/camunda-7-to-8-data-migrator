@@ -14,7 +14,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.entities.UserTaskEntity;
 import java.util.List;
-import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.Test;
 
 public class HistoryTaskMigrationTest extends HistoryMigrationAbstractTest {

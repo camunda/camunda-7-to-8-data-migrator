@@ -14,6 +14,7 @@ import io.camunda.db.rdbms.config.VendorDatabaseProperties;
 import io.camunda.db.rdbms.sql.PurgeMapper;
 import io.camunda.db.rdbms.write.service.RdbmsPurger;
 import io.camunda.migrator.HistoryMigrator;
+import io.camunda.migrator.MigratorMode;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.config.MigratorAutoConfiguration;
 import io.camunda.migrator.qa.AbstractMigratorTest;
@@ -24,11 +25,13 @@ import io.camunda.search.entities.IncidentEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.entities.UserTaskEntity;
+import io.camunda.search.entities.VariableEntity;
 import io.camunda.search.query.FlowNodeInstanceQuery;
 import io.camunda.search.query.IncidentQuery;
 import io.camunda.search.query.ProcessDefinitionQuery;
 import io.camunda.search.query.ProcessInstanceQuery;
 import io.camunda.search.query.UserTaskQuery;
+import io.camunda.search.query.VariableQuery;
 import java.util.List;
 import org.camunda.bpm.engine.impl.util.ClockUtil;
 import org.camunda.bpm.engine.task.Task;
@@ -67,8 +70,9 @@ public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest 
     ClockUtil.reset();
     repositoryService.createDeploymentQuery().list().forEach(d -> repositoryService.deleteDeployment(d.getId(), true));
 
-    // Migrator table
+    // Migrator
     dbClient.deleteAllMappings();
+    historyMigrator.setMode(MigratorMode.MIGRATE);
 
     // C8
     rdbmsPurger.purgeRdbms();
@@ -111,6 +115,14 @@ public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest 
         .search(IncidentQuery.of(queryBuilder ->
             queryBuilder.filter(filterBuilder ->
                 filterBuilder.processDefinitionIds(processDefinitionId))))
+        .items();
+  }
+
+  public List<VariableEntity> searchHistoricVariables(String varName) {
+    return rdbmsService.getVariableReader()
+        .search(VariableQuery.of(queryBuilder ->
+            queryBuilder.filter(filterBuilder ->
+                filterBuilder.names(varName))))
         .items();
   }
 

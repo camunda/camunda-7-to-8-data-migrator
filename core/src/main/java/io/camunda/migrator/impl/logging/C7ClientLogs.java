@@ -19,4 +19,5 @@ public class C7ClientLogs {
   public static final String FAILED_TO_FETCH_DEPLOYMENT_TIME = "Failed to fetch deployment time for definition with legacyId: ";
   public static final String FAILED_TO_FETCH_BPMN_XML = "Failed to fetch BPMN model instance for process definition Id: ";
   public static final String FAILED_TO_FETCH_PROCESS_INSTANCE = "Process instance fetching failed for legacyId: ";
+  public static final String FAILED_TO_FETCH_HISTORIC_ELEMENT = "Failed to fetch %s for legacyId: %s";
 }
