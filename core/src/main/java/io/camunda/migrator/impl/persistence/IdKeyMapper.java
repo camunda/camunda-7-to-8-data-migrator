@@ -40,6 +40,8 @@ public interface IdKeyMapper {
 
   List<IdKeyDbModel> findSkippedByType(@Param("type") TYPE type, @Param("offset") int offset, @Param("limit") int limit);
 
+  List<IdKeyDbModel> findMigratedByType(@Param("type") TYPE type, @Param("offset") int offset, @Param("limit") int limit);
+
   long countSkippedByType(@Param("type") TYPE type);
 
   List<String> findAllIds();
