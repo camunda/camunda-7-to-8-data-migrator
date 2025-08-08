@@ -63,6 +63,54 @@ function SkippedEntities({camundaAPI}) {
     }
   };
 
+  // Function to render skip reason with links for flow node references
+  const renderSkipReasonWithLinks = (skipReason, entity) => {
+    // Regular expression to match "flow node with id [activityId]" pattern
+    const flowNodeRegex = /flow node with id \[([^\]]+)]/g;
+
+    // Split the text and process each part
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = flowNodeRegex.exec(skipReason)) !== null) {
+      // Add text before the match
+      if (match.index > lastIndex) {
+        parts.push(skipReason.substring(lastIndex, match.index));
+      }
+
+      // Extract activity ID from the match
+      const activityId = match[1];
+
+      // Create link to history process instance view with activity highlighting
+      const processInstanceId = entity.type === ENTITY_TYPES.HISTORY_VARIABLE
+        ? processInstanceIds[entity.id]
+        : entity.id;
+
+      if (processInstanceId) {
+        parts.push(
+          <a
+            key={match.index}
+            href={`#/process-instance/${processInstanceId}/history?activityIds=${encodeURIComponent(activityId)}`}
+          >
+            {activityId}
+          </a>
+        );
+      } else {
+        parts.push(match[0]);
+      }
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text after the last match
+    if (lastIndex < skipReason?.length) {
+      parts.push(skipReason.substring(lastIndex));
+    }
+
+    return parts.length > 1 ? <>{parts}</> : skipReason;
+  };
+
   const columnHelper = createColumnHelper();
 
   const columns = useMemo(
@@ -85,7 +133,7 @@ function SkippedEntities({camundaAPI}) {
       baseColumns = [...baseColumns,
         columnHelper.accessor('skipReason', {
           header: 'Skip reason',
-          cell: info => info.getValue(),
+          cell: info => renderSkipReasonWithLinks(info.getValue(), info.row.original),
         }),
       ];
 
