@@ -33,7 +33,7 @@
 
   <!-- findMigratedByType is used by the migrator cockpit plugin -->
   <select id="findMigratedByType" resultMap="idKeyResultMap">
-    SELECT ID, INSTANCE_KEY, START_DATE, TYPE FROM ${prefix}MIGRATION_MAPPING
+    SELECT ID, INSTANCE_KEY, START_DATE, TYPE, SKIP_REASON FROM ${prefix}MIGRATION_MAPPING
     WHERE TYPE = #{type} AND INSTANCE_KEY IS NOT NULL
     <include refid="io.camunda.migrator.Commons.pageSql"/>
   </select>

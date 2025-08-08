@@ -378,8 +378,8 @@ public class C8Configuration extends AbstractConfiguration {
         jobMapper,
         sequenceFlowMapper,
         usageMetricMapper,
-        usageMetricTUMapper
-        );
+        usageMetricTUMapper,
+        batchOperationMapper);
   }
 
   @Bean
