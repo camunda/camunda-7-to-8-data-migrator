@@ -52,6 +52,10 @@ public interface IdKeyMapper {
 
   List<SkippedVariablesByProcessInstanceDbModel> findSkippedVariablesByProcessInstance(@Param("offset") int offset, @Param("limit") int limit);
 
+  List<SkippedVariablesByProcessDefinitionDbModel> findSkippedVariablesByProcessDefinition(@Param("offset") int offset, @Param("limit") int limit);
+
+  List<SkippedVariablesBySkipReasonDbModel> findSkippedVariablesBySkipReason(@Param("offset") int offset, @Param("limit") int limit);
+
   void updateKeyById(IdKeyDbModel idKeyDbModel);
 
   void delete(String id);

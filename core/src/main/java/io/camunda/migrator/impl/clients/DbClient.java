@@ -26,7 +26,9 @@ import io.camunda.migrator.impl.Pagination;
 import io.camunda.migrator.impl.logging.DbClientLogs;
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import io.camunda.migrator.impl.persistence.SkippedVariablesByProcessDefinitionDbModel;
 import io.camunda.migrator.impl.persistence.SkippedVariablesByProcessInstanceDbModel;
+import io.camunda.migrator.impl.persistence.SkippedVariablesBySkipReasonDbModel;
 import io.camunda.migrator.impl.util.PrintUtils;
 import java.util.Date;
 import java.util.List;
@@ -198,18 +200,22 @@ public class DbClient {
     return callApi(() -> idKeyMapper.findSkippedVariablesByProcessInstance(offset, limit),
         "Failed to find skipped variables by process instance");
   }
-//
-//  /**
-//   * Finds skipped historic variables grouped by process instance ID with pagination.
-//   */
-//  public void fetchAndHandleSkippedVariablesByProcessInstance(Consumer<SkippedVariablesByProcessInstanceDbModel> consumer, int offset) {
-//    Pagination<SkippedVariablesByProcessInstanceDbModel> pagination = new Pagination<>(
-//        (pageOffset, pageLimit) -> findSkippedVariablesByProcessInstance(pageOffset, pageLimit),
-//        properties.getPageSize(),
-//        offset
-//    );
-//    pagination.handleAllPages(results -> results.forEach(consumer));
-//  }
+
+  /**
+   * Finds skipped historic variables grouped by process definition ID.
+   */
+  public List<SkippedVariablesByProcessDefinitionDbModel> findSkippedVariablesByProcessDefinition(int offset, int limit) {
+    return callApi(() -> idKeyMapper.findSkippedVariablesByProcessDefinition(offset, limit),
+        "Failed to find skipped variables by process definition");
+  }
+
+  /**
+   * Finds skipped historic variables grouped by skip reason.
+   */
+  public List<SkippedVariablesBySkipReasonDbModel> findSkippedVariablesBySkipReason(int offset, int limit) {
+    return callApi(() -> idKeyMapper.findSkippedVariablesBySkipReason(offset, limit),
+        "Failed to find skipped variables by skip reason");
+  }
 
   /**
    * Deletes all mappings from the database.

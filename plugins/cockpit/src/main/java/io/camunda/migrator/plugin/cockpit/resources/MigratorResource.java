@@ -8,7 +8,9 @@
 package io.camunda.migrator.plugin.cockpit.resources;
 
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
+import io.camunda.migrator.impl.persistence.SkippedVariablesByProcessDefinitionDbModel;
 import io.camunda.migrator.impl.persistence.SkippedVariablesByProcessInstanceDbModel;
+import io.camunda.migrator.impl.persistence.SkippedVariablesBySkipReasonDbModel;
 import io.camunda.migrator.plugin.cockpit.MigratorQueryService;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -90,6 +92,34 @@ public class MigratorResource extends AbstractCockpitPluginResource {
     return getCommandExecutor().executeCommand(new MigratorQueryService<>(parameters,
         (params, commandContext) -> (List<SkippedVariablesByProcessInstanceDbModel>) commandContext.getDbSqlSession()
             .selectList("io.camunda.migrator.impl.persistence.IdKeyMapper.findSkippedVariablesByProcessInstance", params)));
+  }
+
+  @GET
+  @Path("/skipped-variables-by-process-definition")
+  @Produces("application/json")
+  public List<SkippedVariablesByProcessDefinitionDbModel> getSkippedVariablesByProcessDefinition(
+      @QueryParam("offset") int offset,
+      @QueryParam("limit") int limit) {
+    var parameters = new HashMap<String, Object>();
+    parameters.put("offset", offset);
+    parameters.put("limit", limit);
+    return getCommandExecutor().executeCommand(new MigratorQueryService<>(parameters,
+        (params, commandContext) -> (List<SkippedVariablesByProcessDefinitionDbModel>) commandContext.getDbSqlSession()
+            .selectList("io.camunda.migrator.impl.persistence.IdKeyMapper.findSkippedVariablesByProcessDefinition", params)));
+  }
+
+  @GET
+  @Path("/skipped-variables-by-skip-reason")
+  @Produces("application/json")
+  public List<SkippedVariablesBySkipReasonDbModel> getSkippedVariablesBySkipReason(
+      @QueryParam("offset") int offset,
+      @QueryParam("limit") int limit) {
+    var parameters = new HashMap<String, Object>();
+    parameters.put("offset", offset);
+    parameters.put("limit", limit);
+    return getCommandExecutor().executeCommand(new MigratorQueryService<>(parameters,
+        (params, commandContext) -> (List<SkippedVariablesBySkipReasonDbModel>) commandContext.getDbSqlSession()
+            .selectList("io.camunda.migrator.impl.persistence.IdKeyMapper.findSkippedVariablesBySkipReason", params)));
   }
 
 }

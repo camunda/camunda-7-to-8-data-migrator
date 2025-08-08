@@ -25,6 +25,23 @@
     <result property="skipReasons" column="SKIP_REASONS" jdbcType="VARCHAR"/>
   </resultMap>
 
+  <resultMap id="skippedVariablesByProcessDefinitionResultMap" type="io.camunda.migrator.impl.persistence.SkippedVariablesByProcessDefinitionDbModel">
+    <result property="processDefinitionId" column="PROC_DEF_ID" jdbcType="VARCHAR"/>
+    <result property="processDefinitionKey" column="PROC_DEF_KEY" jdbcType="VARCHAR"/>
+    <result property="skippedVariableCount" column="SKIPPED_VARIABLE_COUNT" jdbcType="BIGINT"/>
+    <result property="skippedVariableIds" column="SKIPPED_VARIABLE_IDS" jdbcType="VARCHAR"/>
+    <result property="skippedVariableNames" column="SKIPPED_VARIABLE_NAMES" jdbcType="VARCHAR"/>
+    <result property="skipReasons" column="SKIP_REASONS" jdbcType="VARCHAR"/>
+  </resultMap>
+
+  <resultMap id="skippedVariablesBySkipReasonResultMap" type="io.camunda.migrator.impl.persistence.SkippedVariablesBySkipReasonDbModel">
+    <result property="skipReason" column="SKIP_REASON" jdbcType="VARCHAR"/>
+    <result property="skippedVariableCount" column="SKIPPED_VARIABLE_COUNT" jdbcType="BIGINT"/>
+    <result property="skippedVariableIds" column="SKIPPED_VARIABLE_IDS" jdbcType="VARCHAR"/>
+    <result property="skippedVariableNames" column="SKIPPED_VARIABLE_NAMES" jdbcType="VARCHAR"/>
+    <result property="processInstanceIds" column="PROCESS_INSTANCE_IDS" jdbcType="VARCHAR"/>
+  </resultMap>
+
   <select id="countSkippedByType" resultType="long">
     SELECT COUNT(ID) FROM ${prefix}MIGRATION_MAPPING
     WHERE TYPE = #{type} AND INSTANCE_KEY IS NULL
@@ -69,6 +86,39 @@
     WHERE m.TYPE = 'HISTORY_VARIABLE'
         AND m.SKIP_REASON IS NOT NULL
     GROUP BY v.PROC_INST_ID_
+    ORDER BY SKIPPED_VARIABLE_COUNT DESC
+    <include refid="io.camunda.migrator.Commons.pageSql"/>
+  </select>
+
+  <select id="findSkippedVariablesByProcessDefinition" resultMap="skippedVariablesByProcessDefinitionResultMap">
+    SELECT
+        v.PROC_DEF_ID_ as PROC_DEF_ID,
+        v.PROC_DEF_KEY_ as PROC_DEF_KEY,
+        COUNT(m.ID) as SKIPPED_VARIABLE_COUNT,
+        STRING_AGG(m.ID, ', ') as SKIPPED_VARIABLE_IDS,
+        STRING_AGG(v.NAME_, ', ') as SKIPPED_VARIABLE_NAMES,
+        STRING_AGG(DISTINCT m.SKIP_REASON, '; ') as SKIP_REASONS
+    FROM ${prefix}MIGRATION_MAPPING m
+    INNER JOIN ACT_HI_VARINST v ON m.ID = v.ID_
+    WHERE m.TYPE = 'HISTORY_VARIABLE'
+        AND m.SKIP_REASON IS NOT NULL
+    GROUP BY v.PROC_DEF_ID_, v.PROC_DEF_KEY_
+    ORDER BY SKIPPED_VARIABLE_COUNT DESC
+    <include refid="io.camunda.migrator.Commons.pageSql"/>
+  </select>
+
+  <select id="findSkippedVariablesBySkipReason" resultMap="skippedVariablesBySkipReasonResultMap">
+    SELECT
+        m.SKIP_REASON,
+        COUNT(m.ID) as SKIPPED_VARIABLE_COUNT,
+        STRING_AGG(m.ID, ', ') as SKIPPED_VARIABLE_IDS,
+        STRING_AGG(v.NAME_, ', ') as SKIPPED_VARIABLE_NAMES,
+        STRING_AGG(DISTINCT v.PROC_INST_ID_, ', ') as PROCESS_INSTANCE_IDS
+    FROM ${prefix}MIGRATION_MAPPING m
+    INNER JOIN ACT_HI_VARINST v ON m.ID = v.ID_
+    WHERE m.TYPE = 'HISTORY_VARIABLE'
+        AND m.SKIP_REASON IS NOT NULL
+    GROUP BY m.SKIP_REASON
     ORDER BY SKIPPED_VARIABLE_COUNT DESC
     <include refid="io.camunda.migrator.Commons.pageSql"/>
   </select>
