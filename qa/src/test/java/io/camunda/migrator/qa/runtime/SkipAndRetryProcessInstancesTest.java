@@ -223,7 +223,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then all skipped process instances were listed
-    String regex = PREVIOUSLY_SKIPPED_INSTANCES_MESSAGE + "\\R((?:.+\\R){15}.+)";
+    String regex = PREVIOUSLY_SKIPPED_INSTANCES_MESSAGE + "\\R((?:.+\\R){9}.+)";
     assertThat(output.getOut()).containsPattern(regex);
     Pattern pattern = Pattern.compile(regex);
     Matcher matcher = pattern.matcher(output.getOut());
