@@ -48,6 +48,29 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
         // given multiple process instances with comprehensive entity generation
         deployer.deployCamunda7Process("comprehensiveSkippingTestProcess.bpmn");
 
+        List<String> processInstanceIds = createTestProcessInstances();
+        String processDefinitionId = getProcessDefinitionId();
+
+        // Verify expected entities exist in C7
+        verifyC7EntitiesExist();
+
+        // Mark the process definition as skipped and run migration
+        dbClient.insert(processDefinitionId, null, IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION);
+        historyMigrator.migrate();
+
+        // Verify all entities were marked as skipped
+        verifyEntitiesMarkedAsSkipped();
+
+        // when running history migration with list skipped mode
+        historyMigrator.setMode(LIST_SKIPPED);
+        historyMigrator.start();
+
+        // then verify the output contains all expected skipped entities
+        Map<String, List<String>> skippedEntitiesByType = parseSkippedEntitiesOutput(output.getOut());
+        verifySkippedEntitiesOutput(skippedEntitiesByType, processDefinitionId, processInstanceIds);
+    }
+
+    private List<String> createTestProcessInstances() {
         List<String> processInstanceIds = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             var processInstance = runtimeService.startProcessInstanceByKey("comprehensiveSkippingTestProcessId",
@@ -73,64 +96,61 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
                 }
             }
         }
+        return processInstanceIds;
+    }
 
-        // Verify we have the expected entities in C7
-        assertThat(historyService.createHistoricProcessInstanceQuery().count()).isEqualTo(3);
-        assertThat(historyService.createHistoricTaskInstanceQuery().count()).isEqualTo(3);
-        assertThat(historyService.createHistoricVariableInstanceQuery().count()).isGreaterThan(6); // process vars + task vars
-        assertThat(historyService.createHistoricIncidentQuery().count()).isEqualTo(3);
-        assertThat(historyService.createHistoricActivityInstanceQuery().count()).isEqualTo(12); // multiple flow nodes per instance
-
-        // Mark the process definition as skipped
-        String processDefinitionId = repositoryService.createProcessDefinitionQuery()
+    private String getProcessDefinitionId() {
+        return repositoryService.createProcessDefinitionQuery()
             .processDefinitionKey("comprehensiveSkippingTestProcessId")
             .latestVersion()
             .singleResult()
             .getId();
-        dbClient.insert(processDefinitionId, null, IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION);
+    }
 
-        // Run history migration to skip all entities
-        historyMigrator.migrate();
+    private void verifyC7EntitiesExist() {
+        assertThat(historyService.createHistoricProcessInstanceQuery().count()).isEqualTo(3);
+        assertThat(historyService.createHistoricTaskInstanceQuery().count()).isEqualTo(3);
+        assertThat(historyService.createHistoricVariableInstanceQuery().count()).isGreaterThan(6);
+        assertThat(historyService.createHistoricIncidentQuery().count()).isEqualTo(3);
+        assertThat(historyService.createHistoricActivityInstanceQuery().count()).isEqualTo(12);
+    }
 
-        // Verify all entities were marked as skipped
+    private void verifyEntitiesMarkedAsSkipped() {
         assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION)).isEqualTo(1);
         assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE)).isEqualTo(3);
         assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_USER_TASK)).isEqualTo(3);
         assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_INCIDENT)).isEqualTo(3);
         assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_VARIABLE)).isGreaterThan(6);
         assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_FLOW_NODE)).isEqualTo(12);
+    }
 
-        // when running history migration with list skipped mode
-        historyMigrator.setMode(LIST_SKIPPED);
-        historyMigrator.start();
-
-        // Parse the output into a structured map
-        Map<String, List<String>> skippedEntitiesByType = parseSkippedEntitiesOutput(output.getOut());
-
-        // then all skipped history entities were listed with proper structure
+    private void verifySkippedEntitiesOutput(Map<String, List<String>> skippedEntitiesByType,
+                                           String processDefinitionId, List<String> processInstanceIds) {
+        // Verify all expected entity types are present
         assertThat(skippedEntitiesByType).containsKeys(
-            "historic process definitions",
-            "historic process instances",
-            "historic flow nodes",
-            "historic user tasks",
-            "historic variables",
-            "historic incidents",
-            "historic decision definitions",
-            "historic decision instances"
+            "historic process definitions", "historic process instances", "historic flow nodes",
+            "historic user tasks", "historic variables", "historic incidents",
+            "historic decision definitions", "historic decision instances"
         );
 
-        // Assert process definitions - verify the actual process definition ID from C7
-        List<String> expectedProcessDefinitionIds = List.of(processDefinitionId);
+        // Verify specific entities with expected counts and IDs
         assertThat(skippedEntitiesByType.get("historic process definitions"))
             .hasSize(1)
-            .containsExactlyInAnyOrderElementsOf(expectedProcessDefinitionIds);
+            .containsExactly(processDefinitionId);
 
-        // Assert process instances - verify the actual process instance IDs from C7
         assertThat(skippedEntitiesByType.get("historic process instances"))
             .hasSize(3)
             .containsExactlyInAnyOrderElementsOf(processInstanceIds);
 
-        // Assert user tasks - verify the actual user task IDs from C7
+        verifyHistoricEntitiesById(skippedEntitiesByType, processDefinitionId);
+
+        // Verify empty entity types
+        assertThat(skippedEntitiesByType.get("historic decision definitions")).isEmpty();
+        assertThat(skippedEntitiesByType.get("historic decision instances")).isEmpty();
+    }
+
+    private void verifyHistoricEntitiesById(Map<String, List<String>> skippedEntitiesByType, String processDefinitionId) {
+        // Verify user tasks
         List<String> expectedUserTaskIds = historyService.createHistoricTaskInstanceQuery()
             .processDefinitionId(processDefinitionId)
             .list()
@@ -141,7 +161,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
             .hasSize(3)
             .containsExactlyInAnyOrderElementsOf(expectedUserTaskIds);
 
-        // Assert incidents - verify the actual incident IDs from C7
+        // Verify incidents
         List<String> expectedIncidentIds = historyService.createHistoricIncidentQuery()
             .processDefinitionId(processDefinitionId)
             .list()
@@ -152,7 +172,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
             .hasSize(3)
             .containsExactlyInAnyOrderElementsOf(expectedIncidentIds);
 
-        // Assert variables - verify the actual variable IDs from C7
+        // Verify variables
         List<String> expectedVariableIds = historyService.createHistoricVariableInstanceQuery()
             .processDefinitionId(processDefinitionId)
             .list()
@@ -163,7 +183,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
             .hasSize(9)
             .containsAll(expectedVariableIds);
 
-        // Assert flow nodes - verify the actual flow node (activity instance) IDs from C7
+        // Verify flow nodes
         List<String> expectedFlowNodeIds = historyService.createHistoricActivityInstanceQuery()
             .processDefinitionId(processDefinitionId)
             .list()
@@ -173,92 +193,93 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
         assertThat(skippedEntitiesByType.get("historic flow nodes"))
             .hasSize(12)
             .containsExactlyInAnyOrderElementsOf(expectedFlowNodeIds);
-
-        // Assert decision definitions - verify that none were skipped (should be empty list)
-        assertThat(skippedEntitiesByType.get("historic decision definitions"))
-            .isEmpty();
-
-        // Assert decision instances - verify that none were skipped (should be empty list)
-        assertThat(skippedEntitiesByType.get("historic decision instances"))
-            .isEmpty();
     }
 
     /**
      * Parses the migrator output and extracts skipped entities.
-     *
-     * @param output The full output from the migrator
-     * @return Map where key is entity type (e.g., "historic process instances") and value is list of entity IDs
+     * Filters out debug/info logs that may appear in CI environments.
      */
     private Map<String, List<String>> parseSkippedEntitiesOutput(String output) {
         Map<String, List<String>> result = new HashMap<>();
 
-        // Step 1: Find first occurrence and drop everything before it
-        Pattern firstMatchPattern = Pattern.compile("(Previously skipped [^:]+:|No [^:]+were skipped during previous migration)");
-        Matcher firstMatcher = firstMatchPattern.matcher(output);
-        if (!firstMatcher.find()) {
-            return result; // No skipped entities section found
-        }
-        String relevantOutput = output.substring(firstMatcher.start());
-
-        // Step 2: Split on all header patterns to get sections
-        Pattern sectionPattern = Pattern.compile("(Previously skipped ([^:]+):|No ([^\\s][^\\n]*?) were skipped during previous migration)");
-        String[] sections = sectionPattern.split(relevantOutput);
-
-        // Get all header matches to extract entity types
-        Matcher headerMatcher = sectionPattern.matcher(relevantOutput);
-        List<String> entityTypes = new ArrayList<>();
-
-        while (headerMatcher.find()) {
-            String entityType;
-            if (headerMatcher.group(2) != null) {
-                // "Previously skipped X:" format
-                entityType = headerMatcher.group(2);
-            } else {
-                // "No X were skipped" format
-                entityType = headerMatcher.group(3);
-            }
-            entityTypes.add(entityType);
+        String relevantOutput = extractRelevantOutput(output);
+        if (relevantOutput.isEmpty()) {
+            return result;
         }
 
-        // Step 3: Process each section with its corresponding entity type
-        for (int i = 0; i < entityTypes.size() && i + 1 < sections.length; i++) {
-            String entityType = entityTypes.get(i);
-            String sectionContent = sections[i + 1].trim();
+        List<EntitySection> sections = extractEntitySections(relevantOutput);
 
-            List<String> entityIds = new ArrayList<>();
-            if (!sectionContent.isEmpty()) {
-                // Split by lines and filter out empty lines and debug log messages
-                entityIds = Arrays.stream(sectionContent.split("\\R"))
-                    .map(String::trim)
-                    .filter(line -> !line.isEmpty())
-                    .filter(line -> !isDebugLogLine(line))
-                    .collect(Collectors.toList());
-            }
-
-            result.put(entityType, entityIds);
+        for (EntitySection section : sections) {
+            List<String> entityIds = extractEntityIds(section.content);
+            result.put(section.entityType, entityIds);
         }
 
         return result;
     }
 
+    private String extractRelevantOutput(String output) {
+        Pattern startPattern = Pattern.compile("(Previously skipped [^:]+:|No [^:]+were skipped during previous migration)");
+        Matcher matcher = startPattern.matcher(output);
+        return matcher.find() ? output.substring(matcher.start()) : "";
+    }
+
+    private List<EntitySection> extractEntitySections(String output) {
+        List<EntitySection> sections = new ArrayList<>();
+        Pattern headerPattern = Pattern.compile("(Previously skipped ([^:]+):|No ([^\\s][^\\n]*?) were skipped during previous migration)");
+        Matcher matcher = headerPattern.matcher(output);
+
+        int lastEnd = 0;
+        String lastEntityType = null;
+
+        while (matcher.find()) {
+            // Process previous section if exists
+            if (lastEntityType != null) {
+                String content = output.substring(lastEnd, matcher.start()).trim();
+                sections.add(new EntitySection(lastEntityType, content));
+            }
+
+            // Extract entity type from current match
+            lastEntityType = matcher.group(2) != null ? matcher.group(2) : matcher.group(3);
+            lastEnd = matcher.end();
+        }
+
+        // Process last section
+        if (lastEntityType != null) {
+            String content = output.substring(lastEnd).trim();
+            sections.add(new EntitySection(lastEntityType, content));
+        }
+
+        return sections;
+    }
+
+    private List<String> extractEntityIds(String sectionContent) {
+        if (sectionContent.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return Arrays.stream(sectionContent.split("\\R"))
+            .map(String::trim)
+            .filter(line -> !line.isEmpty() && !isLogLine(line))
+            .collect(Collectors.toList());
+    }
+
     /**
-     * Checks if a line is a debug log message that should be filtered out.
-     * Debug log lines typically contain timestamps, log levels, and logger names.
+     * Checks if a line is a log message that should be filtered out in CI environments.
+     * This is necessary because CI may output debug/info logs mixed with actual entity IDs.
      */
-    private boolean isDebugLogLine(String line) {
-        // Filter out lines that look like debug logs:
-        // - Lines starting with ISO timestamp pattern (e.g., "2025-08-05T13:12:14.152Z")
-        // - Lines containing log levels (DEBUG, INFO, WARN, ERROR)
-        // - Lines containing SQL preparation/execution patterns
-        return line.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z.*") ||
-               line.contains("DEBUG") ||
-               line.contains("INFO") ||
-               line.contains("WARN") ||
-               line.contains("ERROR") ||
-               line.contains("==>") ||
-               line.contains("<==") ||
-               line.contains("Preparing:") ||
-               line.contains("Parameters:") ||
-               line.contains("Total:");
+    private boolean isLogLine(String line) {
+        return line.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z.*") || // ISO timestamp
+               line.matches(".*(DEBUG|INFO|WARN|ERROR).*") || // Log levels
+               line.matches(".*(==>|<==|Preparing:|Parameters:|Total:).*"); // SQL logging patterns
+    }
+
+    private static class EntitySection {
+        final String entityType;
+        final String content;
+
+        EntitySection(String entityType, String content) {
+            this.entityType = entityType;
+            this.content = content;
+        }
     }
 }
