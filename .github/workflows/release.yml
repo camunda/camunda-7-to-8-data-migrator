@@ -61,7 +61,7 @@ jobs:
 
       - name: Checkout Code
         if: ${{ !inputs.ONLY_PUSH_TO_MAVEN_CENTRAL }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.ref }}
           # Overriding the default GITHUB_TOKEN with a GitHub App token in order to workaround
@@ -169,7 +169,7 @@ jobs:
       - name: Checkout Code
         # Tag does not exist if dry run
         if: ${{ !inputs.IS_DRY_RUN }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # Checkout the release tag to perform a second deployment 
           ref: ${{ env.RELEASE_VERSION }}
