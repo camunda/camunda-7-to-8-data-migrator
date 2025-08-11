@@ -115,7 +115,8 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
             "historic user tasks",
             "historic variables",
             "historic incidents",
-            "historic decision definitions"
+            "historic decision definitions",
+            "historic decision instances"
         );
 
         // Assert process definitions - verify the actual process definition ID from C7
@@ -176,6 +177,10 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
         // Assert decision definitions - verify that none were skipped (should be empty list)
         assertThat(skippedEntitiesByType.get("historic decision definitions"))
             .isEmpty();
+
+        // Assert decision instances - verify that none were skipped (should be empty list)
+        assertThat(skippedEntitiesByType.get("historic decision instances"))
+            .isEmpty();
     }
 
     /**
@@ -188,7 +193,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
         Map<String, List<String>> result = new HashMap<>();
 
         // Step 1: Find first occurrence and drop everything before it
-        Pattern firstMatchPattern = Pattern.compile("(Previously skipped [^:]+:|No [^:]+: were skipped during previous migration)");
+        Pattern firstMatchPattern = Pattern.compile("(Previously skipped [^:]+:|No [^:]+were skipped during previous migration)");
         Matcher firstMatcher = firstMatchPattern.matcher(output);
         if (!firstMatcher.find()) {
             return result; // No skipped entities section found
@@ -196,7 +201,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
         String relevantOutput = output.substring(firstMatcher.start());
 
         // Step 2: Split on all header patterns to get sections
-        Pattern sectionPattern = Pattern.compile("(Previously skipped ([^:]+):|No ([^\\s]+[^:]*) were skipped during previous migration)");
+        Pattern sectionPattern = Pattern.compile("(Previously skipped ([^:]+):|No ([^\\s][^\\n]*?) were skipped during previous migration)");
         String[] sections = sectionPattern.split(relevantOutput);
 
         // Get all header matches to extract entity types

@@ -11,6 +11,7 @@ import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_DEFINITION;
+import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_FLOW_NODE;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_INCIDENT;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION;
@@ -145,7 +146,8 @@ public class HistoryMigrator {
         HISTORY_USER_TASK,
         HISTORY_VARIABLE,
         HISTORY_INCIDENT,
-        HISTORY_DECISION_DEFINITION
+        HISTORY_DECISION_DEFINITION,
+        HISTORY_DECISION_INSTANCE
     );
 
     historyTypes.forEach(this::printSkippedEntitiesForType);
