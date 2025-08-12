@@ -44,7 +44,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
     protected HistoryService historyService;
 
     @Test
-    public void shouldListAllSkippedHistoryEntities(CapturedOutput output) {
+    public void shouldListAllSkippedHistoricEntities(CapturedOutput output) {
         // given multiple process instances with comprehensive entity generation
         deployer.deployCamunda7Process("comprehensiveSkippingTestProcess.bpmn");
 
@@ -126,27 +126,28 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
 
     private void verifySkippedEntitiesOutput(Map<String, List<String>> skippedEntitiesByType,
                                            String processDefinitionId, List<String> processInstanceIds) {
-        // Verify all expected entity types are present
-        assertThat(skippedEntitiesByType).containsKeys(
-            "historic process definitions", "historic process instances", "historic flow nodes",
-            "historic user tasks", "historic variables", "historic incidents",
-            "historic decision definitions", "historic decision instances"
-        );
+        // Verify all expected entity types are present - using enum values like the actual implementation
+        String[] expectedEntityTypes = Arrays.stream(IdKeyMapper.TYPE.values())
+            .filter(type -> type != IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE)
+            .map(IdKeyMapper.TYPE::getDisplayName)
+            .toArray(String[]::new);
+
+        assertThat(skippedEntitiesByType).containsKeys(expectedEntityTypes);
 
         // Verify specific entities with expected counts and IDs
-        assertThat(skippedEntitiesByType.get("historic process definitions"))
+        assertThat(skippedEntitiesByType.get(IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION.getDisplayName()))
             .hasSize(1)
             .containsExactly(processDefinitionId);
 
-        assertThat(skippedEntitiesByType.get("historic process instances"))
+        assertThat(skippedEntitiesByType.get(IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE.getDisplayName()))
             .hasSize(3)
             .containsExactlyInAnyOrderElementsOf(processInstanceIds);
 
         verifyHistoricEntitiesById(skippedEntitiesByType, processDefinitionId);
 
         // Verify empty entity types
-        assertThat(skippedEntitiesByType.get("historic decision definitions")).isEmpty();
-        assertThat(skippedEntitiesByType.get("historic decision instances")).isEmpty();
+        assertThat(skippedEntitiesByType.get(IdKeyMapper.TYPE.HISTORY_DECISION_DEFINITION.getDisplayName())).isEmpty();
+        assertThat(skippedEntitiesByType.get(IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE.getDisplayName())).isEmpty();
     }
 
     private void verifyHistoricEntitiesById(Map<String, List<String>> skippedEntitiesByType, String processDefinitionId) {
@@ -157,7 +158,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
             .stream()
             .map(task -> task.getId())
             .collect(Collectors.toList());
-        assertThat(skippedEntitiesByType.get("historic user tasks"))
+        assertThat(skippedEntitiesByType.get(IdKeyMapper.TYPE.HISTORY_USER_TASK.getDisplayName()))
             .hasSize(3)
             .containsExactlyInAnyOrderElementsOf(expectedUserTaskIds);
 
@@ -168,7 +169,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
             .stream()
             .map(incident -> incident.getId())
             .collect(Collectors.toList());
-        assertThat(skippedEntitiesByType.get("historic incidents"))
+        assertThat(skippedEntitiesByType.get(IdKeyMapper.TYPE.HISTORY_INCIDENT.getDisplayName()))
             .hasSize(3)
             .containsExactlyInAnyOrderElementsOf(expectedIncidentIds);
 
@@ -179,7 +180,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
             .stream()
             .map(variable -> variable.getId())
             .collect(Collectors.toList());
-        assertThat(skippedEntitiesByType.get("historic variables"))
+        assertThat(skippedEntitiesByType.get(IdKeyMapper.TYPE.HISTORY_VARIABLE.getDisplayName()))
             .hasSize(9)
             .containsAll(expectedVariableIds);
 
@@ -190,7 +191,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
             .stream()
             .map(activity -> activity.getId())
             .collect(Collectors.toList());
-        assertThat(skippedEntitiesByType.get("historic flow nodes"))
+        assertThat(skippedEntitiesByType.get(IdKeyMapper.TYPE.HISTORY_FLOW_NODE.getDisplayName()))
             .hasSize(12)
             .containsExactlyInAnyOrderElementsOf(expectedFlowNodeIds);
     }
@@ -218,14 +219,14 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
     }
 
     private String extractRelevantOutput(String output) {
-        Pattern startPattern = Pattern.compile("(Previously skipped [^:]+:|No [^:]+were skipped during previous migration)");
+        Pattern startPattern = Pattern.compile("(Previously skipped \\[[^\\]]+\\]:|No entities of type \\[[^\\]]+\\] were skipped during previous migration)");
         Matcher matcher = startPattern.matcher(output);
         return matcher.find() ? output.substring(matcher.start()) : "";
     }
 
     private List<EntitySection> extractEntitySections(String output) {
         List<EntitySection> sections = new ArrayList<>();
-        Pattern headerPattern = Pattern.compile("(Previously skipped ([^:]+):|No ([^\\s][^\\n]*?) were skipped during previous migration)");
+        Pattern headerPattern = Pattern.compile("(Previously skipped \\[([^\\]]+)\\]:|No entities of type \\[([^\\]]+)\\] were skipped during previous migration)");
         Matcher matcher = headerPattern.matcher(output);
 
         int lastEnd = 0;
@@ -238,8 +239,11 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
                 sections.add(new EntitySection(lastEntityType, content));
             }
 
-            // Extract entity type from current match
-            lastEntityType = matcher.group(2) != null ? matcher.group(2) : matcher.group(3);
+            // Extract entity type from current match and remove trailing 's' to match enum display names
+            String entityType = matcher.group(2) != null ? matcher.group(2) : matcher.group(3);
+            // For "Previously skipped" format, remove trailing 's'; for "No entities" format, keep as is
+            lastEntityType = matcher.group(2) != null && entityType.endsWith("s") ?
+                entityType.substring(0, entityType.length() - 1) : entityType;
             lastEnd = matcher.end();
         }
 

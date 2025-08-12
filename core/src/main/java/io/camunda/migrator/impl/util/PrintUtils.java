@@ -19,16 +19,10 @@ public class PrintUtils {
   public static void printSkippedInstancesHeader(long count, TYPE entityType) {
     String entityName = entityType.getDisplayName();
     String message = count > 0
-        ? "Previously skipped " + entityName + "s:"
-        : "No " + entityName + "s were skipped during previous migration";
+        ? "Previously skipped [" + entityName + "s]:"
+        : "No entities of type ["+ entityName +"] were skipped during previous migration";
     print(message);
   }
-
-  // Keep the old method for backward compatibility
-  public static void printSkippedInstancesHeader(long count) {
-    printSkippedInstancesHeader(count, TYPE.RUNTIME_PROCESS_INSTANCE);
-  }
-
 
   public static void print(String message) {
     PRINTER.info(message);

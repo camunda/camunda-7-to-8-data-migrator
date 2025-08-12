@@ -14,16 +14,16 @@ import org.apache.ibatis.annotations.Param;
 public interface IdKeyMapper {
 
   enum TYPE {
-    HISTORY_PROCESS_DEFINITION("historic process definition"),
-    HISTORY_PROCESS_INSTANCE("historic process instance"),
-    HISTORY_INCIDENT("historic incident"),
-    HISTORY_VARIABLE("historic variable"),
-    HISTORY_USER_TASK("historic user task"),
-    HISTORY_FLOW_NODE("historic flow node"),
-    HISTORY_DECISION_INSTANCE("historic decision instance"),
-    HISTORY_DECISION_DEFINITION("historic decision definition"),
+    HISTORY_PROCESS_DEFINITION("Historic Process Definition"),
+    HISTORY_PROCESS_INSTANCE("Historic Process Instance"),
+    HISTORY_INCIDENT("Historic Incident"),
+    HISTORY_VARIABLE("Historic Variable"),
+    HISTORY_USER_TASK("Historic User Task"),
+    HISTORY_FLOW_NODE("Historic Flow Node"),
+    HISTORY_DECISION_INSTANCE("Historic Decision Instance"),
+    HISTORY_DECISION_DEFINITION("Historic Decision Definition"),
 
-    RUNTIME_PROCESS_INSTANCE("process instance");
+    RUNTIME_PROCESS_INSTANCE("Process Instance");
 
     private final String displayName;
 

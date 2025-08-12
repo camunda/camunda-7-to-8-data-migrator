@@ -221,7 +221,8 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then all skipped process instances were listed
-    String regex = "Previously skipped process instances:" + "\\R((?:.+\\R){9}.+)";
+    String expectedHeader = "Previously skipped \\[" + IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE.getDisplayName() + "s\\]:";
+    String regex = expectedHeader + "\\R((?:.+\\R){9}.+)";
     assertThat(output.getOut()).containsPattern(regex);
     Pattern pattern = Pattern.compile(regex);
     Matcher matcher = pattern.matcher(output.getOut());
@@ -242,7 +243,8 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then expected message is printed
-    assertThat(output.getOut().trim()).endsWith("No process instances were skipped during previous migration");
+    String expectedMessage = "No entities of type [" + IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE.getDisplayName() + "] were skipped during previous migration";
+    assertThat(output.getOut().trim()).endsWith(expectedMessage);
 
     // and no migration was done
     assertThat(dbClient.findAllIds().size()).isEqualTo(0);
