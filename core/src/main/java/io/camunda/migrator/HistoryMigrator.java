@@ -52,9 +52,11 @@ import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.history.HistoricIncident;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
@@ -68,6 +70,11 @@ import org.springframework.stereotype.Component;
 @Component
 @Conditional(C8DataSourceConfigured.class)
 public class HistoryMigrator {
+
+  public static final Set<IdKeyMapper.TYPE> HISTORY_TYPES = EnumSet.allOf(IdKeyMapper.TYPE.class)
+      .stream()
+      .filter(type -> type.name().startsWith("HISTORY"))
+      .collect(Collectors.toCollection(() -> EnumSet.noneOf(IdKeyMapper.TYPE.class)));
 
   // Mappers
 
@@ -139,9 +146,7 @@ public class HistoryMigrator {
   }
 
   private void printSkippedHistoryEntities() {
-    Arrays.stream(IdKeyMapper.TYPE.values())
-        .filter(type -> type != IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE)
-        .forEach(this::printSkippedEntitiesForType);
+    HISTORY_TYPES.forEach(this::printSkippedEntitiesForType);
   }
 
   private void printSkippedEntitiesForType(IdKeyMapper.TYPE type) {

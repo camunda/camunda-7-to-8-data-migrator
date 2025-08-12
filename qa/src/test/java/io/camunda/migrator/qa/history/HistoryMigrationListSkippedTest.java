@@ -10,6 +10,7 @@ package io.camunda.migrator.qa.history;
 import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import java.util.ArrayList;
@@ -126,9 +127,8 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
 
     private void verifySkippedEntitiesOutput(Map<String, List<String>> skippedEntitiesByType,
                                            String processDefinitionId, List<String> processInstanceIds) {
-        // Verify all expected entity types are present - using enum values like the actual implementation
-        String[] expectedEntityTypes = Arrays.stream(IdKeyMapper.TYPE.values())
-            .filter(type -> type != IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE)
+        // Verify all expected entity types are present
+        String[] expectedEntityTypes = HistoryMigrator.HISTORY_TYPES.stream()
             .map(IdKeyMapper.TYPE::getDisplayName)
             .toArray(String[]::new);
 
