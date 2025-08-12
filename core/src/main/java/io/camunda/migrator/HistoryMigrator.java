@@ -225,14 +225,14 @@ public class HistoryMigrator {
     }
   }
 
-  private void migrateDecisionRequirementsDefinitions() {
+  public void migrateDecisionRequirementsDefinitions() {
     HistoryMigratorLogs.migratingDecisionRequirements();
 
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_DECISION_REQUIREMENTS, idKeyDbModel -> {
-        DecisionRequirementsDefinition legacyDecisionRequirements = c7Client.getDecisionRequirementsDefinition(
+        DecisionRequirementsDefinition legacyDecisionRequirement = c7Client.getDecisionRequirementsDefinition(
             idKeyDbModel.id());
-        migrateDecisionRequirementsDefinition(legacyDecisionRequirements);
+        migrateDecisionRequirementsDefinition(legacyDecisionRequirement);
       });
     } else {
       c7Client.fetchAndHandleDecisionRequirementsDefinitions(this::migrateDecisionRequirementsDefinition);
@@ -250,7 +250,7 @@ public class HistoryMigrator {
     }
   }
 
-  private void migrateDecisionDefinitions() {
+  public void migrateDecisionDefinitions() {
     HistoryMigratorLogs.migratingDecisionDefinitions();
 
     if (RETRY_SKIPPED.equals(mode)) {
