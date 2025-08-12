@@ -438,7 +438,7 @@ public class HistoryMigrator {
       return null;
     }
 
-    List<FlowNodeInstanceEntity> flowNodes = flowNodeMapper.search(FlowNodeInstanceDbQuery.of(
+    List<FlowNodeInstanceDbModel> flowNodes = flowNodeMapper.search(FlowNodeInstanceDbQuery.of(
         b -> b.filter(FlowNodeInstanceFilter.of(f -> f.flowNodeIds(activityId).flowNodeInstanceKeys(key)))));
 
     if (!flowNodes.isEmpty()) {
@@ -454,7 +454,7 @@ public class HistoryMigrator {
       return null;
     }
 
-    List<FlowNodeInstanceEntity> flowNodes = flowNodeMapper.search(
+    List<FlowNodeInstanceDbModel> flowNodes = flowNodeMapper.search(
         FlowNodeInstanceDbQuery.of(b -> b.filter(f -> f.flowNodeInstanceKeys(key))));
 
     if (!flowNodes.isEmpty()) {

@@ -21,6 +21,7 @@ import io.camunda.db.rdbms.read.service.GroupDbReader;
 import io.camunda.db.rdbms.read.service.IncidentDbReader;
 import io.camunda.db.rdbms.read.service.JobDbReader;
 import io.camunda.db.rdbms.read.service.MappingRuleDbReader;
+import io.camunda.db.rdbms.read.service.MessageSubscriptionDbReader;
 import io.camunda.db.rdbms.read.service.ProcessDefinitionDbReader;
 import io.camunda.db.rdbms.read.service.ProcessInstanceDbReader;
 import io.camunda.db.rdbms.read.service.RoleDbReader;
@@ -43,6 +44,7 @@ import io.camunda.db.rdbms.sql.GroupMapper;
 import io.camunda.db.rdbms.sql.IncidentMapper;
 import io.camunda.db.rdbms.sql.JobMapper;
 import io.camunda.db.rdbms.sql.MappingRuleMapper;
+import io.camunda.db.rdbms.sql.MessageSubscriptionMapper;
 import io.camunda.db.rdbms.sql.ProcessDefinitionMapper;
 import io.camunda.db.rdbms.sql.ProcessInstanceMapper;
 import io.camunda.db.rdbms.sql.PurgeMapper;
@@ -227,6 +229,11 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
+  MapperFactoryBean<MessageSubscriptionMapper> messageSubscriptionMapper(@Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory) {
+    return createMapperFactoryBean(c8SqlSessionFactory, MessageSubscriptionMapper.class);
+  }
+
+  @Bean
   public VariableDbReader variableRdbmsReader(VariableMapper variableMapper) {
     return new VariableDbReader(variableMapper);
   }
@@ -344,6 +351,7 @@ public class C8Configuration extends AbstractConfiguration {
     return new UsageMetricTUDbReader(usageMetricTUMapper);
   }
 
+
   @Bean
   public RdbmsWriterFactory rdbmsWriterFactory(
       @Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory,
@@ -361,7 +369,8 @@ public class C8Configuration extends AbstractConfiguration {
       SequenceFlowMapper sequenceFlowMapper,
       UsageMetricMapper usageMetricMapper,
       UsageMetricTUMapper usageMetricTUMapper,
-      BatchOperationMapper batchOperationMapper) {
+      BatchOperationMapper batchOperationMapper,
+      MessageSubscriptionMapper messageSubscriptionMapper) {
     return new RdbmsWriterFactory(
         c8SqlSessionFactory,
         exporterPositionMapper,
@@ -379,7 +388,8 @@ public class C8Configuration extends AbstractConfiguration {
         sequenceFlowMapper,
         usageMetricMapper,
         usageMetricTUMapper,
-        batchOperationMapper);
+        batchOperationMapper,
+        messageSubscriptionMapper);
   }
 
   @Bean
@@ -406,7 +416,8 @@ public class C8Configuration extends AbstractConfiguration {
       BatchOperationItemDbReader batchOperationItemReader,
       JobDbReader jobReader,
       UsageMetricsDbReader usageMetricsReader,
-      UsageMetricTUDbReader usageMetricTUDbReader) {
+      UsageMetricTUDbReader usageMetricTUDbReader,
+      MessageSubscriptionDbReader messageSubscriptionDbReader) {
     return new RdbmsService(
         rdbmsWriterFactory,
         authorizationReader,
@@ -430,7 +441,8 @@ public class C8Configuration extends AbstractConfiguration {
         batchOperationItemReader,
         jobReader,
         usageMetricsReader,
-        usageMetricTUDbReader);
+        usageMetricTUDbReader,
+        messageSubscriptionDbReader);
   }
 
 }
