@@ -144,6 +144,8 @@ public class HistoryMigrator {
 
   protected MigratorMode mode = MIGRATE;
 
+  private List<IdKeyMapper.TYPE> entityTypesToPrint;
+
   public void start() {
     try {
       ExceptionUtils.setContext(ExceptionUtils.ExceptionContext.HISTORY);
@@ -158,7 +160,13 @@ public class HistoryMigrator {
   }
 
   private void printSkippedHistoryEntities() {
-    HISTORY_TYPES.forEach(this::printSkippedEntitiesForType);
+    HISTORY_TYPES.stream()
+        .filter(this::shouldPrintEntityType)
+        .forEach(this::printSkippedEntitiesForType);
+  }
+
+  private boolean shouldPrintEntityType(IdKeyMapper.TYPE type) {
+    return entityTypesToPrint == null || entityTypesToPrint.isEmpty() || entityTypesToPrint.contains(type);
   }
 
   private void printSkippedEntitiesForType(IdKeyMapper.TYPE type) {
@@ -555,6 +563,10 @@ public class HistoryMigrator {
 
   public void setMode(MigratorMode mode) {
     this.mode = mode;
+  }
+
+  public void setEntityTypesToPrint(List<IdKeyMapper.TYPE> entityTypesToPrint) {
+    this.entityTypesToPrint = entityTypesToPrint;
   }
 
 }

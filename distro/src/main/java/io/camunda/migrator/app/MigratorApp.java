@@ -12,6 +12,8 @@ import io.camunda.migrator.impl.AutoDeployer;
 import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.MigratorMode;
 import io.camunda.migrator.RuntimeMigrator;
+import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,17 @@ public class MigratorApp {
       "--" + ARG_LIST_SKIPPED,
       "--" + ARG_RETRY_SKIPPED,
       "--" + ARG_HELP
+  );
+
+  protected static final Set<String> VALID_ENTITY_TYPES = Set.of(
+      "HISTORY_PROCESS_DEFINITION",
+      "HISTORY_PROCESS_INSTANCE",
+      "HISTORY_INCIDENT",
+      "HISTORY_VARIABLE",
+      "HISTORY_USER_TASK",
+      "HISTORY_FLOW_NODE",
+      "HISTORY_DECISION_INSTANCE",
+      "HISTORY_DECISION_DEFINITION"
   );
 
   public static void main(String[] args) {
@@ -71,11 +84,11 @@ public class MigratorApp {
       } else if (shouldRunFullMigration(appArgs)) {
         LOGGER.info("Migrating both runtime and history");
         migrateRuntime(context, mode);
-        migrateHistory(context, mode);
+        migrateHistory(context, appArgs, mode);
       } else if (appArgs.containsOption(ARG_RUNTIME_MIGRATION)) {
         migrateRuntime(context, mode);
       } else if (appArgs.containsOption(ARG_HISTORY_MIGRATION)) {
-        migrateHistory(context, mode);
+        migrateHistory(context, appArgs, mode);
       } else {
         LOGGER.warn("Invalid argument combination");
       }
@@ -85,26 +98,49 @@ public class MigratorApp {
   }
 
   protected static void validateArguments(String[] args) {
-    if (args.length > MAX_ARGUMENTS) {
-      throw new IllegalArgumentException("Too many arguments.");
+    boolean listSkippedFound = false;
+    int flagCount = 0;
+
+    for (int i = 0; i < args.length; i++) {
+      String arg = args[i];
+
+      if (VALID_FLAGS.contains(arg)) {
+        flagCount++;
+        if (arg.equals("--" + ARG_LIST_SKIPPED)) {
+          listSkippedFound = true;
+        }
+      } else if (listSkippedFound && VALID_ENTITY_TYPES.contains(arg)) {
+        // Valid entity type parameter following --list-skipped
+        continue;
+      } else {
+        throw new IllegalArgumentException("Invalid argument: " + arg);
+      }
     }
 
-    for (String arg : args) {
-      if (!VALID_FLAGS.contains(arg)) {
-        throw new IllegalArgumentException("Invalid flag: " + arg);
-      }
+    // Check if we have too many flags (not counting entity type parameters)
+    if (flagCount > 3) {
+      throw new IllegalArgumentException("Too many flags.");
     }
   }
 
   protected static void printUsage() {
     System.out.println();
-    System.out.println("Usage: start.sh/bat [--help] [--runtime] [--history] [--list-skipped|--retry-skipped]");
+    System.out.println("Usage: start.sh/bat [--help] [--runtime] [--history] [--list-skipped [ENTITY_TYPES...]|--retry-skipped]");
     System.out.println("Options:");
     System.out.println("  --help            - Show this help message");
     System.out.println("  --runtime         - Migrate runtime data only");
     System.out.println("  --history         - Migrate history data only. This option is still EXPERIMENTAL and not meant for production use.");
-    System.out.println("  --list-skipped    - List previously skipped data");
-    System.out.println("  --retry-skipped   - Retry only previously skipped data");
+    System.out.println("  --list-skipped [ENTITY_TYPES...]");
+    System.out.println("                    - List previously skipped migration data. For history data, optionally specify entity types to filter.");
+    System.out.println("                      Filter only applicable with history migration. Available entity types:");
+    System.out.println("                      HISTORY_PROCESS_DEFINITION, HISTORY_PROCESS_INSTANCE, HISTORY_INCIDENT,");
+    System.out.println("                      HISTORY_VARIABLE, HISTORY_USER_TASK, HISTORY_FLOW_NODE,");
+    System.out.println("                      HISTORY_DECISION_INSTANCE, HISTORY_DECISION_DEFINITION");
+    System.out.println("  --retry-skipped   - Retry only previously skipped history data");
+    System.out.println();
+    System.out.println("Examples:");
+    System.out.println("  start.sh --history --list-skipped");
+    System.out.println("  start.sh --history --list-skipped HISTORY_PROCESS_INSTANCE HISTORY_USER_TASK");
   }
 
   public static void migrateRuntime(ConfigurableApplicationContext context, MigratorMode mode) {
@@ -114,11 +150,28 @@ public class MigratorApp {
     runtimeMigrator.start();
   }
 
-  public static void migrateHistory(ConfigurableApplicationContext context, MigratorMode mode) {
+  public static void migrateHistory(ConfigurableApplicationContext context, ApplicationArguments appArgs, MigratorMode mode) {
     LOGGER.info("Migrating history data...");
     HistoryMigrator historyMigrator = context.getBean(HistoryMigrator.class);
     historyMigrator.setMode(mode);
-    historyMigrator.migrate();
+
+    // Extract entity type filters if --list-skipped is used
+    if (mode == MigratorMode.LIST_SKIPPED) {
+      List<IdKeyMapper.TYPE> entityTypeFilters = extractEntityTypeFilters(appArgs);
+      if (!entityTypeFilters.isEmpty()) {
+        historyMigrator.setEntityTypesToPrint(entityTypeFilters);
+      }
+    }
+
+    historyMigrator.start();
+  }
+
+  protected static List<IdKeyMapper.TYPE> extractEntityTypeFilters(ApplicationArguments appArgs) {
+    List<String> nonOptionArgs = appArgs.getNonOptionArgs();
+    return nonOptionArgs.stream()
+        .filter(VALID_ENTITY_TYPES::contains)
+        .map(IdKeyMapper.TYPE::valueOf)
+        .toList();
   }
 
   protected static boolean shouldRunFullMigration(ApplicationArguments appArgs) {
