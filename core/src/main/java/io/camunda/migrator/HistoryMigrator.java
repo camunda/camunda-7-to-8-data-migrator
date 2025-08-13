@@ -51,12 +51,16 @@ import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.logging.HistoryMigratorLogs;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.migrator.impl.util.ExceptionUtils;
+import io.camunda.migrator.impl.util.PrintUtils;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.history.HistoricIncident;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
@@ -72,6 +76,11 @@ import org.springframework.stereotype.Component;
 @Component
 @Conditional(C8DataSourceConfigured.class)
 public class HistoryMigrator {
+
+  public static final Set<IdKeyMapper.TYPE> HISTORY_TYPES = EnumSet.allOf(IdKeyMapper.TYPE.class)
+      .stream()
+      .filter(type -> type.name().startsWith("HISTORY"))
+      .collect(Collectors.toCollection(() -> EnumSet.noneOf(IdKeyMapper.TYPE.class)));
 
   // Mappers
 
@@ -139,13 +148,22 @@ public class HistoryMigrator {
     try {
       ExceptionUtils.setContext(ExceptionUtils.ExceptionContext.HISTORY);
       if (LIST_SKIPPED.equals(mode)) {
-        // TODO: list entities
+        printSkippedHistoryEntities();
       } else {
         migrate();
       }
     } finally {
       ExceptionUtils.clearContext();
     }
+  }
+
+  private void printSkippedHistoryEntities() {
+    HISTORY_TYPES.forEach(this::printSkippedEntitiesForType);
+  }
+
+  private void printSkippedEntitiesForType(IdKeyMapper.TYPE type) {
+    PrintUtils.printSkippedInstancesHeader(dbClient.countSkippedByType(type), type);
+    dbClient.listSkippedEntitiesByType(type);
   }
 
   public void migrate() {
@@ -482,7 +500,7 @@ public class HistoryMigrator {
       return null;
     }
 
-    List<FlowNodeInstanceEntity> flowNodes = flowNodeMapper.search(FlowNodeInstanceDbQuery.of(
+    List<FlowNodeInstanceDbModel> flowNodes = flowNodeMapper.search(FlowNodeInstanceDbQuery.of(
         b -> b.filter(FlowNodeInstanceFilter.of(f -> f.flowNodeIds(activityId).flowNodeInstanceKeys(key)))));
 
     if (!flowNodes.isEmpty()) {
@@ -498,7 +516,7 @@ public class HistoryMigrator {
       return null;
     }
 
-    List<FlowNodeInstanceEntity> flowNodes = flowNodeMapper.search(
+    List<FlowNodeInstanceDbModel> flowNodes = flowNodeMapper.search(
         FlowNodeInstanceDbQuery.of(b -> b.filter(f -> f.flowNodeInstanceKeys(key))));
 
     if (!flowNodes.isEmpty()) {
