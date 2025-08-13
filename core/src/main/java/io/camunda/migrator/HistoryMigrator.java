@@ -77,11 +77,6 @@ import org.springframework.stereotype.Component;
 @Conditional(C8DataSourceConfigured.class)
 public class HistoryMigrator {
 
-  public static final Set<IdKeyMapper.TYPE> HISTORY_TYPES = EnumSet.allOf(IdKeyMapper.TYPE.class)
-      .stream()
-      .filter(type -> type.name().startsWith("HISTORY"))
-      .collect(Collectors.toCollection(() -> EnumSet.noneOf(IdKeyMapper.TYPE.class)));
-
   // Mappers
 
   @Autowired
@@ -160,7 +155,7 @@ public class HistoryMigrator {
   }
 
   private void printSkippedHistoryEntities() {
-    HISTORY_TYPES.stream()
+    IdKeyMapper.getHistoryTypes().stream()
         .filter(this::shouldPrintEntityType)
         .forEach(this::printSkippedEntitiesForType);
   }

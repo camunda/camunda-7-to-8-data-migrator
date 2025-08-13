@@ -124,7 +124,8 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
     private void verifySkippedEntitiesOutput(Map<String, List<String>> skippedEntitiesByType,
                                            String processDefinitionId, List<String> processInstanceIds) {
         // Verify all expected entity types are present
-        String[] expectedEntityTypes = HistoryMigrator.HISTORY_TYPES.stream()
+        String[] expectedEntityTypes = IdKeyMapper.getHistoryTypes()
+            .stream()
             .map(IdKeyMapper.TYPE::getDisplayName)
             .toArray(String[]::new);
 

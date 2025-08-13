@@ -44,16 +44,7 @@ public class MigratorApp {
       "--" + ARG_HELP
   );
 
-  protected static final Set<String> VALID_ENTITY_TYPES = Set.of(
-      "HISTORY_PROCESS_DEFINITION",
-      "HISTORY_PROCESS_INSTANCE",
-      "HISTORY_INCIDENT",
-      "HISTORY_VARIABLE",
-      "HISTORY_USER_TASK",
-      "HISTORY_FLOW_NODE",
-      "HISTORY_DECISION_INSTANCE",
-      "HISTORY_DECISION_DEFINITION"
-  );
+  protected static final Set<String> VALID_ENTITY_TYPES = IdKeyMapper.getHistoryTypeNames();
 
   public static void main(String[] args) {
     try {
