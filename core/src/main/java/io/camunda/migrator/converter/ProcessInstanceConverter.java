@@ -7,8 +7,12 @@
  */
 package io.camunda.migrator.converter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
+import io.camunda.migrator.impl.clients.C7Client;
+import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel.ProcessInstanceDbModelBuilder;
 import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
@@ -16,6 +20,8 @@ import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
 import static io.camunda.search.entities.ProcessInstanceEntity.ProcessInstanceState;
 
 public class ProcessInstanceConverter {
+  @Autowired
+  protected C7Client c7Client;
 
   public ProcessInstanceDbModel apply(HistoricProcessInstance processInstance,
                                       Long processDefinitionKey,
@@ -34,8 +40,16 @@ public class ProcessInstanceConverter {
         .parentProcessInstanceKey(parentProcessInstanceKey)
         .elementId(null) // TODO: activityId in C7 but not part of the historic process instance. Not yet populated by RDBMS.
         .parentElementInstanceKey(null) // TODO: Call activity instance id that created the process. Not part of C7 historic process instance.
-        .numIncidents(0) // TODO: Incremented/decremented whenever incident is created/resolved. RDBMS specific.
+        // create historyService.createHistoricActivityInstanceQuery().calledProcessInstanceId(processInstance.getId()).singleResult().getId() in C7
+        .numIncidents(getIncidents(processInstance)) // TODO: test
+//        .partitionId(0) // TODO
+//        .treePath(null) // TODO io.camunda.exporter.rdbms.handlers.ProcessInstanceExportHandler.createTreePath
+        .historyCleanupDate(convertDate(processInstance.getRemovalTime()))
         .build();
+  }
+
+  private int getIncidents(HistoricProcessInstance processInstance) {
+    return Math.toIntExact(c7Client.getIncidentsByProcessInstance(processInstance.getId()));
   }
 
   private ProcessInstanceState convertState(String state) {

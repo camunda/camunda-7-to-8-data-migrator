@@ -125,6 +125,14 @@ public class C7Client {
   }
 
   /**
+   * Gets the number of incidents for a process instance by its legacy ID.
+   */
+  public long getIncidentsByProcessInstance(String legacyId) {
+    var query = runtimeService.createIncidentQuery().processInstanceId(legacyId);
+    return callApi(query::count, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricIncident", legacyId));
+  }
+
+  /**
    * Gets the activity instance tree for a process instance.
    */
   public ActivityInstance getActivityInstance(String processInstanceId) {
