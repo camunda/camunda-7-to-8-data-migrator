@@ -89,19 +89,16 @@ public class MigratorApp {
   }
 
   protected static void validateArguments(String[] args) {
-    boolean listSkippedFound = false;
+    List<String> argsList = java.util.Arrays.asList(args);
+    boolean listSkippedHistoryFound = argsList.contains("--" + ARG_LIST_SKIPPED) &&
+                                      argsList.contains("--" + ARG_HISTORY_MIGRATION);
     int flagCount = 0;
 
-    for (int i = 0; i < args.length; i++) {
-      String arg = args[i];
-
+    for (String arg : args) {
       if (VALID_FLAGS.contains(arg)) {
         flagCount++;
-        if (arg.equals("--" + ARG_LIST_SKIPPED)) {
-          listSkippedFound = true;
-        }
-      } else if (listSkippedFound && VALID_ENTITY_TYPES.contains(arg)) {
-        // Valid entity type parameter following --list-skipped
+      } else if (listSkippedHistoryFound && VALID_ENTITY_TYPES.contains(arg)) {
+        // Valid entity type parameter following --list-skipped with --history
         continue;
       } else {
         throw new IllegalArgumentException("Invalid flag: " + arg);
