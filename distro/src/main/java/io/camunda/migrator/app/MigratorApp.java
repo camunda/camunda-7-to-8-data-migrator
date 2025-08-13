@@ -113,13 +113,13 @@ public class MigratorApp {
         // Valid entity type parameter following --list-skipped
         continue;
       } else {
-        throw new IllegalArgumentException("Invalid argument: " + arg);
+        throw new IllegalArgumentException("Invalid flag: " + arg);
       }
     }
 
     // Check if we have too many flags (not counting entity type parameters)
     if (flagCount > 3) {
-      throw new IllegalArgumentException("Too many flags.");
+      throw new IllegalArgumentException("Error: Too many arguments.");
     }
   }
 

@@ -71,8 +71,8 @@ public class SkippedEntitiesLogParserUtils {
 
             // Extract entity type from current match and remove trailing 's' to match enum display names
             String entityType = matcher.group(2) != null ? matcher.group(2) : matcher.group(3);
-            // For "Previously skipped" format, remove trailing 's'; for "No entities" format, keep as is
-            lastEntityType = matcher.group(2) != null && entityType.endsWith("s") ?
+            // Both "Previously skipped" and "No entities" formats use plural names, so remove trailing 's' for both
+            lastEntityType = entityType.endsWith("s") ?
                 entityType.substring(0, entityType.length() - 1) : entityType;
             lastEnd = matcher.end();
         }
