@@ -22,6 +22,7 @@ public interface IdKeyMapper {
     HISTORY_FLOW_NODE("Historic Flow Node"),
     HISTORY_DECISION_INSTANCE("Historic Decision Instance"),
     HISTORY_DECISION_DEFINITION("Historic Decision Definition"),
+    HISTORY_DECISION_REQUIREMENTS("Historic Decision Requirements"),
 
     RUNTIME_PROCESS_INSTANCE("Process Instance");
 
