@@ -351,6 +351,10 @@ public class C8Configuration extends AbstractConfiguration {
     return new UsageMetricTUDbReader(usageMetricTUMapper);
   }
 
+  @Bean
+  public MessageSubscriptionDbReader messageSubscriptionDbReader(MessageSubscriptionMapper messageSubscriptionMapper) {
+    return new MessageSubscriptionDbReader(messageSubscriptionMapper);
+  }
 
   @Bean
   public RdbmsWriterFactory rdbmsWriterFactory(
