@@ -10,6 +10,7 @@ package io.camunda.migrator;
 import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
+import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE;
 
 import io.camunda.migrator.impl.logging.RuntimeMigratorLogs;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE;
@@ -100,7 +101,7 @@ public class RuntimeMigrator {
   }
 
   protected boolean isUnknown(String legacyProcessInstanceId) {
-    return MIGRATE.equals(mode) && !dbClient.checkExists(legacyProcessInstanceId);
+    return MIGRATE.equals(mode) && !dbClient.checkExistsByIdAndType(legacyProcessInstanceId, RUNTIME_PROCESS_INSTANCE);
   }
 
   protected void startProcessInstance(String legacyProcessInstanceId, Date startDate) {

@@ -49,6 +49,9 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
   @Autowired
   private TaskService taskService;
 
+  @Autowired
+  private io.camunda.migrator.HistoryMigrator historyMigrator;
+
   @Test
   public void shouldSkipMultiInstanceProcessMigration() {
     // given process state in c7
@@ -248,6 +251,31 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
 
     // and no migration was done
     assertThat(dbClient.findAllIds().size()).isEqualTo(0);
+  }
+
+  @Test
+  public void shouldMigrateRuntimeProcessInstanceAfterHistoryMigrationWithSameId() {
+    // given a process instance in C7 that will create both history and runtime entries with same ID
+    deployer.deployProcessInC7AndC8("simpleProcess.bpmn");
+    var completedProcess = runtimeService.startProcessInstanceByKey("simpleProcess");
+    String processInstanceId = completedProcess.getId();
+
+    // when running history migration first
+    historyMigrator.start();
+
+    // then verify history process instance was migrated
+    assertThat(dbClient.findKeyById(processInstanceId)).isNotNull();
+    assertThat(dbClient.checkHasKeyByIdAndType(processInstanceId, IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE)).isTrue();
+
+    // when running runtime migration afterwards
+    runtimeMigrator.start();
+
+    // then verify runtime process instance was also migrated successfully
+    assertThat(dbClient.checkHasKeyByIdAndType(processInstanceId, IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE)).isTrue();
+
+    // Verify C8 process instance was created
+    List<ProcessInstance> c8ProcessInstances = camundaClient.newProcessInstanceSearchRequest().execute().items();
+    assertThat(c8ProcessInstances.size()).isEqualTo(1);
   }
 
 }
