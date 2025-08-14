@@ -410,7 +410,7 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
         // but with a different type (HISTORY_INCIDENT)
         dbClient.insert(taskId, null, IdKeyMapper.TYPE.HISTORY_INCIDENT);
         // Verify the collision record exists before completing the task
-        assertThat(dbClient.checkExists(taskId)).as("Record with task ID should exist").isTrue();
+        assertThat(dbClient.checkExistsByIdAndType(taskId, IdKeyMapper.TYPE.HISTORY_INCIDENT)).as("Record with task ID should exist").isTrue();
 
         // when history is migrated
         historyMigrator.migrate();

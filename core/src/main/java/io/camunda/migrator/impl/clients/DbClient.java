@@ -48,24 +48,10 @@ public class DbClient {
   protected IdKeyMapper idKeyMapper;
 
   /**
-   * Checks if a process instance exists in the mapping table.
-   */
-  public boolean checkExists(String legacyEntityId) {
-    return callApi(() -> idKeyMapper.checkExists(legacyEntityId), FAILED_TO_CHECK_EXISTENCE + legacyEntityId);
-  }
-
-  /**
    * Checks if an entity exists in the mapping table by type and id.
    */
   public boolean checkExistsByIdAndType(String legacyId, TYPE type) {
     return callApi(() -> idKeyMapper.checkExistsByIdAndType(type, legacyId), FAILED_TO_CHECK_EXISTENCE + legacyId);
-  }
-
-  /**
-   * Checks if an entity exists in the mapping table.
-   */
-  public boolean checkHasKey(String legacyId) {
-    return callApi(() -> idKeyMapper.checkHasKey(legacyId), FAILED_TO_CHECK_KEY + legacyId);
   }
 
   /**

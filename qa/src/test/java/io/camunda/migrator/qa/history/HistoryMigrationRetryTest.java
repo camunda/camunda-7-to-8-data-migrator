@@ -132,12 +132,12 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
     assertThat(searchHistoricVariables("userTaskVar").size()).isEqualTo(1);
 
     // and nothing marked as skipped
-    assertThat(dbClient.checkHasKey(procDefId)).isTrue();
-    assertThat(dbClient.checkHasKey(procInstId)).isTrue();
-    assertThat(dbClient.checkHasKey(actInstId)).isTrue();
-    assertThat(dbClient.checkHasKey(taskId)).isTrue();
-    assertThat(dbClient.checkHasKey(incidentId)).isTrue();
-    assertThat(dbClient.checkHasKey(varId)).isTrue();
+    assertThat(dbClient.checkHasKeyByIdAndType(procDefId, HISTORY_PROCESS_DEFINITION)).isTrue();
+    assertThat(dbClient.checkHasKeyByIdAndType(procInstId, HISTORY_PROCESS_INSTANCE)).isTrue();
+    assertThat(dbClient.checkHasKeyByIdAndType(actInstId, HISTORY_FLOW_NODE)).isTrue();
+    assertThat(dbClient.checkHasKeyByIdAndType(taskId, HISTORY_USER_TASK)).isTrue();
+    assertThat(dbClient.checkHasKeyByIdAndType(incidentId, HISTORY_INCIDENT)).isTrue();
+    assertThat(dbClient.checkHasKeyByIdAndType(varId, HISTORY_VARIABLE)).isTrue();
   }
 
   @Test
@@ -176,9 +176,9 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
     assertThat(processInstances.size()).isEqualTo(4);
 
     // and skipped entities are still skipped
-    assertThat(dbClient.checkHasKey(procInstId)).isFalse();
-    assertThat(dbClient.checkHasKey(actInstId)).isFalse();
-    assertThat(dbClient.checkHasKey(taskId)).isFalse();
+    assertThat(dbClient.checkHasKeyByIdAndType(procInstId, HISTORY_PROCESS_INSTANCE)).isFalse();
+    assertThat(dbClient.checkHasKeyByIdAndType(actInstId, HISTORY_FLOW_NODE)).isFalse();
+    assertThat(dbClient.checkHasKeyByIdAndType(taskId, HISTORY_USER_TASK)).isFalse();
   }
 
   private void executeAllJobsWithRetry() {
