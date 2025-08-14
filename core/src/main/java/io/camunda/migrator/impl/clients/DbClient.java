@@ -14,12 +14,12 @@ import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_ALL;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_ALL_SKIPPED;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_KEY_BY_ID;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_LATEST_ID;
+import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_LATEST_START_DATE;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_SKIPPED_COUNT;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_INSERT_RECORD;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_UPDATE_KEY;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE;
-import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.Pagination;
@@ -55,10 +55,24 @@ public class DbClient {
   }
 
   /**
-   * Checks if a process instance exists in the mapping table.
+   * Checks if an entity exists in the mapping table by type and id.
+   */
+  public boolean checkExistsByIdAndType(String legacyId, TYPE type) {
+    return callApi(() -> idKeyMapper.checkExistsByIdAndType(type, legacyId), FAILED_TO_CHECK_EXISTENCE + legacyId);
+  }
+
+  /**
+   * Checks if an entity exists in the mapping table.
    */
   public boolean checkHasKey(String legacyId) {
     return callApi(() -> idKeyMapper.checkHasKey(legacyId), FAILED_TO_CHECK_KEY + legacyId);
+  }
+
+  /**
+   * Checks if an entity exists in the mapping table by type and id.
+   */
+  public boolean checkHasKeyByIdAndType(String legacyId, TYPE type) {
+    return callApi(() -> idKeyMapper.checkHasKeyByIdAndType(type, legacyId), FAILED_TO_CHECK_KEY + legacyId);
   }
 
   /**

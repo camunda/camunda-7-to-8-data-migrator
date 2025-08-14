@@ -41,7 +41,11 @@ public interface IdKeyMapper {
 
   boolean checkExists(String id);
 
+  boolean checkExistsByIdAndType(@Param("type") TYPE type, @Param("id") String id);
+
   boolean checkHasKey(String id);
+
+  boolean checkHasKeyByIdAndType(@Param("type") TYPE type, @Param("id") String id);
 
   Date findLatestStartDateByType(TYPE type);
 
