@@ -41,10 +41,14 @@ public class ProcessInstanceConverter {
         .elementId(null) // TODO: activityId in C7 but not part of the historic process instance. Not yet populated by RDBMS.
         .parentElementInstanceKey(null) // TODO: Call activity instance id that created the process. Not part of C7 historic process instance.
         // create historyService.createHistoricActivityInstanceQuery().calledProcessInstanceId(processInstance.getId()).singleResult().getId() in C7
+        // then we map it to the C8 key in migration mapping
+
+        // the element key of the call activity in C8? should we skip the migration of PI if we don't have the call activity yet?
         .numIncidents(getIncidents(processInstance)) // TODO: test
-//        .partitionId(0) // TODO
-//        .treePath(null) // TODO io.camunda.exporter.rdbms.handlers.ProcessInstanceExportHandler.createTreePath
-        .historyCleanupDate(convertDate(processInstance.getRemovalTime()))
+//        .partitionId(0) // TODO can we used C7_HISTORY_PARTITION_ID?
+//        .treePath(null) // TODO io.camunda.exporter.rdbms.handlers.ProcessInstanceExportHandler.createTreePath // TODO what does it do?
+        .historyCleanupDate(convertDate(processInstance.getRemovalTime())) // TODO: change if the removal time is always populated
+//        .versionTag(processInstance.getProcessDefinitionVersionTag()) // TODO
         .build();
   }
 
