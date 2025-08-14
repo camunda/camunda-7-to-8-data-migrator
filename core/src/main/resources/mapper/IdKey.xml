@@ -75,8 +75,9 @@
     <include refid="io.camunda.migrator.Commons.singleResultSql"/>
   </select>
 
-  <select id="findKeyById" parameterType="java.lang.String">
-    SELECT INSTANCE_KEY FROM ${prefix}MIGRATION_MAPPING WHERE ID = #{id}
+  <select id="findKeysByIdAndType" resultType="java.lang.Long">
+    SELECT INSTANCE_KEY FROM ${prefix}MIGRATION_MAPPING
+    WHERE ID = #{id, jdbcType=VARCHAR} AND TYPE = #{type, jdbcType=VARCHAR}
     <include refid="io.camunda.migrator.Commons.singleResultSql"/>
   </select>
 

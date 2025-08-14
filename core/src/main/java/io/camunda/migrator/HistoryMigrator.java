@@ -290,7 +290,7 @@ public class HistoryMigrator {
       Long decisionRequirementsKey = null;
 
       if (legacyDecisionDefinition.getDecisionRequirementsDefinitionId() != null) {
-        decisionRequirementsKey = dbClient.findKeyById(legacyDecisionDefinition.getDecisionRequirementsDefinitionId());
+        decisionRequirementsKey = dbClient.findKeyByIdAndType(legacyDecisionDefinition.getDecisionRequirementsDefinitionId(), HISTORY_DECISION_REQUIREMENTS);
 
         if (decisionRequirementsKey == null) {
           saveRecord(legacyId, null, HISTORY_DECISION_DEFINITION);
@@ -471,7 +471,7 @@ public class HistoryMigrator {
     if (processInstanceId == null)
       return null;
 
-    Long key = dbClient.findKeyById(processInstanceId);
+    Long key = dbClient.findKeyByIdAndType(processInstanceId, HISTORY_PROCESS_INSTANCE);
     if (key == null) {
       return null;
     }
@@ -480,7 +480,7 @@ public class HistoryMigrator {
   }
 
   private Long findProcessDefinitionKey(String processDefinitionId) {
-    Long key = dbClient.findKeyById(processDefinitionId);
+    Long key = dbClient.findKeyByIdAndType(processDefinitionId, HISTORY_PROCESS_DEFINITION);
     if (key == null) {
       return null;
     }
@@ -496,7 +496,7 @@ public class HistoryMigrator {
   }
 
   private Long findFlowNodeKey(String activityId, String processInstanceId) {
-    Long key = dbClient.findKeyById(processInstanceId);
+    Long key = dbClient.findKeyByIdAndType(processInstanceId, HISTORY_PROCESS_INSTANCE);
     if (key == null) {
       return null;
     }
@@ -512,7 +512,7 @@ public class HistoryMigrator {
   }
 
   private Long findFlowNodeKey(String activityInstanceId) {
-    Long key = dbClient.findKeyById(activityInstanceId);
+    Long key = dbClient.findKeyByIdAndType(activityInstanceId, HISTORY_FLOW_NODE);
     if (key == null) {
       return null;
     }

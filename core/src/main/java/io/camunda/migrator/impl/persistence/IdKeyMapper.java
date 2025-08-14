@@ -45,7 +45,7 @@ public interface IdKeyMapper {
 
   Date findLatestStartDateByType(TYPE type);
 
-  Long findKeyById(String id);
+  Long findKeysByIdAndType(@Param("id") String id, @Param("type") TYPE type);
 
   void insert(IdKeyDbModel idKeyDbModel);
 

@@ -178,7 +178,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     assertThat(processInstance.getProcessDefinitionId()).isEqualTo(process.getProcessDefinitionKey());
 
     // and the key updated
-    assertThat(dbClient.findKeyById(process.getId())).isNotNull();
+    assertThat(dbClient.findKeyByIdAndType(process.getId(), IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE)).isNotNull();
 
     // and no additional skipping logs (still 1, not 2 matches)
     Assertions.assertThat(events.stream()
@@ -264,8 +264,9 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     historyMigrator.start();
 
     // then verify history process instance was migrated
-    assertThat(dbClient.findKeyById(processInstanceId)).isNotNull();
     assertThat(dbClient.checkHasKeyByIdAndType(processInstanceId, IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE)).isTrue();
+    // then verify runtime process instance was not yet migrated
+    assertThat(dbClient.checkHasKeyByIdAndType(processInstanceId, IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE)).isFalse();
 
     // when running runtime migration afterwards
     runtimeMigrator.start();

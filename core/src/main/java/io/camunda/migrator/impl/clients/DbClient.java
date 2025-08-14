@@ -79,10 +79,10 @@ public class DbClient {
   }
 
   /**
-   * Finds the key by legacy ID.
+   * Finds the key by legacy ID and type.
    */
-  public Long findKeyById(String legacyId) {
-    return callApi(() -> idKeyMapper.findKeyById(legacyId), FAILED_TO_FIND_KEY_BY_ID + legacyId);
+  public Long findKeyByIdAndType(String legacyId, TYPE type) {
+    return callApi(() -> idKeyMapper.findKeysByIdAndType(legacyId, type), FAILED_TO_FIND_KEY_BY_ID + legacyId);
   }
 
   /**
