@@ -52,7 +52,6 @@ import io.camunda.migrator.impl.logging.HistoryMigratorLogs;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.migrator.impl.util.ExceptionUtils;
 import io.camunda.migrator.impl.util.PrintUtils;
-import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
@@ -191,7 +190,7 @@ public class HistoryMigrator {
 
   private void migrateProcessDefinition(ProcessDefinition legacyProcessDefinition) {
     String legacyId = legacyProcessDefinition.getId();
-    if (shouldMigrate(legacyId)) {
+    if (shouldMigrate(legacyId, HISTORY_PROCESS_DEFINITION)) {
       HistoryMigratorLogs.migratingProcessDefinition(legacyId);
       ProcessDefinitionDbModel dbModel = processDefinitionConverter.apply(legacyProcessDefinition);
       processDefinitionMapper.insert(dbModel);
@@ -215,10 +214,12 @@ public class HistoryMigrator {
 
   private void migrateProcessInstance(HistoricProcessInstance legacyProcessInstance) {
     String legacyProcessInstanceId = legacyProcessInstance.getId();
-    if (shouldMigrate(legacyProcessInstanceId)) {
+    if (shouldMigrate(legacyProcessInstanceId, HISTORY_PROCESS_INSTANCE)) {
       HistoryMigratorLogs.migratingProcessInstance(legacyProcessInstanceId);
       Long processDefinitionKey = findProcessDefinitionKey(legacyProcessInstance.getProcessDefinitionId());
-      if (processDefinitionKey != null) {
+      String processDefinitionId = legacyProcessInstance.getProcessDefinitionId();
+
+      if (isMigrated(processDefinitionId, HISTORY_PROCESS_DEFINITION)) {
         String legacySuperProcessInstanceId = legacyProcessInstance.getSuperProcessInstanceId();
         Long parentProcessInstanceKey = null;
         if (legacySuperProcessInstanceId != null) {
@@ -259,7 +260,7 @@ public class HistoryMigrator {
 
   private void migrateDecisionRequirementsDefinition(DecisionRequirementsDefinition legacyDecisionRequirements) {
     String legacyId = legacyDecisionRequirements.getId();
-    if (shouldMigrate(legacyId)) {
+    if (shouldMigrate(legacyId, HISTORY_DECISION_REQUIREMENTS)) {
       HistoryMigratorLogs.migratingDecisionRequirements(legacyId);
       DecisionRequirementsDbModel dbModel = decisionRequirementsConverter.apply(legacyDecisionRequirements);
       decisionRequirementsMapper.insert(dbModel);
@@ -284,12 +285,12 @@ public class HistoryMigrator {
 
   private void migrateDecisionDefinition(DecisionDefinition legacyDecisionDefinition) {
     String legacyId = legacyDecisionDefinition.getId();
-    if (shouldMigrate(legacyId)) {
+    if (shouldMigrate(legacyId, HISTORY_DECISION_DEFINITION)) {
       HistoryMigratorLogs.migratingDecisionDefinition(legacyId);
       Long decisionRequirementsKey = null;
 
       if (legacyDecisionDefinition.getDecisionRequirementsDefinitionId() != null) {
-        decisionRequirementsKey = dbClient.findKeyById(legacyDecisionDefinition.getDecisionRequirementsDefinitionId());
+        decisionRequirementsKey = dbClient.findKeyByIdAndType(legacyDecisionDefinition.getDecisionRequirementsDefinitionId(), HISTORY_DECISION_REQUIREMENTS);
 
         if (decisionRequirementsKey == null) {
           saveRecord(legacyId, null, HISTORY_DECISION_DEFINITION);
@@ -321,7 +322,7 @@ public class HistoryMigrator {
 
   private void migrateIncident(HistoricIncident legacyIncident) {
     String legacyIncidentId = legacyIncident.getId();
-    if (shouldMigrate(legacyIncidentId)) {
+    if (shouldMigrate(legacyIncidentId, HISTORY_INCIDENT)) {
       HistoryMigratorLogs.migratingHistoricIncident(legacyIncidentId);
       ProcessInstanceEntity legacyProcessInstance = findProcessInstanceByLegacyId(legacyIncident.getProcessInstanceId());
       if (legacyProcessInstance != null) {
@@ -360,11 +361,11 @@ public class HistoryMigrator {
 
   private void migrateVariable(HistoricVariableInstance legacyVariable) {
     String legacyVariableId = legacyVariable.getId();
-    if (shouldMigrate(legacyVariableId)) {
+    if (shouldMigrate(legacyVariableId, HISTORY_VARIABLE)) {
       HistoryMigratorLogs.migratingHistoricVariable(legacyVariableId);
 
       String taskId = legacyVariable.getTaskId();
-      if (taskId != null && !isMigrated(taskId)) {
+      if (taskId != null && !isMigrated(taskId, HISTORY_USER_TASK)) {
         // Skip variable if it belongs to a skipped task
         saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE);
         HistoryMigratorLogs.skippingHistoricVariableDueToMissingTask(legacyVariableId, taskId);
@@ -372,8 +373,8 @@ public class HistoryMigrator {
       }
 
       String legacyProcessInstanceId = legacyVariable.getProcessInstanceId();
-      if (isMigrated(legacyProcessInstanceId)) {
-        if (isMigrated(legacyVariable.getActivityInstanceId())) {
+      if (isMigrated(legacyProcessInstanceId, HISTORY_PROCESS_INSTANCE)) {
+        if (isMigrated(legacyVariable.getActivityInstanceId(), HISTORY_FLOW_NODE)) {
           ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(legacyProcessInstanceId);
           Long processInstanceKey = processInstance.processInstanceKey();
           Long scopeKey = findFlowNodeKey(legacyVariable.getActivityInstanceId()); // TODO does this cover scope correctly?
@@ -412,11 +413,11 @@ public class HistoryMigrator {
 
   private void migrateUserTask(HistoricTaskInstance legacyUserTask) {
     String legacyUserTaskId = legacyUserTask.getId();
-    if (shouldMigrate(legacyUserTaskId)) {
+    if (shouldMigrate(legacyUserTaskId, HISTORY_USER_TASK)) {
       HistoryMigratorLogs.migratingHistoricUserTask(legacyUserTaskId);
-      if (isMigrated(legacyUserTask.getProcessInstanceId())) {
+      if (isMigrated(legacyUserTask.getProcessInstanceId(), HISTORY_PROCESS_INSTANCE)) {
         ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(legacyUserTask.getProcessInstanceId());
-        if (isMigrated(legacyUserTask.getActivityInstanceId())) {
+        if (isMigrated(legacyUserTask.getActivityInstanceId(), HISTORY_FLOW_NODE)) {
           Long elementInstanceKey = findFlowNodeKey(legacyUserTask.getActivityInstanceId());
           Long processDefinitionKey = findProcessDefinitionKey(legacyUserTask.getProcessDefinitionId());
           UserTaskDbModel dbModel = userTaskConverter.apply(legacyUserTask, processDefinitionKey, processInstance, elementInstanceKey);
@@ -449,7 +450,7 @@ public class HistoryMigrator {
 
   private void migrateFlowNode(HistoricActivityInstance legacyFlowNode) {
     String legacyFlowNodeId = legacyFlowNode.getId();
-    if (shouldMigrate(legacyFlowNodeId)) {
+    if (shouldMigrate(legacyFlowNodeId, HISTORY_FLOW_NODE)) {
       HistoryMigratorLogs.migratingHistoricFlowNode(legacyFlowNodeId);
       ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(legacyFlowNode.getProcessInstanceId());
       if (processInstance != null) {
@@ -470,7 +471,7 @@ public class HistoryMigrator {
     if (processInstanceId == null)
       return null;
 
-    Long key = dbClient.findKeyById(processInstanceId);
+    Long key = dbClient.findKeyByIdAndType(processInstanceId, HISTORY_PROCESS_INSTANCE);
     if (key == null) {
       return null;
     }
@@ -479,7 +480,7 @@ public class HistoryMigrator {
   }
 
   private Long findProcessDefinitionKey(String processDefinitionId) {
-    Long key = dbClient.findKeyById(processDefinitionId);
+    Long key = dbClient.findKeyByIdAndType(processDefinitionId, HISTORY_PROCESS_DEFINITION);
     if (key == null) {
       return null;
     }
@@ -495,7 +496,7 @@ public class HistoryMigrator {
   }
 
   private Long findFlowNodeKey(String activityId, String processInstanceId) {
-    Long key = dbClient.findKeyById(processInstanceId);
+    Long key = dbClient.findKeyByIdAndType(processInstanceId, HISTORY_PROCESS_INSTANCE);
     if (key == null) {
       return null;
     }
@@ -511,7 +512,7 @@ public class HistoryMigrator {
   }
 
   private Long findFlowNodeKey(String activityInstanceId) {
-    Long key = dbClient.findKeyById(activityInstanceId);
+    Long key = dbClient.findKeyByIdAndType(activityInstanceId, HISTORY_FLOW_NODE);
     if (key == null) {
       return null;
     }
@@ -526,20 +527,20 @@ public class HistoryMigrator {
     }
   }
 
-  private boolean isMigrated(String id) {
-    return dbClient.checkHasKey(id);
+  private boolean isMigrated(String id, IdKeyMapper.TYPE type) {
+    return dbClient.checkHasKeyByIdAndType(id, type);
   }
 
-  private boolean shouldMigrate(String id) {
+  private boolean shouldMigrate(String id, IdKeyMapper.TYPE type) {
     if (mode == RETRY_SKIPPED) {
-      return !dbClient.checkHasKey(id);
+      return !dbClient.checkHasKeyByIdAndType(id, type);
     }
-    return !dbClient.checkExists(id);
+    return !dbClient.checkExistsByIdAndType(id, type);
   }
 
   protected void saveRecord(String entityId, Long entityKey, IdKeyMapper.TYPE type) {
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.updateKeyById(entityId, entityKey, type);
+      dbClient.updateKeyByIdAndType(entityId, entityKey, type);
     } else if (MIGRATE.equals(mode)) {
       dbClient.insert(entityId, entityKey, type);
     }
@@ -547,7 +548,7 @@ public class HistoryMigrator {
 
   protected void saveRecord(String entityId, Date date, Long entityKey, IdKeyMapper.TYPE type) {
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.updateKeyById(entityId, date, entityKey, type);
+      dbClient.updateKeyByIdAndType(entityId, entityKey, type);
     } else if (MIGRATE.equals(mode)) {
       dbClient.insert(entityId, date, entityKey, type);
     }
