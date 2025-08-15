@@ -532,7 +532,7 @@ public class HistoryMigrator {
   }
 
   private boolean shouldMigrate(String id, IdKeyMapper.TYPE type) {
-     if (mode == RETRY_SKIPPED) {
+    if (mode == RETRY_SKIPPED) {
       return !dbClient.checkHasKeyByIdAndType(id, type);
     }
     return !dbClient.checkExistsByIdAndType(id, type);
