@@ -397,4 +397,37 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
     assertThat(searchHistoricDecisionDefinitions("simpleDmnWithReqs2Id")).isEmpty();
     assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_DECISION_DEFINITION)).isEqualTo(2);
   }
+
+    @Test
+    public void shouldNotSkipTaskVariablesWhenEntityWithSameIdButDifferentTypeIsSkipped() {
+        // given state in c7
+        deployer.deployCamunda7Process("userTaskProcess.bpmn");
+        runtimeService.startProcessInstanceByKey("userTaskProcessId");
+
+        var taskId = taskService.createTaskQuery().singleResult().getId();
+
+        // Simulate ID collision by manually inserting a record with the same ID as the task
+        // but with a different type (HISTORY_INCIDENT)
+        dbClient.insert(taskId, null, IdKeyMapper.TYPE.HISTORY_INCIDENT);
+        // Verify the collision record exists before completing the task
+        assertThat(dbClient.checkExistsByIdAndType(taskId, IdKeyMapper.TYPE.HISTORY_INCIDENT)).as("Record with task ID should exist").isTrue();
+
+        // when history is migrated
+        historyMigrator.migrate();
+
+        // then
+        // 1. Process instance should be migrated
+        var historicProcesses = searchHistoricProcessInstances("userTaskProcessId");
+        assertThat(historicProcesses).hasSize(1);
+        var processInstanceKey = historicProcesses.getFirst().processInstanceKey();
+
+        // 2. User task should be migrated (not skipped due to ID collision with HISTORY_INCIDENT)
+        var userTasks = searchHistoricUserTasks(processInstanceKey);
+        assertThat(userTasks)
+            .as("User task should be migrated despite ID collision with HISTORY_INCIDENT")
+            .hasSize(1);
+        assertThat(userTasks.getFirst().elementId())
+            .as("User task should have correct id")
+            .isEqualTo("userTaskId");
+    }
 }
