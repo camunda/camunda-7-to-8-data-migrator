@@ -37,6 +37,8 @@ import io.camunda.search.query.ProcessInstanceQuery;
 import io.camunda.search.query.UserTaskQuery;
 import io.camunda.search.query.VariableQuery;
 import java.util.List;
+import org.camunda.bpm.engine.HistoryService;
+import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.impl.util.ClockUtil;
 import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.AfterEach;
@@ -66,6 +68,11 @@ public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest 
 
   @Autowired
   protected RdbmsService rdbmsService;
+
+  // C7 ---------------------------------------
+
+  @Autowired
+  protected HistoryService historyService;
 
   @AfterEach
   public void cleanup() {
