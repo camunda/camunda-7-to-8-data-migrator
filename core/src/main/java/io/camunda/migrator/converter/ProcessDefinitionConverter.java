@@ -36,7 +36,7 @@ public class ProcessDefinitionConverter {
         .versionTag(legacyProcessDefinition.getVersionTag())
         .version(legacyProcessDefinition.getVersion())
         .bpmnXml(bpmnXml)
-        .formId(null) // TODO
+        .formId(null) // TODO https://github.com/camunda/camunda-bpm-platform/issues/5347
         .build();
   }
 
