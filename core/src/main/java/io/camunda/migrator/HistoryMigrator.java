@@ -219,7 +219,7 @@ public class HistoryMigrator {
       Long processDefinitionKey = findProcessDefinitionKey(legacyProcessInstance.getProcessDefinitionId());
       String processDefinitionId = legacyProcessInstance.getProcessDefinitionId();
 
-      if(isMigrated(processDefinitionId, HISTORY_PROCESS_DEFINITION)) {
+      if (isMigrated(processDefinitionId, HISTORY_PROCESS_DEFINITION)) {
         String legacySuperProcessInstanceId = legacyProcessInstance.getSuperProcessInstanceId();
         Long parentProcessInstanceKey = null;
         if (legacySuperProcessInstanceId != null) {
