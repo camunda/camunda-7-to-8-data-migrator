@@ -540,7 +540,7 @@ public class HistoryMigrator {
 
   protected void saveRecord(String entityId, Long entityKey, IdKeyMapper.TYPE type) {
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.updateKeyById(entityId, entityKey, type);
+      dbClient.updateKeyByIdAndType(entityId, entityKey, type);
     } else if (MIGRATE.equals(mode)) {
       dbClient.insert(entityId, entityKey, type);
     }
@@ -548,7 +548,7 @@ public class HistoryMigrator {
 
   protected void saveRecord(String entityId, Date date, Long entityKey, IdKeyMapper.TYPE type) {
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.updateKeyById(entityId, date, entityKey, type);
+      dbClient.updateKeyByIdAndType(entityId, entityKey, type);
     } else if (MIGRATE.equals(mode)) {
       dbClient.insert(entityId, date, entityKey, type);
     }

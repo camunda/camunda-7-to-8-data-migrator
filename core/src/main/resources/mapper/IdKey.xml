@@ -43,10 +43,10 @@
     FROM ${prefix}MIGRATION_MAPPING
   </select>
 
-  <update id="updateKeyById" parameterType="io.camunda.migrator.impl.persistence.IdKeyDbModel">
+  <update id="updateKeyByIdAndType" parameterType="io.camunda.migrator.impl.persistence.IdKeyDbModel">
     UPDATE ${prefix}MIGRATION_MAPPING
     SET INSTANCE_KEY = #{instanceKey, jdbcType=BIGINT}
-    WHERE ID = #{id, jdbcType=VARCHAR}
+    WHERE ID = #{id, jdbcType=VARCHAR} AND TYPE = #{type, jdbcType=VARCHAR}
   </update>
 
   <select id="findLatestIdByType" parameterType="java.lang.String">

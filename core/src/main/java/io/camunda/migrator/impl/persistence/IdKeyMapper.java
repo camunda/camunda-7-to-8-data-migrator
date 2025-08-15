@@ -57,7 +57,7 @@ public interface IdKeyMapper {
 
   List<String> findAllIds();
 
-  void updateKeyById(IdKeyDbModel idKeyDbModel);
+  void updateKeyByIdAndType(IdKeyDbModel idKeyDbModel);
 
   void delete(String id);
 }

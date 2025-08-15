@@ -130,7 +130,7 @@ public class RuntimeMigrator {
 
   protected void saveRecord(String legacyProcessInstanceId, Date startDate, Long processInstanceKey) {
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.updateKeyById(legacyProcessInstanceId, processInstanceKey, TYPE.RUNTIME_PROCESS_INSTANCE);
+      dbClient.updateKeyByIdAndType(legacyProcessInstanceId, processInstanceKey, TYPE.RUNTIME_PROCESS_INSTANCE);
     } else if (MIGRATE.equals(mode)) {
       dbClient.insert(legacyProcessInstanceId, startDate, processInstanceKey, TYPE.RUNTIME_PROCESS_INSTANCE);
     }

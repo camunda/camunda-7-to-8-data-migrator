@@ -93,21 +93,12 @@ public class DbClient {
   }
 
   /**
-   * Updates a record by setting the key for an existing ID.
+   * Updates a record by setting the key for an existing ID and type.
    */
-  public void updateKeyById(String legacyId, Long entityKey, TYPE type) {
+  public void updateKeyByIdAndType(String legacyId, Long entityKey, TYPE type) {
     DbClientLogs.updatingKeyForLegacyId(legacyId, entityKey);
     var model = createIdKeyDbModel(legacyId, null, entityKey, type);
-    callApi(() -> idKeyMapper.updateKeyById(model), FAILED_TO_UPDATE_KEY + entityKey);
-  }
-
-  /**
-   * Updates a record by setting the key for an existing ID.
-   */
-  public void updateKeyById(String legacyId, Date startDate, Long entityKey, TYPE type) {
-    DbClientLogs.updatingKeyForLegacyId(legacyId, entityKey);
-    var model = createIdKeyDbModel(legacyId, startDate, entityKey, type);
-    callApi(() -> idKeyMapper.updateKeyById(model), FAILED_TO_UPDATE_KEY + entityKey);
+    callApi(() -> idKeyMapper.updateKeyByIdAndType(model), FAILED_TO_UPDATE_KEY + entityKey);
   }
 
   /**
