@@ -145,10 +145,10 @@ cd assembly/target
 # Migrate running process instances
 ./start.sh --runtime
 
-# List skipped instances
+# List all skipped runtime instances
 ./start.sh --runtime --list-skipped
 
-# Retry previously skipped instances
+# Retry previously skipped runtime instances
 ./start.sh --runtime --retry-skipped
 ```
 
@@ -156,6 +156,15 @@ cd assembly/target
 ```bash
 # Migrate historical data
 ./start.sh --history
+
+# List all skipped history entities
+./start.sh --history --list-skipped
+
+# List skipped entities for specific entity types (only available for history migration)
+./start.sh --history --list-skipped HISTORY_PROCESS_INSTANCE HISTORY_USER_TASK
+
+# Retry previously skipped history entities
+./start.sh --history --retry-skipped
 ```
 
 ## Custom Configuration Example
@@ -524,17 +533,36 @@ When a process instance is skipped:
 
 #### Handling Skipped Instances
 
-1. **List Skipped Instances**
+1. **List All Skipped Instances**
    ```bash
    ./start.sh --runtime --list-skipped
    ```
 
-2. **Retry Skipped Instances**
+2. **List Skipped Instances for Specific Entity Types**
+   ```bash
+   # List only skipped process instances
+   ./start.sh --history --list-skipped HISTORY_PROCESS_INSTANCE
+   
+   # List multiple specific entity types
+   ./start.sh --history --list-skipped HISTORY_PROCESS_INSTANCE HISTORY_USER_TASK HISTORY_VARIABLE
+   ```
+   
+   **Available Entity Types for Filtering:**
+   - `HISTORY_PROCESS_DEFINITION` - Process definitions
+   - `HISTORY_PROCESS_INSTANCE` - Process instances  
+   - `HISTORY_INCIDENT` - Process incidents
+   - `HISTORY_VARIABLE` - Process variables
+   - `HISTORY_USER_TASK` - User tasks
+   - `HISTORY_FLOW_NODE` - Flow node instances
+   - `HISTORY_DECISION_INSTANCE` - Decision instances
+   - `HISTORY_DECISION_DEFINITION` - Decision definitions
+
+3. **Retry Skipped Instances**
    ```bash
    ./start.sh --runtime --retry-skipped
    ```
 
-3. **Common Resolution Steps**
+4. **Common Resolution Steps**
    - Deploy the missing C8 process definition
    - Wait for multi-instance activities to complete
    - Ensure all active flow nodes in the C7 process have corresponding elements in the C8 process

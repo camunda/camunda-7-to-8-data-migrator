@@ -76,11 +76,6 @@ import org.springframework.stereotype.Component;
 @Conditional(C8DataSourceConfigured.class)
 public class HistoryMigrator {
 
-  public static final Set<IdKeyMapper.TYPE> HISTORY_TYPES = EnumSet.allOf(IdKeyMapper.TYPE.class)
-      .stream()
-      .filter(type -> type.name().startsWith("HISTORY"))
-      .collect(Collectors.toCollection(() -> EnumSet.noneOf(IdKeyMapper.TYPE.class)));
-
   // Mappers
 
   @Autowired
@@ -143,6 +138,8 @@ public class HistoryMigrator {
 
   protected MigratorMode mode = MIGRATE;
 
+  private List<IdKeyMapper.TYPE> entityTypesToPrint;
+
   public void start() {
     try {
       ExceptionUtils.setContext(ExceptionUtils.ExceptionContext.HISTORY);
@@ -157,7 +154,13 @@ public class HistoryMigrator {
   }
 
   private void printSkippedHistoryEntities() {
-    HISTORY_TYPES.forEach(this::printSkippedEntitiesForType);
+    IdKeyMapper.getHistoryTypes().stream()
+        .filter(this::shouldPrintEntityType)
+        .forEach(this::printSkippedEntitiesForType);
+  }
+
+  private boolean shouldPrintEntityType(IdKeyMapper.TYPE type) {
+    return entityTypesToPrint == null || entityTypesToPrint.isEmpty() || entityTypesToPrint.contains(type);
   }
 
   private void printSkippedEntitiesForType(IdKeyMapper.TYPE type) {
@@ -556,6 +559,10 @@ public class HistoryMigrator {
 
   public void setMode(MigratorMode mode) {
     this.mode = mode;
+  }
+
+  public void setEntityTypesToPrint(List<IdKeyMapper.TYPE> entityTypesToPrint) {
+    this.entityTypesToPrint = entityTypesToPrint;
   }
 
 }
