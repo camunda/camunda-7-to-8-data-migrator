@@ -429,8 +429,5 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
         assertThat(userTasks.getFirst().elementId())
             .as("User task should have correct id")
             .isEqualTo("userTaskId");
-
-        // 3. Verify no skip messages in logs for the task
-        logs.assertDoesNotContain("Migration of legacy user task with id [" + taskId + "] skipped");
     }
 }

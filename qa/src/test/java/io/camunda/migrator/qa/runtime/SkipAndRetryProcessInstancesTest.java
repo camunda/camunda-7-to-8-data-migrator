@@ -16,6 +16,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureTrue;
 
 import io.camunda.client.api.search.response.ProcessInstance;
+import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
@@ -50,7 +51,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
   private TaskService taskService;
 
   @Autowired
-  private io.camunda.migrator.HistoryMigrator historyMigrator;
+  private HistoryMigrator historyMigrator;
 
   @Test
   public void shouldSkipMultiInstanceProcessMigration() {
