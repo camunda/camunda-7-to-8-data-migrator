@@ -1,5 +1,6 @@
 camunda:
-  # Client configuration for connecting to Camunda 8 for runtime migration
+  # Client configuration for connecting to Camunda 8 for runtime migration. For security related recommendations,
+  # please check https://docs.camunda.io/docs/next/self-managed/components/orchestration-cluster/zeebe/security/
   client:
     # # Operation mode of the client ('self-managed' or 'cloud')
     # mode: self-managed
