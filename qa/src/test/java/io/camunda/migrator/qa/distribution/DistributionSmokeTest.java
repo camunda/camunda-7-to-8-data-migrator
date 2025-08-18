@@ -89,6 +89,9 @@ class DistributionSmokeTest {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--help");
 
+    // Read the existing configuration file and set auto-dll to true
+    replaceConfigProperty("auto-ddl: false", "auto-ddl: true");
+
     // when
     Process process = processBuilder.start();
 
@@ -187,6 +190,9 @@ class DistributionSmokeTest {
     Path resourcesDir = extractedDistributionPath.resolve("configuration/resources");
     Files.createDirectories(resourcesDir);
 
+    // Read the existing configuration file and set auto-dll to true
+    replaceConfigProperty("auto-ddl: false", "auto-ddl: true");
+
     String simpleBpmnModel = "<bpmn:definitions />";
     Path bpmnFile = resourcesDir.resolve("test-process.bpmn");
     Files.write(bpmnFile, simpleBpmnModel.getBytes());
@@ -227,6 +233,13 @@ class DistributionSmokeTest {
 
     // Verify the application started with our modified configuration
     assertThat(output).contains("ENGINE-03057 There are no Camunda tables in the database.");
+  }
+
+  private void replaceConfigProperty(String before, String after) throws IOException {
+    Path configFile = extractedDistributionPath.resolve("configuration/application.yml");
+    String originalConfig = Files.readString(configFile);
+    String modifiedConfig = originalConfig.replace(before, after);
+    Files.write(configFile, modifiedConfig.getBytes());
   }
 
   protected void extractZipDistribution() throws IOException {
