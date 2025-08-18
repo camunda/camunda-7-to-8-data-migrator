@@ -22,6 +22,7 @@ public interface IdKeyMapper {
     HISTORY_FLOW_NODE("Historic Flow Node"),
     HISTORY_DECISION_INSTANCE("Historic Decision Instance"),
     HISTORY_DECISION_DEFINITION("Historic Decision Definition"),
+    HISTORY_DECISION_REQUIREMENTS("Historic Decision Requirements"),
 
     RUNTIME_PROCESS_INSTANCE("Process Instance");
 
@@ -38,13 +39,13 @@ public interface IdKeyMapper {
 
   String findLatestIdByType(TYPE type);
 
-  boolean checkExists(String id);
+  boolean checkExistsByIdAndType(@Param("type") TYPE type, @Param("id") String id);
 
-  boolean checkHasKey(String id);
+  boolean checkHasKeyByIdAndType(@Param("type") TYPE type, @Param("id") String id);
 
   Date findLatestStartDateByType(TYPE type);
 
-  Long findKeyById(String id);
+  Long findKeysByIdAndType(@Param("id") String id, @Param("type") TYPE type);
 
   void insert(IdKeyDbModel idKeyDbModel);
 
@@ -56,7 +57,7 @@ public interface IdKeyMapper {
 
   List<String> findAllIds();
 
-  void updateKeyById(IdKeyDbModel idKeyDbModel);
+  void updateKeyByIdAndType(IdKeyDbModel idKeyDbModel);
 
   void delete(String id);
 }

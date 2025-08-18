@@ -20,12 +20,16 @@ import io.camunda.migrator.config.MigratorAutoConfiguration;
 import io.camunda.migrator.qa.AbstractMigratorTest;
 import io.camunda.migrator.qa.config.TestProcessEngineConfiguration;
 import io.camunda.migrator.qa.util.WithSpringProfile;
+import io.camunda.search.entities.DecisionDefinitionEntity;
+import io.camunda.search.entities.DecisionRequirementsEntity;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.IncidentEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.entities.UserTaskEntity;
 import io.camunda.search.entities.VariableEntity;
+import io.camunda.search.query.DecisionDefinitionQuery;
+import io.camunda.search.query.DecisionRequirementsQuery;
 import io.camunda.search.query.FlowNodeInstanceQuery;
 import io.camunda.search.query.IncidentQuery;
 import io.camunda.search.query.ProcessDefinitionQuery;
@@ -43,7 +47,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
 
 @Import({
   HistoryMigrationAbstractTest.HistoryCustomConfiguration.class,
@@ -90,6 +93,22 @@ public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest 
         .search(ProcessDefinitionQuery.of(queryBuilder ->
             queryBuilder.filter(filterBuilder ->
                 filterBuilder.processDefinitionIds(processDefinitionId))))
+        .items();
+  }
+
+  public List<DecisionDefinitionEntity> searchHistoricDecisionDefinitions(String decisionDefinitionId) {
+    return rdbmsService.getDecisionDefinitionReader()
+        .search(DecisionDefinitionQuery.of(queryBuilder ->
+            queryBuilder.filter(filterBuilder ->
+                filterBuilder.decisionDefinitionIds(decisionDefinitionId))))
+        .items();
+  }
+
+  public List<DecisionRequirementsEntity> searchHistoricDecisionRequirementsDefinition(String decisionRequirementsId) {
+    return rdbmsService.getDecisionRequirementsReader()
+        .search(DecisionRequirementsQuery.of(queryBuilder ->
+            queryBuilder.filter(filterBuilder ->
+                filterBuilder.decisionRequirementsIds(decisionRequirementsId))))
         .items();
   }
 

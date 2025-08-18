@@ -39,6 +39,8 @@ import org.camunda.bpm.engine.impl.HistoricVariableInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.ProcessDefinitionQueryImpl;
 import org.camunda.bpm.engine.repository.DecisionDefinition;
 import org.camunda.bpm.engine.repository.DecisionDefinitionQuery;
+import org.camunda.bpm.engine.repository.DecisionRequirementsDefinition;
+import org.camunda.bpm.engine.repository.DecisionRequirementsDefinitionQuery;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ActivityInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
@@ -82,6 +84,24 @@ public class C7Client {
   public ProcessDefinition getProcessDefinition(String legacyId) {
     var query = repositoryService.createProcessDefinitionQuery().processDefinitionId(legacyId);
     return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "ProcessDefinition", legacyId));
+  }
+
+  /**
+   * Gets a single decision requirements definition by ID.
+   */
+  public DecisionRequirementsDefinition getDecisionRequirementsDefinition(String legacyId) {
+    var query = repositoryService.createDecisionRequirementsDefinitionQuery()
+        .decisionRequirementsDefinitionId(legacyId);
+    return callApi(query::singleResult,
+        format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "DecisionRequirementsDefinition", legacyId));
+  }
+
+  /**
+   * Gets a single decision definition by ID.
+   */
+  public DecisionDefinition getDecisionDefinition(String legacyId) {
+    var query = repositoryService.createDecisionDefinitionQuery().decisionDefinitionId(legacyId);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "DecisionDefinition", legacyId));
   }
 
   /**
@@ -307,6 +327,20 @@ public class C7Client {
 
     new Pagination<DecisionDefinition>()
         .pageSize(properties.getPageSize())
+        .query(query)
+        .maxCount(query::count)
+        .callback(callback);
+  }
+
+  /**
+   * Processes decision requirements with pagination using the provided callback consumer.
+   */
+  public void fetchAndHandleDecisionRequirementsDefinitions(Consumer<DecisionRequirementsDefinition> callback) {
+    DecisionRequirementsDefinitionQuery query = repositoryService.createDecisionRequirementsDefinitionQuery()
+        .orderByDecisionRequirementsDefinitionId()
+        .asc();
+
+    new Pagination<DecisionRequirementsDefinition>().pageSize(properties.getPageSize())
         .query(query)
         .maxCount(query::count)
         .callback(callback);
