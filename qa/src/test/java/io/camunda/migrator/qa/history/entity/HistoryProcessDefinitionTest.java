@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 public class HistoryProcessDefinitionTest extends HistoryMigrationAbstractTest {
 
   @Test
-  public void shouldHistoricUserTasksBeMigrated() {
+  public void shouldMigrateHistoricProcessDefinitions() {
     // given
     deployer.deployCamunda7Process("userTaskProcess.bpmn", "my-tenant1");
     deployer.deployCamunda7Process("userTaskProcess.bpmn", "my-tenant2");
