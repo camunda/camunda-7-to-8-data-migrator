@@ -48,17 +48,17 @@ public class DbClient {
   protected IdKeyMapper idKeyMapper;
 
   /**
-   * Checks if a process instance exists in the mapping table.
+   * Checks if an entity exists in the mapping table by type and id.
    */
-  public boolean checkExists(String legacyEntityId) {
-    return callApi(() -> idKeyMapper.checkExists(legacyEntityId), FAILED_TO_CHECK_EXISTENCE + legacyEntityId);
+  public boolean checkExistsByIdAndType(String legacyId, TYPE type) {
+    return callApi(() -> idKeyMapper.checkExistsByIdAndType(type, legacyId), FAILED_TO_CHECK_EXISTENCE + legacyId);
   }
 
   /**
-   * Checks if a process instance exists in the mapping table.
+   * Checks if an entity exists in the mapping table by type and id.
    */
-  public boolean checkHasKey(String legacyId) {
-    return callApi(() -> idKeyMapper.checkHasKey(legacyId), FAILED_TO_CHECK_KEY + legacyId);
+  public boolean checkHasKeyByIdAndType(String legacyId, TYPE type) {
+    return callApi(() -> idKeyMapper.checkHasKeyByIdAndType(type, legacyId), FAILED_TO_CHECK_KEY + legacyId);
   }
 
   /**
@@ -79,10 +79,10 @@ public class DbClient {
   }
 
   /**
-   * Finds the key by legacy ID.
+   * Finds the key by legacy ID and type.
    */
-  public Long findKeyById(String legacyId) {
-    return callApi(() -> idKeyMapper.findKeyById(legacyId), FAILED_TO_FIND_KEY_BY_ID + legacyId);
+  public Long findKeyByIdAndType(String legacyId, TYPE type) {
+    return callApi(() -> idKeyMapper.findKeysByIdAndType(legacyId, type), FAILED_TO_FIND_KEY_BY_ID + legacyId);
   }
 
   /**
@@ -93,21 +93,12 @@ public class DbClient {
   }
 
   /**
-   * Updates a record by setting the key for an existing ID.
+   * Updates a record by setting the key for an existing ID and type.
    */
-  public void updateKeyById(String legacyId, Long entityKey, TYPE type) {
+  public void updateKeyByIdAndType(String legacyId, Long entityKey, TYPE type) {
     DbClientLogs.updatingKeyForLegacyId(legacyId, entityKey);
     var model = createIdKeyDbModel(legacyId, null, entityKey, type);
-    callApi(() -> idKeyMapper.updateKeyById(model), FAILED_TO_UPDATE_KEY + entityKey);
-  }
-
-  /**
-   * Updates a record by setting the key for an existing ID.
-   */
-  public void updateKeyById(String legacyId, Date startDate, Long entityKey, TYPE type) {
-    DbClientLogs.updatingKeyForLegacyId(legacyId, entityKey);
-    var model = createIdKeyDbModel(legacyId, startDate, entityKey, type);
-    callApi(() -> idKeyMapper.updateKeyById(model), FAILED_TO_UPDATE_KEY + entityKey);
+    callApi(() -> idKeyMapper.updateKeyByIdAndType(model), FAILED_TO_UPDATE_KEY + entityKey);
   }
 
   /**
@@ -129,12 +120,12 @@ public class DbClient {
   }
 
   /**
-   * Lists skipped process instances with pagination and prints them.
+   * Lists skipped entities by type with pagination and prints them.
    */
-  public void listSkippedRuntimeProcessInstances() {
+  public void listSkippedEntitiesByType(TYPE type) {
     new Pagination<String>().pageSize(properties.getPageSize())
-        .maxCount(() -> idKeyMapper.countSkippedByType(TYPE.RUNTIME_PROCESS_INSTANCE))
-        .page(offset -> idKeyMapper.findSkippedByType(TYPE.RUNTIME_PROCESS_INSTANCE, offset, properties.getPageSize())
+        .maxCount(() -> idKeyMapper.countSkippedByType(type))
+        .page(offset -> idKeyMapper.findSkippedByType(type, offset, properties.getPageSize())
             .stream()
             .map(IdKeyDbModel::id)
             .collect(Collectors.toList()))
