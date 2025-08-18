@@ -129,7 +129,7 @@ public class C7Client {
    */
   public long getIncidentsByProcessInstance(String legacyId) {
     var query = runtimeService.createIncidentQuery().processInstanceId(legacyId);
-    return callApi(query::count, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricIncident", legacyId));
+    return callApi(query::count, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "Incident", legacyId));
   }
 
   /**

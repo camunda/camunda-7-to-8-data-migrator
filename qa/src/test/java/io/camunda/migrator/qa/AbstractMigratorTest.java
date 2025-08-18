@@ -12,9 +12,11 @@ import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.qa.util.ProcessDefinitionDeployer;
 import io.camunda.migrator.qa.util.WithMultiDb;
 import io.camunda.migrator.qa.util.WithSpringProfile;
+import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.runtime.Job;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -39,4 +41,18 @@ public class AbstractMigratorTest {
 
   @Autowired
   protected TaskService taskService;
+
+  @Autowired
+  protected ManagementService managementService;
+
+  protected void triggerIncident(final String processInstanceId) {
+    Job job = managementService.createJobQuery().processInstanceId(processInstanceId).singleResult();
+    for (int i = 0; i < 3; i++) {
+      try {
+        managementService.executeJob(job.getId());
+      } catch (Exception e) {
+        // ignore
+      }
+    }
+  }
 }

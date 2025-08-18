@@ -24,10 +24,10 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
     deployer.deployCamunda7Process("userTaskProcess.bpmn");
 
     // given state in c7
-    ProcessInstance c7PI = runtimeService.startProcessInstanceByKey("userTaskProcessId");
+    ProcessInstance c7Process = runtimeService.startProcessInstanceByKey("userTaskProcessId");
     completeAllUserTasksWithDefaultUserTaskId();
     HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
-        .processInstanceId(c7PI.getId())
+        .processInstanceId(c7Process.getId())
         .singleResult();
 
     // when history is migrated
@@ -38,9 +38,8 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
     assertThat(processInstances.size()).isEqualTo(1);
     for (ProcessInstanceEntity processInstance : processInstances) {
       // and process instance has expected state
-      assertThat(processInstance.state()).isEqualTo(ProcessInstanceEntity.ProcessInstanceState.COMPLETED);
-      assertPIFields(processInstance, historicProcessInstance, "userTaskProcessId",
-          ProcessInstanceEntity.ProcessInstanceState.COMPLETED, "custom-version-tag", null, false);
+      assertC8ProcessInstanceFields(processInstance, historicProcessInstance, "userTaskProcessId",
+          ProcessInstanceEntity.ProcessInstanceState.COMPLETED, "custom-version-tag", null, false, false);
     }
   }
 
@@ -49,10 +48,10 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
     deployer.deployCamunda7Process("userTaskProcess.bpmn", "my-tenant1");
 
     // given state in c7
-    ProcessInstance c7PI = runtimeService.startProcessInstanceByKey("userTaskProcessId");
+    ProcessInstance c7Process = runtimeService.startProcessInstanceByKey("userTaskProcessId");
     completeAllUserTasksWithDefaultUserTaskId();
     HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
-        .processInstanceId(c7PI.getId())
+        .processInstanceId(c7Process.getId())
         .singleResult();
 
     // when history is migrated
@@ -61,8 +60,8 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
     // then expected number of historic process instances
     List<ProcessInstanceEntity> processInstances = searchHistoricProcessInstances("userTaskProcessId");
     assertThat(processInstances.size()).isEqualTo(1);
-    assertPIFields(processInstances.getFirst(), historicProcessInstance, "userTaskProcessId",
-        ProcessInstanceEntity.ProcessInstanceState.COMPLETED, "custom-version-tag", "my-tenant1", false);
+    assertC8ProcessInstanceFields(processInstances.getFirst(), historicProcessInstance, "userTaskProcessId",
+        ProcessInstanceEntity.ProcessInstanceState.COMPLETED, "custom-version-tag", "my-tenant1", false, false);
   }
 
   @Test
@@ -92,22 +91,47 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
     assertThat(subProcessInstance.size()).isEqualTo(1);
 
     var parent = parentProcessInstance.getFirst();
-    assertPIFields(parent, historicProcessInstance, "callingProcessId",
-        ProcessInstanceEntity.ProcessInstanceState.COMPLETED, null, null, false);
+    assertC8ProcessInstanceFields(parent, historicProcessInstance, "callingProcessId",
+        ProcessInstanceEntity.ProcessInstanceState.COMPLETED, null, null, false, false);
 
     var sub = subProcessInstance.getFirst();
-    assertPIFields(sub, historicSubProcessInstance, "calledProcessInstanceId",
-        ProcessInstanceEntity.ProcessInstanceState.COMPLETED, null, null, true);
+    assertC8ProcessInstanceFields(sub, historicSubProcessInstance, "calledProcessInstanceId",
+        ProcessInstanceEntity.ProcessInstanceState.COMPLETED, null, null, true, false);
 
   }
 
-  protected static void assertPIFields(ProcessInstanceEntity processInstance,
-                                       HistoricProcessInstance historicProcessInstance,
-                                       String processDefinitionId,
-                                       ProcessInstanceEntity.ProcessInstanceState processInstanceState,
-                                       String versionTag,
-                                       String tenantId,
-                                       boolean hasParent) {
+  @Test
+  public void shouldMigrateProcessInstanceWithIncident() {
+    deployer.deployCamunda7Process("incidentProcess.bpmn");
+
+    // given state in c7
+    ProcessInstance c7Process = runtimeService.startProcessInstanceByKey("incidentProcessId");
+    triggerIncident(c7Process.getId());
+    HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
+        .processInstanceId(c7Process.getId())
+        .singleResult();
+
+    // when history is migrated
+    historyMigrator.migrate();
+
+    // then expected number of historic process instances
+    List<ProcessInstanceEntity> processInstances = searchHistoricProcessInstances("incidentProcessId");
+    assertThat(processInstances.size()).isEqualTo(1);
+    for (ProcessInstanceEntity processInstance : processInstances) {
+      // and process instance has expected state
+      assertC8ProcessInstanceFields(processInstance, historicProcessInstance, "incidentProcessId",
+          ProcessInstanceEntity.ProcessInstanceState.ACTIVE, null, null, false, true);
+    }
+  }
+
+  protected static void assertC8ProcessInstanceFields(ProcessInstanceEntity processInstance,
+                                                      HistoricProcessInstance historicProcessInstance,
+                                                      String processDefinitionId,
+                                                      ProcessInstanceEntity.ProcessInstanceState processInstanceState,
+                                                      String versionTag,
+                                                      String tenantId,
+                                                      boolean hasParent,
+                                                      boolean hasIncidents) {
     assertThat(processInstance.processDefinitionId()).isEqualTo(processDefinitionId);
     assertThat(processInstance.state()).isEqualTo(processInstanceState);
     assertThat(processInstance.processInstanceKey()).isNotNull();
@@ -127,7 +151,7 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
       assertThat(processInstance.parentFlowNodeInstanceKey()).isNull();
     }
 
-    assertThat(processInstance.hasIncident()).isFalse();
+    assertThat(processInstance.hasIncident()).isEqualTo(hasIncidents);
     //    assertThat(processInstance.treePath()).isNotNull();
   }
 

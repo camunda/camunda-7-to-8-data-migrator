@@ -23,9 +23,6 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
   @Autowired
   private HistoryService historyService;
 
-  @Autowired
-  private ManagementService managementService;
-
     @Test
     public void shouldMigratePreviouslySkippedProcessDefinition() {
         // given state in c7

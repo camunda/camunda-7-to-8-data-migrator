@@ -10,6 +10,7 @@ package io.camunda.migrator.converter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import io.camunda.migrator.impl.clients.C7Client;
+import io.camunda.migrator.impl.util.ConverterUtil;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,24 +40,15 @@ public class ProcessInstanceConverter {
         // parent and super process instance are used synonym (process instance that contained the call activity)
         .parentProcessInstanceKey(parentProcessInstanceKey)
         .elementId(null) // TODO: activityId in C7 but not part of the historic process instance. Not yet populated by RDBMS.
-        .parentElementInstanceKey(null) // TODO: Call activity instance id that created the process. Not part of C7 historic process instance.
-        // create historyService.createHistoricActivityInstanceQuery().calledProcessInstanceId(processInstance.getId()).singleResult().getId() in C7
-        // then we map it to the C8 key in migration mapping
-
-        // the element key of the call activity in C8? should we skip the migration of PI if we don't have the call activity yet?
-        .numIncidents(getIncidents(processInstance)) // TODO: test
-//        .partitionId(0) // TODO can we used C7_HISTORY_PARTITION_ID?
+        .parentElementInstanceKey(null) // TODO: Call activity instance id that created the process in C8. No yet migrated from C7.
+        .numIncidents(getIncidents(processInstance))
+        .partitionId(ConverterUtil.C7_HISTORY_PARTITION_ID)
 //        .treePath(null) // TODO io.camunda.exporter.rdbms.handlers.ProcessInstanceExportHandler.createTreePath // TODO what does it do?
-        .historyCleanupDate(convertDate(processInstance.getRemovalTime())) // TODO: change if the removal time is always populated
-//        .versionTag(processInstance.getProcessDefinitionVersionTag()) // TODO
+        .historyCleanupDate(convertDate(processInstance.getRemovalTime()))
         .build();
   }
 
-  private int getIncidents(HistoricProcessInstance processInstance) {
-    return Math.toIntExact(c7Client.getIncidentsByProcessInstance(processInstance.getId()));
-  }
-
-  private ProcessInstanceState convertState(String state) {
+  protected ProcessInstanceState convertState(String state) {
     return switch (state) {
       case "ACTIVE", "SUSPENDED" -> ProcessInstanceState.ACTIVE;
       case "COMPLETED" -> ProcessInstanceState.COMPLETED;
@@ -64,5 +56,9 @@ public class ProcessInstanceConverter {
 
       default -> throw new IllegalArgumentException("Unknown state: " + state);
     };
+  }
+
+  protected int getIncidents(HistoricProcessInstance processInstance) {
+    return Math.toIntExact(c7Client.getIncidentsByProcessInstance(processInstance.getId()));
   }
 }
