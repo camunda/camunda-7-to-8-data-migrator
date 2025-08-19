@@ -14,7 +14,7 @@ import java.util.List;
 @ConfigurationProperties(MigratorProperties.PREFIX)
 public class MigratorProperties {
 
-  public static final int DEFAULT_PAGE_SIZE = 500;
+  public static final int DEFAULT_PAGE_SIZE = 100;
   public static final String PREFIX = "camunda.migrator";
   public static final String DEFAULT_JOB_TYPE = "migrator";
 
