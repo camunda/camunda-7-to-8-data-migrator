@@ -21,6 +21,7 @@ import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_VARI
 
 import io.camunda.db.rdbms.read.domain.FlowNodeInstanceDbQuery;
 import io.camunda.db.rdbms.read.domain.ProcessDefinitionDbQuery;
+import io.camunda.db.rdbms.read.domain.ProcessInstanceDbQuery;
 import io.camunda.db.rdbms.sql.DecisionDefinitionMapper;
 import io.camunda.db.rdbms.sql.DecisionRequirementsMapper;
 import io.camunda.db.rdbms.sql.FlowNodeInstanceMapper;
@@ -375,10 +376,11 @@ public class HistoryMigrator {
 
       String legacyProcessInstanceId = legacyVariable.getProcessInstanceId();
       if (isMigrated(legacyProcessInstanceId, HISTORY_PROCESS_INSTANCE)) {
-        if (isMigrated(legacyVariable.getActivityInstanceId(), HISTORY_FLOW_NODE)) {
+        if (isMigrated(legacyVariable.getActivityInstanceId(), HISTORY_FLOW_NODE) ||
+            isMigrated(legacyVariable.getActivityInstanceId(), HISTORY_PROCESS_INSTANCE)) {
           ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(legacyProcessInstanceId);
           Long processInstanceKey = processInstance.processInstanceKey();
-          Long scopeKey = findFlowNodeKey(legacyVariable.getActivityInstanceId()); // TODO does this cover scope correctly?
+          Long scopeKey = findScopeKey(legacyVariable.getActivityInstanceId());
           if (scopeKey != null) {
             VariableDbModel dbModel = variableConverter.apply(legacyVariable, processInstanceKey, scopeKey);
             variableMapper.insert(dbModel);
@@ -526,6 +528,21 @@ public class HistoryMigrator {
     } else {
       return null;
     }
+  }
+
+  private Long findScopeKey(String instanceId) {
+    Long key = findFlowNodeKey(instanceId);
+    if (key == null) {
+      Long PIkey = dbClient.findKeyByIdAndType(instanceId, HISTORY_PROCESS_INSTANCE);
+      List<ProcessInstanceEntity> processInstances = processInstanceMapper.search(
+          ProcessInstanceDbQuery.of(b -> b.filter(value -> value.processInstanceKeys(PIkey))));
+      if (!processInstances.isEmpty()) {
+        return processInstances.get(0).processInstanceKey();
+      } else {
+        return null;
+      }
+    }
+    return key;
   }
 
   private boolean isMigrated(String id, IdKeyMapper.TYPE type) {
