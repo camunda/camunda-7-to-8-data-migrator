@@ -10,15 +10,11 @@ package io.camunda.migrator.qa.history;
 import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import io.camunda.migrator.qa.util.SkippedEntitiesLogParserUtils;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.ManagementService;
@@ -33,9 +29,6 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(locations = "classpath:application-warn.properties")
 @ExtendWith({OutputCaptureExtension.class})
 public class HistoryMigrationListSkippedFilterTest extends HistoryMigrationAbstractTest {
-
-    @Autowired
-    protected DbClient dbClient;
 
     @Autowired
     private ManagementService managementService;
@@ -57,7 +50,7 @@ public class HistoryMigrationListSkippedFilterTest extends HistoryMigrationAbstr
 
         // when running history migration with list skipped mode and single entity type filter
         historyMigrator.setMode(LIST_SKIPPED);
-        historyMigrator.setEntityTypesToPrint(List.of(IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE));
+        historyMigrator.setRequestedEntityTypes(List.of(IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE));
         historyMigrator.start();
 
         // then verify the output contains only process instances
@@ -90,7 +83,7 @@ public class HistoryMigrationListSkippedFilterTest extends HistoryMigrationAbstr
 
         // when running history migration with list skipped mode and multiple entity type filters
         historyMigrator.setMode(LIST_SKIPPED);
-        historyMigrator.setEntityTypesToPrint(List.of(
+        historyMigrator.setRequestedEntityTypes(List.of(
             IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE,
             IdKeyMapper.TYPE.HISTORY_USER_TASK
         ));
@@ -127,8 +120,6 @@ public class HistoryMigrationListSkippedFilterTest extends HistoryMigrationAbstr
         assertThat(skippedEntitiesByType).doesNotContainKey(IdKeyMapper.TYPE.HISTORY_VARIABLE.getDisplayName());
         assertThat(skippedEntitiesByType).doesNotContainKey(IdKeyMapper.TYPE.HISTORY_INCIDENT.getDisplayName());
     }
-
-    // Common test utility methods - createTestProcessInstances and getProcessDefinitionId remain
 
     private List<String> createTestProcessInstances() {
         List<String> processInstanceIds = new ArrayList<>();

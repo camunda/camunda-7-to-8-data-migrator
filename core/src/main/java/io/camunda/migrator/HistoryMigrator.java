@@ -56,10 +56,7 @@ import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.history.HistoricIncident;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
@@ -138,7 +135,7 @@ public class HistoryMigrator {
 
   protected MigratorMode mode = MIGRATE;
 
-  private List<IdKeyMapper.TYPE> entityTypesToPrint;
+  private List<IdKeyMapper.TYPE> requestedEntityTypes;
 
   public void start() {
     try {
@@ -154,13 +151,11 @@ public class HistoryMigrator {
   }
 
   private void printSkippedHistoryEntities() {
-    IdKeyMapper.getHistoryTypes().stream()
-        .filter(this::shouldPrintEntityType)
-        .forEach(this::printSkippedEntitiesForType);
-  }
-
-  private boolean shouldPrintEntityType(IdKeyMapper.TYPE type) {
-    return entityTypesToPrint == null || entityTypesToPrint.isEmpty() || entityTypesToPrint.contains(type);
+    if(requestedEntityTypes == null ||  requestedEntityTypes.isEmpty()) {
+      IdKeyMapper.getHistoryTypes().forEach(this::printSkippedEntitiesForType);
+    } else {
+      requestedEntityTypes.forEach(this::printSkippedEntitiesForType);
+    }
   }
 
   private void printSkippedEntitiesForType(IdKeyMapper.TYPE type) {
@@ -561,8 +556,8 @@ public class HistoryMigrator {
     this.mode = mode;
   }
 
-  public void setEntityTypesToPrint(List<IdKeyMapper.TYPE> entityTypesToPrint) {
-    this.entityTypesToPrint = entityTypesToPrint;
+  public void setRequestedEntityTypes(List<IdKeyMapper.TYPE> requestedEntityTypes) {
+    this.requestedEntityTypes = requestedEntityTypes;
   }
 
 }

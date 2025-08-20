@@ -10,9 +10,9 @@ package io.camunda.migrator.qa.history;
 import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import io.camunda.migrator.qa.util.SkippedEntitiesLogParserUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

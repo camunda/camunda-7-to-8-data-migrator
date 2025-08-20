@@ -147,7 +147,7 @@ public class MigratorApp {
     if (mode == MigratorMode.LIST_SKIPPED) {
       List<IdKeyMapper.TYPE> entityTypeFilters = extractEntityTypeFilters(appArgs);
       if (!entityTypeFilters.isEmpty()) {
-        historyMigrator.setEntityTypesToPrint(entityTypeFilters);
+        historyMigrator.setRequestedEntityTypes(entityTypeFilters);
       }
     }
 
