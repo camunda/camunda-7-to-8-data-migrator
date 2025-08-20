@@ -328,7 +328,7 @@ logging:
 | | `.grpc-address`             | `string`  | The gRPC API endpoint for Camunda 8 Platform. Default: `http://localhost:26500`                                                                                    |
 | | `.rest-address`             | `string`  | The REST API endpoint for Camunda 8 Platform. Default: `http://localhost:8088`                                                                                     |
 | `camunda.migrator` |                             |           |                                                                                                                                                                    |
-| | `.page-size`                | `number`  | Number of records to process in each page. Default: `500`                                                                                                          |
+| | `.page-size`                | `number`  | Number of records to process in each page. Default: `100`                                                                                                           |
 | | `.job-type`                 | `string`  | Job type for actual job activation. Default: `migrator`.                                                                                                           |
 | | `.validation-job-type`      | `string`  | Job type for validation purposes. Optional: falls back to `job-type` if not defined. Set to `DISABLED` to disable job type execution listener validation entirely. |
 | | `.auto-ddl`                 | `boolean` | Automatically create/update migrator database schema. Default: `false`                                                                                             |
@@ -359,7 +359,7 @@ logging:
 | `logging` |                             |           |                                                                                                                                                                    |
 | | `.level.root`               | `string`  | Root logger level. Default: `INFO`                                                                                                                                 |
 | | `.level.io.camunda.migrator` | `string`  | Migrator logging level. Default: `INFO`                                                                                                                            |
-| | `.file.name`                | `string`  | Log file location. Set to: `logs/camunda-7-to-8-data-migrator.log`. If not specified, logs are output to the console.                                                          |
+| | `.file.name`                | `string`  | Log file location. Set to: `logs/camunda-7-to-8-data-migrator.log`. If not specified, logs are output to the console.                                              |
 
 ## Variable transformation
 
