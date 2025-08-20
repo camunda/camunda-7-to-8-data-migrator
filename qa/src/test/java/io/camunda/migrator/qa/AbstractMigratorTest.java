@@ -55,4 +55,19 @@ public class AbstractMigratorTest {
       }
     }
   }
+
+  protected void executeAllJobsWithRetry() {
+    var jobs = managementService.createJobQuery().list();
+
+    // Try executing the job multiple times to ensure incident is created
+    for (var job : jobs) {
+      for (int i = 0; i < 3; i++) {
+        try {
+          managementService.executeJob(job.getId());
+        } catch (Exception e) {
+          // expected - job will fail due to empty delegate expression
+        }
+      }
+    }
+  }
 }

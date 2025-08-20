@@ -19,11 +19,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.impl.util.ClockUtil;
-import org.camunda.bpm.engine.runtime.Job;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class HistoryMigrationOrderedByStartDateTest extends HistoryMigrationAbstractTest {
 
