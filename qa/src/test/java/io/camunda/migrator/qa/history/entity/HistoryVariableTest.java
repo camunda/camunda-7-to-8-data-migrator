@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
@@ -40,7 +41,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class HistoryVariableTest extends HistoryMigrationAbstractTest {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  protected HistoryService historyService;
+
+  @Autowired
+  protected ObjectMapper objectMapper;
 
   @Test
   public void shouldMigrateVariableWithNullValue() {
