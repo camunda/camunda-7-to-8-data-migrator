@@ -9,12 +9,17 @@ package io.camunda.migrator.qa.history.entity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.migrator.impl.util.ConverterUtil;
 import io.camunda.migrator.qa.history.HistoryMigrationAbstractTest;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import java.util.List;
+import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.camunda.bpm.engine.task.Task;
+import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
@@ -23,41 +28,38 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
   public void shouldMigrateProcessInstances() {
     deployer.deployCamunda7Process("userTaskProcess.bpmn");
 
-    // given state in c7
+    // given
     ProcessInstance c7Process = runtimeService.startProcessInstanceByKey("userTaskProcessId");
     completeAllUserTasksWithDefaultUserTaskId();
     HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
         .processInstanceId(c7Process.getId())
         .singleResult();
 
-    // when history is migrated
+    // when
     historyMigrator.migrate();
 
-    // then expected number of historic process instances
+    // then
     List<ProcessInstanceEntity> processInstances = searchHistoricProcessInstances("userTaskProcessId");
-    assertThat(processInstances.size()).isEqualTo(1);
-    for (ProcessInstanceEntity processInstance : processInstances) {
-      // and process instance has expected state
-      assertC8ProcessInstanceFields(processInstance, historicProcessInstance, "userTaskProcessId",
-          ProcessInstanceEntity.ProcessInstanceState.COMPLETED, "custom-version-tag", null, false, false);
-    }
+    assertThat(processInstances).hasSize(1);
+    assertC8ProcessInstanceFields(processInstances.getFirst(), historicProcessInstance, "userTaskProcessId",
+        ProcessInstanceEntity.ProcessInstanceState.COMPLETED, "custom-version-tag", null, false, false);
   }
 
   @Test
   public void shouldMigrateProcessInstancesWithTenant() {
     deployer.deployCamunda7Process("userTaskProcess.bpmn", "my-tenant1");
 
-    // given state in c7
+    // given
     ProcessInstance c7Process = runtimeService.startProcessInstanceByKey("userTaskProcessId");
     completeAllUserTasksWithDefaultUserTaskId();
     HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
         .processInstanceId(c7Process.getId())
         .singleResult();
 
-    // when history is migrated
+    // when
     historyMigrator.migrate();
 
-    // then expected number of historic process instances
+    // then
     List<ProcessInstanceEntity> processInstances = searchHistoricProcessInstances("userTaskProcessId");
     assertThat(processInstances.size()).isEqualTo(1);
     assertC8ProcessInstanceFields(processInstances.getFirst(), historicProcessInstance, "userTaskProcessId",
@@ -67,8 +69,8 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
   @Test
   public void shouldMigrateCallActivityAndSubprocess() {
     // given
-    deployer.deployCamunda7Process("calledActivitySubprocess.bpmn");
     deployer.deployCamunda7Process("callActivityProcess.bpmn");
+    deployer.deployCamunda7Process("calledActivitySubprocess.bpmn");
     ProcessInstance parentInstance = runtimeService.startProcessInstanceByKey("callingProcessId");
     ProcessInstance subInstance = runtimeService.createProcessInstanceQuery()
         .superProcessInstanceId(parentInstance.getProcessInstanceId())
@@ -124,6 +126,30 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
     }
   }
 
+  @Test
+  @Disabled("https://github.com/camunda/camunda-bpm-platform/issues/5359")
+  public void shouldCheckCalledProcessParentElementKey() {
+
+    // given
+    deployer.deployCamunda7Process("callActivityProcess.bpmn");
+    deployer.deployCamunda7Process("calledActivitySubprocess.bpmn");
+    ProcessInstance parentInstance = runtimeService.startProcessInstanceByKey("callingProcessId");
+    ProcessInstance subInstance = runtimeService.createProcessInstanceQuery()
+        .superProcessInstanceId(parentInstance.getProcessInstanceId())
+        .singleResult();
+    completeAllUserTasksWithDefaultUserTaskId();
+    HistoricActivityInstance callActivity = historyService.createHistoricActivityInstanceQuery()
+        .activityId("callActivityId")
+        .processInstanceId(subInstance.getId())
+        .singleResult();
+    dbClient.insert(callActivity.getId(), null, IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION);
+    // when
+    historyMigrator.migrate();
+
+    // then
+    assertThat(searchHistoricProcessInstances("calledProcessInstanceId")).isEmpty();
+  }
+
   protected static void assertC8ProcessInstanceFields(ProcessInstanceEntity processInstance,
                                                       HistoricProcessInstance historicProcessInstance,
                                                       String processDefinitionId,
@@ -152,7 +178,9 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
     }
 
     assertThat(processInstance.hasIncident()).isEqualTo(hasIncidents);
-    //    assertThat(processInstance.treePath()).isNotNull();
+    // https://github.com/camunda/camunda-bpm-platform/issues/5359
+    assertThat(processInstance.treePath()).isNull();
+    assertThat(processInstance.parentFlowNodeInstanceKey()).isNull();
   }
 
 }

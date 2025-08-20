@@ -7,20 +7,19 @@
  */
 package io.camunda.migrator.converter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
-import io.camunda.migrator.impl.clients.C7Client;
-import io.camunda.migrator.impl.util.ConverterUtil;
-import org.camunda.bpm.engine.HistoryService;
-import org.camunda.bpm.engine.history.HistoricProcessInstance;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import static io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel.ProcessInstanceDbModelBuilder;
 import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
 import static io.camunda.search.entities.ProcessInstanceEntity.ProcessInstanceState;
 
+import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
+import io.camunda.migrator.impl.clients.C7Client;
+import io.camunda.migrator.impl.util.ConverterUtil;
+import org.camunda.bpm.engine.history.HistoricProcessInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+
 public class ProcessInstanceConverter {
+
   @Autowired
   protected C7Client c7Client;
 
@@ -39,11 +38,12 @@ public class ProcessInstanceConverter {
         .version(processInstance.getProcessDefinitionVersion())
         // parent and super process instance are used synonym (process instance that contained the call activity)
         .parentProcessInstanceKey(parentProcessInstanceKey)
-        .elementId(null) // TODO: activityId in C7 but not part of the historic process instance. Not yet populated by RDBMS.
-        .parentElementInstanceKey(null) // TODO: Call activity instance id that created the process in C8. No yet migrated from C7.
+        // TODO: Call activity instance id that created the process in C8. No yet migrated from C7.
+        // https://github.com/camunda/camunda-bpm-platform/issues/5359
+        //        .parentElementInstanceKey(null)
+        //        .treePath(null)
         .numIncidents(getIncidents(processInstance))
         .partitionId(ConverterUtil.C7_HISTORY_PARTITION_ID)
-//        .treePath(null) // TODO io.camunda.exporter.rdbms.handlers.ProcessInstanceExportHandler.createTreePath // TODO what does it do?
         .historyCleanupDate(convertDate(processInstance.getRemovalTime()))
         .build();
   }
@@ -61,4 +61,5 @@ public class ProcessInstanceConverter {
   protected int getIncidents(HistoricProcessInstance processInstance) {
     return Math.toIntExact(c7Client.getIncidentsByProcessInstance(processInstance.getId()));
   }
+
 }
