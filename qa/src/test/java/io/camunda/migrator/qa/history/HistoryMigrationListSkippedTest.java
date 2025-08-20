@@ -22,6 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.camunda.bpm.engine.HistoryService;
+import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,9 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
 
     @Autowired
     protected DbClient dbClient;
+
+    @Autowired
+    private ManagementService managementService;
 
     @Autowired
     protected HistoryService historyService;
@@ -68,23 +72,32 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
     }
 
     private List<String> createTestProcessInstances() {
-      List<String> processInstanceIds = new ArrayList<>();
-      for (int i = 0; i < 3; i++) {
-        var processInstance = runtimeService.startProcessInstanceByKey("comprehensiveSkippingTestProcessId",
-            Map.of("testVar", "testValue" + i, "anotherVar", "anotherValue" + i));
-        processInstanceIds.add(processInstance.getId());
+        List<String> processInstanceIds = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            var processInstance = runtimeService.startProcessInstanceByKey("comprehensiveSkippingTestProcessId",
+                Map.of("testVar", "testValue" + i, "anotherVar", "anotherValue" + i));
+            processInstanceIds.add(processInstance.getId());
 
-        // Complete user tasks to generate user task history
-        var tasks = taskService.createTaskQuery().processInstanceId(processInstance.getId()).list();
-        for (Task task : tasks) {
-          taskService.setVariableLocal(task.getId(), "taskLocalVar", "taskValue" + i);
-          taskService.complete(task.getId());
+            // Complete user tasks to generate user task history
+            var tasks = taskService.createTaskQuery().processInstanceId(processInstance.getId()).list();
+            for (Task task : tasks) {
+                taskService.setVariableLocal(task.getId(), "taskLocalVar", "taskValue" + i);
+                taskService.complete(task.getId());
+            }
+
+            // Execute failing service task jobs to generate incidents
+            var jobs = managementService.createJobQuery().processInstanceId(processInstance.getId()).list();
+            for (var job : jobs) {
+                for (int attempt = 0; attempt < 3; attempt++) {
+                    try {
+                        managementService.executeJob(job.getId());
+                    } catch (Exception e) {
+                        // Expected - job will fail and create incident
+                    }
+                }
+            }
         }
-
-        // Execute failing service task jobs to generate incidents
-        triggerIncident(processInstance.getId());
-      }
-      return processInstanceIds;
+        return processInstanceIds;
     }
 
     private String getProcessDefinitionId() {

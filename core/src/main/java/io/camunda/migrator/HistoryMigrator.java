@@ -229,7 +229,6 @@ public class HistoryMigrator {
             parentProcessInstanceKey = parentInstance.processInstanceKey();
           }
         }
-
         if (parentProcessInstanceKey != null || legacySuperProcessInstanceId == null) {
           ProcessInstanceDbModel dbModel = processInstanceConverter.apply(legacyProcessInstance, processDefinitionKey, parentProcessInstanceKey);
           processInstanceMapper.insert(dbModel);

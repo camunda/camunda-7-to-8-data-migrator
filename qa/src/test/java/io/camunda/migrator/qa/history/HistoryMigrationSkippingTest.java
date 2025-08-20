@@ -16,6 +16,7 @@ import io.camunda.search.entities.ProcessInstanceEntity;
 import io.github.netmikey.logunit.api.LogCapturer;
 import java.util.Map;
 import org.camunda.bpm.engine.HistoryService;
+import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,9 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
 
   @Autowired
   protected DbClient dbClient;
+
+  @Autowired
+  private ManagementService managementService;
 
   @Autowired
   protected HistoryService historyService;

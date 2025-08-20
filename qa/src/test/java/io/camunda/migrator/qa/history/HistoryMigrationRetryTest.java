@@ -19,9 +19,18 @@ import io.camunda.migrator.MigratorMode;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import java.util.List;
+import org.camunda.bpm.engine.HistoryService;
+import org.camunda.bpm.engine.ManagementService;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
+
+  @Autowired
+  private HistoryService historyService;
+
+  @Autowired
+  private ManagementService managementService;
 
   @Test
   public void shouldMigratePreviouslySkippedProcessDefinition() {
@@ -46,7 +55,7 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
     String legacyId = repositoryService.createDecisionDefinitionQuery().singleResult().getId();
     markEntityAsSkipped(legacyId, IdKeyMapper.TYPE.HISTORY_DECISION_DEFINITION);
 
-    // when
+    // when 
     historyMigrator.setMode(MigratorMode.RETRY_SKIPPED);
     historyMigrator.migrate();
 
@@ -62,7 +71,7 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
     String legacyId = repositoryService.createDecisionRequirementsDefinitionQuery().singleResult().getId();
     markEntityAsSkipped(legacyId, IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENTS);
 
-    // when
+    // when 
     historyMigrator.setMode(MigratorMode.RETRY_SKIPPED);
     historyMigrator.migrate();
 
@@ -170,6 +179,21 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
     assertThat(dbClient.checkHasKeyByIdAndType(procInstId, HISTORY_PROCESS_INSTANCE)).isFalse();
     assertThat(dbClient.checkHasKeyByIdAndType(actInstId, HISTORY_FLOW_NODE)).isFalse();
     assertThat(dbClient.checkHasKeyByIdAndType(taskId, HISTORY_USER_TASK)).isFalse();
+  }
+
+  private void executeAllJobsWithRetry() {
+    var jobs = managementService.createJobQuery().list();
+
+    // Try executing the job multiple times to ensure incident is created
+    for (var job : jobs) {
+      for (int i = 0; i < 3; i++) {
+        try {
+          managementService.executeJob(job.getId());
+        } catch (Exception e) {
+          // expected - job will fail due to empty delegate expression
+        }
+      }
+    }
   }
 
   private void markEntityAsSkipped(String legacyId, IdKeyMapper.TYPE type) {

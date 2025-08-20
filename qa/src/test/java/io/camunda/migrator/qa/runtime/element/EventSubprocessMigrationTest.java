@@ -14,10 +14,18 @@ import static io.camunda.process.test.api.assertions.ElementSelectors.byId;
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
 import static io.camunda.process.test.api.assertions.UserTaskSelectors.byTaskName;
 
+import org.camunda.bpm.engine.ManagementService;
+import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class EventSubprocessMigrationTest extends AbstractElementMigrationTest {
+  @Autowired
+  private RuntimeService runtimeService;
+
+  @Autowired
+  private ManagementService managementService;
 
   @Test
   public void shouldMigrateNonInterruptingEventSubprocess() {
