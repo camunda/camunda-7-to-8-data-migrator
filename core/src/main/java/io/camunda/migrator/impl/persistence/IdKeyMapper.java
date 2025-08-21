@@ -9,6 +9,10 @@ package io.camunda.migrator.impl.persistence;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.EnumSet;
+import java.util.stream.Collectors;
+import java.util.Arrays;
 import org.apache.ibatis.annotations.Param;
 
 public interface IdKeyMapper {
@@ -22,7 +26,7 @@ public interface IdKeyMapper {
     HISTORY_FLOW_NODE("Historic Flow Node"),
     HISTORY_DECISION_INSTANCE("Historic Decision Instance"),
     HISTORY_DECISION_DEFINITION("Historic Decision Definition"),
-    HISTORY_DECISION_REQUIREMENTS("Historic Decision Requirements"),
+    HISTORY_DECISION_REQUIREMENT("Historic Decision Requirement"),
 
     RUNTIME_PROCESS_INSTANCE("Process Instance");
 
@@ -35,6 +39,24 @@ public interface IdKeyMapper {
     public String getDisplayName() {
       return displayName;
     }
+  }
+
+  Set<TYPE> HISTORY_TYPES = Arrays.stream(TYPE.values())
+      .filter(type -> type.name().startsWith("HISTORY"))
+      .collect(Collectors.toCollection(() -> EnumSet.noneOf(TYPE.class)));
+
+  /**
+   * Returns the names of all history-related entity types as strings.
+   */
+  static Set<String> getHistoryTypeNames() {
+    return HISTORY_TYPES.stream().map(Enum::name).collect(Collectors.toSet());
+  }
+
+  /**
+   * Returns all history-related entity types as enum values.
+   */
+  static Set<TYPE> getHistoryTypes() {
+    return HISTORY_TYPES;
   }
 
   String findLatestIdByType(TYPE type);

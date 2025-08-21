@@ -387,7 +387,7 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
         .decisionRequirementsDefinitionKey("simpleDmnWithReqsId")
         .singleResult()
         .getId();
-    dbClient.insert(decisionRequirementsId, null, IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENTS);
+    dbClient.insert(decisionRequirementsId, null, IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENT);
 
     // when
     historyMigrator.migrate();
