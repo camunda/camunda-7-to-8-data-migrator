@@ -546,15 +546,34 @@ public class HistoryMigrator {
       if (processInstance != null) {
         Long processInstanceKey = processInstance.processInstanceKey();
         Long processDefinitionKey = findProcessDefinitionKey(legacyFlowNode.getProcessDefinitionId());
-        FlowNodeInstanceDbModel dbModel = flowNodeConverter.apply(legacyFlowNode, processDefinitionKey, processInstanceKey);
-        flowNodeMapper.insert(dbModel);
-        saveRecord(legacyFlowNodeId, legacyFlowNode.getStartTime(), dbModel.flowNodeInstanceKey(), HISTORY_FLOW_NODE);
-        HistoryMigratorLogs.migratingHistoricFlowNodeCompleted(legacyFlowNodeId);
+
+        Long flowNodeScopeKey = determineFlowNodeScopeKey(legacyFlowNode, processInstanceKey);
+
+        if (flowNodeScopeKey != null) {
+          FlowNodeInstanceDbModel dbModel = flowNodeConverter.apply(legacyFlowNode, processDefinitionKey, processInstanceKey, flowNodeScopeKey);
+          flowNodeMapper.insert(dbModel);
+          saveRecord(legacyFlowNodeId, legacyFlowNode.getStartTime(), dbModel.flowNodeInstanceKey(), HISTORY_FLOW_NODE);
+          HistoryMigratorLogs.migratingHistoricFlowNodeCompleted(legacyFlowNodeId);
+        } else {
+          // Parent flow node not migrated yet, skip this flow node for now
+          saveRecord(legacyFlowNodeId, null, HISTORY_FLOW_NODE);
+          HistoryMigratorLogs.skippingHistoricFlowNodeDueToMissingParent(legacyFlowNodeId);
+        }
       } else {
         saveRecord(legacyFlowNodeId, null, HISTORY_FLOW_NODE);
         HistoryMigratorLogs.skippingHistoricFlowNode(legacyFlowNodeId);
       }
     }
+  }
+
+  private Long determineFlowNodeScopeKey(HistoricActivityInstance legacyFlowNode,
+                                         Long processInstanceKey) {
+    String parentActivityInstanceId = legacyFlowNode.getParentActivityInstanceId();
+    if (parentActivityInstanceId == null || parentActivityInstanceId.equals(legacyFlowNode.getProcessInstanceId())) {
+      return processInstanceKey;
+    }
+
+    return findFlowNodeKey(parentActivityInstanceId);
   }
 
   protected ProcessInstanceEntity findProcessInstanceByLegacyId(String processInstanceId) {
@@ -646,6 +665,10 @@ public class HistoryMigrator {
         .stream()
         .findFirst()
         .orElse(null);
+  }
+
+  private Long findFlowNodeKey(String activityInstanceId) {
+    return dbClient.findKeyByIdAndType(activityInstanceId, HISTORY_FLOW_NODE);
   }
 
   private boolean isMigrated(String id, IdKeyMapper.TYPE type) {

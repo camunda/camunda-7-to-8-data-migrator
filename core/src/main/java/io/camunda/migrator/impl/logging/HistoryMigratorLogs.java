@@ -61,6 +61,7 @@ public class HistoryMigratorLogs {
   public static final String MIGRATING_FLOW_NODE = "Migrating historic flow nodes with legacyId: [{}]";
   public static final String MIGRATING_FLOW_NODE_COMPLETED = "Migration of historic flow nodes with legacyId [{}] completed.";
   public static final String SKIPPING_FLOW_NODE = "Migration of historic flow nodes with legacyId [{}] skipped. Process instance yet not available.";
+  public static final String SKIPPING_FLOW_NODE_MISSING_PARENT = "Migration of historic flow node with legacyId [{}] skipped. Parent flow node not yet available.";
 
   public static final String MIGRATING_DECISION_REQUIREMENTS = "Migrating decision requirements";
   public static final String MIGRATING_DECISION_REQUIREMENT = "Migrating decision requirements with legacyId: [{}]";
@@ -224,6 +225,10 @@ public class HistoryMigratorLogs {
 
   public static void skippingHistoricFlowNode(String legacyFlowNodeId) {
     LOGGER.debug(SKIPPING_FLOW_NODE, legacyFlowNodeId);
+  }
+
+  public static void skippingHistoricFlowNodeDueToMissingParent(String legacyFlowNodeId) {
+    LOGGER.debug(SKIPPING_FLOW_NODE_MISSING_PARENT, legacyFlowNodeId);
   }
 
   public static void migratingDecisionRequirements() {
