@@ -11,7 +11,7 @@ import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_DEFINITION;
-import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENTS;
+import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENT;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_FLOW_NODE;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_INCIDENT;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION;
@@ -246,7 +246,7 @@ public class HistoryMigrator {
     HistoryMigratorLogs.migratingDecisionRequirements();
 
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.fetchAndHandleSkippedForType(HISTORY_DECISION_REQUIREMENTS, idKeyDbModel -> {
+      dbClient.fetchAndHandleSkippedForType(HISTORY_DECISION_REQUIREMENT, idKeyDbModel -> {
         DecisionRequirementsDefinition legacyDecisionRequirement = c7Client.getDecisionRequirementsDefinition(
             idKeyDbModel.id());
         migrateDecisionRequirementsDefinition(legacyDecisionRequirement);
@@ -258,11 +258,11 @@ public class HistoryMigrator {
 
   private void migrateDecisionRequirementsDefinition(DecisionRequirementsDefinition legacyDecisionRequirements) {
     String legacyId = legacyDecisionRequirements.getId();
-    if (shouldMigrate(legacyId, HISTORY_DECISION_REQUIREMENTS)) {
+    if (shouldMigrate(legacyId, HISTORY_DECISION_REQUIREMENT)) {
       HistoryMigratorLogs.migratingDecisionRequirements(legacyId);
       DecisionRequirementsDbModel dbModel = decisionRequirementsConverter.apply(legacyDecisionRequirements);
       decisionRequirementsMapper.insert(dbModel);
-      saveRecord(legacyId, dbModel.decisionRequirementsKey(), HISTORY_DECISION_REQUIREMENTS);
+      saveRecord(legacyId, dbModel.decisionRequirementsKey(), HISTORY_DECISION_REQUIREMENT);
       HistoryMigratorLogs.migratingDecisionRequirementsCompleted(legacyId);
     }
   }
@@ -288,7 +288,8 @@ public class HistoryMigrator {
       Long decisionRequirementsKey = null;
 
       if (legacyDecisionDefinition.getDecisionRequirementsDefinitionId() != null) {
-        decisionRequirementsKey = dbClient.findKeyByIdAndType(legacyDecisionDefinition.getDecisionRequirementsDefinitionId(), HISTORY_DECISION_REQUIREMENTS);
+        decisionRequirementsKey = dbClient.findKeyByIdAndType(legacyDecisionDefinition.getDecisionRequirementsDefinitionId(),
+            HISTORY_DECISION_REQUIREMENT);
 
         if (decisionRequirementsKey == null) {
           saveRecord(legacyId, null, HISTORY_DECISION_DEFINITION);
