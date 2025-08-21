@@ -10,16 +10,12 @@ package io.camunda.migrator.qa.history;
 import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import io.camunda.migrator.qa.util.SkippedEntitiesLogParserUtils;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.ManagementService;
@@ -67,7 +63,7 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
         historyMigrator.start();
 
         // then verify the output contains all expected skipped entities
-        Map<String, List<String>> skippedEntitiesByType = parseSkippedEntitiesOutput(output.getOut());
+        Map<String, List<String>> skippedEntitiesByType = SkippedEntitiesLogParserUtils.parseSkippedEntitiesOutput(output.getOut());
         verifySkippedEntitiesOutput(skippedEntitiesByType, processDefinitionId, processInstanceIds);
     }
 
@@ -128,7 +124,8 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
     private void verifySkippedEntitiesOutput(Map<String, List<String>> skippedEntitiesByType,
                                            String processDefinitionId, List<String> processInstanceIds) {
         // Verify all expected entity types are present
-        String[] expectedEntityTypes = HistoryMigrator.HISTORY_TYPES.stream()
+        String[] expectedEntityTypes = IdKeyMapper.getHistoryTypes()
+            .stream()
             .map(IdKeyMapper.TYPE::getDisplayName)
             .toArray(String[]::new);
 
@@ -194,96 +191,5 @@ public class HistoryMigrationListSkippedTest extends HistoryMigrationAbstractTes
         assertThat(skippedEntitiesByType.get(IdKeyMapper.TYPE.HISTORY_FLOW_NODE.getDisplayName()))
             .hasSize(12)
             .containsExactlyInAnyOrderElementsOf(expectedFlowNodeIds);
-    }
-
-    /**
-     * Parses the migrator output and extracts skipped entities.
-     * Filters out debug/info logs that may appear in CI environments.
-     */
-    private Map<String, List<String>> parseSkippedEntitiesOutput(String output) {
-        Map<String, List<String>> result = new HashMap<>();
-
-        String relevantOutput = extractRelevantOutput(output);
-        if (relevantOutput.isEmpty()) {
-            return result;
-        }
-
-        List<EntitySection> sections = extractEntitySections(relevantOutput);
-
-        for (EntitySection section : sections) {
-            List<String> entityIds = extractEntityIds(section.content);
-            result.put(section.entityType, entityIds);
-        }
-
-        return result;
-    }
-
-    private String extractRelevantOutput(String output) {
-        Pattern startPattern = Pattern.compile("(Previously skipped \\[[^\\]]+\\]:|No entities of type \\[[^\\]]+\\] were skipped during previous migration)");
-        Matcher matcher = startPattern.matcher(output);
-        return matcher.find() ? output.substring(matcher.start()) : "";
-    }
-
-    private List<EntitySection> extractEntitySections(String output) {
-        List<EntitySection> sections = new ArrayList<>();
-        Pattern headerPattern = Pattern.compile("(Previously skipped \\[([^\\]]+)\\]:|No entities of type \\[([^\\]]+)\\] were skipped during previous migration)");
-        Matcher matcher = headerPattern.matcher(output);
-
-        int lastEnd = 0;
-        String lastEntityType = null;
-
-        while (matcher.find()) {
-            // Process previous section if exists
-            if (lastEntityType != null) {
-                String content = output.substring(lastEnd, matcher.start()).trim();
-                sections.add(new EntitySection(lastEntityType, content));
-            }
-
-            // Extract entity type from current match and remove trailing 's' to match enum display names
-            String entityType = matcher.group(2) != null ? matcher.group(2) : matcher.group(3);
-            // For "Previously skipped" format, remove trailing 's'; for "No entities" format, keep as is
-            lastEntityType = matcher.group(2) != null && entityType.endsWith("s") ?
-                entityType.substring(0, entityType.length() - 1) : entityType;
-            lastEnd = matcher.end();
-        }
-
-        // Process last section
-        if (lastEntityType != null) {
-            String content = output.substring(lastEnd).trim();
-            sections.add(new EntitySection(lastEntityType, content));
-        }
-
-        return sections;
-    }
-
-    private List<String> extractEntityIds(String sectionContent) {
-        if (sectionContent.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        return Arrays.stream(sectionContent.split("\\R"))
-            .map(String::trim)
-            .filter(line -> !line.isEmpty() && !isLogLine(line))
-            .collect(Collectors.toList());
-    }
-
-    /**
-     * Checks if a line is a log message that should be filtered out in CI environments.
-     * This is necessary because CI may output debug/info logs mixed with actual entity IDs.
-     */
-    private boolean isLogLine(String line) {
-        return line.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z.*") || // ISO timestamp
-               line.matches(".*(DEBUG|INFO|WARN|ERROR).*") || // Log levels
-               line.matches(".*(==>|<==|Preparing:|Parameters:|Total:).*"); // SQL logging patterns
-    }
-
-    private static class EntitySection {
-        final String entityType;
-        final String content;
-
-        EntitySection(String entityType, String content) {
-            this.entityType = entityType;
-            this.content = content;
-        }
     }
 }

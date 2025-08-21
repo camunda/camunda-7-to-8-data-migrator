@@ -69,7 +69,7 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
     // given
     deployer.deployCamunda7Decision("simpleDmnWithReqs.dmn");
     String legacyId = repositoryService.createDecisionRequirementsDefinitionQuery().singleResult().getId();
-    markEntityAsSkipped(legacyId, IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENTS);
+    markEntityAsSkipped(legacyId, IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENT);
 
     // when 
     historyMigrator.setMode(MigratorMode.RETRY_SKIPPED);
@@ -77,7 +77,7 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
 
     // then
     assertThat(searchHistoricDecisionRequirementsDefinition("simpleDmnWithReqsId").size()).isEqualTo(1);
-    assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENTS)).isEqualTo(0);
+    assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENT)).isEqualTo(0);
   }
 
   @Test

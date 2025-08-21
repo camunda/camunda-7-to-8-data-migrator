@@ -11,7 +11,7 @@ import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_DEFINITION;
-import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENTS;
+import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENT;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_FLOW_NODE;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_INCIDENT;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION;
@@ -57,10 +57,7 @@ import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.history.HistoricIncident;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
@@ -76,11 +73,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Conditional(C8DataSourceConfigured.class)
 public class HistoryMigrator {
-
-  public static final Set<IdKeyMapper.TYPE> HISTORY_TYPES = EnumSet.allOf(IdKeyMapper.TYPE.class)
-      .stream()
-      .filter(type -> type.name().startsWith("HISTORY"))
-      .collect(Collectors.toCollection(() -> EnumSet.noneOf(IdKeyMapper.TYPE.class)));
 
   // Mappers
 
@@ -144,6 +136,8 @@ public class HistoryMigrator {
 
   protected MigratorMode mode = MIGRATE;
 
+  private List<IdKeyMapper.TYPE> requestedEntityTypes;
+
   public void start() {
     try {
       ExceptionUtils.setContext(ExceptionUtils.ExceptionContext.HISTORY);
@@ -158,7 +152,11 @@ public class HistoryMigrator {
   }
 
   private void printSkippedHistoryEntities() {
-    HISTORY_TYPES.forEach(this::printSkippedEntitiesForType);
+    if(requestedEntityTypes == null ||  requestedEntityTypes.isEmpty()) {
+      IdKeyMapper.getHistoryTypes().forEach(this::printSkippedEntitiesForType);
+    } else {
+      requestedEntityTypes.forEach(this::printSkippedEntitiesForType);
+    }
   }
 
   private void printSkippedEntitiesForType(IdKeyMapper.TYPE type) {
@@ -249,7 +247,7 @@ public class HistoryMigrator {
     HistoryMigratorLogs.migratingDecisionRequirements();
 
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.fetchAndHandleSkippedForType(HISTORY_DECISION_REQUIREMENTS, idKeyDbModel -> {
+      dbClient.fetchAndHandleSkippedForType(HISTORY_DECISION_REQUIREMENT, idKeyDbModel -> {
         DecisionRequirementsDefinition legacyDecisionRequirement = c7Client.getDecisionRequirementsDefinition(
             idKeyDbModel.id());
         migrateDecisionRequirementsDefinition(legacyDecisionRequirement);
@@ -261,11 +259,11 @@ public class HistoryMigrator {
 
   private void migrateDecisionRequirementsDefinition(DecisionRequirementsDefinition legacyDecisionRequirements) {
     String legacyId = legacyDecisionRequirements.getId();
-    if (shouldMigrate(legacyId, HISTORY_DECISION_REQUIREMENTS)) {
+    if (shouldMigrate(legacyId, HISTORY_DECISION_REQUIREMENT)) {
       HistoryMigratorLogs.migratingDecisionRequirements(legacyId);
       DecisionRequirementsDbModel dbModel = decisionRequirementsConverter.apply(legacyDecisionRequirements);
       decisionRequirementsMapper.insert(dbModel);
-      saveRecord(legacyId, dbModel.decisionRequirementsKey(), HISTORY_DECISION_REQUIREMENTS);
+      saveRecord(legacyId, dbModel.decisionRequirementsKey(), HISTORY_DECISION_REQUIREMENT);
       HistoryMigratorLogs.migratingDecisionRequirementsCompleted(legacyId);
     }
   }
@@ -291,7 +289,8 @@ public class HistoryMigrator {
       Long decisionRequirementsKey = null;
 
       if (legacyDecisionDefinition.getDecisionRequirementsDefinitionId() != null) {
-        decisionRequirementsKey = dbClient.findKeyByIdAndType(legacyDecisionDefinition.getDecisionRequirementsDefinitionId(), HISTORY_DECISION_REQUIREMENTS);
+        decisionRequirementsKey = dbClient.findKeyByIdAndType(legacyDecisionDefinition.getDecisionRequirementsDefinitionId(),
+            HISTORY_DECISION_REQUIREMENT);
 
         if (decisionRequirementsKey == null) {
           saveRecord(legacyId, null, HISTORY_DECISION_DEFINITION);
@@ -573,6 +572,10 @@ public class HistoryMigrator {
 
   public void setMode(MigratorMode mode) {
     this.mode = mode;
+  }
+
+  public void setRequestedEntityTypes(List<IdKeyMapper.TYPE> requestedEntityTypes) {
+    this.requestedEntityTypes = requestedEntityTypes;
   }
 
 }
