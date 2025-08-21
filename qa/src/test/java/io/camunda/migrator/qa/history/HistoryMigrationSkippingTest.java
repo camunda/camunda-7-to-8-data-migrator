@@ -277,8 +277,8 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
     taskService.complete(task.getId());
 
     // Find a variable to mark as skipped
-    var historicVariables = historyService.createHistoricVariableInstanceQuery().list();
-    assertThat(historicVariables).hasSize(2);
+    var historicVariables = historyService.createHistoricVariableInstanceQuery().variableName("testVar").list();
+    assertThat(historicVariables).hasSize(1);
     var variableToSkip = historicVariables.getFirst();
 
     // and the variable is manually set as skipped
@@ -290,14 +290,11 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
     // then process instance was migrated but the variable was not
     var historicProcesses = searchHistoricProcessInstances("userTaskProcessId");
     assertThat(historicProcesses.size()).isEqualTo(1);
+    var variables = searchHistoricVariables("anotherVar");
+    assertThat(variables.size()).isEqualTo(1);
 
     // verify the variable was skipped exactly once
-    assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_VARIABLE)).isEqualTo(2);
-
-    // and verify logs don't contain any additional skip operations for this variable
-    logs.assertDoesNotContain("Migration of historic variable with legacyId [" + variableToSkip.getId() + "] skipped");
-    logs.assertContains(
-        "Migration of historic variable with legacyId [" + historicVariables.getLast().getId() + "] skipped");
+    assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_VARIABLE)).isEqualTo(1);
   }
 
   @Test
