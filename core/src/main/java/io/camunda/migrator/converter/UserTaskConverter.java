@@ -8,6 +8,7 @@
 package io.camunda.migrator.converter;
 
 import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
+import io.camunda.migrator.impl.util.ConverterUtil;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import org.camunda.bpm.engine.history.HistoricTaskInstance;
 
@@ -42,6 +43,9 @@ public class UserTaskConverter {
         .candidateUsers(null) //TODO ?
         .externalFormReference(null) //TODO ?
         .customHeaders(null) //TODO ?
+        .historyCleanupDate(convertDate(historicTask.getRemovalTime()))
+        .partitionId(ConverterUtil.C7_HISTORY_PARTITION_ID)
+        .name(historicTask.getName())
         .build();
   }
 
