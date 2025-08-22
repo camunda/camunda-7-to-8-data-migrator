@@ -16,16 +16,35 @@ import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType.SER
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType.START_EVENT;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType.USER_TASK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.camunda.bpm.engine.impl.json.JsonTaskQueryConverter.PROCESS_DEFINITION_KEY;
 
+import io.camunda.db.rdbms.write.RdbmsWriter;
+import io.camunda.migrator.impl.util.FailingDelegate;
 import io.camunda.migrator.qa.history.HistoryMigrationAbstractTest;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import java.util.List;
 import java.util.Map;
+import org.camunda.bpm.engine.HistoryService;
+import org.camunda.bpm.engine.ManagementService;
+import org.camunda.bpm.engine.ProcessEngineException;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.Task;
+import org.camunda.bpm.model.bpmn.Bpmn;
+import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
+
+  @Autowired
+  private ManagementService managementService;
+
+  @Autowired
+  protected HistoryService historyService;
+
+  @Autowired
+  private RdbmsWriter rdbmsWriter;
 
   @Test
   public void shouldCorrectlyConvertFlowNodeFields() {
@@ -45,11 +64,12 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
     historyMigrator.migrate();
 
     // then - verify flow nodes are correctly migrated with all fields set
-    List<ProcessInstanceEntity> processInstances = searchHistoricProcessInstances("flowNodeHistoricMigrationTestProcessId");
+    List<ProcessInstanceEntity> processInstances = searchHistoricProcessInstances(
+        "flowNodeHistoricMigrationTestProcessId");
     assertThat(processInstances).hasSize(1);
 
-    Long processInstanceKey = processInstances.get(0).processInstanceKey();
-    String processDefinitionId = processInstances.get(0).processDefinitionId();
+    Long processInstanceKey = processInstances.getFirst().processInstanceKey();
+    String processDefinitionId = processInstances.getFirst().processDefinitionId();
 
     // Verify all flow node types and their fields are correctly converted
     verifyFlowNodeFields(processInstanceKey, START_EVENT, "StartEvent_1", processDefinitionId, COMPLETED);
@@ -67,7 +87,7 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
     deployer.deployCamunda7Process("userTaskProcess.bpmn");
 
     // Scenario 1: Active process (comprehensive process with incomplete user task)
-    String activeProcessId = runtimeService.startProcessInstanceByKey("flowNodeHistoricMigrationTestProcessId").getId();
+    runtimeService.startProcessInstanceByKey("flowNodeHistoricMigrationTestProcessId").getId();
 
     // Scenario 2: Terminated process (simple user task process)
     String terminatedProcessId = runtimeService.startProcessInstanceByKey("userTaskProcessId").getId();
@@ -77,9 +97,10 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
     historyMigrator.migrate();
 
     // then - verify ACTIVE state
-    List<ProcessInstanceEntity> activeProcessInstances = searchHistoricProcessInstances("flowNodeHistoricMigrationTestProcessId");
+    List<ProcessInstanceEntity> activeProcessInstances = searchHistoricProcessInstances(
+        "flowNodeHistoricMigrationTestProcessId");
     assertThat(activeProcessInstances).hasSize(1);
-    Long activeProcessKey = activeProcessInstances.get(0).processInstanceKey();
+    Long activeProcessKey = activeProcessInstances.getFirst().processInstanceKey();
 
     // User task should be ACTIVE (endTime is null)
     List<FlowNodeInstanceEntity> activeUserTasks = searchHistoricFlowNodesForType(activeProcessKey, USER_TASK);
@@ -95,18 +116,49 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
     // Verify TERMINATED state
     ProcessInstanceEntity terminatedInstance = searchHistoricProcessInstances("userTaskProcessId").getFirst();
     assertThat(terminatedInstance.state()).isEqualTo(ProcessInstanceEntity.ProcessInstanceState.CANCELED);
-    List<FlowNodeInstanceEntity> terminatedUserTask = searchHistoricFlowNodesForType(terminatedInstance.processInstanceKey(), USER_TASK);
+    List<FlowNodeInstanceEntity> terminatedUserTask = searchHistoricFlowNodesForType(
+        terminatedInstance.processInstanceKey(), USER_TASK);
     assertThat(terminatedUserTask).hasSize(1);
     assertThat(terminatedUserTask.getFirst().state()).isEqualTo(TERMINATED);
   }
 
+  @Test
+  public void shouldCorrectlyHandleFlowNodeWithIncident() {
+    // Deploy the BPMN with script task that will fail
+    deployer.deployCamunda7Process("failOnceServiceTask.bpmn");
+    final ProcessInstance processInstance = startProcessInstanceAndFailWithIncident("failOneServiceTaskProcessId");
+    String processInstanceId = processInstance.getId();
+    retryAndSucceed(processInstance);
+
+    // Check for incidents
+    var historicIncidents = historyService.createHistoricIncidentQuery().processInstanceId(processInstanceId).list();
+    assertThat(historicIncidents).hasSize(1);
+
+    // when - migrate history
+    historyMigrator.migrate();
+    // writer needs to be flushed for incidents to bewritten into the flow node table
+    rdbmsWriter.flush();
+
+    // then - verify process instances are migrated
+    List<ProcessInstanceEntity> processInstances = searchHistoricProcessInstances(
+          "failOneServiceTaskProcessId");
+    assertThat(processInstances).hasSize(1);
+    Long processInstanceKey = processInstances.getFirst().processInstanceKey();
+    List<FlowNodeInstanceEntity> flowNodes = searchHistoricFlowNodesForType(processInstanceKey, SERVICE_TASK).stream().toList();
+    assertThat(flowNodes).hasSize(1);
+    FlowNodeInstanceEntity serviceTask = flowNodes.getFirst();
+    assertThat(serviceTask.flowNodeId()).isEqualTo("serviceTaskActivityId");
+    assertThat(serviceTask.endDate()).isNotNull();
+    assertThat(serviceTask.hasIncident()).isTrue();
+    assertThat(flowNodes).isNotEmpty();
+  }
+
   private void verifyFlowNodeFields(Long processInstanceKey,
-                                   FlowNodeInstanceEntity.FlowNodeType expectedType,
-                                   String expectedFlowNodeId,
-                                   String expectedProcessDefinitionId,
-                                   FlowNodeInstanceEntity.FlowNodeState expectedState) {
-    List<FlowNodeInstanceEntity> flowNodes = searchHistoricFlowNodesForType(processInstanceKey, expectedType)
-        .stream()
+                                    FlowNodeInstanceEntity.FlowNodeType expectedType,
+                                    String expectedFlowNodeId,
+                                    String expectedProcessDefinitionId,
+                                    FlowNodeInstanceEntity.FlowNodeState expectedState) {
+    List<FlowNodeInstanceEntity> flowNodes = searchHistoricFlowNodesForType(processInstanceKey, expectedType).stream()
         .filter(fn -> expectedFlowNodeId.equals(fn.flowNodeId()))
         .toList();
 
@@ -156,9 +208,29 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
 
   private List<FlowNodeInstanceEntity> searchHistoricFlowNodes(Long processInstanceKey) {
     return rdbmsService.getFlowNodeInstanceReader()
-        .search(io.camunda.search.query.FlowNodeInstanceQuery.of(queryBuilder ->
-            queryBuilder.filter(filterBuilder ->
-                filterBuilder.processInstanceKeys(processInstanceKey))))
+        .search(io.camunda.search.query.FlowNodeInstanceQuery.of(queryBuilder -> queryBuilder.filter(
+            filterBuilder -> filterBuilder.processInstanceKeys(processInstanceKey))))
         .items();
   }
+
+  private void retryAndSucceed(final ProcessInstance processInstance) {
+    runtimeService.setVariable(processInstance.getId(), "fail", false);
+    String jobId = managementService.createJobQuery().processInstanceId(processInstance.getId()).singleResult().getId();
+    managementService.setJobRetries(jobId, 1);
+    managementService.executeJob(jobId);
+  }
+
+  private ProcessInstance startProcessInstanceAndFailWithIncident(String processDefinitionKey) {
+    ProcessInstance processInstance = null;
+
+    try {
+      processInstance = runtimeService.startProcessInstanceByKey(processDefinitionKey);
+      String jobId = managementService.createJobQuery().processInstanceId(processInstance.getId()).singleResult().getId();
+      managementService.setJobRetries(jobId, 0);
+    } catch (ProcessEngineException ignored) {
+    }
+    return processInstance;
+    // creates incident
+  }
+
 }
