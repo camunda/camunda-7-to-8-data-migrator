@@ -20,6 +20,7 @@ import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.system.CapturedOutput;
 
 public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
 
@@ -27,7 +28,7 @@ public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
   protected HistoryService historyService;
 
   @Test
-  public void shouldMigrateUserTaskBasicFields() {
+  public void shouldMigrateTaskBasicFields() {
     // given
     deployer.deployCamunda7Process("userTaskProcess.bpmn");
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("userTaskProcessId");
@@ -57,7 +58,7 @@ public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
   }
 
   @Test
-  public void shouldMigrateUserTaskWithTenant() {
+  public void shouldMigrateTaskWithTenant() {
     // given
     deployer.deployCamunda7Process("userTaskProcess.bpmn", "my-tenant1");
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("userTaskProcessId");
@@ -87,7 +88,7 @@ public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
   }
 
   @Test
-  public void shouldMigrateUserTaskWithDatesAndPriority() {
+  public void shouldMigrateTaskWithDatesAndPriority() {
     // given
     deployer.deployCamunda7Process("userTaskProcess.bpmn");
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("userTaskProcessId");
@@ -128,16 +129,14 @@ public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
   }
 
   @Test
-  public void shouldMigrateUserTaskStates() {
+  public void shouldMigrateTaskCreateCompleteStates() {
     // given
     deployer.deployCamunda7Process("userTaskProcess.bpmn");
 
-    // Test completed task
     ProcessInstance processInstance1 = runtimeService.startProcessInstanceByKey("userTaskProcessId");
     Task task1 = taskService.createTaskQuery().processInstanceId(processInstance1.getId()).singleResult();
     taskService.complete(task1.getId());
 
-    // Test active (created) task
     ProcessInstance processInstance2 = runtimeService.startProcessInstanceByKey("userTaskProcessId");
 
     // when
@@ -150,7 +149,8 @@ public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
     // Check completed task
     ProcessInstanceEntity completedProcessInstance = processInstances.stream()
         .filter(pi -> pi.state() == ProcessInstanceEntity.ProcessInstanceState.COMPLETED)
-        .findFirst().orElseThrow();
+        .findFirst()
+        .orElseThrow();
 
     List<UserTaskEntity> completedUserTasks = searchHistoricUserTasks(completedProcessInstance.processInstanceKey());
     assertThat(completedUserTasks).hasSize(1);
@@ -160,16 +160,44 @@ public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
     // Check active task
     ProcessInstanceEntity activeProcessInstance = processInstances.stream()
         .filter(pi -> pi.state() == ProcessInstanceEntity.ProcessInstanceState.ACTIVE)
-        .findFirst().orElseThrow();
+        .findFirst()
+        .orElseThrow();
 
     List<UserTaskEntity> activeUserTasks = searchHistoricUserTasks(activeProcessInstance.processInstanceKey());
     assertThat(activeUserTasks).hasSize(1);
     assertThat(activeUserTasks.getFirst().state()).isEqualTo(UserTaskEntity.UserTaskState.CREATED);
     assertThat(activeUserTasks.getFirst().completionDate()).isNull();
   }
+  @Test
+  public void shouldMigrateTaskCancelState() {
+    // given
+    deployer.deployCamunda7Process("userTaskProcess.bpmn");
+
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("userTaskProcessId");
+    runtimeService.deleteProcessInstance(processInstance.getId(), "Test cancellation");
+
+    HistoricTaskInstance c7Task = historyService.createHistoricTaskInstanceQuery()
+        .processInstanceId(processInstance.getId())
+        .singleResult();
+
+    // when
+    historyMigrator.migrate();
+
+    // then
+    List<ProcessInstanceEntity> processInstances = searchHistoricProcessInstances("userTaskProcessId");
+    assertThat(processInstances).hasSize(1);
+
+    ProcessInstanceEntity migratedProcessInstance = processInstances.getFirst();
+    List<UserTaskEntity> userTasks = searchHistoricUserTasks(migratedProcessInstance.processInstanceKey());
+    assertThat(userTasks).hasSize(1);
+
+    UserTaskEntity userTask = userTasks.getFirst();
+    assertThat(userTasks.getFirst().state()).isEqualTo(UserTaskEntity.UserTaskState.CANCELED);
+    assertUserTaskFields(userTask, c7Task, migratedProcessInstance, "userTaskId");
+  }
 
   @Test
-  public void shouldMigrateMultipleUserTasks() {
+  public void shouldMigrateMultipleTasks() {
     // given
     deployer.deployCamunda7Process("simpleProcess.bpmn");
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("simpleProcess");
@@ -197,19 +225,21 @@ public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
     // Verify both tasks were migrated with correct states and assignees
     UserTaskEntity completedTask = userTasks.stream()
         .filter(ut -> ut.state() == UserTaskEntity.UserTaskState.COMPLETED)
-        .findFirst().orElseThrow();
+        .findFirst()
+        .orElseThrow();
     assertThat(completedTask.assignee()).isEqualTo("user1");
     assertThat(completedTask.elementId()).isEqualTo("userTask1");
 
     UserTaskEntity activeTask = userTasks.stream()
         .filter(ut -> ut.state() == UserTaskEntity.UserTaskState.CREATED)
-        .findFirst().orElseThrow();
+        .findFirst()
+        .orElseThrow();
     assertThat(activeTask.assignee()).isEqualTo("user2");
     assertThat(activeTask.elementId()).isEqualTo("userTask2");
   }
 
   @Test
-  public void shouldMigrateUserTaskWithNoAssignee() {
+  public void shouldMigrateUserTaskWithNoAssignee() {// todo
     // given
     deployer.deployCamunda7Process("userTaskProcess.bpmn");
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("userTaskProcessId");
@@ -235,11 +265,11 @@ public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
 
     UserTaskEntity userTask = userTasks.getFirst();
     assertThat(userTask.assignee()).isNull();
-    assertUserTaskFields(userTask, c7Task, migratedProcessInstance);
+    assertUserTaskFields(userTask, c7Task, migratedProcessInstance, "userTaskId");
   }
 
   @Test
-  public void shouldMigrateUserTaskWithNullDates() {
+  public void shouldMigrateUserTaskWithNullDates() {// todo
     // given
     deployer.deployCamunda7Process("userTaskProcess.bpmn");
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("userTaskProcessId");
@@ -266,49 +296,50 @@ public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
     UserTaskEntity userTask = userTasks.getFirst();
     assertThat(userTask.dueDate()).isNull();
     assertThat(userTask.followUpDate()).isNull();
-    assertUserTaskFields(userTask, c7Task, migratedProcessInstance);
+    assertUserTaskFields(userTask, c7Task, migratedProcessInstance, "userTaskId");
   }
 
-  private void assertUserTaskFields(UserTaskEntity userTask,
-                                    HistoricTaskInstance c7Task,
-                                    ProcessInstanceEntity processInstance) {
-    // Basic identifiers
-    assertThat(userTask.userTaskKey()).isNotNull();
-    assertThat(userTask.elementId()).isNotNull();
-    assertThat(userTask.processDefinitionId()).isEqualTo(c7Task.getProcessDefinitionKey());
-    assertThat(userTask.processDefinitionKey()).isNotNull();
-    assertThat(userTask.processInstanceKey()).isEqualTo(processInstance.processInstanceKey());
-    assertThat(userTask.elementInstanceKey()).isNotNull();
+  @Test
+  public void shouldMigrateTaskWithEmptyName() {
+    // deploy processes
+    String processName = "process";
+    // C7
 
-    // Dates
-    assertThat(userTask.creationDate()).isNotNull();
-    if (c7Task.getEndTime() != null) {
-      assertThat(userTask.completionDate()).isNotNull();
-    }
+    var c7ProcessModel = org.camunda.bpm.model.bpmn.Bpmn.createExecutableProcess(processName)
+        .startEvent("start")
+        .userTask("userTask_1").name("")
+        .endEvent("end")
+        .done();
 
-    // Task properties
-    assertThat(userTask.assignee()).isEqualTo(c7Task.getAssignee());
-    assertThat(userTask.priority()).isEqualTo(c7Task.getPriority());
-    assertThat(userTask.name()).isEqualTo(c7Task.getName());
+    repositoryService.createDeployment().addModelInstance(processName + ".bpmn", c7ProcessModel).deploy();
 
-    // Tenant
-    assertThat(userTask.tenantId()).isEqualTo(c7Task.getTenantId());
+    // given
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(processName);
 
-    // Process definition version
-    assertThat(userTask.processDefinitionVersion()).isEqualTo(processInstance.processDefinitionVersion());
+    HistoricTaskInstance c7Task = historyService.createHistoricTaskInstanceQuery()
+        .processInstanceId(processInstance.getId())
+        .singleResult();
 
-    // Fields that are currently null in converter (TODOs)
-    assertThat(userTask.formKey()).isNull();
-    assertThat(userTask.candidateGroups()).isNull();
-    assertThat(userTask.candidateUsers()).isNull();
-    assertThat(userTask.externalFormReference()).isNull();
-    assertThat(userTask.customHeaders()).isNull();
+    // when
+    historyMigrator.migrate();
+
+    // then
+    List<ProcessInstanceEntity> processInstances = searchHistoricProcessInstances(processName);
+    assertThat(processInstances).hasSize(1);
+
+    ProcessInstanceEntity migratedProcessInstance = processInstances.getFirst();
+    List<UserTaskEntity> userTasks = searchHistoricUserTasks(migratedProcessInstance.processInstanceKey());
+    assertThat(userTasks).hasSize(1);
+
+    UserTaskEntity userTask = userTasks.getFirst();
+    assertUserTaskFields(userTask, c7Task, migratedProcessInstance, "userTask_1");
+
   }
 
-  private void assertUserTaskFields(UserTaskEntity userTask,
-                                    HistoricTaskInstance c7Task,
-                                    ProcessInstanceEntity processInstance,
-                                    String expectedElementId) {
+  protected void assertUserTaskFields(UserTaskEntity userTask,
+                                      HistoricTaskInstance c7Task,
+                                      ProcessInstanceEntity processInstance,
+                                      String expectedElementId) {
     // Basic identifiers
     assertThat(userTask.userTaskKey()).isNotNull();
     assertThat(userTask.elementId()).isEqualTo(expectedElementId);
@@ -336,9 +367,10 @@ public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
 
     // Fields that are currently null in converter (TODOs)
     assertThat(userTask.formKey()).isNull();
-    assertThat(userTask.candidateGroups()).isNull();
-    assertThat(userTask.candidateUsers()).isNull();
+    assertThat(userTask.candidateGroups()).isEmpty();
+    assertThat(userTask.candidateUsers()).isEmpty();
     assertThat(userTask.externalFormReference()).isNull();
     assertThat(userTask.customHeaders()).isNull();
   }
+
 }
