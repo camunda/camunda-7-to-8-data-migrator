@@ -7,6 +7,8 @@
  */
 package io.camunda.migrator.config.mybatis;
 
+import static io.camunda.migrator.constants.MigratorConstants.C7_HISTORY_PARTITION_ID;
+
 import io.camunda.db.rdbms.RdbmsService;
 import io.camunda.db.rdbms.config.VendorDatabaseProperties;
 import io.camunda.db.rdbms.read.service.AuthorizationDbReader;
@@ -20,7 +22,6 @@ import io.camunda.db.rdbms.read.service.FormDbReader;
 import io.camunda.db.rdbms.read.service.GroupDbReader;
 import io.camunda.db.rdbms.read.service.IncidentDbReader;
 import io.camunda.db.rdbms.read.service.JobDbReader;
-import io.camunda.db.rdbms.read.service.MappingRuleDbReader;
 import io.camunda.db.rdbms.read.service.MessageSubscriptionDbReader;
 import io.camunda.db.rdbms.read.service.ProcessDefinitionDbReader;
 import io.camunda.db.rdbms.read.service.ProcessInstanceDbReader;
@@ -43,7 +44,6 @@ import io.camunda.db.rdbms.sql.FormMapper;
 import io.camunda.db.rdbms.sql.GroupMapper;
 import io.camunda.db.rdbms.sql.IncidentMapper;
 import io.camunda.db.rdbms.sql.JobMapper;
-import io.camunda.db.rdbms.sql.MappingRuleMapper;
 import io.camunda.db.rdbms.sql.MessageSubscriptionMapper;
 import io.camunda.db.rdbms.sql.ProcessDefinitionMapper;
 import io.camunda.db.rdbms.sql.ProcessInstanceMapper;
@@ -56,10 +56,14 @@ import io.camunda.db.rdbms.sql.UsageMetricTUMapper;
 import io.camunda.db.rdbms.sql.UserMapper;
 import io.camunda.db.rdbms.sql.UserTaskMapper;
 import io.camunda.db.rdbms.sql.VariableMapper;
+import io.camunda.db.rdbms.write.RdbmsWriter;
 import io.camunda.db.rdbms.write.RdbmsWriterFactory;
+import io.camunda.db.rdbms.write.RdbmsWriterConfig;
+import io.camunda.db.rdbms.write.RdbmsWriterMetrics;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.spring.client.metrics.MetricsRecorder;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Properties;
 import javax.sql.DataSource;
 import liquibase.integration.spring.MultiTenantSpringLiquibase;
@@ -194,11 +198,6 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
-  public MapperFactoryBean<MappingRuleMapper> mappingMapper(@Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory) {
-    return createMapperFactoryBean(c8SqlSessionFactory, MappingRuleMapper.class);
-  }
-
-  @Bean
   public MapperFactoryBean<ExporterPositionMapper> exporterPosition(@Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory) {
     return createMapperFactoryBean(c8SqlSessionFactory, ExporterPositionMapper.class);
   }
@@ -315,11 +314,6 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
-  public MappingRuleDbReader mappingRdbmsReader(MappingRuleMapper mappingMapper) {
-    return new MappingRuleDbReader(mappingMapper);
-  }
-
-  @Bean
   public BatchOperationDbReader batchOperationReader(
       BatchOperationMapper batchOperationMapper) {
     return new BatchOperationDbReader(batchOperationMapper);
@@ -368,6 +362,7 @@ public class C8Configuration extends AbstractConfiguration {
       PurgeMapper purgeMapper,
       UserTaskMapper userTaskMapper,
       VariableMapper variableMapper,
+      RdbmsWriterMetrics rdbmsWriterMetrics,
       BatchOperationDbReader batchOperationReader,
       JobMapper jobMapper,
       SequenceFlowMapper sequenceFlowMapper,
@@ -386,7 +381,7 @@ public class C8Configuration extends AbstractConfiguration {
         purgeMapper,
         userTaskMapper,
         variableMapper,
-        null,
+        rdbmsWriterMetrics,
         batchOperationReader,
         jobMapper,
         sequenceFlowMapper,
@@ -414,7 +409,6 @@ public class C8Configuration extends AbstractConfiguration {
       UserDbReader userReader,
       UserTaskDbReader userTaskReader,
       FormDbReader formReader,
-      MappingRuleDbReader mappingRuleReader,
       BatchOperationDbReader batchOperationReader,
       SequenceFlowDbReader sequenceFlowReader,
       BatchOperationItemDbReader batchOperationItemReader,
@@ -439,7 +433,7 @@ public class C8Configuration extends AbstractConfiguration {
         userReader,
         userTaskReader,
         formReader,
-        mappingRuleReader,
+        null, // mappingRuleReader removed
         batchOperationReader,
         sequenceFlowReader,
         batchOperationItemReader,
@@ -447,6 +441,35 @@ public class C8Configuration extends AbstractConfiguration {
         usageMetricsReader,
         usageMetricTUDbReader,
         messageSubscriptionDbReader);
+  }
+
+  @Bean
+  public RdbmsWriterConfig rdbmsWriterConfig() {
+    return RdbmsWriterConfig.builder()
+        .partitionId(C7_HISTORY_PARTITION_ID)
+        .queueSize(RdbmsWriterConfig.DEFAULT_QUEUE_SIZE)
+        .batchOperationItemInsertBlockSize(RdbmsWriterConfig.DEFAULT_BATCH_OPERATION_ITEM_INSERT_BLOCK_SIZE)
+        .exportBatchOperationItemsOnCreation(RdbmsWriterConfig.DEFAULT_EXPORT_BATCH_OPERATION_ITEMS_ON_CREATION)
+        .history(new RdbmsWriterConfig.HistoryConfig.Builder().build())
+        .build();
+  }
+
+  @Bean
+  public RdbmsWriterMetrics rdbmsWriterMetrics() {
+    return new NoOpRdbmsWriterMetrics();
+  }
+
+
+  @Bean
+  public RdbmsWriter rdbmsWriter(RdbmsWriterFactory rdbmsWriterFactory, RdbmsWriterConfig rdbmsWriterConfig) {
+    return rdbmsWriterFactory.createWriter(rdbmsWriterConfig);
+  }
+
+  private static class NoOpRdbmsWriterMetrics extends RdbmsWriterMetrics {
+
+    public NoOpRdbmsWriterMetrics() {
+      super(new SimpleMeterRegistry());
+    }
   }
 
 }

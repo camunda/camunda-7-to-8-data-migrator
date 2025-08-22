@@ -42,6 +42,7 @@ import io.camunda.db.rdbms.write.domain.ProcessDefinitionDbModel;
 import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
 import io.camunda.db.rdbms.write.domain.VariableDbModel;
+import io.camunda.db.rdbms.write.RdbmsWriter;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.converter.DecisionDefinitionConverter;
 import io.camunda.migrator.converter.DecisionInstanceConverter;
@@ -148,6 +149,9 @@ public class HistoryMigrator {
 
   @Autowired
   private DecisionRequirementsDefinitionConverter decisionRequirementsConverter;
+
+  @Autowired
+  private RdbmsWriter rdbmsWriter;
 
   protected MigratorMode mode = MIGRATE;
 
@@ -414,15 +418,22 @@ public class HistoryMigrator {
     String legacyIncidentId = legacyIncident.getId();
     if (shouldMigrate(legacyIncidentId, HISTORY_INCIDENT)) {
       HistoryMigratorLogs.migratingHistoricIncident(legacyIncidentId);
-      ProcessInstanceEntity legacyProcessInstance = findProcessInstanceByLegacyId(legacyIncident.getProcessInstanceId());
-      if (legacyProcessInstance != null) {
-        Long processInstanceKey = legacyProcessInstance.processInstanceKey();
+      ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(legacyIncident.getProcessInstanceId());
+      if (processInstance != null) {
+        Long processInstanceKey = processInstance.processInstanceKey();
         if (processInstanceKey != null) {
           Long flowNodeInstanceKey = findFlowNodeInstanceKey(legacyIncident.getActivityId(), legacyIncident.getProcessInstanceId());
           Long processDefinitionKey = findProcessDefinitionKey(legacyIncident.getProcessDefinitionId());
           Long jobDefinitionKey = null; // TODO Job table doesn't exist yet.
           IncidentDbModel dbModel = incidentConverter.apply(legacyIncident, processDefinitionKey, processInstanceKey, jobDefinitionKey, flowNodeInstanceKey);
           incidentMapper.insert(dbModel);
+          // Register incident with flow node if flow node exists
+          if (flowNodeInstanceKey != null) {
+            FlowNodeInstanceDbModel flowNodeInstance = findFlowNodeByKey(flowNodeInstanceKey);
+            if (flowNodeInstance != null) {
+              flowNodeConverter.registerIncident(rdbmsWriter.getFlowNodeInstanceWriter(), flowNodeInstance, dbModel.incidentKey());
+            }
+          }
           saveRecord(legacyIncidentId, legacyIncident.getCreateTime(), dbModel.incidentKey(), HISTORY_INCIDENT);
           HistoryMigratorLogs.migratingHistoricIncidentCompleted(legacyIncidentId);
         } else {
@@ -640,8 +651,7 @@ public class HistoryMigrator {
     }
 
     List<FlowNodeInstanceDbModel> flowNodes = flowNodeMapper.search(FlowNodeInstanceDbQuery.of(
-        b -> b.filter(FlowNodeInstanceFilter.of(f -> f.flowNodeIds(activityId).flowNodeInstanceKeys(key)))));
-
+        b -> b.filter(FlowNodeInstanceFilter.of(f -> f.flowNodeIds(activityId).processInstanceKeys(key)))));
     if (!flowNodes.isEmpty()) {
       return flowNodes.getFirst().flowNodeInstanceKey();
     } else {
@@ -669,6 +679,17 @@ public class HistoryMigrator {
 
   private Long findFlowNodeKey(String activityInstanceId) {
     return dbClient.findKeyByIdAndType(activityInstanceId, HISTORY_FLOW_NODE);
+  }
+
+  private FlowNodeInstanceDbModel findFlowNodeByKey(Long flowNodeInstanceKey) {
+    List<FlowNodeInstanceDbModel> flowNodes = flowNodeMapper.search(
+        FlowNodeInstanceDbQuery.of(b -> b.filter(FlowNodeInstanceFilter.of(f -> f.flowNodeInstanceKeys(flowNodeInstanceKey)))));
+
+    if (!flowNodes.isEmpty()) {
+      return flowNodes.getFirst();
+    } else {
+      return null;
+    }
   }
 
   private boolean isMigrated(String id, IdKeyMapper.TYPE type) {
