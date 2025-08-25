@@ -24,6 +24,11 @@ public class ConverterConfiguration {
   }
 
   @Bean
+  public DecisionInstanceConverter decisionInstanceConverter() {
+    return new DecisionInstanceConverter();
+  }
+
+  @Bean
   public FlowNodeConverter flowNodeConverter() {
     return new FlowNodeConverter();
   }

@@ -12,6 +12,7 @@ import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.qa.util.ProcessDefinitionDeployer;
 import io.camunda.migrator.qa.util.WithMultiDb;
 import io.camunda.migrator.qa.util.WithSpringProfile;
+import org.camunda.bpm.engine.DecisionService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
@@ -36,6 +37,9 @@ public class AbstractMigratorTest {
 
   @Autowired
   protected RuntimeService runtimeService;
+
+  @Autowired
+  protected DecisionService decisionService;
 
   @Autowired
   protected TaskService taskService;
