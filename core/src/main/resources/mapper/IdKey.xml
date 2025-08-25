@@ -94,4 +94,9 @@
     WHERE ID = #{id}
   </delete>
 
+  <delete id="deleteByIdAndType">
+    DELETE FROM ${prefix}MIGRATION_MAPPING
+    WHERE ID = #{id, jdbcType=VARCHAR} AND TYPE = #{type, jdbcType=VARCHAR}
+  </delete>
+
 </mapper>
