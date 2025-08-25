@@ -432,6 +432,8 @@ public class HistoryMigrator {
             FlowNodeInstanceDbModel flowNodeInstance = findFlowNodeByKey(flowNodeInstanceKey);
             if (flowNodeInstance != null) {
               flowNodeConverter.registerIncident(rdbmsWriter.getFlowNodeInstanceWriter(), flowNodeInstance, dbModel.incidentKey());
+              // TODO camunda-bpm-platform/issues/5008
+              // also call flowNodeConverter.registerSubprocessIncident if needed
             }
           }
           saveRecord(legacyIncidentId, legacyIncident.getCreateTime(), dbModel.incidentKey(), HISTORY_INCIDENT);
