@@ -497,6 +497,14 @@ When variable transformation fails:
   - The minimum supported history level is `ACTIVITY`.
 - You need to add an execution listener of type `migrator` to all your start events.
 
+### History Migration
+
+- The history cleanup date is populated if the instance has removal time set in Camunda 7.
+- Process instances doesn't have populated `parentElementInstanceKey` and `tree`.
+  - This means that the history of subprocesses and call activities is not linked to their parent process instance.
+  - As a result, you cannot query for the history of a subprocess or call activity using the parent process instance key.
+  - To be tackled in [#5359](https://github.com/camunda/camunda-bpm-platform/issues/5359).
+
 #### Process Instance Validation
 
 The migrator validates each process instance before migration and will skip instances that fail validation for the following reasons:
