@@ -30,7 +30,7 @@ public class FlowNodeConverter {
     Long flowNodeInstanceKey = getNextKey();
 
     return new FlowNodeInstanceDbModelBuilder()
-        .historyCleanupDate(convertDate(legacyFlowNode.getRemovalTime()))  // TODO is there a edge case?
+        .historyCleanupDate(convertDate(legacyFlowNode.getRemovalTime()))
         .partitionId(C7_HISTORY_PARTITION_ID)
         .flowNodeName(legacyFlowNode.getActivityName())
         .flowNodeScopeKey(flowNodeScopeKey)
@@ -47,7 +47,7 @@ public class FlowNodeConverter {
         .treePath(buildTreePath(parentTreePath, flowNodeInstanceKey))
         .incidentKey(null) // will be set when incident is created
         .hasIncident(false) // will be set when incident is created
-        .numSubprocessIncidents(null) // TODO: increment/decrement when incident exist in subprocess. C8 RDBMS specific.
+        .numSubprocessIncidents(null)
         .build();
   }
 
@@ -61,6 +61,10 @@ public class FlowNodeConverter {
 
   public void registerIncident(FlowNodeInstanceWriter flowNodeInstanceWriter, FlowNodeInstanceDbModel flowNodeInstance, Long incidentKey) {
     flowNodeInstanceWriter.createIncident(flowNodeInstance.flowNodeInstanceKey(), incidentKey);
+  }
+
+  public void registerSubprocessIncident(FlowNodeInstanceWriter flowNodeInstanceWriter, FlowNodeInstanceDbModel flowNodeInstance) {
+    flowNodeInstanceWriter.createSubprocessIncident(flowNodeInstance.flowNodeInstanceKey());
   }
 
 
