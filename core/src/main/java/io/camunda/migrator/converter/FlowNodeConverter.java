@@ -9,6 +9,7 @@ package io.camunda.migrator.converter;
 
 import static io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel.FlowNodeInstanceDbModelBuilder;
 import static io.camunda.migrator.constants.MigratorConstants.C7_HISTORY_PARTITION_ID;
+import static io.camunda.migrator.impl.util.C7Utils.MULTI_INSTANCE_BODY_SUFFIX;
 import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType;
@@ -21,43 +22,52 @@ import org.camunda.bpm.engine.history.HistoricActivityInstance;
 
 public class FlowNodeConverter {
 
-  public FlowNodeInstanceDbModel apply(HistoricActivityInstance flowNode,
+  public FlowNodeInstanceDbModel apply(HistoricActivityInstance legacyFlowNode,
                                        Long processDefinitionKey,
                                        Long processInstanceKey,
-                                       Long flowNodeScopeKey) {
+                                       Long flowNodeScopeKey,
+                                       String parentTreePath) {
+    Long flowNodeInstanceKey = getNextKey();
+
     return new FlowNodeInstanceDbModelBuilder()
-        .historyCleanupDate(convertDate(flowNode.getRemovalTime()))  // TODO is there a edge case?
+        .historyCleanupDate(convertDate(legacyFlowNode.getRemovalTime()))  // TODO is there a edge case?
         .partitionId(C7_HISTORY_PARTITION_ID)
-        .flowNodeName(flowNode.getActivityName())
+        .flowNodeName(legacyFlowNode.getActivityName())
         .flowNodeScopeKey(flowNodeScopeKey)
-        .flowNodeInstanceKey(getNextKey())
-        .flowNodeId(flowNode.getActivityId())
+        .flowNodeInstanceKey(flowNodeInstanceKey)
+        .flowNodeId(getFlowNodeId(legacyFlowNode))
         .processInstanceKey(processInstanceKey)
         .processDefinitionKey(processDefinitionKey)
-        .processDefinitionId(flowNode.getProcessDefinitionKey())
-        .startDate(convertDate(flowNode.getStartTime()))
-        .endDate(convertDate(flowNode.getEndTime()))
-        .type(convertType(flowNode.getActivityType()))
-        .tenantId(flowNode.getTenantId())
-        .state(getState(flowNode))
-        .treePath(null) // TODO: Doesn't exist in C7 activity instance. Not yet supported by C8 RDBMS
-        .incidentKey(null) // TODO Doesn't exist in C7 activity instance.
-        .hasIncident(false) // TODO
+        .processDefinitionId(legacyFlowNode.getProcessDefinitionKey())
+        .startDate(convertDate(legacyFlowNode.getStartTime()))
+        .endDate(convertDate(legacyFlowNode.getEndTime()))
+        .type(convertType(legacyFlowNode.getActivityType()))
+        .tenantId(legacyFlowNode.getTenantId())
+        .state(getState(legacyFlowNode))
+        .treePath(buildTreePath(parentTreePath, flowNodeInstanceKey))
+        .incidentKey(null) // will be set when incident is created
+        .hasIncident(false) // will be set when incident is created
         .numSubprocessIncidents(null) // TODO: increment/decrement when incident exist in subprocess. C8 RDBMS specific.
         .build();
   }
 
+  private String getFlowNodeId(HistoricActivityInstance legacyFlowNode) {
+    return legacyFlowNode.getActivityId().replace(MULTI_INSTANCE_BODY_SUFFIX, "");
+  }
+
+  private String buildTreePath(String parentTreePath, Long flowNodeInstanceKey) {
+    return String.join("/", parentTreePath, (flowNodeInstanceKey.toString()));
+  }
+
   public void registerIncident(FlowNodeInstanceWriter flowNodeInstanceWriter, FlowNodeInstanceDbModel flowNodeInstance, Long incidentKey) {
     flowNodeInstanceWriter.createIncident(flowNodeInstance.flowNodeInstanceKey(), incidentKey);
-    // In C7, incidents are not registered in the flow node instance directly.
-    // They are handled separately, so this method can be left empty or used for logging.
   }
 
 
-  protected FlowNodeInstanceEntity.FlowNodeState getState(HistoricActivityInstance flowNode) {
-    if (flowNode.getEndTime() == null) {
+  protected FlowNodeInstanceEntity.FlowNodeState getState(HistoricActivityInstance legacyFlowNode) {
+    if (legacyFlowNode.getEndTime() == null) {
       return FlowNodeInstanceEntity.FlowNodeState.ACTIVE;
-    } else if (flowNode.isCanceled()) {
+    } else if (legacyFlowNode.isCanceled()) {
       return FlowNodeInstanceEntity.FlowNodeState.TERMINATED;
     } else {
       return FlowNodeInstanceEntity.FlowNodeState.COMPLETED;

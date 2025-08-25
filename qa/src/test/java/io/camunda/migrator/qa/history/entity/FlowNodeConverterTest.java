@@ -16,10 +16,8 @@ import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType.SER
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType.START_EVENT;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType.USER_TASK;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.camunda.bpm.engine.impl.json.JsonTaskQueryConverter.PROCESS_DEFINITION_KEY;
 
 import io.camunda.db.rdbms.write.RdbmsWriter;
-import io.camunda.migrator.impl.util.FailingDelegate;
 import io.camunda.migrator.qa.history.HistoryMigrationAbstractTest;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
@@ -30,8 +28,6 @@ import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.ProcessEngineException;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.Task;
-import org.camunda.bpm.model.bpmn.Bpmn;
-import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -180,6 +176,8 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
     assertThat(flowNode.processDefinitionId()).isEqualTo(expectedProcessDefinitionId);
     assertThat(flowNode.type()).isEqualTo(expectedType);
     assertThat(flowNode.state()).isEqualTo(expectedState);
+    assertThat(flowNode.treePath()).endsWith(flowNode.flowNodeInstanceKey().toString());
+    assertThat(flowNode.incidentKey()).isNull();
 
     // Verify date fields
     assertThat(flowNode.startDate()).isNotNull();
@@ -191,9 +189,6 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
     // Verify tenant ID is handled correctly (should be null for this test)
     assertThat(flowNode.tenantId()).isNull();
 
-    // Verify fields that are not yet supported in C7 migration
-    assertThat(flowNode.treePath()).isNull(); // Not supported in C7
-    assertThat(flowNode.incidentKey()).isNull(); // Not supported in C7
 
     // If there are multiple instances (like for join gateway), verify they all have consistent fields
     if (flowNodes.size() > 1) {

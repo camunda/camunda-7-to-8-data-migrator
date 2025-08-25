@@ -559,9 +559,10 @@ public class HistoryMigrator {
         Long processDefinitionKey = findProcessDefinitionKey(legacyFlowNode.getProcessDefinitionId());
 
         Long flowNodeScopeKey = determineFlowNodeScopeKey(legacyFlowNode, processInstanceKey);
+        String parentTreePath = determineParentTreePath(legacyFlowNode, processInstance);
 
-        if (flowNodeScopeKey != null) {
-          FlowNodeInstanceDbModel dbModel = flowNodeConverter.apply(legacyFlowNode, processDefinitionKey, processInstanceKey, flowNodeScopeKey);
+        if (flowNodeScopeKey != null &&  parentTreePath != null) {
+          FlowNodeInstanceDbModel dbModel = flowNodeConverter.apply(legacyFlowNode, processDefinitionKey, processInstanceKey, flowNodeScopeKey, parentTreePath);
           flowNodeMapper.insert(dbModel);
           saveRecord(legacyFlowNodeId, legacyFlowNode.getStartTime(), dbModel.flowNodeInstanceKey(), HISTORY_FLOW_NODE);
           HistoryMigratorLogs.migratingHistoricFlowNodeCompleted(legacyFlowNodeId);
@@ -575,6 +576,35 @@ public class HistoryMigrator {
         HistoryMigratorLogs.skippingHistoricFlowNode(legacyFlowNodeId);
       }
     }
+  }
+
+  private String determineParentTreePath(HistoricActivityInstance legacyFlowNode, ProcessInstanceEntity processInstance) {
+    String parentActivityInstanceId = legacyFlowNode.getParentActivityInstanceId();
+
+    // If no parent or parent is the process instance itself, this is a root element
+    if (parentActivityInstanceId == null || parentActivityInstanceId.equals(legacyFlowNode.getProcessInstanceId())) {
+      // TODO next if can be removed when camunda-bpm-platform/issues/5359 is implemented
+      if( processInstance.treePath() == null || processInstance.treePath().isEmpty()) {
+        return "" + processInstance.processInstanceKey();
+      }
+      return processInstance.treePath();
+    }
+
+    // Find the parent flow node within the same process and get its tree path
+    FlowNodeInstanceDbModel parentFlowNode = findFlowNodeByActivityInstanceId(parentActivityInstanceId);
+    if (parentFlowNode != null) {
+      return parentFlowNode.treePath();
+    }
+
+    return null;
+  }
+
+  private FlowNodeInstanceDbModel findFlowNodeByActivityInstanceId(String activityInstanceId) {
+    Long flowNodeInstanceKey = findFlowNodeKey(activityInstanceId);
+    if (flowNodeInstanceKey != null) {
+      return findFlowNodeByKey(flowNodeInstanceKey);
+    }
+    return null;
   }
 
   private Long determineFlowNodeScopeKey(HistoricActivityInstance legacyFlowNode,
