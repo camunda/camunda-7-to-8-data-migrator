@@ -569,7 +569,6 @@ public class HistoryMigrator {
           saveRecord(legacyFlowNodeId, legacyFlowNode.getStartTime(), dbModel.flowNodeInstanceKey(), HISTORY_FLOW_NODE);
           HistoryMigratorLogs.migratingHistoricFlowNodeCompleted(legacyFlowNodeId);
         } else {
-          // Parent flow node not migrated yet, skip this flow node for now
           saveRecord(legacyFlowNodeId, null, HISTORY_FLOW_NODE);
           HistoryMigratorLogs.skippingHistoricFlowNodeDueToMissingParent(legacyFlowNodeId);
         }
@@ -583,9 +582,8 @@ public class HistoryMigrator {
   private String determineParentTreePath(HistoricActivityInstance legacyFlowNode, ProcessInstanceEntity processInstance) {
     String parentActivityInstanceId = legacyFlowNode.getParentActivityInstanceId();
 
-    // If no parent or parent is the process instance itself, this is a root element
     if (parentActivityInstanceId == null || parentActivityInstanceId.equals(legacyFlowNode.getProcessInstanceId())) {
-      // TODO next if can be removed when camunda-bpm-platform/issues/5359 is implemented
+      // TODO can be removed when camunda-bpm-platform/issues/5359 is implemented
       if( processInstance.treePath() == null || processInstance.treePath().isEmpty()) {
         return "" + processInstance.processInstanceKey();
       }
