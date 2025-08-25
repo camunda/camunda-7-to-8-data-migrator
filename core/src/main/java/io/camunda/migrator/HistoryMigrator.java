@@ -37,6 +37,7 @@ import io.camunda.db.rdbms.write.domain.ProcessDefinitionDbModel;
 import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
 import io.camunda.db.rdbms.write.domain.VariableDbModel;
+import io.camunda.db.rdbms.write.RdbmsWriter;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.converter.DecisionDefinitionConverter;
 import io.camunda.migrator.converter.DecisionRequirementsDefinitionConverter;
@@ -132,6 +133,9 @@ public class HistoryMigrator {
 
   @Autowired
   private DecisionRequirementsDefinitionConverter decisionRequirementsConverter;
+
+  @Autowired
+  private RdbmsWriter rdbmsWriter;
 
   protected MigratorMode mode = MIGRATE;
 
@@ -323,15 +327,24 @@ public class HistoryMigrator {
     String legacyIncidentId = legacyIncident.getId();
     if (shouldMigrate(legacyIncidentId, HISTORY_INCIDENT)) {
       HistoryMigratorLogs.migratingHistoricIncident(legacyIncidentId);
-      ProcessInstanceEntity legacyProcessInstance = findProcessInstanceByLegacyId(legacyIncident.getProcessInstanceId());
-      if (legacyProcessInstance != null) {
-        Long processInstanceKey = legacyProcessInstance.processInstanceKey();
+      ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(legacyIncident.getProcessInstanceId());
+      if (processInstance != null) {
+        Long processInstanceKey = processInstance.processInstanceKey();
         if (processInstanceKey != null) {
-          Long flowNodeInstanceKey = findFlowNodeKey(legacyIncident.getActivityId(), legacyIncident.getProcessInstanceId());
+          Long flowNodeInstanceKey = findFlowNodeKey(legacyIncident.getActivityId(), processInstanceKey);
           Long processDefinitionKey = findProcessDefinitionKey(legacyIncident.getProcessDefinitionId());
           Long jobDefinitionKey = null; // TODO Job table doesn't exist yet.
           IncidentDbModel dbModel = incidentConverter.apply(legacyIncident, processDefinitionKey, processInstanceKey, jobDefinitionKey, flowNodeInstanceKey);
           incidentMapper.insert(dbModel);
+          // Register incident with flow node if flow node exists
+          if (flowNodeInstanceKey != null) {
+            FlowNodeInstanceDbModel flowNodeInstance = findFlowNodeByKey(flowNodeInstanceKey);
+            if (flowNodeInstance != null) {
+              flowNodeConverter.registerIncident(rdbmsWriter.getFlowNodeInstanceWriter(), flowNodeInstance, dbModel.incidentKey());
+              // TODO camunda-bpm-platform/issues/5008
+              // also call flowNodeConverter.registerSubprocessIncident if needed
+            }
+          }
           saveRecord(legacyIncidentId, legacyIncident.getCreateTime(), dbModel.incidentKey(), HISTORY_INCIDENT);
           HistoryMigratorLogs.migratingHistoricIncidentCompleted(legacyIncidentId);
         } else {
@@ -455,15 +468,64 @@ public class HistoryMigrator {
       if (processInstance != null) {
         Long processInstanceKey = processInstance.processInstanceKey();
         Long processDefinitionKey = findProcessDefinitionKey(legacyFlowNode.getProcessDefinitionId());
-        FlowNodeInstanceDbModel dbModel = flowNodeConverter.apply(legacyFlowNode, processDefinitionKey, processInstanceKey);
-        flowNodeMapper.insert(dbModel);
-        saveRecord(legacyFlowNodeId, legacyFlowNode.getStartTime(), dbModel.flowNodeInstanceKey(), HISTORY_FLOW_NODE);
-        HistoryMigratorLogs.migratingHistoricFlowNodeCompleted(legacyFlowNodeId);
+
+        Long flowNodeScopeKey = determineFlowNodeScopeKey(legacyFlowNode, processInstanceKey);
+        String parentTreePath = determineParentTreePath(legacyFlowNode, processInstance);
+
+        if (flowNodeScopeKey != null &&  parentTreePath != null) {
+          FlowNodeInstanceDbModel dbModel = flowNodeConverter.apply(legacyFlowNode, processDefinitionKey, processInstanceKey, flowNodeScopeKey, parentTreePath);
+          flowNodeMapper.insert(dbModel);
+          saveRecord(legacyFlowNodeId, legacyFlowNode.getStartTime(), dbModel.flowNodeInstanceKey(), HISTORY_FLOW_NODE);
+          HistoryMigratorLogs.migratingHistoricFlowNodeCompleted(legacyFlowNodeId);
+        } else {
+          // Parent flow node not migrated yet, skip this flow node for now
+          saveRecord(legacyFlowNodeId, null, HISTORY_FLOW_NODE);
+          HistoryMigratorLogs.skippingHistoricFlowNodeDueToMissingParent(legacyFlowNodeId);
+        }
       } else {
         saveRecord(legacyFlowNodeId, null, HISTORY_FLOW_NODE);
         HistoryMigratorLogs.skippingHistoricFlowNode(legacyFlowNodeId);
       }
     }
+  }
+
+  private String determineParentTreePath(HistoricActivityInstance legacyFlowNode, ProcessInstanceEntity processInstance) {
+    String parentActivityInstanceId = legacyFlowNode.getParentActivityInstanceId();
+
+    // If no parent or parent is the process instance itself, this is a root element
+    if (parentActivityInstanceId == null || parentActivityInstanceId.equals(legacyFlowNode.getProcessInstanceId())) {
+      // TODO next if can be removed when camunda-bpm-platform/issues/5359 is implemented
+      if( processInstance.treePath() == null || processInstance.treePath().isEmpty()) {
+        return "" + processInstance.processInstanceKey();
+      }
+      return processInstance.treePath();
+    }
+
+    // Find the parent flow node within the same process and get its tree path
+    FlowNodeInstanceDbModel parentFlowNode = findFlowNodeByActivityInstanceId(parentActivityInstanceId);
+    if (parentFlowNode != null) {
+      return parentFlowNode.treePath();
+    }
+
+    return null;
+  }
+
+  private FlowNodeInstanceDbModel findFlowNodeByActivityInstanceId(String activityInstanceId) {
+    Long flowNodeInstanceKey = findFlowNodeKey(activityInstanceId);
+    if (flowNodeInstanceKey != null) {
+      return findFlowNodeByKey(flowNodeInstanceKey);
+    }
+    return null;
+  }
+
+  private Long determineFlowNodeScopeKey(HistoricActivityInstance legacyFlowNode,
+                                         Long processInstanceKey) {
+    String parentActivityInstanceId = legacyFlowNode.getParentActivityInstanceId();
+    if (parentActivityInstanceId == null || parentActivityInstanceId.equals(legacyFlowNode.getProcessInstanceId())) {
+      return processInstanceKey;
+    }
+
+    return findFlowNodeKey(parentActivityInstanceId);
   }
 
   protected ProcessInstanceEntity findProcessInstanceByLegacyId(String processInstanceId) {
@@ -494,15 +556,9 @@ public class HistoryMigrator {
     }
   }
 
-  private Long findFlowNodeKey(String activityId, String processInstanceId) {
-    Long key = dbClient.findKeyByIdAndType(processInstanceId, HISTORY_PROCESS_INSTANCE);
-    if (key == null) {
-      return null;
-    }
-
+  private Long findFlowNodeKey(String activityId, Long processInstanceKey) {
     List<FlowNodeInstanceDbModel> flowNodes = flowNodeMapper.search(FlowNodeInstanceDbQuery.of(
-        b -> b.filter(FlowNodeInstanceFilter.of(f -> f.flowNodeIds(activityId).flowNodeInstanceKeys(key)))));
-
+        b -> b.filter(FlowNodeInstanceFilter.of(f -> f.flowNodeIds(activityId).processInstanceKeys(processInstanceKey)))));
     if (!flowNodes.isEmpty()) {
       return flowNodes.getFirst().flowNodeInstanceKey();
     } else {
@@ -511,16 +567,15 @@ public class HistoryMigrator {
   }
 
   private Long findFlowNodeKey(String activityInstanceId) {
-    Long key = dbClient.findKeyByIdAndType(activityInstanceId, HISTORY_FLOW_NODE);
-    if (key == null) {
-      return null;
-    }
+    return dbClient.findKeyByIdAndType(activityInstanceId, HISTORY_FLOW_NODE);
+  }
 
+    private FlowNodeInstanceDbModel findFlowNodeByKey(Long flowNodeInstanceKey) {
     List<FlowNodeInstanceDbModel> flowNodes = flowNodeMapper.search(
-        FlowNodeInstanceDbQuery.of(b -> b.filter(f -> f.flowNodeInstanceKeys(key))));
+        FlowNodeInstanceDbQuery.of(b -> b.filter(FlowNodeInstanceFilter.of(f -> f.flowNodeInstanceKeys(flowNodeInstanceKey)))));
 
     if (!flowNodes.isEmpty()) {
-      return flowNodes.getFirst().flowNodeInstanceKey();
+      return flowNodes.getFirst();
     } else {
       return null;
     }
