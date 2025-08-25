@@ -19,16 +19,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.impl.util.ClockUtil;
-import org.camunda.bpm.engine.runtime.Job;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class HistoryMigrationOrderedByStartDateTest extends HistoryMigrationAbstractTest {
-
-  @Autowired
-  private ManagementService managementService;
 
   @Test
   public void shouldMigrateProcessDefinitionsDeployedBetweenRuns() {
@@ -304,14 +298,5 @@ public class HistoryMigrationOrderedByStartDateTest extends HistoryMigrationAbst
     assertThat(searchHistoricIncidents("incidentProcessId")).hasSize(2);
   }
 
-  private void triggerIncident(final String processInstanceId) {
-    Job job = managementService.createJobQuery().processInstanceId(processInstanceId).singleResult();
-    for (int i = 0; i < 3; i++) {
-      try {
-        managementService.executeJob(job.getId());
-      } catch (Exception e) {
-        // ignore
-      }
-    }
-  }
+
 }
