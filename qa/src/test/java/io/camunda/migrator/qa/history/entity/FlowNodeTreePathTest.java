@@ -84,14 +84,21 @@ public class FlowNodeTreePathTest extends HistoryMigrationAbstractTest {
     List<FlowNodeInstanceEntity> multiUserTaskInstances = flowNodes.stream()
         .filter(fn -> "multiUserTask".equals(fn.flowNodeId()))
         .toList();
-    assertThat(multiUserTaskInstances).isNotEmpty(); // Should have multiple instances due to multi-instance
-// TODO verify expected multi instance tree path
-//    for (FlowNodeInstanceEntity multiUserTask : multiUserTaskInstances) {
-//      String expectedMultiUserTaskPattern = testParentTreePath + "/multiUserTask/FNI_" + multiUserTask.flowNodeInstanceKey();
-//      assertThat(multiUserTask.treePath()).isEqualTo(expectedMultiUserTaskPattern);
-////      Expected :"PI_12345/parentActivity/FNI_67890/multiUserTask/FNI_9221220078276190713"
-////      Actual   :"PI_12345/parentActivity/FNI_67890/multiUserTask#multiInstanceBody/FNI_9221724035408207844/multiUserTask/FNI_9221220078276190713"
-//    }
+    assertThat(multiUserTaskInstances).hasSize(4);
+
+    FlowNodeInstanceEntity userTaskMultiInstanceBody =
+        multiUserTaskInstances.stream().filter(fn -> FlowNodeInstanceEntity.FlowNodeType.MULTI_INSTANCE_BODY.equals(fn.type())).toList().getFirst();
+
+    for (FlowNodeInstanceEntity multiUserTask : multiUserTaskInstances) {
+      String expectedMultiUserTaskPattern;
+      if(multiUserTask.type() == FlowNodeInstanceEntity.FlowNodeType.MULTI_INSTANCE_BODY) {
+        expectedMultiUserTaskPattern = testParentTreePath + "/" + multiUserTask.flowNodeInstanceKey();
+      } else {
+        expectedMultiUserTaskPattern = testParentTreePath + "/" + userTaskMultiInstanceBody.flowNodeInstanceKey() + "/"
+            + multiUserTask.flowNodeInstanceKey();
+      }
+      assertThat(multiUserTask.treePath()).isEqualTo(expectedMultiUserTaskPattern);
+    }
 
     // Verify end event has not been created yet (process not completed)
     FlowNodeInstanceEntity endEvent = flowNodes.stream()
