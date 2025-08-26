@@ -34,7 +34,7 @@ public class ProcessInstanceConverter {
         .startDate(convertDate(processInstance.getStartTime()))
         .endDate(convertDate(processInstance.getEndTime()))
         .state(convertState(processInstance.getState()))
-        .tenantId(processInstance.getTenantId())
+        .tenantId(getTenantId(processInstance))
         .version(processInstance.getProcessDefinitionVersion())
         // parent and super process instance are used synonym (process instance that contained the call activity)
         .parentProcessInstanceKey(parentProcessInstanceKey)
@@ -56,6 +56,12 @@ public class ProcessInstanceConverter {
 
       default -> throw new IllegalArgumentException("Unknown state: " + state);
     };
+  }
+
+  protected String getTenantId(HistoricProcessInstance processInstance) {
+    return processInstance != null && processInstance.getTenantId() != null ?
+        processInstance.getTenantId() :
+        "<default>";
   }
 
   protected int getIncidents(HistoricProcessInstance processInstance) {
