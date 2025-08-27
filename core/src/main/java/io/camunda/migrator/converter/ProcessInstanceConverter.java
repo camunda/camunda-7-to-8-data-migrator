@@ -15,6 +15,7 @@ import static io.camunda.search.entities.ProcessInstanceEntity.ProcessInstanceSt
 import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import io.camunda.migrator.impl.clients.C7Client;
 import io.camunda.migrator.impl.util.ConverterUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,9 +60,8 @@ public class ProcessInstanceConverter {
   }
 
   protected String getTenantId(HistoricProcessInstance processInstance) {
-    return processInstance != null && processInstance.getTenantId() != null ?
-        processInstance.getTenantId() :
-        "<default>";
+    String c7TenantId = processInstance.getTenantId();
+    return StringUtils.isEmpty(c7TenantId) ? "<default>" : c7TenantId;
   }
 
   protected int getIncidents(HistoricProcessInstance processInstance) {
