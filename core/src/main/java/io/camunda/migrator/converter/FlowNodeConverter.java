@@ -12,6 +12,7 @@ import static io.camunda.migrator.constants.MigratorConstants.C7_HISTORY_PARTITI
 import static io.camunda.migrator.impl.util.C7Utils.MULTI_INSTANCE_BODY_SUFFIX;
 import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
+import static io.camunda.migrator.impl.util.ConverterUtil.getTenantId;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType;
 
 import io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel;
@@ -42,7 +43,7 @@ public class FlowNodeConverter {
         .startDate(convertDate(legacyFlowNode.getStartTime()))
         .endDate(convertDate(legacyFlowNode.getEndTime()))
         .type(convertType(legacyFlowNode.getActivityType()))
-        .tenantId(legacyFlowNode.getTenantId())
+        .tenantId(getTenantId(legacyFlowNode.getTenantId()))
         .state(getState(legacyFlowNode))
         .treePath(buildTreePath(parentTreePath, flowNodeInstanceKey))
         .incidentKey(null) // will be set when incident is created

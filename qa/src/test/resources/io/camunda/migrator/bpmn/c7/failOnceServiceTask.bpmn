@@ -9,7 +9,7 @@
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_0hdwfe8" sourceRef="StartEvent_1" targetRef="serviceTaskActivityId" />
     <bpmn:sequenceFlow id="Flow_12j93gw" sourceRef="serviceTaskActivityId" targetRef="Event_0afdmir" />
-    <bpmn:serviceTask id="serviceTaskActivityId" camunda:asyncBefore="true" camunda:class="io.camunda.migrator.impl.util.FailingDelegate">
+    <bpmn:serviceTask id="serviceTaskActivityId" camunda:asyncBefore="true" camunda:class="io.camunda.migrator.qa.util.FailingDelegate">
       <bpmn:incoming>Flow_0hdwfe8</bpmn:incoming>
       <bpmn:outgoing>Flow_12j93gw</bpmn:outgoing>
     </bpmn:serviceTask>

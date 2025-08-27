@@ -7,6 +7,8 @@
  */
 package io.camunda.migrator.qa.history.entity;
 
+import static io.camunda.client.ClientProperties.DEFAULT_TENANT_ID;
+import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeState.ACTIVE;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeState.COMPLETED;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeState.TERMINATED;
@@ -21,11 +23,13 @@ import io.camunda.db.rdbms.write.RdbmsWriter;
 import io.camunda.migrator.qa.history.HistoryMigrationAbstractTest;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.ProcessEngineException;
+import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.Test;
@@ -55,6 +59,8 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
     for (Task task : tasks) {
       taskService.complete(task.getId());
     }
+    List<HistoricActivityInstance> legacyFlowNodes = historyService.createHistoricActivityInstanceQuery().processInstanceId(processInstanceId).list();
+
 
     // when - migrate history
     historyMigrator.migrate();
@@ -66,14 +72,15 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
 
     Long processInstanceKey = processInstances.getFirst().processInstanceKey();
     String processDefinitionId = processInstances.getFirst().processDefinitionId();
+    Long processDefinitionKey = processInstances.getFirst().processDefinitionKey();
 
     // Verify all flow node types and their fields are correctly converted
-    verifyFlowNodeFields(processInstanceKey, START_EVENT, "StartEvent_1", processDefinitionId, COMPLETED);
-    verifyFlowNodeFields(processInstanceKey, PARALLEL_GATEWAY, "ParallelGateway_Split", processDefinitionId, COMPLETED);
-    verifyFlowNodeFields(processInstanceKey, USER_TASK, "userTaskId", processDefinitionId, COMPLETED);
-    verifyFlowNodeFields(processInstanceKey, SERVICE_TASK, "serviceTaskId", processDefinitionId, COMPLETED);
-    verifyFlowNodeFields(processInstanceKey, PARALLEL_GATEWAY, "ParallelGateway_Join", processDefinitionId, COMPLETED);
-    verifyFlowNodeFields(processInstanceKey, END_EVENT, "EndEvent_1", processDefinitionId, COMPLETED);
+    verifyFlowNodeFields(processInstanceKey, START_EVENT, "StartEvent_1", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey);
+    verifyFlowNodeFields(processInstanceKey, PARALLEL_GATEWAY, "ParallelGateway_Split", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey);
+    verifyFlowNodeFields(processInstanceKey, USER_TASK, "userTaskId", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey);
+    verifyFlowNodeFields(processInstanceKey, SERVICE_TASK, "serviceTaskId", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey);
+    verifyFlowNodeFields(processInstanceKey, PARALLEL_GATEWAY, "ParallelGateway_Join", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey);
+    verifyFlowNodeFields(processInstanceKey, END_EVENT, "EndEvent_1", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey);
   }
 
   @Test
@@ -83,11 +90,13 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
     deployer.deployCamunda7Process("userTaskProcess.bpmn");
 
     // Scenario 1: Active process (comprehensive process with incomplete user task)
-    runtimeService.startProcessInstanceByKey("flowNodeHistoricMigrationTestProcessId").getId();
+    String completedProcessInstanceId = runtimeService.startProcessInstanceByKey("flowNodeHistoricMigrationTestProcessId").getId();
 
     // Scenario 2: Terminated process (simple user task process)
     String terminatedProcessId = runtimeService.startProcessInstanceByKey("userTaskProcessId").getId();
     runtimeService.deleteProcessInstance(terminatedProcessId, "Test termination");
+    List<HistoricActivityInstance> historicActivityInstancesForCanceled =  historyService.createHistoricActivityInstanceQuery().processInstanceId(terminatedProcessId).list();
+    List<HistoricActivityInstance> historicActivityInstancesForCompleted = historyService.createHistoricActivityInstanceQuery().processInstanceId(completedProcessInstanceId).list();
 
     // when - migrate all history
     historyMigrator.migrate();
@@ -107,7 +116,7 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
     // Other flow nodes should be COMPLETED
     List<FlowNodeInstanceEntity> startEvents = searchHistoricFlowNodesForType(activeProcessKey, START_EVENT);
     assertThat(startEvents.getFirst().state()).isEqualTo(COMPLETED);
-    assertThat(startEvents.getFirst().endDate()).isNotNull();
+    assertThat(startEvents.getFirst().endDate()).isEqualTo(extractEndDate(historicActivityInstancesForCompleted, "StartEvent_1"));
 
     // Verify TERMINATED state
     ProcessInstanceEntity terminatedInstance = searchHistoricProcessInstances("userTaskProcessId").getFirst();
@@ -144,7 +153,6 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
     assertThat(flowNodes).hasSize(1);
     FlowNodeInstanceEntity serviceTask = flowNodes.getFirst();
     assertThat(serviceTask.flowNodeId()).isEqualTo("serviceTaskActivityId");
-    assertThat(serviceTask.endDate()).isNotNull();
     assertThat(serviceTask.hasIncident()).isTrue();
     assertThat(flowNodes).isNotEmpty();
   }
@@ -153,59 +161,53 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
                                     FlowNodeInstanceEntity.FlowNodeType expectedType,
                                     String expectedFlowNodeId,
                                     String expectedProcessDefinitionId,
-                                    FlowNodeInstanceEntity.FlowNodeState expectedState) {
+                                    FlowNodeInstanceEntity.FlowNodeState expectedState,
+                                    List<HistoricActivityInstance> legacyFlowNodes,
+                                    Long expectedProcessDefinitionKey) {
     List<FlowNodeInstanceEntity> flowNodes = searchHistoricFlowNodesForType(processInstanceKey, expectedType).stream()
         .filter(fn -> expectedFlowNodeId.equals(fn.flowNodeId()))
+        .toList();
+
+    // Get all legacy flow nodes with the same activity ID
+    List<HistoricActivityInstance> matchingLegacyNodes = legacyFlowNodes.stream()
+        .filter(h -> expectedFlowNodeId.equals(h.getActivityId()))
         .toList();
 
     // For parallel gateways, there might be multiple instances due to parallel execution
     if (expectedType == PARALLEL_GATEWAY && expectedFlowNodeId.equals("ParallelGateway_Join")) {
       assertThat(flowNodes).hasSizeGreaterThanOrEqualTo(1);
+      assertThat(flowNodes).hasSameSizeAs(matchingLegacyNodes);
     } else {
       assertThat(flowNodes).hasSize(1);
     }
 
-    // Verify all instances have correct fields (use the first one for detailed verification)
-    FlowNodeInstanceEntity flowNode = flowNodes.getFirst();
+    for (FlowNodeInstanceEntity flowNode : flowNodes) {
+      // Verify all converted fields
+      assertThat(flowNode.flowNodeInstanceKey()).isNotNull().isPositive();
+      assertThat(flowNode.flowNodeId()).isEqualTo(expectedFlowNodeId);
+      assertThat(flowNode.processInstanceKey()).isEqualTo(processInstanceKey);
+      assertThat(flowNode.processDefinitionKey()).isEqualTo(expectedProcessDefinitionKey);
+      assertThat(flowNode.processDefinitionId()).isEqualTo(expectedProcessDefinitionId);
+      assertThat(flowNode.type()).isEqualTo(expectedType);
+      assertThat(flowNode.state()).isEqualTo(expectedState);
+      assertThat(flowNode.treePath()).endsWith(flowNode.flowNodeInstanceKey().toString());
+      assertThat(flowNode.incidentKey()).isNull();
+      assertThat(flowNode.tenantId()).isEqualTo(DEFAULT_TENANT_ID);
 
-    // Verify all converted fields
-    assertThat(flowNode.flowNodeInstanceKey()).isNotNull().isPositive();
-    assertThat(flowNode.flowNodeId()).isEqualTo(expectedFlowNodeId);
-    assertThat(flowNode.processInstanceKey()).isEqualTo(processInstanceKey);
-    assertThat(flowNode.processDefinitionKey()).isNotNull().isPositive();
-    assertThat(flowNode.processDefinitionId()).isEqualTo(expectedProcessDefinitionId);
-    assertThat(flowNode.type()).isEqualTo(expectedType);
-    assertThat(flowNode.state()).isEqualTo(expectedState);
-    assertThat(flowNode.treePath()).endsWith(flowNode.flowNodeInstanceKey().toString());
-    assertThat(flowNode.incidentKey()).isNull();
-
-    // Verify date fields
-    assertThat(flowNode.startDate()).isNotNull();
-    if (expectedState == COMPLETED || expectedState == TERMINATED) {
-      assertThat(flowNode.endDate()).isNotNull();
-      assertThat(flowNode.endDate()).isAfterOrEqualTo(flowNode.startDate());
-    }
-
-    // Verify tenant ID is handled correctly (should be null for this test)
-    assertThat(flowNode.tenantId()).isNull();
-
-
-    // If there are multiple instances (like for join gateway), verify they all have consistent fields
-    if (flowNodes.size() > 1) {
-      for (FlowNodeInstanceEntity additionalNode : flowNodes) {
-        assertThat(additionalNode.flowNodeId()).isEqualTo(expectedFlowNodeId);
-        assertThat(additionalNode.processInstanceKey()).isEqualTo(processInstanceKey);
-        assertThat(additionalNode.type()).isEqualTo(expectedType);
-        assertThat(additionalNode.state()).isEqualTo(expectedState);
+      // Verify date fields
+      if (expectedState == COMPLETED || expectedState == TERMINATED) {
+        // For activities with multiple instances, verify that the end date exists in the legacy nodes
+        if (matchingLegacyNodes.size() > 1) {
+          List<OffsetDateTime> legacyStartDates = extractStartDates(legacyFlowNodes, expectedFlowNodeId);
+          List<OffsetDateTime> legacyEndDates = extractEndDates(legacyFlowNodes, expectedFlowNodeId);
+          assertThat(legacyStartDates).contains(flowNode.startDate());
+          assertThat(legacyEndDates).contains(flowNode.endDate());
+        } else {
+          assertThat(flowNode.startDate()).isEqualTo(extractStartDate(legacyFlowNodes, expectedFlowNodeId));
+          assertThat(flowNode.endDate()).isEqualTo(extractEndDate(legacyFlowNodes, expectedFlowNodeId));
+        }
       }
     }
-  }
-
-  private List<FlowNodeInstanceEntity> searchHistoricFlowNodes(Long processInstanceKey) {
-    return rdbmsService.getFlowNodeInstanceReader()
-        .search(io.camunda.search.query.FlowNodeInstanceQuery.of(queryBuilder -> queryBuilder.filter(
-            filterBuilder -> filterBuilder.processInstanceKeys(processInstanceKey))))
-        .items();
   }
 
   private void retryAndSucceed(final ProcessInstance processInstance) {
@@ -225,7 +227,35 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
     } catch (ProcessEngineException ignored) {
     }
     return processInstance;
-    // creates incident
+  }
+
+  private static OffsetDateTime extractEndDate(List<HistoricActivityInstance> historicInstances, String activityId) {
+    List<OffsetDateTime> endDates = extractEndDates(historicInstances, activityId);
+    assertThat(endDates).hasSize(1);
+    return endDates.getFirst();
+  }
+
+  private static List<OffsetDateTime> extractEndDates(List<HistoricActivityInstance> historicInstances, String activityId) {
+    return extractDates(historicInstances, activityId, HistoricActivityInstance::getEndTime);
+  }
+
+  private static OffsetDateTime extractStartDate(List<HistoricActivityInstance> historicInstances, String activityId) {
+    List<OffsetDateTime> startDates = extractStartDates(historicInstances, activityId);
+    assertThat(startDates).hasSize(1);
+    return startDates.getFirst();
+  }
+
+  private static List<OffsetDateTime> extractStartDates(List<HistoricActivityInstance> historicInstances, String activityId) {
+    return extractDates(historicInstances, activityId, HistoricActivityInstance::getStartTime);
+  }
+
+  private static List<OffsetDateTime> extractDates(List<HistoricActivityInstance> historicInstances,
+                                                   String activityId,
+                                                   java.util.function.Function<HistoricActivityInstance, java.util.Date> dateAccessor) {
+    return historicInstances.stream()
+        .filter(h -> h.getActivityId().equals(activityId))
+        .map(h -> convertDate(dateAccessor.apply(h)))
+        .toList();
   }
 
 }
