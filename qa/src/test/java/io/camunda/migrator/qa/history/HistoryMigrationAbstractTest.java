@@ -82,6 +82,7 @@ public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest 
     // Migrator
     dbClient.deleteAllMappings();
     historyMigrator.setMode(MigratorMode.MIGRATE);
+    historyMigrator.setRequestedEntityTypes(null);
 
     // C8
     rdbmsPurger.purgeRdbms();
