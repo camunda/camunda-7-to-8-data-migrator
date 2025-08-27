@@ -75,12 +75,12 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
     Long processDefinitionKey = processInstances.getFirst().processDefinitionKey();
 
     // Verify all flow node types and their fields are correctly converted
-    verifyFlowNodeFields(processInstanceKey, START_EVENT, "StartEvent_1", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey);
-    verifyFlowNodeFields(processInstanceKey, PARALLEL_GATEWAY, "ParallelGateway_Split", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey);
-    verifyFlowNodeFields(processInstanceKey, USER_TASK, "userTaskId", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey);
-    verifyFlowNodeFields(processInstanceKey, SERVICE_TASK, "serviceTaskId", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey);
-    verifyFlowNodeFields(processInstanceKey, PARALLEL_GATEWAY, "ParallelGateway_Join", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey);
-    verifyFlowNodeFields(processInstanceKey, END_EVENT, "EndEvent_1", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey);
+    verifyFlowNodeFields(processInstanceKey, START_EVENT, "StartEvent_1", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey, null);
+    verifyFlowNodeFields(processInstanceKey, PARALLEL_GATEWAY, "ParallelGateway_Split", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey, null);
+    verifyFlowNodeFields(processInstanceKey, USER_TASK, "userTaskId", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey, null);
+    verifyFlowNodeFields(processInstanceKey, SERVICE_TASK, "serviceTaskId", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey, null);
+    verifyFlowNodeFields(processInstanceKey, PARALLEL_GATEWAY, "ParallelGateway_Join", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey, null);
+    verifyFlowNodeFields(processInstanceKey, END_EVENT, "EndEvent_1", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey, null);
   }
 
   @Test
@@ -157,13 +157,44 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
     assertThat(flowNodes).isNotEmpty();
   }
 
+  @Test
+  public void shouldCorrectlyConvertFlowNodeFieldsWithTenant() {
+    // given - deploy process with tenant and create completed instance
+    String tenantId = "test-tenant";
+    deployer.deployCamunda7Process("flowNodeHistoricMigrationTestProcess.bpmn", tenantId);
+
+    String processInstanceId = runtimeService.startProcessInstanceByKey("flowNodeHistoricMigrationTestProcessId").getId();
+
+    List<HistoricActivityInstance> legacyFlowNodes = historyService.createHistoricActivityInstanceQuery()
+        .processInstanceId(processInstanceId).list();
+
+    // when - migrate history
+    historyMigrator.migrate();
+
+    // then - verify flow nodes are correctly migrated with tenant ID
+    List<ProcessInstanceEntity> processInstances = searchHistoricProcessInstances(
+        "flowNodeHistoricMigrationTestProcessId");
+    assertThat(processInstances).hasSize(1);
+
+    Long processInstanceKey = processInstances.getFirst().processInstanceKey();
+    String processDefinitionId = processInstances.getFirst().processDefinitionId();
+    Long processDefinitionKey = processInstances.getFirst().processDefinitionKey();
+
+    // Verify tenant ID is correctly set for all flow node types
+    verifyFlowNodeFields(processInstanceKey, START_EVENT, "StartEvent_1", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey, tenantId);
+    verifyFlowNodeFields(processInstanceKey, PARALLEL_GATEWAY, "ParallelGateway_Split", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey, tenantId);
+    verifyFlowNodeFields(processInstanceKey, USER_TASK, "userTaskId", processDefinitionId, ACTIVE, legacyFlowNodes, processDefinitionKey, tenantId);
+    verifyFlowNodeFields(processInstanceKey, SERVICE_TASK, "serviceTaskId", processDefinitionId, COMPLETED, legacyFlowNodes, processDefinitionKey, tenantId);
+  }
+
   private void verifyFlowNodeFields(Long processInstanceKey,
                                     FlowNodeInstanceEntity.FlowNodeType expectedType,
                                     String expectedFlowNodeId,
                                     String expectedProcessDefinitionId,
                                     FlowNodeInstanceEntity.FlowNodeState expectedState,
                                     List<HistoricActivityInstance> legacyFlowNodes,
-                                    Long expectedProcessDefinitionKey) {
+                                    Long expectedProcessDefinitionKey,
+                                    String expectedTenantId) {
     List<FlowNodeInstanceEntity> flowNodes = searchHistoricFlowNodesForType(processInstanceKey, expectedType).stream()
         .filter(fn -> expectedFlowNodeId.equals(fn.flowNodeId()))
         .toList();
@@ -192,7 +223,12 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
       assertThat(flowNode.state()).isEqualTo(expectedState);
       assertThat(flowNode.treePath()).endsWith(flowNode.flowNodeInstanceKey().toString());
       assertThat(flowNode.incidentKey()).isNull();
-      assertThat(flowNode.tenantId()).isEqualTo(DEFAULT_TENANT_ID);
+
+      if (expectedTenantId == null) {
+        assertThat(flowNode.tenantId()).isEqualTo(DEFAULT_TENANT_ID);
+      } else {
+        assertThat(flowNode.tenantId()).isEqualTo(expectedTenantId);
+      }
 
       // Verify date fields
       if (expectedState == COMPLETED || expectedState == TERMINATED) {
