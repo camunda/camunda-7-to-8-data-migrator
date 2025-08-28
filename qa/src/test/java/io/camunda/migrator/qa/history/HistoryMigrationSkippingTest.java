@@ -8,16 +8,21 @@
 package io.camunda.migrator.qa.history;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.camunda.bpm.engine.variable.Variables.stringValue;
 
 import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.github.netmikey.logunit.api.LogCapturer;
+import java.util.Date;
 import java.util.Map;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.ManagementService;
+import org.camunda.bpm.engine.impl.HistoricActivityInstanceQueryImpl;
+import org.camunda.bpm.engine.impl.util.ClockUtil;
 import org.camunda.bpm.engine.task.Task;
+import org.camunda.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,9 +39,6 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
 
   @Autowired
   protected DbClient dbClient;
-
-  @Autowired
-  private ManagementService managementService;
 
   @Autowired
   protected HistoryService historyService;
@@ -395,36 +397,111 @@ public class HistoryMigrationSkippingTest extends HistoryMigrationAbstractTest {
     assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_DECISION_DEFINITION)).isEqualTo(2);
   }
 
-    @Test
-    public void shouldNotSkipTaskVariablesWhenEntityWithSameIdButDifferentTypeIsSkipped() {
-        // given state in c7
-        deployer.deployCamunda7Process("userTaskProcess.bpmn");
-        runtimeService.startProcessInstanceByKey("userTaskProcessId");
+  @Test
+  public void shouldSkipDecisionInstanceWhenDecisionDefinitionIsSkipped() {
+    // given
+    deployer.deployCamunda7Decision("simpleDmn.dmn");
+    deployer.deployCamunda7Process("businessRuleProcess.bpmn");
+    runtimeService.startProcessInstanceByKey("businessRuleProcessId",
+        Variables.createVariables().putValue("inputA", stringValue("A")));
+    String decisionDefinitionId = repositoryService.createDecisionDefinitionQuery()
+        .decisionDefinitionKey("simpleDecisionId")
+        .singleResult()
+        .getId();
+    dbClient.insert(decisionDefinitionId, null, IdKeyMapper.TYPE.HISTORY_DECISION_DEFINITION);
 
-        var taskId = taskService.createTaskQuery().singleResult().getId();
+    // when
+    historyMigrator.migrate();
 
-        // Simulate ID collision by manually inserting a record with the same ID as the task
-        // but with a different type (HISTORY_INCIDENT)
-        dbClient.insert(taskId, null, IdKeyMapper.TYPE.HISTORY_INCIDENT);
-        // Verify the collision record exists before completing the task
-        assertThat(dbClient.checkExistsByIdAndType(taskId, IdKeyMapper.TYPE.HISTORY_INCIDENT)).as("Record with task ID should exist").isTrue();
+    // then
+    assertThat(searchHistoricDecisionInstances("simpleDecisionId")).isEmpty();
+    assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE)).isEqualTo(1);
+  }
 
-        // when history is migrated
-        historyMigrator.migrate();
+  @Test
+  public void shouldSkipDecisionInstanceWhenProcessDefinitionIsSkipped() {
+    // given
+    deployer.deployCamunda7Decision("simpleDmn.dmn");
+    deployer.deployCamunda7Process("businessRuleProcess.bpmn");
+    runtimeService.startProcessInstanceByKey("businessRuleProcessId",
+        Variables.createVariables().putValue("inputA", stringValue("A")));
+    String processDefinitionId = repositoryService.createProcessDefinitionQuery()
+        .processDefinitionKey("businessRuleProcessId")
+        .singleResult()
+        .getId();
+    dbClient.insert(processDefinitionId, null, IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION);
 
-        // then
-        // 1. Process instance should be migrated
-        var historicProcesses = searchHistoricProcessInstances("userTaskProcessId");
-        assertThat(historicProcesses).hasSize(1);
-        var processInstanceKey = historicProcesses.getFirst().processInstanceKey();
+    // when
+    historyMigrator.migrate();
 
-        // 2. User task should be migrated (not skipped due to ID collision with HISTORY_INCIDENT)
-        var userTasks = searchHistoricUserTasks(processInstanceKey);
-        assertThat(userTasks)
-            .as("User task should be migrated despite ID collision with HISTORY_INCIDENT")
-            .hasSize(1);
-        assertThat(userTasks.getFirst().elementId())
-            .as("User task should have correct id")
-            .isEqualTo("userTaskId");
-    }
+    // then
+    assertThat(searchHistoricDecisionInstances("simpleDecisionId")).isEmpty();
+    assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE)).isEqualTo(1);
+  }
+
+  @Test
+  public void shouldSkipDecisionInstanceWhenProcessInstanceIsSkipped() {
+    // given
+    deployer.deployCamunda7Decision("simpleDmn.dmn");
+    deployer.deployCamunda7Process("businessRuleProcess.bpmn");
+    var processInstance = runtimeService.startProcessInstanceByKey("businessRuleProcessId",
+        Variables.createVariables().putValue("inputA", stringValue("A")));
+    dbClient.insert(processInstance.getId(), null, IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE);
+
+    // when
+    historyMigrator.migrate();
+
+    // then
+    assertThat(searchHistoricDecisionInstances("simpleDecisionId")).isEmpty();
+    assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE)).isEqualTo(1);
+  }
+
+  @Test
+  public void shouldSkipDecisionInstanceWhenFlowNodeIsSkipped() {
+    // given
+    deployer.deployCamunda7Decision("simpleDmn.dmn");
+    deployer.deployCamunda7Process("businessRuleProcess.bpmn");
+    runtimeService.startProcessInstanceByKey("businessRuleProcessId",
+        Variables.createVariables().putValue("inputA", stringValue("A")));
+    String legacyFlowNodeId =
+        historyService.createHistoricActivityInstanceQuery().activityId("businessRuleTaskId").singleResult().getId();
+    dbClient.insert(legacyFlowNodeId, null, IdKeyMapper.TYPE.HISTORY_FLOW_NODE);
+
+    // when
+    historyMigrator.migrate();
+
+    // then
+    assertThat(searchHistoricDecisionInstances("simpleDecisionId")).isEmpty();
+    assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE)).isEqualTo(1);
+  }
+
+  @Test
+  public void shouldNotSkipTaskVariablesWhenEntityWithSameIdButDifferentTypeIsSkipped() {
+    // given state in c7
+    deployer.deployCamunda7Process("userTaskProcess.bpmn");
+    runtimeService.startProcessInstanceByKey("userTaskProcessId");
+
+    var taskId = taskService.createTaskQuery().singleResult().getId();
+
+    // Simulate ID collision by manually inserting a record with the same ID as the task
+    // but with a different type (HISTORY_INCIDENT)
+    dbClient.insert(taskId, null, IdKeyMapper.TYPE.HISTORY_INCIDENT);
+    // Verify the collision record exists before completing the task
+    assertThat(dbClient.checkExistsByIdAndType(taskId, IdKeyMapper.TYPE.HISTORY_INCIDENT)).as(
+        "Record with task ID should exist").isTrue();
+
+    // when history is migrated
+    historyMigrator.migrate();
+
+    // then
+    // 1. Process instance should be migrated
+    var historicProcesses = searchHistoricProcessInstances("userTaskProcessId");
+    assertThat(historicProcesses).hasSize(1);
+    var processInstanceKey = historicProcesses.getFirst().processInstanceKey();
+
+    // 2. User task should be migrated (not skipped due to ID collision with HISTORY_INCIDENT)
+    var userTasks = searchHistoricUserTasks(processInstanceKey);
+    assertThat(userTasks).as("User task should be migrated despite ID collision with HISTORY_INCIDENT").hasSize(1);
+    assertThat(userTasks.getFirst().elementId()).as("User task should have correct id").isEqualTo("userTaskId");
+  }
 }

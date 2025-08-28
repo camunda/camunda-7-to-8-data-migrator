@@ -10,6 +10,7 @@ package io.camunda.migrator.converter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.db.rdbms.write.domain.VariableDbModel;
+import io.camunda.migrator.constants.MigratorConstants;
 import io.camunda.migrator.impl.logging.VariableConverterLogs;
 import io.camunda.migrator.impl.util.ConverterUtil;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
@@ -35,8 +36,8 @@ public class VariableConverter {
         .scopeKey(scopeKey)
         .processInstanceKey(processInstanceKey)
         .processDefinitionId(historicVariable.getProcessDefinitionKey())
-        .tenantId(historicVariable.getTenantId())
-        .partitionId(ConverterUtil.C7_HISTORY_PARTITION_ID)
+        .tenantId(ConverterUtil.getTenantId(historicVariable.getTenantId()))
+        .partitionId(MigratorConstants.C7_HISTORY_PARTITION_ID)
         .historyCleanupDate(convertDate(historicVariable.getRemovalTime()))
         .build();
   }

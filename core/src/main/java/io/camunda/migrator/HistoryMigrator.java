@@ -11,6 +11,7 @@ import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_DEFINITION;
+import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENT;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_FLOW_NODE;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_INCIDENT;
@@ -19,10 +20,13 @@ import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_PROC
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_USER_TASK;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_VARIABLE;
 
+import io.camunda.db.rdbms.read.domain.DecisionDefinitionDbQuery;
+import io.camunda.db.rdbms.read.domain.DecisionInstanceDbQuery;
 import io.camunda.db.rdbms.read.domain.FlowNodeInstanceDbQuery;
 import io.camunda.db.rdbms.read.domain.ProcessDefinitionDbQuery;
 import io.camunda.db.rdbms.read.domain.ProcessInstanceDbQuery;
 import io.camunda.db.rdbms.sql.DecisionDefinitionMapper;
+import io.camunda.db.rdbms.sql.DecisionInstanceMapper;
 import io.camunda.db.rdbms.sql.DecisionRequirementsMapper;
 import io.camunda.db.rdbms.sql.FlowNodeInstanceMapper;
 import io.camunda.db.rdbms.sql.IncidentMapper;
@@ -31,6 +35,7 @@ import io.camunda.db.rdbms.sql.ProcessInstanceMapper;
 import io.camunda.db.rdbms.sql.UserTaskMapper;
 import io.camunda.db.rdbms.sql.VariableMapper;
 import io.camunda.db.rdbms.write.domain.DecisionDefinitionDbModel;
+import io.camunda.db.rdbms.write.domain.DecisionInstanceDbModel;
 import io.camunda.db.rdbms.write.domain.DecisionRequirementsDbModel;
 import io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel;
 import io.camunda.db.rdbms.write.domain.IncidentDbModel;
@@ -40,6 +45,7 @@ import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
 import io.camunda.db.rdbms.write.domain.VariableDbModel;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.converter.DecisionDefinitionConverter;
+import io.camunda.migrator.converter.DecisionInstanceConverter;
 import io.camunda.migrator.converter.DecisionRequirementsDefinitionConverter;
 import io.camunda.migrator.converter.FlowNodeConverter;
 import io.camunda.migrator.converter.IncidentConverter;
@@ -53,12 +59,16 @@ import io.camunda.migrator.impl.logging.HistoryMigratorLogs;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.migrator.impl.util.ExceptionUtils;
 import io.camunda.migrator.impl.util.PrintUtils;
+import io.camunda.search.entities.DecisionDefinitionEntity;
+import io.camunda.search.entities.DecisionInstanceEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
+import org.camunda.bpm.engine.history.HistoricDecisionInstance;
 import org.camunda.bpm.engine.history.HistoricIncident;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricTaskInstance;
@@ -78,6 +88,9 @@ public class HistoryMigrator {
 
   @Autowired
   private ProcessInstanceMapper processInstanceMapper;
+
+  @Autowired
+  private DecisionInstanceMapper decisionInstanceMapper;
 
   @Autowired
   private UserTaskMapper userTaskMapper;
@@ -112,6 +125,9 @@ public class HistoryMigrator {
 
   @Autowired
   private ProcessInstanceConverter processInstanceConverter;
+
+  @Autowired
+  private DecisionInstanceConverter decisionInstanceConverter;
 
   @Autowired
   private FlowNodeConverter flowNodeConverter;
@@ -173,6 +189,7 @@ public class HistoryMigrator {
     migrateIncidents();
     migrateDecisionRequirementsDefinitions();
     migrateDecisionDefinitions();
+    migrateDecisionInstances();
   }
 
   public void migrateProcessDefinitions() {
@@ -308,7 +325,81 @@ public class HistoryMigrator {
     }
   }
 
-  public void migrateIncidents() {
+  public void migrateDecisionInstances() {
+    HistoryMigratorLogs.migratingDecisionInstances();
+    if (RETRY_SKIPPED.equals(mode)) {
+      dbClient.fetchAndHandleSkippedForType(HISTORY_DECISION_INSTANCE, idKeyDbModel -> {
+        HistoricDecisionInstance historicDecisionInstance = c7Client.getHistoricDecisionInstance(idKeyDbModel.id());
+        migrateDecisionInstance(historicDecisionInstance);
+      });
+    } else {
+      c7Client.fetchAndHandleHistoricDecisionInstances(this::migrateDecisionInstance,
+          dbClient.findLatestStartDateByType((HISTORY_DECISION_INSTANCE)));
+    }
+  }
+
+  private void migrateDecisionInstance(HistoricDecisionInstance legacyDecisionInstance) {
+    if (legacyDecisionInstance.getProcessDefinitionKey() != null) {
+      // only migrate decision instances that were triggered by process definitions
+      String legacyDecisionInstanceId = legacyDecisionInstance.getId();
+      if (shouldMigrate(legacyDecisionInstanceId, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE)) {
+        HistoryMigratorLogs.migratingDecisionInstance(legacyDecisionInstanceId);
+
+        if (!isMigrated(legacyDecisionInstance.getDecisionDefinitionId(), HISTORY_DECISION_DEFINITION)) {
+          saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+          HistoryMigratorLogs.skippingDecisionInstanceDueToMissingDecisionDefinition(legacyDecisionInstanceId);
+          return;
+        }
+
+        if (!isMigrated(legacyDecisionInstance.getProcessDefinitionId(), HISTORY_PROCESS_DEFINITION)) {
+          saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+          HistoryMigratorLogs.skippingDecisionInstanceDueToMissingProcessDefinition(legacyDecisionInstanceId);
+          return;
+        }
+
+        if (!isMigrated(legacyDecisionInstance.getProcessInstanceId(), HISTORY_PROCESS_INSTANCE)) {
+          saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+          HistoryMigratorLogs.skippingDecisionInstanceDueToMissingProcessInstance(legacyDecisionInstanceId);
+          return;
+        }
+
+        String legacyRootDecisionInstanceId = legacyDecisionInstance.getRootDecisionInstanceId();
+        Long parentDecisionDefinitionKey = null;
+        if (legacyRootDecisionInstanceId != null) {
+          if (!isMigrated(legacyRootDecisionInstanceId, HISTORY_DECISION_INSTANCE)) {
+            saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+            HistoryMigratorLogs.skippingDecisionInstanceDueToMissingParent(legacyDecisionInstanceId);
+            return;
+          }
+          parentDecisionDefinitionKey = findDecisionInstance(legacyRootDecisionInstanceId).decisionDefinitionKey();
+        }
+
+        if (!isMigrated(legacyDecisionInstance.getActivityInstanceId(), HISTORY_FLOW_NODE)) {
+          saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+          HistoryMigratorLogs.skippingDecisionInstanceDueToMissingFlowNodeInstanceInstance(legacyDecisionInstanceId);
+          return;
+        }
+
+        DecisionDefinitionEntity decisionDefinition = findDecisionDefinition(
+            legacyDecisionInstance.getDecisionDefinitionId());
+        Long processDefinitionKey = findProcessDefinitionKey(legacyDecisionInstance.getProcessDefinitionId());
+        Long processInstanceKey = findProcessInstanceByLegacyId(
+            legacyDecisionInstance.getProcessInstanceId()).processInstanceKey();
+        FlowNodeInstanceDbModel flowNode = findFlowNodeInstance(legacyDecisionInstance.getActivityInstanceId());
+
+        DecisionInstanceDbModel dbModel = decisionInstanceConverter.apply(legacyDecisionInstance,
+            decisionDefinition.decisionDefinitionKey(), processDefinitionKey,
+            decisionDefinition.decisionRequirementsKey(), processInstanceKey, parentDecisionDefinitionKey,
+            flowNode.flowNodeInstanceKey(), flowNode.flowNodeId());
+        decisionInstanceMapper.insert(dbModel);
+        saveRecord(legacyDecisionInstanceId, legacyDecisionInstance.getEvaluationTime(), dbModel.decisionInstanceKey(),
+            HISTORY_DECISION_INSTANCE);
+        HistoryMigratorLogs.migratingDecisionInstanceCompleted(legacyDecisionInstanceId);
+      }
+    }
+  }
+
+  private void migrateIncidents() {
     HistoryMigratorLogs.migratingHistoricIncidents();
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_INCIDENT, idKeyDbModel -> {
@@ -328,7 +419,7 @@ public class HistoryMigrator {
       if (legacyProcessInstance != null) {
         Long processInstanceKey = legacyProcessInstance.processInstanceKey();
         if (processInstanceKey != null) {
-          Long flowNodeInstanceKey = findFlowNodeKey(legacyIncident.getActivityId(), legacyIncident.getProcessInstanceId());
+          Long flowNodeInstanceKey = findFlowNodeInstanceKey(legacyIncident.getActivityId(), legacyIncident.getProcessInstanceId());
           Long processDefinitionKey = findProcessDefinitionKey(legacyIncident.getProcessDefinitionId());
           Long jobDefinitionKey = null; // TODO Job table doesn't exist yet.
           IncidentDbModel dbModel = incidentConverter.apply(legacyIncident, processDefinitionKey, processInstanceKey, jobDefinitionKey, flowNodeInstanceKey);
@@ -419,7 +510,7 @@ public class HistoryMigrator {
       if (isMigrated(legacyUserTask.getProcessInstanceId(), HISTORY_PROCESS_INSTANCE)) {
         ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(legacyUserTask.getProcessInstanceId());
         if (isMigrated(legacyUserTask.getActivityInstanceId(), HISTORY_FLOW_NODE)) {
-          Long elementInstanceKey = findFlowNodeKey(legacyUserTask.getActivityInstanceId());
+          Long elementInstanceKey = findFlowNodeInstanceKey(legacyUserTask.getActivityInstanceId());
           Long processDefinitionKey = findProcessDefinitionKey(legacyUserTask.getProcessDefinitionId());
           UserTaskDbModel dbModel = userTaskConverter.apply(legacyUserTask, processDefinitionKey, processInstance, elementInstanceKey);
           userTaskMapper.insert(dbModel);
@@ -480,6 +571,35 @@ public class HistoryMigrator {
     return processInstanceMapper.findOne(key);
   }
 
+  protected DecisionInstanceEntity findDecisionInstance(String decisionInstanceId) {
+    if (decisionInstanceId == null)
+      return null;
+
+    Long key = dbClient.findKeyByIdAndType(decisionInstanceId, HISTORY_DECISION_INSTANCE);
+    if (key == null) {
+      return null;
+    }
+
+    return decisionInstanceMapper.search(
+            DecisionInstanceDbQuery.of(b -> b.filter(value -> value.decisionInstanceKeys(key))))
+        .stream()
+        .findFirst()
+        .orElse(null);
+  }
+
+  protected DecisionDefinitionEntity findDecisionDefinition(String decisionDefinitionId) {
+    Long key = dbClient.findKeyByIdAndType(decisionDefinitionId, HISTORY_DECISION_DEFINITION);
+    if (key == null) {
+      return null;
+    }
+
+    return decisionDefinitionMapper.search(
+            DecisionDefinitionDbQuery.of(b -> b.filter(value -> value.decisionDefinitionKeys(key))))
+        .stream()
+        .findFirst()
+        .orElse(null);
+  }
+
   private Long findProcessDefinitionKey(String processDefinitionId) {
     Long key = dbClient.findKeyByIdAndType(processDefinitionId, HISTORY_PROCESS_DEFINITION);
     if (key == null) {
@@ -496,7 +616,7 @@ public class HistoryMigrator {
     }
   }
 
-  private Long findFlowNodeKey(String activityId, String processInstanceId) {
+  private Long findFlowNodeInstanceKey(String activityId, String processInstanceId) {
     Long key = dbClient.findKeyByIdAndType(processInstanceId, HISTORY_PROCESS_INSTANCE);
     if (key == null) {
       return null;
@@ -512,35 +632,38 @@ public class HistoryMigrator {
     }
   }
 
-  private Long findFlowNodeKey(String activityInstanceId) {
+  protected Long findFlowNodeInstanceKey(String activityInstanceId) {
+    return Optional.ofNullable(findFlowNodeInstance(activityInstanceId))
+        .map(FlowNodeInstanceDbModel::flowNodeInstanceKey)
+        .orElse(null);
+  }
+
+  protected FlowNodeInstanceDbModel findFlowNodeInstance(String activityInstanceId) {
     Long key = dbClient.findKeyByIdAndType(activityInstanceId, HISTORY_FLOW_NODE);
     if (key == null) {
       return null;
     }
 
-    List<FlowNodeInstanceDbModel> flowNodes = flowNodeMapper.search(
-        FlowNodeInstanceDbQuery.of(b -> b.filter(f -> f.flowNodeInstanceKeys(key))));
-
-    if (!flowNodes.isEmpty()) {
-      return flowNodes.getFirst().flowNodeInstanceKey();
-    } else {
-      return null;
-    }
+    return flowNodeMapper.search(FlowNodeInstanceDbQuery.of(b -> b.filter(f -> f.flowNodeInstanceKeys(key))))
+        .stream()
+        .findFirst()
+        .orElse(null);
   }
 
   private Long findScopeKey(String instanceId) {
-    Long key = findFlowNodeKey(instanceId);
-    if (key == null) {
-      Long PIkey = dbClient.findKeyByIdAndType(instanceId, HISTORY_PROCESS_INSTANCE);
-      List<ProcessInstanceEntity> processInstances = processInstanceMapper.search(
-          ProcessInstanceDbQuery.of(b -> b.filter(value -> value.processInstanceKeys(PIkey))));
-      if (!processInstances.isEmpty()) {
-        return processInstances.get(0).processInstanceKey();
-      } else {
-        return null;
-      }
+    Long key = findFlowNodeInstanceKey(instanceId);
+    if (key != null) {
+      return key;
     }
-    return key;
+
+    Long processInstanceKey = dbClient.findKeyByIdAndType(instanceId, HISTORY_PROCESS_INSTANCE);
+    if (processInstanceKey == null) {
+      return null;
+    }
+
+    List<ProcessInstanceEntity> processInstances = processInstanceMapper.search(
+        ProcessInstanceDbQuery.of(b -> b.filter(value -> value.processInstanceKeys(processInstanceKey))));
+    return processInstances.isEmpty() ? null : processInstanceKey;
   }
 
   private boolean isMigrated(String id, IdKeyMapper.TYPE type) {

@@ -29,10 +29,13 @@ public class HistoryMigratorLogs {
 
   public static final String MIGRATING_INSTANCES = "Migrating historic {} instances";
   public static final String MIGRATING_INSTANCE = "Migrating historic {} instance with legacyId: [{}]";
-  public static final String MIGRATING_INSTANCE_COMPLETE = "Migration of historic {} instance with legacyId "
-      + "[{}] completed";
+  public static final String MIGRATING_INSTANCE_COMPLETE =
+      "Migration of historic {} instance with legacyId " + "[{}] completed";
   public static final String SKIPPING_INSTANCE_MISSING_PARENT = "Migration of historic {} instance with legacyId [{}] skipped. Parent instance not yet available.";
   public static final String SKIPPING_INSTANCE_MISSING_DEFINITION = "Migration of historic {} instance with legacyId [{}] skipped. {} definition not yet available.";
+  public static final String SKIPPING_DECISION_INSTANCE_MISSING_PROCESS_INSTANCE = "Migration of historic decision instance with legacyId [{}] skipped. Process instance not yet available.";
+  public static final String SKIPPING_DECISION_INSTANCE_MISSING_FLOW_NODE_INSTANCE = "Migration of historic decision "
+      + "instance with legacyId [{}] skipped. Flow node instance not yet available.";
 
   public static final String MIGRATING_INCIDENTS = "Migrating historic incidents";
   public static final String MIGRATING_INCIDENT = "Migrating historic incident with legacyId: [{}]";
@@ -109,6 +112,38 @@ public class HistoryMigratorLogs {
 
   public static void skippingProcessInstanceDueToMissingDefinition(String legacyProcessInstanceId) {
     LOGGER.debug(SKIPPING_INSTANCE_MISSING_DEFINITION, "process", legacyProcessInstanceId, "process");
+  }
+
+  public static void migratingDecisionInstances() {
+    LOGGER.info(MIGRATING_INSTANCES, "decision");
+  }
+
+  public static void migratingDecisionInstance(String legacyDecisionInstanceId) {
+    LOGGER.debug(MIGRATING_INSTANCE, "decision", legacyDecisionInstanceId);
+  }
+
+  public static void migratingDecisionInstanceCompleted(String legacyDecisionInstanceId) {
+    LOGGER.debug(MIGRATING_INSTANCE_COMPLETE, "decision", legacyDecisionInstanceId);
+  }
+
+  public static void skippingDecisionInstanceDueToMissingParent(String legacyDecisionInstanceId) {
+    LOGGER.debug(SKIPPING_INSTANCE_MISSING_PARENT, "decision", legacyDecisionInstanceId);
+  }
+
+  public static void skippingDecisionInstanceDueToMissingDecisionDefinition(String legacyDecisionInstanceId) {
+    LOGGER.debug(SKIPPING_INSTANCE_MISSING_DEFINITION, "decision", legacyDecisionInstanceId, "decision");
+  }
+
+  public static void skippingDecisionInstanceDueToMissingProcessDefinition(String legacyDecisionInstanceId) {
+    LOGGER.debug(SKIPPING_INSTANCE_MISSING_DEFINITION, "decision", legacyDecisionInstanceId, "process");
+  }
+
+  public static void skippingDecisionInstanceDueToMissingProcessInstance(String legacyDecisionInstanceId) {
+    LOGGER.debug(SKIPPING_DECISION_INSTANCE_MISSING_PROCESS_INSTANCE, legacyDecisionInstanceId);
+  }
+
+  public static void skippingDecisionInstanceDueToMissingFlowNodeInstanceInstance(String legacyDecisionInstanceId) {
+    LOGGER.debug(SKIPPING_DECISION_INSTANCE_MISSING_FLOW_NODE_INSTANCE, legacyDecisionInstanceId);
   }
 
   public static void migratingHistoricIncidents() {

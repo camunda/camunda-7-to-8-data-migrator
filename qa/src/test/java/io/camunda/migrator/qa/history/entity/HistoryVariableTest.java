@@ -7,6 +7,7 @@
  */
 package io.camunda.migrator.qa.history.entity;
 
+import static io.camunda.migrator.constants.MigratorConstants.C8_DEFAULT_TENANT;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.SKIPPING_PROCESS_INSTANCE_VARIABLE_ERROR;
 import static io.camunda.migrator.impl.logging.VariableServiceLogs.BYTE_ARRAY_UNSUPPORTED_ERROR;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,6 +17,7 @@ import static org.camunda.bpm.engine.variable.Variables.SerializationDataFormats
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.camunda.migrator.constants.MigratorConstants;
 import io.camunda.migrator.qa.history.HistoryMigrationAbstractTest;
 import io.camunda.search.entities.VariableEntity;
 import java.text.SimpleDateFormat;
@@ -65,7 +67,7 @@ public class HistoryVariableTest extends HistoryMigrationAbstractTest {
     List<VariableEntity> variables = searchHistoricVariables("myVariable");
     assertThat(variables).hasSize(1);
     VariableEntity variable = variables.get(0);
-    assertC8VariableFields(variable, c7Variable, null, processInstance.getProcessDefinitionKey(), null);
+    assertC8VariableFields(variable, c7Variable, null, processInstance.getProcessDefinitionKey(), C8_DEFAULT_TENANT);
   }
 
   @Test
@@ -118,7 +120,7 @@ public class HistoryVariableTest extends HistoryMigrationAbstractTest {
     assertThat(variables).hasSize(1);
     VariableEntity variable = variables.get(0);
     String expectedDateValue = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(date);
-    assertC8VariableFields(variable, c7Variable, expectedDateValue, processInstance.getProcessDefinitionKey(), null);
+    assertC8VariableFields(variable, c7Variable, expectedDateValue, processInstance.getProcessDefinitionKey(), C8_DEFAULT_TENANT);
   }
 
   @Test
@@ -151,7 +153,7 @@ public class HistoryVariableTest extends HistoryMigrationAbstractTest {
     List<VariableEntity> variables = searchHistoricVariables("xmlVar");
     assertThat(variables).hasSize(1);
     VariableEntity variable = variables.get(0);
-    assertC8VariableFields(variable, c7Variable, xml, processInstance.getProcessDefinitionKey(), null);
+    assertC8VariableFields(variable, c7Variable, xml, processInstance.getProcessDefinitionKey(), C8_DEFAULT_TENANT);
   }
 
   @Test
@@ -184,7 +186,7 @@ public class HistoryVariableTest extends HistoryMigrationAbstractTest {
     // JSON objects should be converted to JSON string representation
     JsonNode expectedJson = objectMapper.readValue(json, JsonNode.class);
     String expectedValue = objectMapper.writeValueAsString(expectedJson);
-    assertC8VariableFields(variable, c7Variable, expectedValue, processInstance.getProcessDefinitionKey(), null);
+    assertC8VariableFields(variable, c7Variable, expectedValue, processInstance.getProcessDefinitionKey(), C8_DEFAULT_TENANT);
   }
 
   @Test
@@ -252,8 +254,8 @@ public class HistoryVariableTest extends HistoryMigrationAbstractTest {
     assertThat(variable1List).hasSize(1);
     assertThat(variable3List).hasSize(1);
 
-    assertC8VariableFields(variable1List.get(0), c7Variable1, "value1", "userTaskProcessId", null);
-    assertC8VariableFields(variable3List.get(0), c7Variable3, "value3", "userTaskProcessId", null);
+    assertC8VariableFields(variable1List.get(0), c7Variable1, "value1", "userTaskProcessId", C8_DEFAULT_TENANT);
+    assertC8VariableFields(variable3List.get(0), c7Variable3, "value3", "userTaskProcessId", C8_DEFAULT_TENANT);
   }
 
   @Test
@@ -291,8 +293,8 @@ public class HistoryVariableTest extends HistoryMigrationAbstractTest {
     VariableEntity globalVar = globalVars.get(0);
     VariableEntity localVar = localVars.get(0);
 
-    assertC8VariableFields(globalVar, c7GlobalVar, "globalValue", "ParallelGatewayProcess", null);
-    assertC8VariableFields(localVar, c7LocalVar, "localValue", "ParallelGatewayProcess", null);
+    assertC8VariableFields(globalVar, c7GlobalVar, "globalValue", "ParallelGatewayProcess", C8_DEFAULT_TENANT);
+    assertC8VariableFields(localVar, c7LocalVar, "localValue", "ParallelGatewayProcess", C8_DEFAULT_TENANT);
 
     // Local variable should have different scope than global variable
     assertThat(localVar.scopeKey()).isNotEqualTo(globalVar.scopeKey());
@@ -333,8 +335,8 @@ public class HistoryVariableTest extends HistoryMigrationAbstractTest {
     VariableEntity processVar = processVars.get(0);
     VariableEntity taskVar = taskVars.get(0);
 
-    assertC8VariableFields(processVar, c7ProcessVar, "processValue", "ParallelGatewayProcess", null);
-    assertC8VariableFields(taskVar, c7TaskVar, "taskValue", "ParallelGatewayProcess", null);
+    assertC8VariableFields(processVar, c7ProcessVar, "processValue", "ParallelGatewayProcess", C8_DEFAULT_TENANT);
+    assertC8VariableFields(taskVar, c7TaskVar, "taskValue", "ParallelGatewayProcess", C8_DEFAULT_TENANT);
 
     // Task variable should have different scope than process variable
     assertThat(taskVar.scopeKey()).isNotEqualTo(processVar.scopeKey());
