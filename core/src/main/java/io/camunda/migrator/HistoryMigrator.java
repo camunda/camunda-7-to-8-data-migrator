@@ -250,11 +250,11 @@ public class HistoryMigrator {
           saveRecord(legacyProcessInstanceId, legacyProcessInstance.getStartTime(), dbModel.processInstanceKey(), HISTORY_PROCESS_INSTANCE);
           HistoryMigratorLogs.migratingProcessInstanceCompleted(legacyProcessInstanceId);
         } else {
-          saveRecord(legacyProcessInstanceId, null, HISTORY_PROCESS_INSTANCE);
+          saveRecord(legacyProcessInstanceId, null, HISTORY_PROCESS_INSTANCE, "Missing parent process instance");
           HistoryMigratorLogs.skippingProcessInstanceDueToMissingParent(legacyProcessInstanceId);
         }
       } else {
-        saveRecord(legacyProcessInstanceId, null, HISTORY_PROCESS_INSTANCE);
+        saveRecord(legacyProcessInstanceId, null, HISTORY_PROCESS_INSTANCE, "Missing process definition");
         HistoryMigratorLogs.skippingProcessInstanceDueToMissingDefinition(legacyProcessInstanceId);
       }
     }
@@ -430,11 +430,11 @@ public class HistoryMigrator {
           saveRecord(legacyIncidentId, legacyIncident.getCreateTime(), dbModel.incidentKey(), HISTORY_INCIDENT);
           HistoryMigratorLogs.migratingHistoricIncidentCompleted(legacyIncidentId);
         } else {
-          saveRecord(legacyIncidentId, null, HISTORY_INCIDENT);
+          saveRecord(legacyIncidentId, null, HISTORY_INCIDENT, "Missing process instance key");
           HistoryMigratorLogs.skippingHistoricIncident(legacyIncidentId);
         }
       } else {
-        saveRecord(legacyIncidentId, null, HISTORY_INCIDENT);
+        saveRecord(legacyIncidentId, null, HISTORY_INCIDENT, "Missing process instance");
         HistoryMigratorLogs.skippingHistoricIncident(legacyIncidentId);
       }
     }
@@ -461,7 +461,7 @@ public class HistoryMigrator {
       String taskId = legacyVariable.getTaskId();
       if (taskId != null && !isMigrated(taskId, HISTORY_USER_TASK)) {
         // Skip variable if it belongs to a skipped task
-        saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE);
+        saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE, "Belongs to a skipped task");
         HistoryMigratorLogs.skippingHistoricVariableDueToMissingTask(legacyVariableId, taskId);
         return;
       }
@@ -479,15 +479,15 @@ public class HistoryMigrator {
             saveRecord(legacyVariableId, legacyVariable.getCreateTime(), dbModel.variableKey(), HISTORY_VARIABLE);
             HistoryMigratorLogs.migratingHistoricVariableCompleted(legacyVariableId);
           } else {
-            saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE);
+            saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE, "Missing scope key");
             HistoryMigratorLogs.skippingHistoricVariableDueToMissingScopeKey(legacyVariableId);
           }
         } else {
-          saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE);
+          saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE, "Missing flow node");
           HistoryMigratorLogs.skippingHistoricVariableDueToMissingFlowNode(legacyVariableId);
         }
       } else {
-        saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE);
+        saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE, "Missing process instance");
         HistoryMigratorLogs.skippingHistoricVariableDueToMissingProcessInstance(legacyVariableId);
       }
     }
@@ -520,11 +520,11 @@ public class HistoryMigrator {
           saveRecord(legacyUserTaskId, legacyUserTask.getStartTime(), dbModel.userTaskKey(), HISTORY_USER_TASK);
           HistoryMigratorLogs.migratingHistoricUserTaskCompleted(legacyUserTaskId);
         } else {
-          saveRecord(legacyUserTaskId, null, IdKeyMapper.TYPE.HISTORY_USER_TASK);
+          saveRecord(legacyUserTaskId, null, IdKeyMapper.TYPE.HISTORY_USER_TASK, "Missing flow node");
           HistoryMigratorLogs.skippingHistoricUserTaskDueToMissingFlowNode(legacyUserTaskId);
         }
       } else {
-        saveRecord(legacyUserTaskId, null, IdKeyMapper.TYPE.HISTORY_USER_TASK);
+        saveRecord(legacyUserTaskId, null, IdKeyMapper.TYPE.HISTORY_USER_TASK, "Missing process instance");
         HistoryMigratorLogs.skippingHistoricUserTaskDueToMissingProcessInstance(legacyUserTaskId);
       }
     }
@@ -556,7 +556,7 @@ public class HistoryMigrator {
         saveRecord(legacyFlowNodeId, legacyFlowNode.getStartTime(), dbModel.flowNodeInstanceKey(), HISTORY_FLOW_NODE);
         HistoryMigratorLogs.migratingHistoricFlowNodeCompleted(legacyFlowNodeId);
       } else {
-        saveRecord(legacyFlowNodeId, null, HISTORY_FLOW_NODE);
+        saveRecord(legacyFlowNodeId, null, HISTORY_FLOW_NODE, "Missing process instance");
         HistoryMigratorLogs.skippingHistoricFlowNode(legacyFlowNodeId);
       }
     }
@@ -693,6 +693,15 @@ public class HistoryMigrator {
       dbClient.updateKeyByIdAndType(entityId, entityKey, type);
     } else if (MIGRATE.equals(mode)) {
       dbClient.insert(entityId, date, entityKey, type);
+    }
+  }
+
+  protected void saveRecord(String entityId, Long entityKey, IdKeyMapper.TYPE type, String skipReason) {
+    if (RETRY_SKIPPED.equals(mode)) {
+      dbClient.updateKeyByIdAndType(entityId, entityKey, type);
+    } else if (MIGRATE.equals(mode)) {
+      dbClient.insert(entityId, null, type, skipReason);
+
     }
   }
 
