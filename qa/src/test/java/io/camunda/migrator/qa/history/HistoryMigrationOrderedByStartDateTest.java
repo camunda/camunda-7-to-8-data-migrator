@@ -15,11 +15,14 @@ import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.IncidentEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
+import io.camunda.search.entities.VariableEntity;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.camunda.bpm.engine.impl.util.ClockUtil;
+import org.camunda.bpm.engine.variable.VariableMap;
+import org.camunda.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.Test;
 
 public class HistoryMigrationOrderedByStartDateTest extends HistoryMigrationAbstractTest {
@@ -296,6 +299,46 @@ public class HistoryMigrationOrderedByStartDateTest extends HistoryMigrationAbst
 
     // then
     assertThat(searchHistoricIncidents("incidentProcessId")).hasSize(2);
+  }
+
+  @Test
+  public void shouldMigrateVariablesCreatedBetweenRuns() {
+    // given
+    deployer.deployCamunda7Process("simpleProcess.bpmn");
+    VariableMap variables = Variables.createVariables().putValue("stringVar", "myStringVar");
+    Supplier<List<VariableEntity>> variableSupplier = () -> searchHistoricVariables("stringVar");
+    runtimeService.startProcessInstanceByKey("simpleProcess", variables);
+
+    // when
+    historyMigrator.migrate();
+
+    // then
+    assertThat(variableSupplier.get()).singleElement();
+
+    // given
+    runtimeService.startProcessInstanceByKey("simpleProcess", variables);
+
+    // when
+    historyMigrator.migrate();
+
+    // then
+    assertThat(variableSupplier.get()).hasSize(2);
+  }
+
+  @Test
+  public void shouldMigrateVariablesWithSameCreationDate() {
+    // given
+    deployer.deployCamunda7Process("simpleProcess.bpmn");
+    VariableMap variables = Variables.createVariables().putValue("stringVar", "myStringVar");
+    ClockUtil.setCurrentTime(new Date());
+    runtimeService.startProcessInstanceByKey("simpleProcess", variables);
+    runtimeService.startProcessInstanceByKey("simpleProcess", variables);
+
+    // when
+    historyMigrator.migrate();
+
+    // then
+    assertThat(searchHistoricVariables("stringVar")).hasSize(2);
   }
 
 
