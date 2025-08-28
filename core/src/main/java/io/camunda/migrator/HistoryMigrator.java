@@ -24,6 +24,7 @@ import io.camunda.db.rdbms.read.domain.DecisionDefinitionDbQuery;
 import io.camunda.db.rdbms.read.domain.DecisionInstanceDbQuery;
 import io.camunda.db.rdbms.read.domain.FlowNodeInstanceDbQuery;
 import io.camunda.db.rdbms.read.domain.ProcessDefinitionDbQuery;
+import io.camunda.db.rdbms.read.domain.ProcessInstanceDbQuery;
 import io.camunda.db.rdbms.sql.DecisionDefinitionMapper;
 import io.camunda.db.rdbms.sql.DecisionInstanceMapper;
 import io.camunda.db.rdbms.sql.DecisionRequirementsMapper;
@@ -464,10 +465,11 @@ public class HistoryMigrator {
 
       String legacyProcessInstanceId = legacyVariable.getProcessInstanceId();
       if (isMigrated(legacyProcessInstanceId, HISTORY_PROCESS_INSTANCE)) {
-        if (isMigrated(legacyVariable.getActivityInstanceId(), HISTORY_FLOW_NODE)) {
+        if (isMigrated(legacyVariable.getActivityInstanceId(), HISTORY_FLOW_NODE) ||
+            isMigrated(legacyVariable.getActivityInstanceId(), HISTORY_PROCESS_INSTANCE)) {
           ProcessInstanceEntity processInstance = findProcessInstanceByLegacyId(legacyProcessInstanceId);
           Long processInstanceKey = processInstance.processInstanceKey();
-          Long scopeKey = findFlowNodeInstanceKey(legacyVariable.getActivityInstanceId()); // TODO does this cover scope correctly?
+          Long scopeKey = findScopeKey(legacyVariable.getActivityInstanceId());
           if (scopeKey != null) {
             VariableDbModel dbModel = variableConverter.apply(legacyVariable, processInstanceKey, scopeKey);
             variableMapper.insert(dbModel);
@@ -646,6 +648,22 @@ public class HistoryMigrator {
         .stream()
         .findFirst()
         .orElse(null);
+  }
+
+  private Long findScopeKey(String instanceId) {
+    Long key = findFlowNodeInstanceKey(instanceId);
+    if (key != null) {
+      return key;
+    }
+
+    Long processInstanceKey = dbClient.findKeyByIdAndType(instanceId, HISTORY_PROCESS_INSTANCE);
+    if (processInstanceKey == null) {
+      return null;
+    }
+
+    List<ProcessInstanceEntity> processInstances = processInstanceMapper.search(
+        ProcessInstanceDbQuery.of(b -> b.filter(value -> value.processInstanceKeys(processInstanceKey))));
+    return processInstances.isEmpty() ? null : processInstanceKey;
   }
 
   private boolean isMigrated(String id, IdKeyMapper.TYPE type) {

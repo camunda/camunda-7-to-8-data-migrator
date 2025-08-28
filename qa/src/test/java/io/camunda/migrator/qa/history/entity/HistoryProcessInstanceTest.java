@@ -7,6 +7,7 @@
  */
 package io.camunda.migrator.qa.history.entity;
 
+import static io.camunda.migrator.constants.MigratorConstants.C8_DEFAULT_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
@@ -39,7 +40,7 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
     List<ProcessInstanceEntity> processInstances = searchHistoricProcessInstances("userTaskProcessId");
     assertThat(processInstances).hasSize(1);
     verifyProcessInstanceFields(processInstances.getFirst(), historicProcessInstance, "userTaskProcessId",
-        ProcessInstanceEntity.ProcessInstanceState.COMPLETED, "custom-version-tag", "<default>", false, false);
+        ProcessInstanceEntity.ProcessInstanceState.COMPLETED, "custom-version-tag", C8_DEFAULT_TENANT, false, false);
   }
 
   @Test
@@ -90,11 +91,11 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
 
     var parent = parentProcessInstance.getFirst();
     verifyProcessInstanceFields(parent, historicProcessInstance, "callingProcessId",
-        ProcessInstanceEntity.ProcessInstanceState.COMPLETED, null, "<default>", false, false);
+        ProcessInstanceEntity.ProcessInstanceState.COMPLETED, null, C8_DEFAULT_TENANT, false, false);
 
     var sub = subProcessInstance.getFirst();
     verifyProcessInstanceFields(sub, historicSubProcessInstance, "calledProcessInstanceId",
-        ProcessInstanceEntity.ProcessInstanceState.COMPLETED, null, "<default>", true, false);
+        ProcessInstanceEntity.ProcessInstanceState.COMPLETED, null, C8_DEFAULT_TENANT, true, false);
 
   }
 
@@ -117,7 +118,7 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
     var processInstance = processInstances.getFirst();
 
     verifyProcessInstanceFields(processInstance, historicProcessInstance, "incidentProcessId",
-        ProcessInstanceEntity.ProcessInstanceState.ACTIVE, null, "<default>", false, true);
+        ProcessInstanceEntity.ProcessInstanceState.ACTIVE, null, C8_DEFAULT_TENANT, false, true);
   }
 
   @Test

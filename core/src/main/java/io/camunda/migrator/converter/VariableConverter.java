@@ -10,13 +10,16 @@ package io.camunda.migrator.converter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.db.rdbms.write.domain.VariableDbModel;
+import io.camunda.migrator.constants.MigratorConstants;
 import io.camunda.migrator.impl.logging.VariableConverterLogs;
+import io.camunda.migrator.impl.util.ConverterUtil;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
 import org.camunda.bpm.engine.variable.impl.value.NullValueImpl;
 import org.camunda.bpm.engine.variable.impl.value.ObjectValueImpl;
 import org.camunda.bpm.engine.variable.impl.value.PrimitiveTypeValueImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
 
 public class VariableConverter {
@@ -29,12 +32,14 @@ public class VariableConverter {
     return new VariableDbModel.VariableDbModelBuilder()
         .variableKey(getNextKey())
         .name(historicVariable.getName())
-        .value(convertValue(historicVariable)) //TODO ?
-        .scopeKey(scopeKey) //TODO ?
+        .value(convertValue(historicVariable)) // TODO https://github.com/camunda/camunda-bpm-platform/issues/5329
+        .scopeKey(scopeKey)
         .processInstanceKey(processInstanceKey)
         .processDefinitionId(historicVariable.getProcessDefinitionKey())
-        .tenantId(historicVariable.getTenantId())
-        .build(); //FIXME boolean values should be mapped to boolean by rdbms. Update version and fix
+        .tenantId(ConverterUtil.getTenantId(historicVariable.getTenantId()))
+        .partitionId(MigratorConstants.C7_HISTORY_PARTITION_ID)
+        .historyCleanupDate(convertDate(historicVariable.getRemovalTime()))
+        .build();
   }
 
   private String convertValue(HistoricVariableInstance variable) {

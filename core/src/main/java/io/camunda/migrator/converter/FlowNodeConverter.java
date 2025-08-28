@@ -59,6 +59,7 @@ public class FlowNodeConverter {
       case ActivityTypes.TASK_MANUAL_TASK -> FlowNodeType.MANUAL_TASK;
       case ActivityTypes.TASK_RECEIVE_TASK -> FlowNodeType.RECEIVE_TASK;
       case ActivityTypes.TRANSACTION -> FlowNodeType.SUB_PROCESS; // TODO how to handle this?
+      case ActivityTypes.TASK -> FlowNodeType.TASK;
       default -> throw new IllegalArgumentException("Unknown type: " + activityType);
     };
   }
