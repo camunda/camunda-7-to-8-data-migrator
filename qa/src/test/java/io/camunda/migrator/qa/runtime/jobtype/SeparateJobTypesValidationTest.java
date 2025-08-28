@@ -54,8 +54,9 @@ public class SeparateJobTypesValidationTest extends RuntimeMigrationAbstractTest
                     .replace("{}", "%s"), id,
                 String.format(NO_EXECUTION_LISTENER_OF_TYPE_ERROR
                         .replace(".", "\\.")
-                        .replace("[%s]", "\\[%s\\]"),
-                    VALIDATION_JOB_TYPE, "Event_1px2j50", "(\\d+)", VALIDATION_JOB_TYPE))))))
+                        .replace("[", "\\[")
+                        .replace("]", "\\]"),
+                    VALIDATION_JOB_TYPE, "Event_1px2j50", "noMigratorListener", 1, VALIDATION_JOB_TYPE))))))
         .hasSize(1);
   }
 
@@ -83,8 +84,9 @@ public class SeparateJobTypesValidationTest extends RuntimeMigrationAbstractTest
                     .replace("{}", "%s"), id,
                 String.format(NO_EXECUTION_LISTENER_OF_TYPE_ERROR
                         .replace(".", "\\.")
-                        .replace("[%s]", "\\[%s\\]"),
-                    VALIDATION_JOB_TYPE, "Event_1px2j50", "(\\d+)", VALIDATION_JOB_TYPE))))))
+                        .replace("[", "\\[")
+                        .replace("]", "\\]"),
+                    VALIDATION_JOB_TYPE, "Event_1px2j50", "migratorListenerCustomType", 1, VALIDATION_JOB_TYPE))))))
         .hasSize(1);
   }
 
