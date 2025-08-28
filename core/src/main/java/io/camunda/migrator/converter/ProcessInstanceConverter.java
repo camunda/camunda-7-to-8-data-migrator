@@ -8,6 +8,7 @@
 package io.camunda.migrator.converter;
 
 import static io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel.ProcessInstanceDbModelBuilder;
+import static io.camunda.migrator.constants.MigratorConstants.C7_HISTORY_PARTITION_ID;
 import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
 import static io.camunda.search.entities.ProcessInstanceEntity.ProcessInstanceState;
@@ -44,7 +45,7 @@ public class ProcessInstanceConverter {
         //        .parentElementInstanceKey(null)
         //        .treePath(null)
         .numIncidents(getIncidents(processInstance))
-        .partitionId(ConverterUtil.C7_HISTORY_PARTITION_ID)
+        .partitionId(C7_HISTORY_PARTITION_ID)
         .historyCleanupDate(convertDate(processInstance.getRemovalTime()))
         .build();
   }

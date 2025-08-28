@@ -21,6 +21,7 @@ import io.camunda.migrator.qa.AbstractMigratorTest;
 import io.camunda.migrator.qa.config.TestProcessEngineConfiguration;
 import io.camunda.migrator.qa.util.WithSpringProfile;
 import io.camunda.search.entities.DecisionDefinitionEntity;
+import io.camunda.search.entities.DecisionInstanceEntity;
 import io.camunda.search.entities.DecisionRequirementsEntity;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.IncidentEntity;
@@ -29,6 +30,7 @@ import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.entities.UserTaskEntity;
 import io.camunda.search.entities.VariableEntity;
 import io.camunda.search.query.DecisionDefinitionQuery;
+import io.camunda.search.query.DecisionInstanceQuery;
 import io.camunda.search.query.DecisionRequirementsQuery;
 import io.camunda.search.query.FlowNodeInstanceQuery;
 import io.camunda.search.query.IncidentQuery;
@@ -36,6 +38,7 @@ import io.camunda.search.query.ProcessDefinitionQuery;
 import io.camunda.search.query.ProcessInstanceQuery;
 import io.camunda.search.query.UserTaskQuery;
 import io.camunda.search.query.VariableQuery;
+import io.camunda.search.result.DecisionInstanceQueryResultConfig;
 import java.util.List;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.impl.util.ClockUtil;
@@ -117,6 +120,14 @@ public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest 
         .search(ProcessInstanceQuery.of(queryBuilder ->
             queryBuilder.filter(filterBuilder ->
                 filterBuilder.processDefinitionIds(processDefinitionId))))
+        .items();
+  }
+
+  public List<DecisionInstanceEntity> searchHistoricDecisionInstances(String decisionDefinitionId) {
+    return rdbmsService.getDecisionInstanceReader()
+        .search(DecisionInstanceQuery.of(queryBuilder -> queryBuilder.filter(
+                filterBuilder -> filterBuilder.decisionDefinitionIds(decisionDefinitionId))
+            .resultConfig(DecisionInstanceQueryResultConfig.of(DecisionInstanceQueryResultConfig.Builder::includeAll))))
         .items();
   }
 

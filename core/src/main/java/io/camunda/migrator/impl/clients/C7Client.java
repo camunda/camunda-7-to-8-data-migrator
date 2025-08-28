@@ -27,11 +27,14 @@ import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
+import org.camunda.bpm.engine.history.HistoricDecisionInputInstance;
+import org.camunda.bpm.engine.history.HistoricDecisionInstance;
 import org.camunda.bpm.engine.history.HistoricIncident;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricTaskInstance;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
 import org.camunda.bpm.engine.impl.HistoricActivityInstanceQueryImpl;
+import org.camunda.bpm.engine.impl.HistoricDecisionInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.HistoricIncidentQueryImpl;
 import org.camunda.bpm.engine.impl.HistoricProcessInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.HistoricTaskInstanceQueryImpl;
@@ -102,6 +105,22 @@ public class C7Client {
   public DecisionDefinition getDecisionDefinition(String legacyId) {
     var query = repositoryService.createDecisionDefinitionQuery().decisionDefinitionId(legacyId);
     return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "DecisionDefinition", legacyId));
+  }
+
+  /**
+   * Gets a single historic decision instance by ID.
+   */
+  public HistoricDecisionInstance getHistoricDecisionInstance(String legacyId) {
+    var query = historyService.createHistoricDecisionInstanceQuery().decisionInstanceId(legacyId);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricDecisionInstance", legacyId));
+  }
+
+  /**
+   * Gets a single historic decision instance by ID.
+   */
+  public HistoricDecisionInstance getHistoricDecisionInstanceByDefinitionKey(String definitionKey) {
+    var query = historyService.createHistoricDecisionInstanceQuery().decisionDefinitionKey(definitionKey);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricDecisionInstance", definitionKey));
   }
 
   /**
@@ -266,6 +285,27 @@ public class C7Client {
     }
 
     new Pagination<HistoricProcessInstance>()
+        .pageSize(properties.getPageSize())
+        .query(query)
+        .maxCount(query::count)
+        .callback(callback);
+  }
+
+  /**
+   * Processes historic decision instances with pagination using the provided callback consumer.
+   */
+  public void fetchAndHandleHistoricDecisionInstances(Consumer<HistoricDecisionInstance> callback, Date evaluatedAfter) {
+    HistoricDecisionInstanceQueryImpl query = (HistoricDecisionInstanceQueryImpl) historyService.createHistoricDecisionInstanceQuery()
+        .includeInputs()
+        .includeOutputs()
+        .orderByEvaluationTime()
+        .asc(); // TODO order by ID https://github.com/camunda/camunda-bpm-platform/issues/5368
+
+    if (evaluatedAfter != null) {
+      query.evaluatedAfter(evaluatedAfter);
+    }
+
+    new Pagination<HistoricDecisionInstance>()
         .pageSize(properties.getPageSize())
         .query(query)
         .maxCount(query::count)
