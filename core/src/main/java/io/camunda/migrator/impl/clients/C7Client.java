@@ -299,7 +299,9 @@ public class C7Client {
         .includeInputs()
         .includeOutputs()
         .orderByEvaluationTime()
-        .asc(); // TODO order by ID https://github.com/camunda/camunda-bpm-platform/issues/5368
+        .asc()
+        .orderByDecisionInstanceId()
+        .asc();
 
     if (evaluatedAfter != null) {
       query.evaluatedAfter(evaluatedAfter);
