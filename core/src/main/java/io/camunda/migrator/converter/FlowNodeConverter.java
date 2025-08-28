@@ -57,6 +57,9 @@ public class FlowNodeConverter {
   }
 
   private String buildTreePath(String parentTreePath, Long flowNodeInstanceKey) {
+    if(parentTreePath == null) {
+      return null;
+    }
     return String.join("/", parentTreePath, (flowNodeInstanceKey.toString()));
   }
 

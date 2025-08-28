@@ -56,6 +56,29 @@ public class FlowNodeTreePathTest extends HistoryMigrationAbstractTest {
   }
 
   @Test
+  public void shouldSetTreePathToNullIfParentTreePathIsNull() {
+    // given - deploy process and create completed instance
+    deployer.deployCamunda7Process("passingServiceTaskProcess.bpmn");
+    String processInstanceId = runtimeService.startProcessInstanceByKey("serviceTaskProcessId").getId();
+
+    var legacyFlowNodes = historyService.createHistoricActivityInstanceQuery().processInstanceId(processInstanceId).list();
+
+    historyMigrator.migrate();
+    List<ProcessInstanceEntity> processInstances = searchHistoricProcessInstances("serviceTaskProcessId");
+    assertThat(processInstances).hasSize(1);
+
+    ProcessInstanceEntity processInstance = processInstances.getFirst();
+    // Verify flow nodes have correct tree path structure
+    List<FlowNodeInstanceEntity> flowNodes = searchHistoricFlowNodes(processInstance.processInstanceKey());
+    assertThat(flowNodes).isNotEmpty();
+
+    // Verify specific flow nodes have the expected tree path pattern
+    verifyNullTreePath(flowNodes, "StartEvent_1");
+    verifyNullTreePath(flowNodes, "serviceTaskId");
+    verifyNullTreePath(flowNodes, "Event_1uk5gek");
+  }
+
+  @Test
   public void shouldCorrectlyConstructTreePathForMultiInstance() {
     // given - deploy process with multi-instance activities and create completed instance
     deployer.deployCamunda7Process("multiInstanceProcess.bpmn");
@@ -160,6 +183,14 @@ public class FlowNodeTreePathTest extends HistoryMigrationAbstractTest {
     assertThat(activity).isNotNull();
     String expectedPattern = parentTreePath + "/" + activity.flowNodeInstanceKey();
     assertThat(activity.treePath()).isEqualTo(expectedPattern);
+  }
+
+  private void verifyNullTreePath(List<FlowNodeInstanceEntity> flowNodes, String activityId) {
+    FlowNodeInstanceEntity activity = flowNodes.stream()
+        .filter(fn -> activityId.equals(fn.flowNodeId()))
+        .findFirst().orElse(null);
+    assertThat(activity).isNotNull();
+    assertThat(activity.treePath()).isNull();
   }
 
   /**

@@ -565,7 +565,7 @@ public class HistoryMigrator {
         Long flowNodeScopeKey = determineFlowNodeScopeKey(legacyFlowNode, processInstanceKey);
         String parentTreePath = determineParentTreePath(legacyFlowNode, processInstance);
 
-        if (flowNodeScopeKey != null &&  parentTreePath != null) {
+        if (flowNodeScopeKey != null) {
           FlowNodeInstanceDbModel dbModel = flowNodeConverter.apply(legacyFlowNode, processDefinitionKey, processInstanceKey, flowNodeScopeKey, parentTreePath);
           flowNodeMapper.insert(dbModel);
           saveRecord(legacyFlowNodeId, legacyFlowNode.getStartTime(), dbModel.flowNodeInstanceKey(), HISTORY_FLOW_NODE);
@@ -583,12 +583,7 @@ public class HistoryMigrator {
 
   private String determineParentTreePath(HistoricActivityInstance legacyFlowNode, ProcessInstanceEntity processInstance) {
     String parentActivityInstanceId = legacyFlowNode.getParentActivityInstanceId();
-
     if (parentActivityInstanceId == null || parentActivityInstanceId.equals(legacyFlowNode.getProcessInstanceId())) {
-      // TODO can be removed when camunda-bpm-platform/issues/5359 is implemented
-      if( processInstance.treePath() == null || processInstance.treePath().isEmpty()) {
-        return "" + processInstance.processInstanceKey();
-      }
       return processInstance.treePath();
     }
 
