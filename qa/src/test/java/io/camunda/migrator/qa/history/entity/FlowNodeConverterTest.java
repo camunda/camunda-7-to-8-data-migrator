@@ -7,7 +7,7 @@
  */
 package io.camunda.migrator.qa.history.entity;
 
-import static io.camunda.client.ClientProperties.DEFAULT_TENANT_ID;
+import static io.camunda.migrator.constants.MigratorConstants.C8_DEFAULT_TENANT;
 import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeState.ACTIVE;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeState.COMPLETED;
@@ -25,7 +25,6 @@ import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.ProcessEngineException;
@@ -51,8 +50,7 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
     // given - deploy process and create completed instance
     deployer.deployCamunda7Process("flowNodeHistoricMigrationTestProcess.bpmn");
 
-    String processInstanceId = runtimeService.startProcessInstanceByKey("flowNodeHistoricMigrationTestProcessId",
-        Map.of("testVar", "testValue")).getId();
+    String processInstanceId = runtimeService.startProcessInstanceByKey("flowNodeHistoricMigrationTestProcessId").getId();
 
     // Complete user task to generate completed flow nodes
     List<Task> tasks = taskService.createTaskQuery().processInstanceId(processInstanceId).list();
@@ -225,7 +223,7 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
       assertThat(flowNode.incidentKey()).isNull();
 
       if (expectedTenantId == null) {
-        assertThat(flowNode.tenantId()).isEqualTo(DEFAULT_TENANT_ID);
+        assertThat(flowNode.tenantId()).isEqualTo(C8_DEFAULT_TENANT);
       } else {
         assertThat(flowNode.tenantId()).isEqualTo(expectedTenantId);
       }
