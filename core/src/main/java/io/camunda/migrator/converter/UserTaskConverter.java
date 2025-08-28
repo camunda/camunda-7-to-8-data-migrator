@@ -38,7 +38,7 @@ public class UserTaskConverter {
         .followUpDate(convertDate(historicTask.getFollowUpDate()))
         .priority(historicTask.getPriority())
         .processDefinitionVersion(processInstance.processDefinitionVersion())
-        .formKey(null) //TODO ?
+        .formKey(null) // TODO  https://github.com/camunda/camunda-bpm-platform/issues/5347
         .candidateGroups(null) //TODO ?
         .candidateUsers(null) //TODO ?
         .externalFormReference(null) //TODO ?

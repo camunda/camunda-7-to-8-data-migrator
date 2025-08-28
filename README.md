@@ -145,10 +145,10 @@ cd assembly/target
 # Migrate running process instances
 ./start.sh --runtime
 
-# List skipped instances
+# List all skipped runtime instances
 ./start.sh --runtime --list-skipped
 
-# Retry previously skipped instances
+# Retry previously skipped runtime instances
 ./start.sh --runtime --retry-skipped
 ```
 
@@ -156,6 +156,15 @@ cd assembly/target
 ```bash
 # Migrate historical data
 ./start.sh --history
+
+# List all skipped history entities
+./start.sh --history --list-skipped
+
+# List skipped entities for specific entity types (only available for history migration)
+./start.sh --history --list-skipped HISTORY_PROCESS_INSTANCE HISTORY_USER_TASK
+
+# Retry previously skipped history entities
+./start.sh --history --retry-skipped
 ```
 
 ## Custom Configuration Example
@@ -328,7 +337,7 @@ logging:
 | | `.grpc-address`             | `string`  | The gRPC API endpoint for Camunda 8 Platform. Default: `http://localhost:26500`                                                                                    |
 | | `.rest-address`             | `string`  | The REST API endpoint for Camunda 8 Platform. Default: `http://localhost:8088`                                                                                     |
 | `camunda.migrator` |                             |           |                                                                                                                                                                    |
-| | `.page-size`                | `number`  | Number of records to process in each page. Default: `500`                                                                                                          |
+| | `.page-size`                | `number`  | Number of records to process in each page. Default: `100`                                                                                                           |
 | | `.job-type`                 | `string`  | Job type for actual job activation. Default: `migrator`.                                                                                                           |
 | | `.validation-job-type`      | `string`  | Job type for validation purposes. Optional: falls back to `job-type` if not defined. Set to `DISABLED` to disable job type execution listener validation entirely. |
 | | `.auto-ddl`                 | `boolean` | Automatically create/update migrator database schema. Default: `false`                                                                                             |
@@ -359,7 +368,7 @@ logging:
 | `logging` |                             |           |                                                                                                                                                                    |
 | | `.level.root`               | `string`  | Root logger level. Default: `INFO`                                                                                                                                 |
 | | `.level.io.camunda.migrator` | `string`  | Migrator logging level. Default: `INFO`                                                                                                                            |
-| | `.file.name`                | `string`  | Log file location. Set to: `logs/camunda-7-to-8-data-migrator.log`. If not specified, logs are output to the console.                                                          |
+| | `.file.name`                | `string`  | Log file location. Set to: `logs/camunda-7-to-8-data-migrator.log`. If not specified, logs are output to the console.                                              |
 
 ## Variable transformation
 
@@ -524,23 +533,42 @@ When a process instance is skipped:
 
 #### Handling Skipped Instances
 
-1. **List Skipped Instances**
+1. **List All Skipped Instances**
    ```bash
    ./start.sh --runtime --list-skipped
    ```
 
-2. **Retry Skipped Instances**
+2. **List Skipped Instances for Specific Entity Types**
+   ```bash
+   # List only skipped process instances
+   ./start.sh --history --list-skipped HISTORY_PROCESS_INSTANCE
+   
+   # List multiple specific entity types
+   ./start.sh --history --list-skipped HISTORY_PROCESS_INSTANCE HISTORY_USER_TASK HISTORY_VARIABLE
+   ```
+   
+   **Available Entity Types for Filtering:**
+   - `HISTORY_PROCESS_DEFINITION` - Process definitions
+   - `HISTORY_PROCESS_INSTANCE` - Process instances  
+   - `HISTORY_INCIDENT` - Process incidents
+   - `HISTORY_VARIABLE` - Process variables
+   - `HISTORY_USER_TASK` - User tasks
+   - `HISTORY_FLOW_NODE` - Flow node instances
+   - `HISTORY_DECISION_INSTANCE` - Decision instances
+   - `HISTORY_DECISION_DEFINITION` - Decision definitions
+
+3. **Retry Skipped Instances**
    ```bash
    ./start.sh --runtime --retry-skipped
    ```
 
-3. **Common Resolution Steps**
+4. **Common Resolution Steps**
    - Deploy the missing C8 process definition
    - Wait for multi-instance activities to complete
    - Ensure all active flow nodes in the C7 process have corresponding elements in the C8 process
    - Modify process instance to a supported state
 
-#### Limitations
+#### General Limitations
 
 - Multi-tenancy is currently not supported. I.e., a runtime process instance can only be migrated if it is not associated with a tenant.
   - See https://github.com/camunda/camunda-bpm-platform/issues/5315
@@ -647,6 +675,24 @@ When a process instance is skipped:
     <bpmn:sequenceFlow id="Flow_1o2i34a" sourceRef="ActivityId" targetRef="EndEvent" />
   </bpmn:process>
 ```
+
+### History Migration
+
+- The history cleanup date is populated if the instance has removal time set in Camunda 7.
+- Process instance migration doesn't populate the `parentElementInstanceKey` and `tree` fields.
+    - This means that the history of subprocesses and call activities is not linked to their parent
+      process instance.
+    - As a result, you cannot query for the history of a subprocess or call activity using the
+      parent process instance key.
+    - To be tackled in [#5359](https://github.com/camunda/camunda-bpm-platform/issues/5359).
+- Tenant value `null` from Camunda 7 is migrated `<default>` in Camunda 8.
+Read more about tenant handling in Camunda 8 [here](https://docs.camunda.io/docs/self-managed/concepts/multi-tenancy/#the-tenant-identifier).
+All other tenantIds will be migrated as-is.
+- Decision Instance data
+  - the data migrator only migrates instances which are linked to process definition business rule tasks
+  - `evaluationFailure` and `evaluationFailureMessage` are not populated in migrated decision instances
+  - decision instance `inputs` an `outputs` are not yet migrated. This will be addressed with [issue #5364](https://github.com/camunda/camunda-bpm-platform/issues/5364)
+
 
 ## Troubleshooting
 

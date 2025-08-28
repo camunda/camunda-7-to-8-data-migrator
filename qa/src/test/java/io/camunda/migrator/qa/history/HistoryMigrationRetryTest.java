@@ -19,18 +19,9 @@ import io.camunda.migrator.MigratorMode;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import java.util.List;
-import org.camunda.bpm.engine.HistoryService;
-import org.camunda.bpm.engine.ManagementService;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
-
-  @Autowired
-  private HistoryService historyService;
-
-  @Autowired
-  private ManagementService managementService;
 
   @Test
   public void shouldMigratePreviouslySkippedProcessDefinition() {
@@ -38,7 +29,6 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
     deployer.deployCamunda7Process("userTaskProcess.bpmn");
     String legacyId = repositoryService.createProcessDefinitionQuery().singleResult().getId();
     markEntityAsSkipped(legacyId, HISTORY_PROCESS_DEFINITION);
-
     // when history migration is retried
     historyMigrator.setMode(MigratorMode.RETRY_SKIPPED);
     historyMigrator.migrate();
@@ -69,7 +59,7 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
     // given
     deployer.deployCamunda7Decision("simpleDmnWithReqs.dmn");
     String legacyId = repositoryService.createDecisionRequirementsDefinitionQuery().singleResult().getId();
-    markEntityAsSkipped(legacyId, IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENTS);
+    markEntityAsSkipped(legacyId, IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENT);
 
     // when 
     historyMigrator.setMode(MigratorMode.RETRY_SKIPPED);
@@ -77,7 +67,7 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
 
     // then
     assertThat(searchHistoricDecisionRequirementsDefinition("simpleDmnWithReqsId").size()).isEqualTo(1);
-    assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENTS)).isEqualTo(0);
+    assertThat(dbClient.countSkippedByType(IdKeyMapper.TYPE.HISTORY_DECISION_REQUIREMENT)).isEqualTo(0);
   }
 
   @Test
@@ -132,12 +122,12 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
     assertThat(searchHistoricVariables("userTaskVar").size()).isEqualTo(1);
 
     // and nothing marked as skipped
-    assertThat(dbClient.checkHasKey(procDefId)).isTrue();
-    assertThat(dbClient.checkHasKey(procInstId)).isTrue();
-    assertThat(dbClient.checkHasKey(actInstId)).isTrue();
-    assertThat(dbClient.checkHasKey(taskId)).isTrue();
-    assertThat(dbClient.checkHasKey(incidentId)).isTrue();
-    assertThat(dbClient.checkHasKey(varId)).isTrue();
+    assertThat(dbClient.checkHasKeyByIdAndType(procDefId, HISTORY_PROCESS_DEFINITION)).isTrue();
+    assertThat(dbClient.checkHasKeyByIdAndType(procInstId, HISTORY_PROCESS_INSTANCE)).isTrue();
+    assertThat(dbClient.checkHasKeyByIdAndType(actInstId, HISTORY_FLOW_NODE)).isTrue();
+    assertThat(dbClient.checkHasKeyByIdAndType(taskId, HISTORY_USER_TASK)).isTrue();
+    assertThat(dbClient.checkHasKeyByIdAndType(incidentId, HISTORY_INCIDENT)).isTrue();
+    assertThat(dbClient.checkHasKeyByIdAndType(varId, HISTORY_VARIABLE)).isTrue();
   }
 
   @Test
@@ -176,24 +166,9 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
     assertThat(processInstances.size()).isEqualTo(4);
 
     // and skipped entities are still skipped
-    assertThat(dbClient.checkHasKey(procInstId)).isFalse();
-    assertThat(dbClient.checkHasKey(actInstId)).isFalse();
-    assertThat(dbClient.checkHasKey(taskId)).isFalse();
-  }
-
-  private void executeAllJobsWithRetry() {
-    var jobs = managementService.createJobQuery().list();
-
-    // Try executing the job multiple times to ensure incident is created
-    for (var job : jobs) {
-      for (int i = 0; i < 3; i++) {
-        try {
-          managementService.executeJob(job.getId());
-        } catch (Exception e) {
-          // expected - job will fail due to empty delegate expression
-        }
-      }
-    }
+    assertThat(dbClient.checkHasKeyByIdAndType(procInstId, HISTORY_PROCESS_INSTANCE)).isFalse();
+    assertThat(dbClient.checkHasKeyByIdAndType(actInstId, HISTORY_FLOW_NODE)).isFalse();
+    assertThat(dbClient.checkHasKeyByIdAndType(taskId, HISTORY_USER_TASK)).isFalse();
   }
 
   private void markEntityAsSkipped(String legacyId, IdKeyMapper.TYPE type) {
