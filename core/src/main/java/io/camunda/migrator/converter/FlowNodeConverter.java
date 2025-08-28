@@ -100,7 +100,7 @@ public class FlowNodeConverter {
       case ActivityTypes.TASK_MANUAL_TASK -> FlowNodeType.MANUAL_TASK;
       case ActivityTypes.TASK_RECEIVE_TASK -> FlowNodeType.RECEIVE_TASK;
       case ActivityTypes.TASK_SEND_TASK -> null; // No equivalent in C8
-      case ActivityTypes.TASK -> null; // Generic task - no equivalent in C8
+      case ActivityTypes.TASK -> FlowNodeType.TASK; // Generic task - no equivalent in C8
 
       // Gateways
       case ActivityTypes.GATEWAY_EXCLUSIVE -> FlowNodeType.EXCLUSIVE_GATEWAY;
@@ -131,7 +131,6 @@ public class FlowNodeConverter {
       case ActivityTypes.CALL_ACTIVITY -> FlowNodeType.CALL_ACTIVITY;
       case ActivityTypes.TRANSACTION -> FlowNodeType.SUB_PROCESS; // TODO how to handle this?
       case ActivityTypes.MULTI_INSTANCE_BODY -> FlowNodeType.MULTI_INSTANCE_BODY;
-      case ActivityTypes.TASK -> FlowNodeType.TASK;
       default -> throw new IllegalArgumentException("Unknown type: " + activityType);
     };
   }

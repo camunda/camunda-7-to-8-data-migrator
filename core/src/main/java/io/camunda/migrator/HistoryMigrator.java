@@ -713,6 +713,21 @@ public class HistoryMigrator {
     return dbClient.findKeyByIdAndType(activityInstanceId, HISTORY_FLOW_NODE);
   }
 
+  private Long findScopeKey(String instanceId) {
+    Long key = findFlowNodeInstanceKey(instanceId);
+    if (key != null) {
+      return key;
+    }
+
+    Long processInstanceKey = dbClient.findKeyByIdAndType(instanceId, HISTORY_PROCESS_INSTANCE);
+    if (processInstanceKey == null) {
+      return null;
+    }
+    List<ProcessInstanceEntity> processInstances = processInstanceMapper.search(
+        ProcessInstanceDbQuery.of(b -> b.filter(value -> value.processInstanceKeys(processInstanceKey))));
+    return processInstances.isEmpty() ? null : processInstanceKey;
+  }
+
   private FlowNodeInstanceDbModel findFlowNodeByKey(Long flowNodeInstanceKey) {
     List<FlowNodeInstanceDbModel> flowNodes = flowNodeMapper.search(
         FlowNodeInstanceDbQuery.of(b -> b.filter(FlowNodeInstanceFilter.of(f -> f.flowNodeInstanceKeys(flowNodeInstanceKey)))));
