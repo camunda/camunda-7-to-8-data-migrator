@@ -7,6 +7,7 @@
  */
 package io.camunda.migrator.qa.history.entity;
 
+import static io.camunda.migrator.constants.MigratorConstants.C8_DEFAULT_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.migrator.qa.history.HistoryMigrationAbstractTest;
@@ -14,18 +15,17 @@ import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.entities.UserTaskEntity;
 import java.util.Date;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.history.HistoricTaskInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.Task;
+import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 
 public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
-
-  @Autowired
-  protected HistoryService historyService;
 
   @Test
   public void shouldMigrateTaskBasicFields() {
@@ -305,7 +305,7 @@ public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
     String processName = "process";
     // C7
 
-    var c7ProcessModel = org.camunda.bpm.model.bpmn.Bpmn.createExecutableProcess(processName)
+    BpmnModelInstance c7ProcessModel = org.camunda.bpm.model.bpmn.Bpmn.createExecutableProcess(processName)
         .startEvent("start")
         .userTask("userTask_1").name("")
         .endEvent("end")
@@ -360,7 +360,11 @@ public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
     assertThat(userTask.name()).isEqualTo(c7Task.getName());
 
     // Tenant
-    assertThat(userTask.tenantId()).isEqualTo(c7Task.getTenantId());
+    if (StringUtils.isEmpty(c7Task.getTenantId())) {
+      assertThat(userTask.tenantId()).isEqualTo(C8_DEFAULT_TENANT);
+    } else {
+      assertThat(userTask.tenantId()).isEqualTo(c7Task.getTenantId());
+    }
 
     // Process definition version
     assertThat(userTask.processDefinitionVersion()).isEqualTo(processInstance.processDefinitionVersion());

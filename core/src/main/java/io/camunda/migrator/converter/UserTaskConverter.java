@@ -8,12 +8,15 @@
 package io.camunda.migrator.converter;
 
 import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
+import io.camunda.migrator.constants.MigratorConstants;
 import io.camunda.migrator.impl.util.ConverterUtil;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import org.camunda.bpm.engine.history.HistoricTaskInstance;
 
+import static io.camunda.migrator.constants.MigratorConstants.C7_HISTORY_PARTITION_ID;
 import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
+import static io.camunda.migrator.impl.util.ConverterUtil.getTenantId;
 
 public class UserTaskConverter {
 
@@ -32,7 +35,7 @@ public class UserTaskConverter {
         .state(convertState(historicTask.getTaskState()))
         .processDefinitionKey(processDefinitionKey)
         .processInstanceKey(processInstance.processInstanceKey())
-        .tenantId(historicTask.getTenantId())
+        .tenantId(getTenantId(historicTask.getTenantId()))
         .elementInstanceKey(elementInstanceKey)
         .dueDate(convertDate(historicTask.getDueDate()))
         .followUpDate(convertDate(historicTask.getFollowUpDate()))
@@ -44,7 +47,7 @@ public class UserTaskConverter {
         .externalFormReference(null) //TODO ?
         .customHeaders(null) //TODO ?
         .historyCleanupDate(convertDate(historicTask.getRemovalTime()))
-        .partitionId(ConverterUtil.C7_HISTORY_PARTITION_ID)
+        .partitionId(C7_HISTORY_PARTITION_ID)
         .name(historicTask.getName())
         .build();
   }
