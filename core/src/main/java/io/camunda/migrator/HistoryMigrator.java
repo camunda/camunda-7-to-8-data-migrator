@@ -449,7 +449,7 @@ public class HistoryMigrator {
         migrateVariable(historicVariableInstance);
       });
     } else {
-      c7Client.fetchAndHandleHistoricVariables(this::migrateVariable, dbClient.findLatestIdByType(HISTORY_VARIABLE));
+      c7Client.fetchAndHandleHistoricVariables(this::migrateVariable, dbClient.findLatestStartDateByType(HISTORY_VARIABLE));
     }
   }
 
