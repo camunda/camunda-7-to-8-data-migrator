@@ -54,7 +54,7 @@ public class NoneStartEventNotFoundTest extends RuntimeMigrationAbstractTest {
 
     var events = logs.getEvents();
     assertThat(events.stream().filter(event -> event.getMessage()
-        .matches(".*Couldn't find process None Start Event in C8 process with key.*")))
+        .matches(".*C8 process definition \\[id: .+, version: .+\\] should have a None Start Event.*")))
         .hasSize(1);
   }
 
@@ -95,7 +95,7 @@ public class NoneStartEventNotFoundTest extends RuntimeMigrationAbstractTest {
 
     var events = logs.getEvents();
     assertThat(events.stream().filter(event -> event.getMessage()
-        .matches(".*Couldn't find process None Start Event in C8 process with key.*")))
+        .matches(".*C8 process definition \\[id: .+, version: .+\\] should have a None Start Event.*")))
         .hasSize(1);
   }
 }

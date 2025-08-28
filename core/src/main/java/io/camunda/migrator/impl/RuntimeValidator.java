@@ -18,7 +18,6 @@ import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.MULTI_INSTAN
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_C8_DEPLOYMENT_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_EXECUTION_LISTENER_OF_TYPE_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_NONE_START_EVENT_ERROR;
-import static io.camunda.migrator.impl.util.C7Utils.getActiveActivityIdsById;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.CALL_ACTIVITY_LEGACY_ID_ERROR;
 
@@ -29,7 +28,6 @@ import io.camunda.client.api.search.response.ProcessDefinition;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.clients.C7Client;
 import io.camunda.migrator.impl.clients.C8Client;
-import io.camunda.migrator.impl.logging.RuntimeValidatorLogs;
 import io.camunda.migrator.impl.model.FlowNode;
 import io.camunda.zeebe.model.bpmn.impl.instance.ProcessImpl;
 import io.camunda.zeebe.model.bpmn.impl.instance.zeebe.ZeebeExecutionListenersImpl;
@@ -78,7 +76,7 @@ public class RuntimeValidator {
   /**
    * Validates C8 process structure and execution listeners.
    */
-  public void validateC8Process(String xmlString, long processDefinitionKey) {
+  public void validateC8Process(String xmlString, ProcessDefinition procDef) {
     var bpmnModelInstance = parseBpmnModel(xmlString);
 
     var processInstanceStartEvents = bpmnModelInstance.getDefinitions()
@@ -91,7 +89,7 @@ public class RuntimeValidator {
     boolean hasNoneStartEvent = processInstanceStartEvents.stream()
         .anyMatch(startEvent -> startEvent.getEventDefinitions().isEmpty());
     if (!hasNoneStartEvent) {
-      throw new IllegalStateException(String.format(NO_NONE_START_EVENT_ERROR, processDefinitionKey));
+      throw new IllegalStateException(String.format(NO_NONE_START_EVENT_ERROR, procDef.getProcessDefinitionId(), procDef.getVersion()));
     }
 
     // Skip job type validation if disabled
@@ -110,7 +108,7 @@ public class RuntimeValidator {
       if (!hasMigratorListener) {
         throw new IllegalStateException(
             String.format(NO_EXECUTION_LISTENER_OF_TYPE_ERROR, validationJobType, startEvent.getId(),
-                processDefinitionKey, validationJobType));
+                procDef.getProcessDefinitionId(), procDef.getVersion(), validationJobType));
       }
     });
   }
@@ -209,10 +207,10 @@ public class RuntimeValidator {
 
       var activityInstanceTree = c7Client.getActivityInstance(processInstanceId);
 
-      long processDefinitionKey = c8Definitions.items().getFirst().getProcessDefinitionKey();
-      String c8XmlString = c8Client.getProcessDefinitionXml(processDefinitionKey);
+      ProcessDefinition c8ProcessDefinition = c8Definitions.items().getFirst();
+      String c8XmlString = c8Client.getProcessDefinitionXml(c8ProcessDefinition.getProcessDefinitionKey());
 
-      validateC8Process(c8XmlString, processDefinitionKey);
+      validateC8Process(c8XmlString, c8ProcessDefinition);
 
       RuntimeValidatorLogs.collectingActiveDescendantActivitiesValidation(processInstanceId);
       Map<String, FlowNode> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());

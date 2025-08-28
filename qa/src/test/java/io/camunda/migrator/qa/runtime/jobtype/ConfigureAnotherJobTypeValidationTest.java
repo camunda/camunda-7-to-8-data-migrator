@@ -52,9 +52,9 @@ public class ConfigureAnotherJobTypeValidationTest extends RuntimeMigrationAbstr
                     .replace("{}", "%s"), id,
                 String.format(NO_EXECUTION_LISTENER_OF_TYPE_ERROR
                         .replace(".", "\\.")
-                        .replace("{}", "%s")
-                        .replace("[%s]", "\\[%s\\]"),
-                    "my\\-job\\-type", "Event_1px2j50", "(\\d+)", "my\\-job\\-type"))))))
+                        .replace("[", "\\[")
+                        .replace("]", "\\]"),
+                    "my\\-job\\-type", "Event_1px2j50", "noMigratorListener", 1, "my\\-job\\-type"))))))
         .hasSize(1);
   }
 
@@ -83,9 +83,9 @@ public class ConfigureAnotherJobTypeValidationTest extends RuntimeMigrationAbstr
                     .replace("{}", "%s"), id,
                 String.format(NO_EXECUTION_LISTENER_OF_TYPE_ERROR
                         .replace(".", "\\.")
-                        .replace("{}", "%s")
-                        .replace("[%s]", "\\[%s\\]"),
-                    "my\\-job\\-type", "Event_1px2j50", "(\\d+)", "my\\-job\\-type"))))))
+                        .replace("[", "\\[")
+                        .replace("]", "\\]"),
+                    "my\\-job\\-type", "Event_1px2j50", "migratorListenerCustomType", 1, "my\\-job\\-type"))))))
         .hasSize(1);
   }
 }
