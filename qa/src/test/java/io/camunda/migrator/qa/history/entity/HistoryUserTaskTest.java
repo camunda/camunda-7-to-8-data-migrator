@@ -10,6 +10,7 @@ package io.camunda.migrator.qa.history.entity;
 import static io.camunda.migrator.constants.MigratorConstants.C8_DEFAULT_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.migrator.qa.history.HistoryMigrationAbstractTest;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.entities.UserTaskEntity;
@@ -341,12 +342,14 @@ public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
                                       ProcessInstanceEntity processInstance,
                                       String expectedElementId) {
     // Basic identifiers
-    assertThat(userTask.userTaskKey()).isNotNull();
+    assertThat(userTask.userTaskKey()).isEqualTo(
+        dbClient.findKeyByIdAndType(c7Task.getId(), IdKeyMapper.TYPE.HISTORY_USER_TASK));
     assertThat(userTask.elementId()).isEqualTo(expectedElementId);
     assertThat(userTask.processDefinitionId()).isEqualTo(c7Task.getProcessDefinitionKey());
-    assertThat(userTask.processDefinitionKey()).isNotNull();
-    assertThat(userTask.processInstanceKey()).isEqualTo(processInstance.processInstanceKey());
-    assertThat(userTask.elementInstanceKey()).isNotNull();
+    assertThat(userTask.processDefinitionKey()).isEqualTo(
+        dbClient.findKeyByIdAndType(c7Task.getProcessDefinitionId(), IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION));
+    assertThat(userTask.elementInstanceKey()).isEqualTo(
+        dbClient.findKeyByIdAndType(c7Task.getActivityInstanceId(), IdKeyMapper.TYPE.HISTORY_FLOW_NODE));
 
     // Dates
     assertThat(userTask.creationDate()).isNotNull();
