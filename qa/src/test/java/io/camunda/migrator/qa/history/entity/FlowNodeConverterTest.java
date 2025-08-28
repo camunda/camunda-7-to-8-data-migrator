@@ -219,7 +219,7 @@ public class FlowNodeConverterTest extends HistoryMigrationAbstractTest {
       assertThat(flowNode.processDefinitionId()).isEqualTo(expectedProcessDefinitionId);
       assertThat(flowNode.type()).isEqualTo(expectedType);
       assertThat(flowNode.state()).isEqualTo(expectedState);
-      assertThat(flowNode.treePath()).endsWith(flowNode.flowNodeInstanceKey().toString());
+      assertThat(flowNode.treePath()).isNull();
       assertThat(flowNode.incidentKey()).isNull();
 
       if (expectedTenantId == null) {
