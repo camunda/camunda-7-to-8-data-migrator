@@ -6,19 +6,23 @@
  * except in compliance with the Camunda License 1.0.
  */
 
-package io.camunda.migrator.qa.history;
+package io.camunda.migrator.qa.history.entity;
 
+import static io.camunda.migrator.constants.MigratorConstants.C8_DEFAULT_TENANT;
+import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.NOT_MIGRATING_DECISION_INSTANCE;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType.BUSINESS_RULE_TASK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.variable.Variables.stringValue;
-import static io.camunda.migrator.constants.MigratorConstants.C8_DEFAULT_TENANT;
 
+import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.impl.clients.C7Client;
+import io.camunda.migrator.qa.history.HistoryMigrationAbstractTest;
 import io.camunda.search.entities.DecisionDefinitionEntity;
 import io.camunda.search.entities.DecisionInstanceEntity;
 import io.camunda.search.entities.DecisionRequirementsEntity;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
+import io.github.netmikey.logunit.api.LogCapturer;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -28,9 +32,14 @@ import org.camunda.bpm.engine.history.HistoricDecisionInstance;
 import org.camunda.bpm.engine.impl.util.ClockUtil;
 import org.camunda.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.slf4j.event.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class HistoryDecisionMigrationTest extends HistoryMigrationAbstractTest {
+
+  @RegisterExtension
+  protected final LogCapturer logs = LogCapturer.create().captureForType(HistoryMigrator.class, Level.DEBUG);
 
   @Autowired
   private C7Client c7Client;
@@ -146,16 +155,16 @@ public class HistoryDecisionMigrationTest extends HistoryMigrationAbstractTest {
       //      assertThat(instance.result()).isEqualTo("B");
 
       // TODO https://github.com/camunda/camunda-bpm-platform/issues/5364
-//      assertThat(instance.evaluatedInputs()).singleElement().satisfies(input -> {
-//        assertThat(input.inputId()).isNotNull();
-//        assertThat(input.inputName()).isEqualTo("inputA");
-//        assertThat(input.inputValue()).isEqualTo("A");
-//      });
-//      assertThat(instance.evaluatedOutputs()).singleElement().satisfies(output -> {
-//        assertThat(output.outputId()).isNotNull();
-//        assertThat(output.outputName()).isEqualTo("outputB");
-//        assertThat(output.outputValue()).isEqualTo("B");
-//      });
+      //      assertThat(instance.evaluatedInputs()).singleElement().satisfies(input -> {
+      //        assertThat(input.inputId()).isNotNull();
+      //        assertThat(input.inputName()).isEqualTo("inputA");
+      //        assertThat(input.inputValue()).isEqualTo("A");
+      //      });
+      //      assertThat(instance.evaluatedOutputs()).singleElement().satisfies(output -> {
+      //        assertThat(output.outputId()).isNotNull();
+      //        assertThat(output.outputName()).isEqualTo("outputB");
+      //        assertThat(output.outputValue()).isEqualTo("B");
+      //      });
     });
   }
 
@@ -201,11 +210,14 @@ public class HistoryDecisionMigrationTest extends HistoryMigrationAbstractTest {
     deployer.deployCamunda7Decision("simpleDmn.dmn");
     Map<String, Object> variables = Variables.createVariables().putValue("inputA", stringValue("A"));
     decisionService.evaluateDecisionTableByKey("simpleDecisionId", variables);
+    String decisionInstanceId = c7Client.getHistoricDecisionInstanceByDefinitionKey("simpleDecisionId").getId();
 
     // when
     historyMigrator.migrate();
 
     // then
     assertThat(searchHistoricDecisionInstances("simpleDecisionId")).isEmpty();
+    logs.assertContains(String.format("Not migrating historic decision instance with "
+        + "legacyId: [%s] because it does not originate from a business rule task.", decisionInstanceId));
   }
 }
