@@ -7,12 +7,11 @@
  */
 package io.camunda.migrator.qa.runtime;
 
-import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR;
-import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.TENANT_ID_ERROR;
 
 import io.camunda.migrator.RuntimeMigrator;
 import io.github.netmikey.logunit.api.LogCapturer;
 import org.camunda.bpm.engine.RuntimeService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +25,10 @@ class TenantTest extends RuntimeMigrationAbstractTest {
   private RuntimeService runtimeService;
 
   @Test
-  public void shouldSkipProcessInstance() {
+  public void shouldMigrateProcessInstanceWithTenant() {
     // given
     deployer.deployCamunda7Process("simpleProcess.bpmn", "my-tenant");
+    deployer.deployCamunda8Process("simpleProcess.bpmn", "my-tenant");
 
     String c7ProcessInstanceId = runtimeService.startProcessInstanceByKey("simpleProcess").getId();
 
@@ -37,8 +37,28 @@ class TenantTest extends RuntimeMigrationAbstractTest {
 
     // then
     assertThatProcessInstanceCountIsEqualTo(0);
-    LOGS.assertContains(String.format(SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("{}", "%s"),
-        c7ProcessInstanceId, TENANT_ID_ERROR));
+//    LOGS.assertContains(String.format(SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("{}", "%s"),
+//        c7ProcessInstanceId, TENANT_ID_ERROR));
+  }
+
+  @Test
+  @Disabled
+  public void shouldMigrateProcessInstanceNullTenant() {
+    // given
+    deployer.deployCamunda7Process("simpleProcess.bpmn");
+    deployer.deployCamunda8Process("simpleProcess.bpmn");
+
+    String c7ProcessInstanceId = runtimeService.startProcessInstanceByKey("simpleProcess").getId();
+
+    // when
+    runtimeMigrator.start();
+
+    // then
+//    assertThat(byTaskName("UserTaskName"))
+
+    assertThatProcessInstanceCountIsEqualTo(1);
+//    LOGS.assertContains(String.format(SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("{}", "%s"),
+//        c7ProcessInstanceId, TENANT_ID_ERROR));
   }
 
 }

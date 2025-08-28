@@ -50,7 +50,7 @@ public class ProcessDefinitionDeployer {
   }
 
   public void deployCamunda8Process(String fileName, String tenantId) {
-    if (tenantId == null) {
+    if (tenantId == null || tenantId.isEmpty()) {
       tenantId = DEFAULT_TENANT_IDENTIFIER;
     }
 
