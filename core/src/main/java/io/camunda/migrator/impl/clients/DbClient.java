@@ -105,7 +105,7 @@ public class DbClient {
    * Inserts a new process instance record into the mapping table.
    */
   public void insert(String legacyId, Date startDate, Long entityKey, TYPE type) {
-    DbClientLogs.insertingRecord(legacyId, startDate, entityKey);
+    DbClientLogs.insertingRecord(legacyId, startDate, entityKey, null);
     var model = createIdKeyDbModel(legacyId, startDate, entityKey, type);
     callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + legacyId);
   }
@@ -114,8 +114,17 @@ public class DbClient {
    * Inserts a new record into the mapping table.
    */
   public void insert(String legacyId, Long key, TYPE type) {
-    DbClientLogs.insertingRecord(legacyId, null, key);
+    DbClientLogs.insertingRecord(legacyId, null, key, null);
     var model = createIdKeyDbModel(legacyId, null, key, type);
+    callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + legacyId);
+  }
+
+  /**
+   * Inserts a new process instance record into the mapping table.
+   */
+  public void insert(String legacyId, Date startDate, TYPE type, String skipReason) {
+    DbClientLogs.insertingRecord(legacyId, startDate, null, skipReason);
+    var model = createIdKeyDbModel(legacyId, startDate, null, type, skipReason);
     callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + legacyId);
   }
 
@@ -173,15 +182,23 @@ public class DbClient {
   }
 
   /**
-   * Creates a new IdKeyDbModel instance with the provided parameters.
+   * Creates a new IdKeyDbModel instance with the provided parameters including skip reason.
    */
-  protected IdKeyDbModel createIdKeyDbModel(String id, Date startDate, Long key, TYPE type) {
+  protected IdKeyDbModel createIdKeyDbModel(String id, Date startDate, Long key, TYPE type, String skipReason) {
     var keyIdDbModel = new IdKeyDbModel();
     keyIdDbModel.setId(id);
     keyIdDbModel.setStartDate(startDate);
     keyIdDbModel.setInstanceKey(key);
     keyIdDbModel.setType(type);
+    keyIdDbModel.setSkipReason(skipReason);
     return keyIdDbModel;
+  }
+
+  /**
+   * Creates a new IdKeyDbModel instance with the provided parameters.
+   */
+  protected IdKeyDbModel createIdKeyDbModel(String id, Date startDate, Long key, TYPE type) {
+    return createIdKeyDbModel(id, startDate, key, type, null);
   }
 
 }
