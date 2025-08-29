@@ -54,55 +54,6 @@
     FROM ${prefix}MIGRATION_MAPPING
   </select>
 
-  <select id="findSkippedVariablesByProcessInstance" resultMap="skippedVariablesByProcessInstanceResultMap">
-    SELECT
-        v.PROC_INST_ID_ as PROC_INST_ID,
-        COUNT(m.ID) as SKIPPED_VARIABLE_COUNT,
-        STRING_AGG(m.ID, ', ') as SKIPPED_VARIABLE_IDS,
-        STRING_AGG(v.NAME_, ', ') as SKIPPED_VARIABLE_NAMES,
-        STRING_AGG(DISTINCT m.SKIP_REASON, '; ') as SKIP_REASONS
-    FROM ${prefix}MIGRATION_MAPPING m
-    INNER JOIN ACT_HI_VARINST v ON m.ID = v.ID_
-    WHERE m.TYPE = 'HISTORY_VARIABLE'
-        AND m.SKIP_REASON IS NOT NULL
-    GROUP BY v.PROC_INST_ID_
-    ORDER BY SKIPPED_VARIABLE_COUNT DESC
-    <include refid="io.camunda.migrator.Commons.pageSql"/>
-  </select>
-
-  <select id="findSkippedVariablesByProcessDefinition" resultMap="skippedVariablesByProcessDefinitionResultMap">
-    SELECT
-        v.PROC_DEF_ID_ as PROC_DEF_ID,
-        v.PROC_DEF_KEY_ as PROC_DEF_KEY,
-        COUNT(m.ID) as SKIPPED_VARIABLE_COUNT,
-        STRING_AGG(m.ID, ', ') as SKIPPED_VARIABLE_IDS,
-        STRING_AGG(v.NAME_, ', ') as SKIPPED_VARIABLE_NAMES,
-        STRING_AGG(DISTINCT m.SKIP_REASON, '; ') as SKIP_REASONS
-    FROM ${prefix}MIGRATION_MAPPING m
-    INNER JOIN ACT_HI_VARINST v ON m.ID = v.ID_
-    WHERE m.TYPE = 'HISTORY_VARIABLE'
-        AND m.SKIP_REASON IS NOT NULL
-    GROUP BY v.PROC_DEF_ID_, v.PROC_DEF_KEY_
-    ORDER BY SKIPPED_VARIABLE_COUNT DESC
-    <include refid="io.camunda.migrator.Commons.pageSql"/>
-  </select>
-
-  <select id="findSkippedVariablesBySkipReason" resultMap="skippedVariablesBySkipReasonResultMap">
-    SELECT
-        m.SKIP_REASON,
-        COUNT(m.ID) as SKIPPED_VARIABLE_COUNT,
-        STRING_AGG(m.ID, ', ') as SKIPPED_VARIABLE_IDS,
-        STRING_AGG(v.NAME_, ', ') as SKIPPED_VARIABLE_NAMES,
-        STRING_AGG(DISTINCT v.PROC_INST_ID_, ', ') as PROCESS_INSTANCE_IDS
-    FROM ${prefix}MIGRATION_MAPPING m
-    INNER JOIN ACT_HI_VARINST v ON m.ID = v.ID_
-    WHERE m.TYPE = 'HISTORY_VARIABLE'
-        AND m.SKIP_REASON IS NOT NULL
-    GROUP BY m.SKIP_REASON
-    ORDER BY SKIPPED_VARIABLE_COUNT DESC
-    <include refid="io.camunda.migrator.Commons.pageSql"/>
-  </select>
-
   <update id="updateKeyByIdAndType" parameterType="io.camunda.migrator.impl.persistence.IdKeyDbModel">
     UPDATE ${prefix}MIGRATION_MAPPING
     SET INSTANCE_KEY = #{instanceKey, jdbcType=BIGINT}
