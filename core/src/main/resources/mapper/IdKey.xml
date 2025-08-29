@@ -25,23 +25,6 @@
     <result property="skipReasons" column="SKIP_REASONS" jdbcType="VARCHAR"/>
   </resultMap>
 
-  <resultMap id="skippedVariablesByProcessDefinitionResultMap" type="io.camunda.migrator.impl.persistence.SkippedVariablesByProcessDefinitionDbModel">
-    <result property="processDefinitionId" column="PROC_DEF_ID" jdbcType="VARCHAR"/>
-    <result property="processDefinitionKey" column="PROC_DEF_KEY" jdbcType="VARCHAR"/>
-    <result property="skippedVariableCount" column="SKIPPED_VARIABLE_COUNT" jdbcType="BIGINT"/>
-    <result property="skippedVariableIds" column="SKIPPED_VARIABLE_IDS" jdbcType="VARCHAR"/>
-    <result property="skippedVariableNames" column="SKIPPED_VARIABLE_NAMES" jdbcType="VARCHAR"/>
-    <result property="skipReasons" column="SKIP_REASONS" jdbcType="VARCHAR"/>
-  </resultMap>
-
-  <resultMap id="skippedVariablesBySkipReasonResultMap" type="io.camunda.migrator.impl.persistence.SkippedVariablesBySkipReasonDbModel">
-    <result property="skipReason" column="SKIP_REASON" jdbcType="VARCHAR"/>
-    <result property="skippedVariableCount" column="SKIPPED_VARIABLE_COUNT" jdbcType="BIGINT"/>
-    <result property="skippedVariableIds" column="SKIPPED_VARIABLE_IDS" jdbcType="VARCHAR"/>
-    <result property="skippedVariableNames" column="SKIPPED_VARIABLE_NAMES" jdbcType="VARCHAR"/>
-    <result property="processInstanceIds" column="PROCESS_INSTANCE_IDS" jdbcType="VARCHAR"/>
-  </resultMap>
-
   <select id="countSkippedByType" resultType="long">
     SELECT COUNT(ID) FROM ${prefix}MIGRATION_MAPPING
     WHERE TYPE = #{type} AND INSTANCE_KEY IS NULL
