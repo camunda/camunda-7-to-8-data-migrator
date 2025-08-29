@@ -8,7 +8,6 @@
 package io.camunda.migrator.impl;
 
 import static io.camunda.migrator.constants.MigratorConstants.LEGACY_ID_VAR_NAME;
-import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.TENANT_ID_ERROR;
 import static io.camunda.migrator.impl.util.C7Utils.MULTI_INSTANCE_BODY_SUFFIX;
 import static io.camunda.migrator.impl.util.C7Utils.getActiveActivityIdsById;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
@@ -18,8 +17,6 @@ import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.MULTI_INSTAN
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_C8_DEPLOYMENT_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_EXECUTION_LISTENER_OF_TYPE_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_NONE_START_EVENT_ERROR;
-import static io.camunda.migrator.impl.util.C7Utils.getActiveActivityIdsById;
-import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.CALL_ACTIVITY_LEGACY_ID_ERROR;
 
 import io.camunda.migrator.impl.logging.RuntimeValidatorLogs;
@@ -198,11 +195,11 @@ public class RuntimeValidator {
       String processInstanceId = processInstance.getId();
       String c7DefinitionId = processInstance.getProcessDefinitionId();
       String c8DefinitionId = processInstance.getProcessDefinitionKey();
-      String tenantId = processInstance.getTenantId();
-
-      if (tenantId != null) {
-        throw new IllegalStateException(TENANT_ID_ERROR);
-      }
+//      String tenantId = processInstance.getTenantId();
+//
+//      if (tenantId != null) {
+//        throw new IllegalStateException(TENANT_ID_ERROR);
+//      }
 
       var c8Definitions = c8Client.searchProcessDefinitions(c8DefinitionId);
       validateC8DefinitionExists(c8Definitions.items(), c8DefinitionId, processInstanceId);

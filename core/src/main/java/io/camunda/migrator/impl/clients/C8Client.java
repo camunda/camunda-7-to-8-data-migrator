@@ -8,6 +8,7 @@
 package io.camunda.migrator.impl.clients;
 
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_DEPLOY_C8_RESOURCES;
+import static io.camunda.migrator.impl.util.ConverterUtil.getTenantId;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_CREATE_PROCESS_INSTANCE;
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_ACTIVATE_JOBS;
@@ -25,6 +26,7 @@ import io.camunda.client.api.search.response.ProcessDefinition;
 import io.camunda.client.api.search.response.SearchResponse;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.model.FlowNodeActivation;
+import io.camunda.migrator.impl.util.ConverterUtil;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -48,11 +50,14 @@ public class C8Client {
   /**
    * Creates a new process instance with the given BPMN process ID and variables.
    */
-  public ProcessInstanceEvent createProcessInstance(String bpmnProcessId, Map<String, Object> variables) {
+  public ProcessInstanceEvent createProcessInstance(String bpmnProcessId, String tenantId,
+                                                    Map<String, Object> variables) {
     var createProcessInstance = camundaClient.newCreateInstanceCommand()
         .bpmnProcessId(bpmnProcessId)
         .latestVersion()
-        .variables(variables);
+        .variables(variables)
+        .tenantId(getTenantId(tenantId));
+
 
     return callApi(createProcessInstance::execute, FAILED_TO_CREATE_PROCESS_INSTANCE + bpmnProcessId);
   }
