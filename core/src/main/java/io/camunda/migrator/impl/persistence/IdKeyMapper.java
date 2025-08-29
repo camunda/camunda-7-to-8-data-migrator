@@ -84,4 +84,6 @@ public interface IdKeyMapper {
   void updateKeyByIdAndType(IdKeyDbModel idKeyDbModel);
 
   void delete(String id);
+
+  void deleteByIdAndType(@Param("id") String id, @Param("type") TYPE type);
 }
