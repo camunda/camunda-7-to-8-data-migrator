@@ -339,63 +339,66 @@ public class HistoryMigrator {
   }
 
   private void migrateDecisionInstance(HistoricDecisionInstance legacyDecisionInstance) {
-    if (legacyDecisionInstance.getProcessDefinitionKey() != null) {
+    if (legacyDecisionInstance.getProcessDefinitionKey() == null) {
       // only migrate decision instances that were triggered by process definitions
-      String legacyDecisionInstanceId = legacyDecisionInstance.getId();
-      if (shouldMigrate(legacyDecisionInstanceId, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE)) {
-        HistoryMigratorLogs.migratingDecisionInstance(legacyDecisionInstanceId);
+      HistoryMigratorLogs.notMigratingDecisionInstancesNotOriginatingFromBusinessRuleTasks(legacyDecisionInstance.getId());
+      return;
+    }
 
-        if (!isMigrated(legacyDecisionInstance.getDecisionDefinitionId(), HISTORY_DECISION_DEFINITION)) {
-          saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
-          HistoryMigratorLogs.skippingDecisionInstanceDueToMissingDecisionDefinition(legacyDecisionInstanceId);
-          return;
-        }
+    String legacyDecisionInstanceId = legacyDecisionInstance.getId();
+    if (shouldMigrate(legacyDecisionInstanceId, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE)) {
+      HistoryMigratorLogs.migratingDecisionInstance(legacyDecisionInstanceId);
 
-        if (!isMigrated(legacyDecisionInstance.getProcessDefinitionId(), HISTORY_PROCESS_DEFINITION)) {
-          saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
-          HistoryMigratorLogs.skippingDecisionInstanceDueToMissingProcessDefinition(legacyDecisionInstanceId);
-          return;
-        }
-
-        if (!isMigrated(legacyDecisionInstance.getProcessInstanceId(), HISTORY_PROCESS_INSTANCE)) {
-          saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
-          HistoryMigratorLogs.skippingDecisionInstanceDueToMissingProcessInstance(legacyDecisionInstanceId);
-          return;
-        }
-
-        String legacyRootDecisionInstanceId = legacyDecisionInstance.getRootDecisionInstanceId();
-        Long parentDecisionDefinitionKey = null;
-        if (legacyRootDecisionInstanceId != null) {
-          if (!isMigrated(legacyRootDecisionInstanceId, HISTORY_DECISION_INSTANCE)) {
-            saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
-            HistoryMigratorLogs.skippingDecisionInstanceDueToMissingParent(legacyDecisionInstanceId);
-            return;
-          }
-          parentDecisionDefinitionKey = findDecisionInstance(legacyRootDecisionInstanceId).decisionDefinitionKey();
-        }
-
-        if (!isMigrated(legacyDecisionInstance.getActivityInstanceId(), HISTORY_FLOW_NODE)) {
-          saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
-          HistoryMigratorLogs.skippingDecisionInstanceDueToMissingFlowNodeInstanceInstance(legacyDecisionInstanceId);
-          return;
-        }
-
-        DecisionDefinitionEntity decisionDefinition = findDecisionDefinition(
-            legacyDecisionInstance.getDecisionDefinitionId());
-        Long processDefinitionKey = findProcessDefinitionKey(legacyDecisionInstance.getProcessDefinitionId());
-        Long processInstanceKey = findProcessInstanceByLegacyId(
-            legacyDecisionInstance.getProcessInstanceId()).processInstanceKey();
-        FlowNodeInstanceDbModel flowNode = findFlowNodeInstance(legacyDecisionInstance.getActivityInstanceId());
-
-        DecisionInstanceDbModel dbModel = decisionInstanceConverter.apply(legacyDecisionInstance,
-            decisionDefinition.decisionDefinitionKey(), processDefinitionKey,
-            decisionDefinition.decisionRequirementsKey(), processInstanceKey, parentDecisionDefinitionKey,
-            flowNode.flowNodeInstanceKey(), flowNode.flowNodeId());
-        decisionInstanceMapper.insert(dbModel);
-        saveRecord(legacyDecisionInstanceId, legacyDecisionInstance.getEvaluationTime(), dbModel.decisionInstanceKey(),
-            HISTORY_DECISION_INSTANCE);
-        HistoryMigratorLogs.migratingDecisionInstanceCompleted(legacyDecisionInstanceId);
+      if (!isMigrated(legacyDecisionInstance.getDecisionDefinitionId(), HISTORY_DECISION_DEFINITION)) {
+        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+        HistoryMigratorLogs.skippingDecisionInstanceDueToMissingDecisionDefinition(legacyDecisionInstanceId);
+        return;
       }
+
+      if (!isMigrated(legacyDecisionInstance.getProcessDefinitionId(), HISTORY_PROCESS_DEFINITION)) {
+        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+        HistoryMigratorLogs.skippingDecisionInstanceDueToMissingProcessDefinition(legacyDecisionInstanceId);
+        return;
+      }
+
+      if (!isMigrated(legacyDecisionInstance.getProcessInstanceId(), HISTORY_PROCESS_INSTANCE)) {
+        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+        HistoryMigratorLogs.skippingDecisionInstanceDueToMissingProcessInstance(legacyDecisionInstanceId);
+        return;
+      }
+
+      String legacyRootDecisionInstanceId = legacyDecisionInstance.getRootDecisionInstanceId();
+      Long parentDecisionDefinitionKey = null;
+      if (legacyRootDecisionInstanceId != null) {
+        if (!isMigrated(legacyRootDecisionInstanceId, HISTORY_DECISION_INSTANCE)) {
+          saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+          HistoryMigratorLogs.skippingDecisionInstanceDueToMissingParent(legacyDecisionInstanceId);
+          return;
+        }
+        parentDecisionDefinitionKey = findDecisionInstance(legacyRootDecisionInstanceId).decisionDefinitionKey();
+      }
+
+      if (!isMigrated(legacyDecisionInstance.getActivityInstanceId(), HISTORY_FLOW_NODE)) {
+        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+        HistoryMigratorLogs.skippingDecisionInstanceDueToMissingFlowNodeInstanceInstance(legacyDecisionInstanceId);
+        return;
+      }
+
+      DecisionDefinitionEntity decisionDefinition = findDecisionDefinition(
+          legacyDecisionInstance.getDecisionDefinitionId());
+      Long processDefinitionKey = findProcessDefinitionKey(legacyDecisionInstance.getProcessDefinitionId());
+      Long processInstanceKey = findProcessInstanceByLegacyId(
+          legacyDecisionInstance.getProcessInstanceId()).processInstanceKey();
+      FlowNodeInstanceDbModel flowNode = findFlowNodeInstance(legacyDecisionInstance.getActivityInstanceId());
+
+      DecisionInstanceDbModel dbModel = decisionInstanceConverter.apply(legacyDecisionInstance,
+          decisionDefinition.decisionDefinitionKey(), processDefinitionKey,
+          decisionDefinition.decisionRequirementsKey(), processInstanceKey, parentDecisionDefinitionKey,
+          flowNode.flowNodeInstanceKey(), flowNode.flowNodeId());
+      decisionInstanceMapper.insert(dbModel);
+      saveRecord(legacyDecisionInstanceId, legacyDecisionInstance.getEvaluationTime(), dbModel.decisionInstanceKey(),
+          HISTORY_DECISION_INSTANCE);
+      HistoryMigratorLogs.migratingDecisionInstanceCompleted(legacyDecisionInstanceId);
     }
   }
 
