@@ -10,6 +10,7 @@ package io.camunda.migrator.qa.history.entity;
 
 import static io.camunda.migrator.constants.MigratorConstants.C8_DEFAULT_TENANT;
 import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.NOT_MIGRATING_DECISION_INSTANCE;
+import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR;
 import static io.camunda.search.entities.FlowNodeInstanceEntity.FlowNodeType.BUSINESS_RULE_TASK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.variable.Variables.stringValue;
@@ -217,7 +218,6 @@ public class HistoryDecisionMigrationTest extends HistoryMigrationAbstractTest {
 
     // then
     assertThat(searchHistoricDecisionInstances("simpleDecisionId")).isEmpty();
-    logs.assertContains(String.format("Not migrating historic decision instance with "
-        + "legacyId: [%s] because it does not originate from a business rule task.", decisionInstanceId));
+    logs.assertContains(NOT_MIGRATING_DECISION_INSTANCE.replace("{}", decisionInstanceId));
   }
 }
