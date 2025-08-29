@@ -64,12 +64,6 @@ public interface IdKeyMapper {
   boolean checkExistsByIdAndType(@Param("type") TYPE type, @Param("id") String id);
 
   boolean checkHasKeyByIdAndType(@Param("type") TYPE type, @Param("id") String id);
-  // TODO rebase are these used, duplicated?
-  boolean checkExistsByTypeAndId(@Param("type") TYPE type, @Param("id") String id);
-
-  boolean checkHasKey(String id);
-
-  boolean checkHasKeyByTypeAndId(@Param("type") TYPE type, @Param("id") String id);
 
   Date findLatestStartDateByType(TYPE type);
 
