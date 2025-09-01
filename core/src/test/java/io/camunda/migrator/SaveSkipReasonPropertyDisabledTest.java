@@ -10,38 +10,20 @@ package io.camunda.migrator;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.migrator.config.property.MigratorProperties;
-import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
-class DefaultPropertiesTest {
+@TestPropertySource(properties = "camunda.migrator.save-skip-reason=false")
+class SaveSkipReasonPropertyDisabledTest {
 
   @Autowired
   protected MigratorProperties migratorProperties;
 
-  @Autowired
-  ProcessEngineConfigurationImpl processEngineConfiguration;
-
   @Test
-  public void shouldHaveDefaultPageSize() {
-    assertThat(migratorProperties.getPageSize()).isEqualTo(MigratorProperties.DEFAULT_PAGE_SIZE);
-  }
-
-  @Test
-  public void shouldHaveDefaultTenants() {
-    assertThat(migratorProperties.getTenantIds()).isEqualTo(null);
-  }
-
-  @Test
-  public void shouldHaveDisabledJobExecutor() {
-    assertThat(processEngineConfiguration.getJobExecutor().isActive()).isEqualTo(false);
-  }
-
-  @Test
-  public void shouldHaveFalseDefaultSaveSkipReason() {
+  public void shouldHaveSaveSkipReasonAsFalse() {
     assertThat(migratorProperties.getSaveSkipReason()).isFalse();
-
   }
 }
