@@ -227,10 +227,6 @@ public class HistoryMigratorLogs {
     LOGGER.debug(SKIPPING_FLOW_NODE, legacyFlowNodeId);
   }
 
-  public static void skippingHistoricFlowNodeDueToMissingParent(String legacyFlowNodeId) {
-    LOGGER.debug(SKIPPING_FLOW_NODE_MISSING_PARENT, legacyFlowNodeId);
-  }
-
   public static void migratingDecisionRequirements() {
     LOGGER.info(MIGRATING_DECISION_REQUIREMENTS);
   }

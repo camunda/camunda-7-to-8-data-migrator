@@ -561,19 +561,13 @@ public class HistoryMigrator {
       if (processInstance != null) {
         Long processInstanceKey = processInstance.processInstanceKey();
         Long processDefinitionKey = findProcessDefinitionKey(legacyFlowNode.getProcessDefinitionId());
-
         Long flowNodeScopeKey = determineFlowNodeScopeKey(legacyFlowNode, processInstanceKey);
         String parentTreePath = determineParentTreePath(legacyFlowNode, processInstance);
 
-        if (flowNodeScopeKey != null) {
-          FlowNodeInstanceDbModel dbModel = flowNodeConverter.apply(legacyFlowNode, processDefinitionKey, processInstanceKey, flowNodeScopeKey, parentTreePath);
-          flowNodeMapper.insert(dbModel);
-          saveRecord(legacyFlowNodeId, legacyFlowNode.getStartTime(), dbModel.flowNodeInstanceKey(), HISTORY_FLOW_NODE);
-          HistoryMigratorLogs.migratingHistoricFlowNodeCompleted(legacyFlowNodeId);
-        } else {
-          saveRecord(legacyFlowNodeId, null, HISTORY_FLOW_NODE);
-          HistoryMigratorLogs.skippingHistoricFlowNodeDueToMissingParent(legacyFlowNodeId);
-        }
+        FlowNodeInstanceDbModel dbModel = flowNodeConverter.apply(legacyFlowNode, processDefinitionKey, processInstanceKey, flowNodeScopeKey, parentTreePath);
+        flowNodeMapper.insert(dbModel);
+        saveRecord(legacyFlowNodeId, legacyFlowNode.getStartTime(), dbModel.flowNodeInstanceKey(), HISTORY_FLOW_NODE);
+        HistoryMigratorLogs.migratingHistoricFlowNodeCompleted(legacyFlowNodeId);
       } else {
         saveRecord(legacyFlowNodeId, null, HISTORY_FLOW_NODE);
         HistoryMigratorLogs.skippingHistoricFlowNode(legacyFlowNodeId);
