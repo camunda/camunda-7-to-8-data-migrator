@@ -26,6 +26,7 @@ public class MigratorProperties {
   protected DataSource dataSource = DataSource.C7;
   protected String jobType = DEFAULT_JOB_TYPE;
   protected String validationJobType;
+  protected Boolean saveSkipReason = false;
 
   protected Boolean autoDdl;
   protected String tablePrefix;
@@ -97,6 +98,14 @@ public class MigratorProperties {
 
   public void setValidationJobType(String validationJobType) {
     this.validationJobType = validationJobType;
+  }
+
+  public Boolean getSaveSkipReason() {
+    return saveSkipReason;
+  }
+
+  public void setSaveSkipReason(Boolean saveSkipReason) {
+    this.saveSkipReason = saveSkipReason;
   }
 
   /**
