@@ -685,6 +685,10 @@ When a process instance is skipped:
     - As a result, you cannot query for the history of a subprocess or call activity using the
       parent process instance key.
     - To be tackled in [#5359](https://github.com/camunda/camunda-bpm-platform/issues/5359).
+- The `treePath` field is only populated for flow nodes and process instances that belong to a root process instance. Otherwise `treePath` is set to null.
+- Flow node scope key is not always guaranteed to be populated.
+    - The `scopeKey` field for flow node instances may be `null` in some cases where the scope cannot be determined during migration.
+    - This can affect queries that rely on flow node scope relationships.
 - Tenant value `null` from Camunda 7 is migrated `<default>` in Camunda 8.
 Read more about tenant handling in Camunda 8 [here](https://docs.camunda.io/docs/self-managed/concepts/multi-tenancy/#the-tenant-identifier).
 All other tenantIds will be migrated as-is.
