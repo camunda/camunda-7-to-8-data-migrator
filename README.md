@@ -211,6 +211,7 @@ camunda.migrator:
   page-size: 500                      # Number of records to process in each page
   job-type: migrator                   # Job type for actual job activation (used for validation and activation unless validation-job-type is defined)
   validation-job-type: '=if legacyId != null then "migrator" else "noop"'        # Job type for validation (optional - falls back to job-type if not defined)
+  save-skip-reason: false              # Whether to save skip reasons to the database (required for Cockpit plugin)
   auto-ddl: true                       # Automatically create/update database schema
   table-prefix: MY_PREFIX_             # Optional table prefix for migrator schema
   data-source: C7                      # Choose if the migrator schema is created on the data source of 'C7' or 'C8'
@@ -340,6 +341,7 @@ logging:
 | | `.page-size`                | `number`  | Number of records to process in each page. Default: `100`                                                                                                           |
 | | `.job-type`                 | `string`  | Job type for actual job activation. Default: `migrator`.                                                                                                           |
 | | `.validation-job-type`      | `string`  | Job type for validation purposes. Optional: falls back to `job-type` if not defined. Set to `DISABLED` to disable job type execution listener validation entirely. |
+| | `.save-skip-reason`         | `boolean` | Whether to save skip reasons to the database. Default: `false`. Required for Cockpit plugin.                                                                         |
 | | `.auto-ddl`                 | `boolean` | Automatically create/update migrator database schema. Default: `false`                                                                                             |
 | | `.table-prefix`             | `string`  | Optional prefix for migrator database tables. Default: _(empty)_                                                                                                   |
 | | `.data-source`              | `string`  | Choose if the migrator schema is created in the `C7` or `C8` data source. Default: `C7`                                                                            |
