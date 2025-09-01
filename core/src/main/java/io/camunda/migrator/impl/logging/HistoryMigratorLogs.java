@@ -20,6 +20,15 @@ public class HistoryMigratorLogs {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(HistoryMigrator.class);
 
+  // Skip reason constants
+  public static final String SKIP_REASON_MISSING_PARENT_PROCESS_INSTANCE = "Missing parent process instance";
+  public static final String SKIP_REASON_MISSING_PROCESS_DEFINITION = "Missing process definition";
+  public static final String SKIP_REASON_MISSING_PROCESS_INSTANCE_KEY = "Missing process instance key";
+  public static final String SKIP_REASON_MISSING_PROCESS_INSTANCE = "Missing process instance";
+  public static final String SKIP_REASON_BELONGS_TO_SKIPPED_TASK = "Belongs to a skipped task";
+  public static final String SKIP_REASON_MISSING_SCOPE_KEY = "Missing scope key";
+  public static final String SKIP_REASON_MISSING_FLOW_NODE = "Missing flow node";
+
   // HistoryMigrator Messages
   public static final String MIGRATING_DEFINITIONS = "Migrating {} definitions";
   public static final String MIGRATING_DEFINITION = "Migrating {} definition with legacyId: [{}]";
