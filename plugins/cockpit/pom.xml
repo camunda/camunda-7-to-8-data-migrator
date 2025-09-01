@@ -14,7 +14,7 @@
   <packaging>jar</packaging>
 
   <name>Camunda 7 to 8 Data Migrator - Plugins – Cockpit</name>
-  <description>This is a simple plugin that showcases the plugin system of Cockpit, the process monitoring tool of Camunda Platform.</description>
+  <description>A Cockpit plugin for Camunda 7 that helps identify and fix entities that were skipped during Camunda 7 to 8 data migration.</description>
   <url>https://github.com/camunda/camunda-bpm-examples/tree/7.23/cockpit/cockpit-sample-plugin</url>
 
   <properties>
