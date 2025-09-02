@@ -173,13 +173,6 @@ public class DbClient {
   }
 
   /**
-   * Deletes a mapping by legacy ID and type.
-   */
-  public void deleteByIdAndType(String legacyId, TYPE type) {
-    callApi(() -> idKeyMapper.deleteByIdAndType(legacyId, type), FAILED_TO_DELETE + legacyId + " for type " + type);
-  }
-
-  /**
    * Creates a new IdKeyDbModel instance with the provided parameters.
    */
   protected IdKeyDbModel createIdKeyDbModel(String id, Date startDate, Long key, TYPE type) {
