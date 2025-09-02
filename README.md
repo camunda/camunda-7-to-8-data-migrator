@@ -27,6 +27,7 @@ A tool for migrating Camunda 7 process instances and related data to Camunda 8. 
 - [Troubleshooting](#troubleshooting)
 - [Migration Process](#migration-process)
 - [Development](#development)
+- [Cockpit Plugin](#cockpit-plugin)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -211,6 +212,7 @@ camunda.migrator:
   page-size: 500                      # Number of records to process in each page
   job-type: migrator                   # Job type for actual job activation (used for validation and activation unless validation-job-type is defined)
   validation-job-type: '=if legacyId != null then "migrator" else "noop"'        # Job type for validation (optional - falls back to job-type if not defined)
+  save-skip-reason: false              # Whether to save skip reasons to the database (required for Cockpit plugin)
   auto-ddl: true                       # Automatically create/update database schema
   table-prefix: MY_PREFIX_             # Optional table prefix for migrator schema
   data-source: C7                      # Choose if the migrator schema is created on the data source of 'C7' or 'C8'
@@ -340,6 +342,7 @@ logging:
 | | `.page-size`                | `number`  | Number of records to process in each page. Default: `100`                                                                                                           |
 | | `.job-type`                 | `string`  | Job type for actual job activation. Default: `migrator`.                                                                                                           |
 | | `.validation-job-type`      | `string`  | Job type for validation purposes. Optional: falls back to `job-type` if not defined. Set to `DISABLED` to disable job type execution listener validation entirely. |
+| | `.save-skip-reason`         | `boolean` | Whether to save skip reasons to the database. Default: `false`. Required for Cockpit plugin.                                                                         |
 | | `.auto-ddl`                 | `boolean` | Automatically create/update migrator database schema. Default: `false`                                                                                             |
 | | `.table-prefix`             | `string`  | Optional prefix for migrator database tables. Default: _(empty)_                                                                                                   |
 | | `.data-source`              | `string`  | Choose if the migrator schema is created in the `C7` or `C8` data source. Default: `C7`                                                                            |
@@ -836,6 +839,100 @@ mvn integration-test
      -e POSTGRES_PASSWORD=camunda \
      -p 5432:5432 -d postgres:17
    ```
+
+## Cockpit Plugin
+
+> [!WARNING]  
+> **Experimental Feature**
+> The Cockpit plugin is currently an **EXPERIMENTAL** feature and should be used with caution in production environments.
+
+The Cockpit plugin provides a web-based interface to view information about skipped entities during the migration process. This plugin integrates with Camunda 7 Cockpit to give you visibility into which process instances, variables, or other entities were skipped during migration and why.
+Visit the [Camunda 7 documentation](https://docs.camunda.org/manual/latest/webapps/cockpit/extend/plugins/) to learn more about Camunda 7 plugins.
+
+### Prerequisites
+
+To use the Cockpit plugin, you must configure the migrator with the following setting:
+
+```yaml
+camunda.migrator:
+  save-skip-reason: true 
+```
+
+> [!IMPORTANT]  
+> **Required Configuration**
+> The `save-skip-reason: true` configuration is **mandatory** for the Cockpit plugin to function. Without this setting, skip reasons will not be persisted to the database and the plugin will have no data to display.
+
+### Installation
+1. **Download the latest release** from the [releases page](https://github.com/camunda/camunda-7-to-8-data-migrator/releases)
+   or  **Build the plugin**:
+   ```bash
+   cd plugins/cockpit
+   mvn clean install
+   ```
+
+2. **Deploy the plugin** to your Camunda 7 installation by copying the generated JAR file to the Camunda 7 plugins directory.
+
+3. **Configure the migrator** with `save-skip-reason: true` in your `application.yml`.
+
+4. **Run your migration** with the skip reason saving enabled.
+
+5. **Inspect skipped entities in Cockpit**
+
+### Using the Cockpit Plugin
+
+Once installed and configured, the Cockpit plugin provides:
+
+- **Skipped Entity Overview**: View all entities that were skipped during migration
+- **Detailed Skip Reasons**: Understand why specific entities were not migrated
+- **Migration Status Tracking**: Monitor the overall progress and health of your migration
+
+### Limitations
+
+The Cockpit plugin has the following limitations in its current experimental state:
+
+- **Performance Impact**: Saving skip reasons may impact migration performance for large datasets
+- **Storage Requirements**: Additional database storage is required to persist skip reason data
+- **Camunda 7 Dependency**: The plugin requires a running Camunda 7 instance with Cockpit
+- **Limited Customization**: UI customization options are currently limited
+
+### Screenshots
+
+The following screenshots demonstrate the Cockpit plugin interface and functionality:
+
+#### Migrated Process Instances View
+This view shows a table of successfully migrated process instances from Camunda 7 to Camunda 8. The table includes Process Instance ID, Process Definition Key, and the corresponding Camunda 8 Key.
+
+![Runtime Migrated Instances](docs/images/runtime-migrated.png)
+
+#### Skipped Process Instances Overview
+This view shows process instances that were skipped during migration, allowing users to identify which instances failed migration and need attention.
+
+![Runtime Skipped Instances](docs/images/runtime-skipped.png)
+
+#### Entity Type Selection
+When viewing historic entities, it is possible to filter them by specific types (such as process instances, variables, tasks, etc.), making it easier to analyze migration issues by category.
+
+![Skipped Entity Type Selection](docs/images/skipped-select-type.png)
+
+#### Variable-Specific Skip Analysis
+When viewing historic variable data, the type and value of primitives are also retrieved to provide additional context.
+
+![Skipped Variables](docs/images/skipped-variables.png)
+
+
+### Troubleshooting
+
+**Plugin Not Visible in Cockpit**
+- Verify the plugin JAR is in the correct Camunda 7 plugins directory
+- Check Camunda 7 logs for plugin loading errors
+- Ensure Camunda 7 has been restarted after plugin deployment
+
+**No Skip Data Displayed**
+- Confirm `save-skip-reason: true` is set in migrator configuration
+- Verify migration has been run with this setting enabled
+- Check database connectivity between plugin and migrator database
+
+For additional support with the Cockpit plugin, please refer to the main troubleshooting section or create an issue in the project repository.
 
 ## Contributing
 
