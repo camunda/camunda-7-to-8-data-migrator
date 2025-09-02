@@ -7,8 +7,6 @@
  */
 package io.camunda.migrator.config.mybatis;
 
-import static io.camunda.migrator.constants.MigratorConstants.C7_HISTORY_PARTITION_ID;
-
 import io.camunda.db.rdbms.RdbmsService;
 import io.camunda.db.rdbms.config.VendorDatabaseProperties;
 import io.camunda.db.rdbms.read.service.AuthorizationDbReader;
@@ -58,14 +56,10 @@ import io.camunda.db.rdbms.sql.UsageMetricTUMapper;
 import io.camunda.db.rdbms.sql.UserMapper;
 import io.camunda.db.rdbms.sql.UserTaskMapper;
 import io.camunda.db.rdbms.sql.VariableMapper;
-import io.camunda.db.rdbms.write.RdbmsWriter;
 import io.camunda.db.rdbms.write.RdbmsWriterFactory;
-import io.camunda.db.rdbms.write.RdbmsWriterConfig;
-import io.camunda.db.rdbms.write.RdbmsWriterMetrics;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.spring.client.metrics.MetricsRecorder;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Properties;
 import javax.sql.DataSource;
 import liquibase.integration.spring.MultiTenantSpringLiquibase;
@@ -374,7 +368,6 @@ public class C8Configuration extends AbstractConfiguration {
       PurgeMapper purgeMapper,
       UserTaskMapper userTaskMapper,
       VariableMapper variableMapper,
-      RdbmsWriterMetrics rdbmsWriterMetrics,
       BatchOperationDbReader batchOperationReader,
       JobMapper jobMapper,
       SequenceFlowMapper sequenceFlowMapper,
@@ -393,7 +386,7 @@ public class C8Configuration extends AbstractConfiguration {
         purgeMapper,
         userTaskMapper,
         variableMapper,
-        rdbmsWriterMetrics,
+        null,
         batchOperationReader,
         jobMapper,
         sequenceFlowMapper,
@@ -454,35 +447,6 @@ public class C8Configuration extends AbstractConfiguration {
         usageMetricsReader,
         usageMetricTUDbReader,
         messageSubscriptionDbReader);
-  }
-
-  @Bean
-  public RdbmsWriterConfig rdbmsWriterConfig() {
-    return RdbmsWriterConfig.builder()
-        .partitionId(C7_HISTORY_PARTITION_ID)
-        .queueSize(RdbmsWriterConfig.DEFAULT_QUEUE_SIZE)
-        .batchOperationItemInsertBlockSize(RdbmsWriterConfig.DEFAULT_BATCH_OPERATION_ITEM_INSERT_BLOCK_SIZE)
-        .exportBatchOperationItemsOnCreation(RdbmsWriterConfig.DEFAULT_EXPORT_BATCH_OPERATION_ITEMS_ON_CREATION)
-        .history(new RdbmsWriterConfig.HistoryConfig.Builder().build())
-        .build();
-  }
-
-  @Bean
-  public RdbmsWriterMetrics rdbmsWriterMetrics() {
-    return new NoOpRdbmsWriterMetrics();
-  }
-
-
-  @Bean
-  public RdbmsWriter rdbmsWriter(RdbmsWriterFactory rdbmsWriterFactory, RdbmsWriterConfig rdbmsWriterConfig) {
-    return rdbmsWriterFactory.createWriter(rdbmsWriterConfig);
-  }
-
-  private static class NoOpRdbmsWriterMetrics extends RdbmsWriterMetrics {
-
-    public NoOpRdbmsWriterMetrics() {
-      super(new SimpleMeterRegistry());
-    }
   }
 
 }
