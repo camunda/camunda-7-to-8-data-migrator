@@ -12,11 +12,9 @@ import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 
 import io.camunda.migrator.config.property.MigratorProperties;
 import jakarta.annotation.PreDestroy;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Optional;
 import javax.sql.DataSource;
+import liquibase.integration.spring.MultiTenantSpringLiquibase;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,8 +25,6 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(prefix = MigratorProperties.PREFIX, name = "auto-drop", havingValue = "true")
 public class SchemaShutdownCleaner {
 
-  private static final String DROP_TABLE_SQL = "DROP TABLE IF EXISTS %s";
-
   @Autowired
   @Qualifier("migratorDataSource")
   protected DataSource dataSource;
@@ -36,22 +32,25 @@ public class SchemaShutdownCleaner {
   @Autowired
   protected MigratorProperties configProperties;
 
+  @Autowired
+  protected MigratorConfiguration migratorConfiguration;
+
   @PreDestroy
   public void cleanUp() {
     if (configProperties.getAutoDrop()) {
-      callApi(this::dropTableIfExists, FAILED_TO_DROP_MIGRATION_TABLE);
+      String tablePrefix = Optional.ofNullable(configProperties.getTablePrefix()).orElse("");
+      callApi(() -> dropTableIfExists(tablePrefix), FAILED_TO_DROP_MIGRATION_TABLE);
     }
   }
 
-  private void dropTableIfExists() {
-    try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
-      stmt.execute(String.format(DROP_TABLE_SQL, getPrefix() + "MIGRATION_MAPPING"));
-    } catch (SQLException e) {
+  public void dropTableIfExists(String tablePrefix) {
+    try {
+      MultiTenantSpringLiquibase dropLiquibase = migratorConfiguration.createSchema(
+          dataSource, tablePrefix, "db/changelog/migrator/db.changelog-drop.yaml"
+      );
+      dropLiquibase.afterPropertiesSet(); // will execute the drop
+    } catch (Exception e) {
       throw new PersistenceException(e);
     }
-  }
-
-  private String getPrefix() {
-    return Optional.ofNullable(configProperties.getTablePrefix()).orElse("");
   }
 }
