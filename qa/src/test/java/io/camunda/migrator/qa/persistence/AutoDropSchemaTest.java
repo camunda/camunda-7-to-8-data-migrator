@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureTrue;
 
 import com.zaxxer.hikari.HikariDataSource;
+import io.camunda.migrator.config.mybatis.AbstractConfiguration;
 import io.camunda.migrator.qa.MigrationTestApplication;
 import io.camunda.migrator.qa.util.WithMultiDb;
 import java.sql.Connection;
@@ -18,14 +19,13 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.sql.DataSource;
+import liquibase.integration.spring.MultiTenantSpringLiquibase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.annotation.DirtiesContext;
 
 @WithMultiDb
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class AutoDropSchemaTest {
 
   protected static final String MIGRATION_MAPPING_TABLE = "MIGRATION_MAPPING";
@@ -38,11 +38,12 @@ public class AutoDropSchemaTest {
   }
 
   @Test
-  void shouldMigrationSchemaBeKeptOnShutdown() throws SQLException {
+  void shouldMigrationSchemaBeKeptOnShutdown() throws Exception {
     // given spring application is running with auto-drop disabled
     ConfigurableApplicationContext context = springApplication.run();
     DataSource durableDataSource = createDurableDataSource(context);
     ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, MIGRATION_MAPPING_TABLE));
+    String prefix = context.getEnvironment().getProperty("camunda.migrator.table-prefix");
 
     // when application is shut down
     context.close();
@@ -78,6 +79,19 @@ public class AutoDropSchemaTest {
 
     // then migration schema is dropped
     assertThat(tableExists(durableDataSource, "FOO_" + MIGRATION_MAPPING_TABLE)).isFalse();
+  }
+
+  /**
+   * Recreate the schema after it was dropped to allow other tests to run
+   * @param durableDataSource
+   * @param tablePrefix
+   * @throws Exception
+   */
+  private static void recreateSchema(DataSource durableDataSource, String tablePrefix) throws Exception {
+    AbstractConfiguration abstractConfiguration = new AbstractConfiguration();
+    MultiTenantSpringLiquibase schema = abstractConfiguration.createSchema(durableDataSource, tablePrefix, "classpath:db/changelog/migrator/db.changelog-master.yaml");
+    schema.afterPropertiesSet();
+    ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, tablePrefix + MIGRATION_MAPPING_TABLE));
   }
 
   /**
