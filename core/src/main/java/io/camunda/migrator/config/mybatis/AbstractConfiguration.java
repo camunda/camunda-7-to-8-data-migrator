@@ -9,7 +9,6 @@ package io.camunda.migrator.config.mybatis;
 
 import io.camunda.migrator.impl.logging.ConfigurationLogs;
 import io.camunda.migrator.config.property.MigratorProperties;
-import io.camunda.migrator.exception.MigratorException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
