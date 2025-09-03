@@ -28,6 +28,7 @@ public class MigratorProperties {
   protected String validationJobType;
 
   protected Boolean autoDdl;
+  protected Boolean autoDrop = false;
   protected String tablePrefix;
 
   protected C7Properties c7;
@@ -65,6 +66,14 @@ public class MigratorProperties {
 
   public void setAutoDdl(Boolean autoDdl) {
     this.autoDdl = autoDdl;
+  }
+
+  public Boolean getAutoDrop() {
+    return autoDrop;
+  }
+
+  public void setAutoDrop(Boolean autoDrop) {
+    this.autoDrop = autoDrop;
   }
 
   public String getTablePrefix() {

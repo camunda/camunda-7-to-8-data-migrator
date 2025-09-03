@@ -37,6 +37,7 @@ public class DbClientLogs {
   public static final String FAILED_TO_FIND_SKIPPED_COUNT = "Failed to find skipped count";
   public static final String FAILED_TO_FIND_ALL_SKIPPED = "Failed to find skipped entity Ids";
   public static final String FAILED_TO_DELETE = "Failed to delete mapping for legacyId: ";
+  public static final String FAILED_TO_DROP_MIGRATION_TABLE = "Failed to drop migration mapping table";
 
   public static void updatingKeyForLegacyId(String legacyProcessInstanceId, Long processInstanceKey) {
     LOGGER.debug(UPDATING_KEY_FOR_LEGACY_ID, legacyProcessInstanceId, processInstanceKey);
