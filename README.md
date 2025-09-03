@@ -17,8 +17,6 @@ Please see the official documentation for more details: [Camunda 7 to 8 Migratio
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Migration Modes](#migration-modes)
 - [Key Features](#key-features)
 - [Prerequisites](#prerequisites)
 - [Installation & Setup](#installation--setup)
