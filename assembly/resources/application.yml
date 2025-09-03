@@ -29,6 +29,10 @@ camunda:
     # Automatically create/update database schema
     auto-ddl: false
 
+    # Automatically drop migration schema after execution
+    # Warning: This will delete all data in the migrator schema, including information about skipped entities
+    auto-drop: false
+
     # Optional prefix for migrator database schema tables
     # table-prefix: MY_TABLE_PREFIX_
 
