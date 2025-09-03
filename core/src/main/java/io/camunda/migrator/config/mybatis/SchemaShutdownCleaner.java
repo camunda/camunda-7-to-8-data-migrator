@@ -13,12 +13,10 @@ import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import io.camunda.migrator.config.property.MigratorProperties;
 import jakarta.annotation.PreDestroy;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Optional;
 import javax.sql.DataSource;
-import liquibase.Liquibase;
-import liquibase.database.Database;
-import liquibase.database.DatabaseFactory;
-import liquibase.database.jvm.JdbcConnection;
-import liquibase.resource.ClassLoaderResourceAccessor;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,7 +27,7 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(prefix = MigratorProperties.PREFIX, name = "auto-drop", havingValue = "true")
 public class SchemaShutdownCleaner {
 
-  public static final String DB_CHANGELOG = "db/changelog/migrator/db.changelog-master.yaml";
+  public static final String DB_DROP_CHANGELOG = "db/changelog/migrator/db.changelog-drop.yaml";
 
   @Autowired
   @Qualifier("migratorDataSource")
@@ -38,21 +36,38 @@ public class SchemaShutdownCleaner {
   @Autowired
   protected MigratorProperties configProperties;
 
+  @Autowired
+  protected MigratorConfiguration migratorConfiguration;
+
   @PreDestroy
   public void cleanUp() {
-    if(configProperties.getAutoDrop()) {
-      callApi(this::dropAll, FAILED_TO_DROP_MIGRATION_TABLE);
+    if (configProperties.getAutoDrop()) {
+      String tablePrefix = Optional.ofNullable(configProperties.getTablePrefix()).orElse("");
+      callApi(() -> executeDrop(tablePrefix), FAILED_TO_DROP_MIGRATION_TABLE);
     }
   }
 
-  public void dropAll() {
-    try (Connection conn = this.dataSource.getConnection()) {
-      Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(conn));
-      Liquibase liquibase = new Liquibase(DB_CHANGELOG, new ClassLoaderResourceAccessor(), database);
-      liquibase.dropAll(); // drop objects created by liquibase
-      liquibase.clearCheckSums(); // clear checksums to allow re-running the changelog
+  public void executeDrop(String tablePrefix) {
+    try {
+      var dropLiquibase = migratorConfiguration.createSchema(dataSource, tablePrefix, DB_DROP_CHANGELOG);
+      dropLiquibase.afterPropertiesSet();
+      deleteChangelogEntry(tablePrefix);
     } catch (Exception e) {
       throw new PersistenceException(e);
+    }
+  }
+
+  /**
+   * Deletes the changelog entry from the database so that Liquibase can execute it again.
+   */
+  private void deleteChangelogEntry(String tablePrefix) throws SQLException {
+    try (Connection conn = dataSource.getConnection();
+        PreparedStatement ps = conn.prepareStatement(
+            "DELETE FROM " + tablePrefix + "DATABASECHANGELOG WHERE ID=? AND AUTHOR=?"
+        )) {
+      ps.setString(1, "create_migration_mapping_table");
+      ps.setString(2, "Camunda");
+      ps.executeUpdate();
     }
   }
 }
