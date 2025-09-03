@@ -7,7 +7,6 @@
  */
 package io.camunda.migrator.qa.persistence;
 
-import static io.camunda.migrator.config.mybatis.SchemaShutdownCleaner.DB_CHANGELOG;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureTrue;
 
@@ -64,9 +63,6 @@ public class AutoDropSchemaTest {
 
     // then migration schema is dropped
     assertThat(tableExists(durableDataSource, MIGRATION_MAPPING_TABLE)).isFalse();
-
-    // reset
-    recreateSchema(durableDataSource, "");
   }
 
   @Test
@@ -82,22 +78,6 @@ public class AutoDropSchemaTest {
 
     // then migration schema is dropped
     assertThat(tableExists(durableDataSource, "FOO_" + MIGRATION_MAPPING_TABLE)).isFalse();
-
-    // reset
-    recreateSchema(durableDataSource, "FOO_");
-  }
-
-  /**
-   * Recreate the schema after it was dropped to allow other tests to run
-   * @param durableDataSource
-   * @param tablePrefix
-   * @throws Exception
-   */
-  private static void recreateSchema(DataSource durableDataSource, String tablePrefix) throws Exception {
-    AbstractConfiguration abstractConfiguration = new AbstractConfiguration();
-    MultiTenantSpringLiquibase schema = abstractConfiguration.createSchema(durableDataSource, tablePrefix, DB_CHANGELOG);
-    schema.afterPropertiesSet();
-    ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, tablePrefix + MIGRATION_MAPPING_TABLE));
   }
 
   /**
