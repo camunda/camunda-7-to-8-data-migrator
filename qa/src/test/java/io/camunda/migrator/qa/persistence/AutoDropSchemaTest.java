@@ -11,7 +11,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureTrue;
 
 import com.zaxxer.hikari.HikariDataSource;
-import io.camunda.migrator.config.mybatis.AbstractConfiguration;
 import io.camunda.migrator.qa.MigrationTestApplication;
 import io.camunda.migrator.qa.util.WithMultiDb;
 import java.sql.Connection;
@@ -19,13 +18,14 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.sql.DataSource;
-import liquibase.integration.spring.MultiTenantSpringLiquibase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 
 @WithMultiDb
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class AutoDropSchemaTest {
 
   protected static final String MIGRATION_MAPPING_TABLE = "MIGRATION_MAPPING";
