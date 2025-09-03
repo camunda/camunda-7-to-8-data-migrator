@@ -12,9 +12,13 @@ import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 
 import io.camunda.migrator.config.property.MigratorProperties;
 import jakarta.annotation.PreDestroy;
-import java.util.Optional;
+import java.sql.Connection;
 import javax.sql.DataSource;
-import liquibase.integration.spring.MultiTenantSpringLiquibase;
+import liquibase.Liquibase;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.resource.ClassLoaderResourceAccessor;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,6 +29,8 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(prefix = MigratorProperties.PREFIX, name = "auto-drop", havingValue = "true")
 public class SchemaShutdownCleaner {
 
+  public static final String DB_CHANGELOG = "db/changelog/migrator/db.changelog-master.yaml";
+
   @Autowired
   @Qualifier("migratorDataSource")
   protected DataSource dataSource;
@@ -32,23 +38,19 @@ public class SchemaShutdownCleaner {
   @Autowired
   protected MigratorProperties configProperties;
 
-  @Autowired
-  protected MigratorConfiguration migratorConfiguration;
-
   @PreDestroy
   public void cleanUp() {
-    if (configProperties.getAutoDrop()) {
-      String tablePrefix = Optional.ofNullable(configProperties.getTablePrefix()).orElse("");
-      callApi(() -> dropTableIfExists(tablePrefix), FAILED_TO_DROP_MIGRATION_TABLE);
+    if(configProperties.getAutoDrop()) {
+      callApi(this::dropAll, FAILED_TO_DROP_MIGRATION_TABLE);
     }
   }
 
-  public void dropTableIfExists(String tablePrefix) {
-    try {
-      MultiTenantSpringLiquibase dropLiquibase = migratorConfiguration.createSchema(
-          dataSource, tablePrefix, "db/changelog/migrator/db.changelog-drop.yaml"
-      );
-      dropLiquibase.afterPropertiesSet(); // will execute the drop
+  public void dropAll() {
+    try (Connection conn = this.dataSource.getConnection()) {
+      Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(conn));
+      Liquibase liquibase = new Liquibase(DB_CHANGELOG, new ClassLoaderResourceAccessor(), database);
+      liquibase.dropAll(); // drop objects created by liquibase
+      liquibase.clearCheckSums(); // clear checksums to allow re-running the changelog
     } catch (Exception e) {
       throw new PersistenceException(e);
     }
