@@ -71,7 +71,7 @@ public class AbstractConfiguration {
     return factoryBean;
   }
 
-  protected MultiTenantSpringLiquibase createSchema(DataSource dataSource, String tablePrefix, String changeLogFile) {
+  public MultiTenantSpringLiquibase createSchema(DataSource dataSource, String tablePrefix, String changeLogFile) {
     String prefix = StringUtils.trimToEmpty(tablePrefix);
     ConfigurationLogs.logCreatingTableSchema(changeLogFile, prefix);
 

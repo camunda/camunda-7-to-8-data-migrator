@@ -49,7 +49,7 @@ public class AutoDropSchemaTest {
   }
 
   @Test
-  void shouldMigrationSchemaBeDroppedOnShutdown() throws SQLException {
+  void shouldMigrationSchemaBeDroppedOnShutdown() throws Exception {
     // given spring application is running with auto-drop disabled
     ConfigurableApplicationContext context = springApplication.run("--camunda.migrator.auto-drop=true");
     DataSource durableDataSource = createDurableDataSource(context);
@@ -63,7 +63,7 @@ public class AutoDropSchemaTest {
   }
 
   @Test
-  void shouldMigrationSchemaBeDroppedOnShutdownWithPrefix() throws SQLException {
+  void shouldMigrationSchemaBeDroppedOnShutdownWithPrefix() throws Exception {
     // given spring application is running with auto-drop disabled
     ConfigurableApplicationContext context = springApplication.run("--camunda.migrator.auto-drop=true", "--camunda.migrator.table-prefix=FOO_");
     DataSource migratorDataSource = (DataSource) context.getBean("migratorDataSource");
