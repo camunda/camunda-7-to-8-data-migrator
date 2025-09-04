@@ -127,27 +127,8 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
-  void shouldAcceptValidFlags() throws Exception {
-    // given
-    String[] validFlags = {"--runtime", "--history", "--list-skipped", "--retry-skipped", "--drop-schema", "--force"};
-
-    for (String flag : validFlags) {
-      ProcessBuilder processBuilder = createProcessBuilder(flag);
-
-      // when
-      process = processBuilder.start();
-
-      // then
-      String output = readProcessOutput(process);
-
-      assertThat(output).contains("Starting migration with flags: " + flag);
-    }
-  }
-
-  @Test
   @Timeout(value = 30, unit = TimeUnit.SECONDS)
-  void shouldStartWithoutArgumentsAndShowExpectedMessage() throws Exception {
+  void shouldShowUsageWhenNoRuntimeOrHistoryArgumentsProvided() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder();
 
@@ -156,7 +137,58 @@ class DistributionSmokeTest {
 
     // then
     String output = readProcessOutput(process);
-    assertThat(output).contains("Starting application without migration flags");
+    assertThat(output).contains("Error: Must specify either runtime or history, or both.");
+    assertThat(output).contains("Usage: start.sh/bat");
+  }
+
+  @Test
+  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  void shouldAcceptValidFlags() throws Exception {
+    // given
+    String[][] validFlags = {
+        {"--runtime"},
+        {"--history"},
+        {"--drop-schema"},
+        {"--force"},
+        {"--history", "--list-skipped"},
+        {"--history", "--retry-skipped"}
+    };
+
+    for (String[] flag : validFlags) {
+      ProcessBuilder processBuilder = createProcessBuilder(flag);
+
+      // when
+      process = processBuilder.start();
+
+      // then
+      String output = readProcessOutput(process);
+
+      assertThat(output).contains("Starting migration with flags: " + String.join(" ", flag));
+    }
+  }
+
+  @Test
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
+  void shouldStartWithoutArgumentsAndShowExpectedMessage() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history");
+
+    // when
+    process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    assertThat(output).contains("Starting migration with flags: --runtime --history");
+
+    // given
+    processBuilder = createProcessBuilder("--history", "--runtime");
+
+    // when
+    process = processBuilder.start();
+
+    // then
+    output = readProcessOutput(process);
+    assertThat(output).contains("Starting migration with flags: --history --runtime");
   }
 
   @Test
