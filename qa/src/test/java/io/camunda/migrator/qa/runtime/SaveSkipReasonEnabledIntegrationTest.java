@@ -5,24 +5,25 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.qa.persistence;
+package io.camunda.migrator.qa.runtime;
 
+import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureTrue;
 
-import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE;
-import io.camunda.migrator.qa.runtime.RuntimeMigrationAbstractTest;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(properties = "camunda.migrator.save-skip-reason=false")
-public class SaveSkipReasonDisabledIntegrationTest extends RuntimeMigrationAbstractTest {
+@TestPropertySource(properties = {
+    "camunda.migrator.save-skip-reason=true"
+})
+public class SaveSkipReasonEnabledIntegrationTest extends RuntimeMigrationAbstractTest {
 
   @Autowired
   private DbClient dbClient;
@@ -30,11 +31,8 @@ public class SaveSkipReasonDisabledIntegrationTest extends RuntimeMigrationAbstr
   @Autowired
   private IdKeyMapper idKeyMapper;
 
-  @Autowired
-  protected RuntimeMigrator runtimeMigrator;
-
   @Test
-  public void shouldSaveNullSkipReasonIfSaveSkipReasonIsFalse() {
+  public void shouldSaveSkipReasonWhenSaveSkipReasonIsEnabled() {
     // given process state in c7
     deployer.deployProcessInC7AndC8("multiInstanceProcess.bpmn");
     var process = runtimeService.startProcessInstanceByKey("multiInstanceProcess");
@@ -49,7 +47,7 @@ public class SaveSkipReasonDisabledIntegrationTest extends RuntimeMigrationAbstr
     assertThat(skippedInstances).hasSize(1);
 
     IdKeyDbModel savedInstance = skippedInstances.getFirst();
-    assertThat(savedInstance.skipReason()).isNull();
     assertThat(savedInstance.instanceKey()).isNull();
+    assertThat(savedInstance.skipReason()).isEqualTo(String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, "multiUserTask"));
   }
 }
