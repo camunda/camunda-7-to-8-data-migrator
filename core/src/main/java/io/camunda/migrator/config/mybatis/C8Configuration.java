@@ -57,9 +57,13 @@ import io.camunda.db.rdbms.sql.UserMapper;
 import io.camunda.db.rdbms.sql.UserTaskMapper;
 import io.camunda.db.rdbms.sql.VariableMapper;
 import io.camunda.db.rdbms.write.RdbmsWriterFactory;
+import io.camunda.db.rdbms.write.RdbmsWriterMetrics;
+import io.camunda.db.rdbms.sql.CorrelatedMessageMapper;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.spring.client.metrics.MetricsRecorder;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Properties;
 import javax.sql.DataSource;
 import liquibase.integration.spring.MultiTenantSpringLiquibase;
@@ -234,6 +238,21 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
+  MapperFactoryBean<CorrelatedMessageMapper> correlatedMessageMapper(@Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory) {
+    return createMapperFactoryBean(c8SqlSessionFactory, CorrelatedMessageMapper.class);
+  }
+
+  @Bean
+  public MeterRegistry meterRegistry() {
+    return new SimpleMeterRegistry();
+  }
+
+  @Bean
+  public RdbmsWriterMetrics rdbmsWriterMetrics(MeterRegistry meterRegistry) {
+    return new RdbmsWriterMetrics(meterRegistry);
+  }
+
+  @Bean
   public VariableDbReader variableRdbmsReader(VariableMapper variableMapper) {
     return new VariableDbReader(variableMapper);
   }
@@ -368,13 +387,15 @@ public class C8Configuration extends AbstractConfiguration {
       PurgeMapper purgeMapper,
       UserTaskMapper userTaskMapper,
       VariableMapper variableMapper,
+      RdbmsWriterMetrics rdbmsWriterMetrics,
       BatchOperationDbReader batchOperationReader,
       JobMapper jobMapper,
       SequenceFlowMapper sequenceFlowMapper,
       UsageMetricMapper usageMetricMapper,
       UsageMetricTUMapper usageMetricTUMapper,
       BatchOperationMapper batchOperationMapper,
-      MessageSubscriptionMapper messageSubscriptionMapper) {
+      MessageSubscriptionMapper messageSubscriptionMapper,
+      CorrelatedMessageMapper correlatedMessageMapper) {
     return new RdbmsWriterFactory(
         c8SqlSessionFactory,
         exporterPositionMapper,
@@ -386,14 +407,15 @@ public class C8Configuration extends AbstractConfiguration {
         purgeMapper,
         userTaskMapper,
         variableMapper,
-        null,
+        rdbmsWriterMetrics,
         batchOperationReader,
         jobMapper,
         sequenceFlowMapper,
         usageMetricMapper,
         usageMetricTUMapper,
         batchOperationMapper,
-        messageSubscriptionMapper);
+        messageSubscriptionMapper,
+        correlatedMessageMapper);
   }
 
   @Bean
