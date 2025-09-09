@@ -11,6 +11,7 @@ import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_DROP_MIGRA
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 
 import io.camunda.migrator.config.property.MigratorProperties;
+import io.camunda.migrator.impl.clients.DbClient;
 import jakarta.annotation.PreDestroy;
 import java.sql.Connection;
 import java.util.Optional;
@@ -21,6 +22,8 @@ import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.apache.ibatis.exceptions.PersistenceException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -30,6 +33,8 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(prefix = MigratorProperties.PREFIX, name = "drop-schema", havingValue = "true")
 public class SchemaShutdownCleaner {
 
+  protected static final Logger LOGGER = LoggerFactory.getLogger(SchemaShutdownCleaner.class);
+
   @Autowired
   @Qualifier("migratorDataSource")
   protected DataSource dataSource;
@@ -37,11 +42,19 @@ public class SchemaShutdownCleaner {
   @Autowired
   protected MigratorProperties configProperties;
 
+  @Autowired
+  protected DbClient dbClient;
+
   @PreDestroy
   public void cleanUp() {
     if (configProperties.getDropSchema()) {
-      String tablePrefix = Optional.ofNullable(configProperties.getTablePrefix()).orElse("");
-      callApi(() -> rollbackTableCreation(tablePrefix), FAILED_TO_DROP_MIGRATION_TABLE);
+      Long skipped = dbClient.countSkipped();
+      if (skipped == 0) {
+        String tablePrefix = Optional.ofNullable(configProperties.getTablePrefix()).orElse("");
+        callApi(() -> rollbackTableCreation(tablePrefix), FAILED_TO_DROP_MIGRATION_TABLE);
+      } else {
+        LOGGER.warn(FAILED_TO_DROP_MIGRATION_TABLE + ": [{}] entities were skipped during migration.", skipped);
+      }
     }
   }
 

@@ -79,6 +79,8 @@ public interface IdKeyMapper {
 
   long countSkippedByType(@Param("type") TYPE type);
 
+  long countSkipped();
+
   List<String> findAllIds();
 
   void updateKeyByIdAndType(IdKeyDbModel idKeyDbModel);
