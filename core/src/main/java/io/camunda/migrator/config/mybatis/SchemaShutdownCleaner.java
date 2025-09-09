@@ -24,7 +24,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(prefix = MigratorProperties.PREFIX, name = "auto-drop", havingValue = "true")
+@ConditionalOnProperty(prefix = MigratorProperties.PREFIX, name = "drop-schema", havingValue = "true")
 public class SchemaShutdownCleaner {
 
   public static final String DB_DROP_CHANGELOG = "db/changelog/migrator/db.changelog-drop.yaml";
@@ -41,7 +41,7 @@ public class SchemaShutdownCleaner {
 
   @PreDestroy
   public void cleanUp() {
-    if (configProperties.getAutoDrop()) {
+    if (configProperties.getDropSchema()) {
       String tablePrefix = Optional.ofNullable(configProperties.getTablePrefix()).orElse("");
       callApi(() -> executeDrop(tablePrefix), FAILED_TO_DROP_MIGRATION_TABLE);
     }
@@ -58,13 +58,11 @@ public class SchemaShutdownCleaner {
   }
 
   /**
-   * Deletes the changelog entry from the database so that Liquibase can execute it again.
+   * Deletes the changelog entry from the database so that the schema can be recreated on next run
    */
   private void deleteChangelogEntry(String tablePrefix) throws SQLException {
     try (Connection conn = dataSource.getConnection();
-        PreparedStatement ps = conn.prepareStatement(
-            "DELETE FROM " + tablePrefix + "DATABASECHANGELOG WHERE ID=? AND AUTHOR=?"
-        )) {
+        PreparedStatement ps = conn.prepareStatement("DELETE FROM " + tablePrefix + "DATABASECHANGELOG WHERE ID=? AND AUTHOR=?")) {
       ps.setString(1, "create_migration_mapping_table");
       ps.setString(2, "Camunda");
       ps.executeUpdate();
