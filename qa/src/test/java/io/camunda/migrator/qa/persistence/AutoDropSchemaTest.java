@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureTrue;
 
 import com.zaxxer.hikari.HikariDataSource;
+import io.camunda.migrator.config.mybatis.AbstractConfiguration;
 import io.camunda.migrator.qa.MigrationTestApplication;
 import io.camunda.migrator.qa.util.WithMultiDb;
 import java.sql.Connection;
@@ -19,6 +20,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import javax.sql.DataSource;
+import liquibase.integration.spring.MultiTenantSpringLiquibase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -76,6 +78,19 @@ public class AutoDropSchemaTest {
 
     // then migration schema is dropped
     assertThat(tableExists(durableDataSource, "FOO_" + MIGRATION_MAPPING_TABLE)).isFalse();
+  }
+
+  /**
+   * Recreate the schema after it was dropped to allow other tests to run
+   * @param durableDataSource
+   * @param tablePrefix
+   * @throws Exception
+   */
+  private static void recreateSchema(DataSource durableDataSource, String tablePrefix) throws Exception {
+    AbstractConfiguration abstractConfiguration = new AbstractConfiguration();
+    MultiTenantSpringLiquibase schema = abstractConfiguration.createSchema(durableDataSource, tablePrefix, "db/changelog/migrator/db.0.0.1.xml");
+    schema.afterPropertiesSet();
+    ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, tablePrefix + MIGRATION_MAPPING_TABLE));
   }
 
   /**
