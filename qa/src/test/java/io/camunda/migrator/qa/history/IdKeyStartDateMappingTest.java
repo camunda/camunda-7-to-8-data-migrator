@@ -5,13 +5,12 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.qa.persistence;
+package io.camunda.migrator.qa.history;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
-import io.camunda.migrator.qa.history.HistoryMigrationAbstractTest;
 import java.util.Date;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
