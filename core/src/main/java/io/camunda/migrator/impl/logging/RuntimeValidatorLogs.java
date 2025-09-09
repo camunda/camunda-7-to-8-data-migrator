@@ -8,6 +8,7 @@
 package io.camunda.migrator.impl.logging;
 
 import io.camunda.migrator.impl.RuntimeValidator;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +27,8 @@ public class RuntimeValidatorLogs {
 
   // RuntimeValidator Error Messages
   public static final String MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR = "Found multi-instance loop characteristics for flow node with id [%s] in C7 process instance.";
-  public static final String NO_NONE_START_EVENT_ERROR = "Couldn't find process None Start Event in C8 process with key [%s].";
-  public static final String NO_EXECUTION_LISTENER_OF_TYPE_ERROR = "No execution listener of type '%s' found on start event [%s] in C8 process with id [%s]. At least one '%s' listener is required.";
+  public static final String NO_NONE_START_EVENT_ERROR = "C8 process definition [id: %s, version: %d] should have a None Start Event.";
+  public static final String NO_EXECUTION_LISTENER_OF_TYPE_ERROR = "No execution listener of type '%s' found on start event [%s] for C8 process definition [id: %s, version: %d]. At least one '%s' listener is required.";
   public static final String FLOW_NODE_NOT_EXISTS_ERROR = "Flow node with id [%s] doesn't exist in the equivalent deployed C8 model.";
   public static final String NO_C8_DEPLOYMENT_ERROR = "No C8 deployment found for process ID [%s] required for instance with legacyID [%s].";
   public static final String FAILED_TO_PARSE_BPMN_MODEL = "Failed to parse BPMN model from XML";
