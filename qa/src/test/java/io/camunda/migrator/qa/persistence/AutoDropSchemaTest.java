@@ -11,7 +11,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureTrue;
 
 import com.zaxxer.hikari.HikariDataSource;
-import io.camunda.migrator.config.mybatis.AbstractConfiguration;
 import io.camunda.migrator.qa.MigrationTestApplication;
 import io.camunda.migrator.qa.util.WithMultiDb;
 import java.sql.Connection;
@@ -20,7 +19,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import javax.sql.DataSource;
-import liquibase.integration.spring.MultiTenantSpringLiquibase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -40,7 +38,7 @@ public class AutoDropSchemaTest {
 
   @Test
   void shouldMigrationSchemaBeKeptOnShutdown() throws Exception {
-    // given spring application is running with auto-drop disabled
+    // given spring application is running with drop-schema flag disabled
     var context = springApplication.run();
     DataSource durableDataSource = createDurableDataSource(context);
     ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, MIGRATION_MAPPING_TABLE));
@@ -54,7 +52,7 @@ public class AutoDropSchemaTest {
 
   @Test
   void shouldMigrationSchemaBeDroppedOnShutdown() throws Exception {
-    // given spring application is running with auto-drop enabled
+    // given spring application is running with drop-schema flag enabled
     var context = springApplication.properties(Map.of("camunda.migrator.drop-schema", true)).run();
     DataSource durableDataSource = createDurableDataSource(context);
     ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, MIGRATION_MAPPING_TABLE));
@@ -68,30 +66,16 @@ public class AutoDropSchemaTest {
 
   @Test
   void shouldMigrationSchemaBeDroppedOnShutdownWithPrefix() throws Exception {
-    // given spring application is running with auto-drop enabled
+    // given spring application is running with drop-schema flag enabled
     var context = springApplication.properties(Map.of("camunda.migrator.drop-schema", true, "camunda.migrator.table-prefix", "FOO_")).run();
-    DataSource migratorDataSource = (DataSource) context.getBean("migratorDataSource");
     DataSource durableDataSource = createDurableDataSource(context);
-    ensureTrue("Migration mapping table does not exist", tableExists(migratorDataSource, "FOO_" + MIGRATION_MAPPING_TABLE));
+    ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, "FOO_" + MIGRATION_MAPPING_TABLE));
 
     // when application is shut down
     context.close();
 
     // then migration schema is dropped
     assertThat(tableExists(durableDataSource, "FOO_" + MIGRATION_MAPPING_TABLE)).isFalse();
-  }
-
-  /**
-   * Recreate the schema after it was dropped to allow other tests to run
-   * @param durableDataSource
-   * @param tablePrefix
-   * @throws Exception
-   */
-  private static void recreateSchema(DataSource durableDataSource, String tablePrefix) throws Exception {
-    AbstractConfiguration abstractConfiguration = new AbstractConfiguration();
-    MultiTenantSpringLiquibase schema = abstractConfiguration.createSchema(durableDataSource, tablePrefix, "classpath:db/changelog/migrator/db.changelog-master.yaml");
-    schema.afterPropertiesSet();
-    ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, tablePrefix + MIGRATION_MAPPING_TABLE));
   }
 
   /**
