@@ -60,7 +60,6 @@ jobs:
           vault-url: ${{ secrets.VAULT_ADDR }}
 
       - name: Checkout Code
-        if: ${{ !inputs.ONLY_PUSH_TO_MAVEN_CENTRAL }}
         uses: actions/checkout@v5
         with:
           ref: ${{ github.ref }}
