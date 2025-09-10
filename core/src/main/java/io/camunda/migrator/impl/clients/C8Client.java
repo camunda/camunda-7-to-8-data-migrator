@@ -107,7 +107,11 @@ public class C8Client {
     flowNodeActivations.forEach(flowNodeActivation -> {
       String activityId = flowNodeActivation.activityId();
       Map<String, Object> variables = flowNodeActivation.variables();
-      modifyProcessInstance.activateElement(activityId).withVariables(variables, activityId);
+      if (variables != null && variables.size() != 0) {
+        modifyProcessInstance.activateElement(activityId).withVariables(variables, activityId);
+      } else {
+        modifyProcessInstance.activateElement(activityId);
+      }
     });
 
     callApi(() -> ((ModifyProcessInstanceCommandStep3) modifyProcessInstance).execute(), FAILED_TO_MODIFY_PROCESS_INSTANCE + processInstanceKey);
