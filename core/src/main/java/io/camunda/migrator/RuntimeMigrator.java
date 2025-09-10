@@ -12,6 +12,7 @@ import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE;
 
+import io.camunda.client.CamundaClient;
 import io.camunda.migrator.impl.logging.RuntimeMigratorLogs;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE;
 
@@ -176,12 +177,18 @@ public class RuntimeMigrator {
       return null;
     }
   }
+  @Autowired
+  protected CamundaClient camundaClient;
 
   protected void activateMigratorJobs() {
     RuntimeMigratorLogs.activatingMigratorJobs();
     List<ActivatedJob> migratorJobs;
     do {
-      migratorJobs = c8Client.activateJobs(migratorProperties.getJobActivationType());
+      migratorJobs =  camundaClient.newActivateJobsCommand()
+          .jobType(migratorProperties.getJobActivationType())
+          .maxJobsToActivate(10)
+          .tenantIds("<default>","tenant7").execute().getJobs();
+//      migratorJobs = c8Client.activateJobs(migratorProperties.getJobActivationType());
 
       RuntimeMigratorLogs.migratorJobsFound(migratorJobs.size());
 

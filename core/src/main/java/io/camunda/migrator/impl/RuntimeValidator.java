@@ -8,7 +8,6 @@
 package io.camunda.migrator.impl;
 
 import static io.camunda.migrator.constants.MigratorConstants.LEGACY_ID_VAR_NAME;
-import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.TENANT_ID_ERROR;
 import static io.camunda.migrator.impl.util.C7Utils.MULTI_INSTANCE_BODY_SUFFIX;
 import static io.camunda.migrator.impl.util.C7Utils.getActiveActivityIdsById;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;

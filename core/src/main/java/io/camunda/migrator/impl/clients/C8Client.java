@@ -87,8 +87,9 @@ public class C8Client {
   public List<ActivatedJob> activateJobs(String jobType) {
     var activateJobs = camundaClient.newActivateJobsCommand()
         .jobType(jobType)
-        .maxJobsToActivate(properties.getPageSize());
-    return callApi(activateJobs::execute, FAILED_TO_ACTIVATE_JOBS + jobType).getJobs();
+        .maxJobsToActivate(properties.getPageSize())
+        .tenantIds("<default>","tenant7");
+    return activateJobs.execute().getJobs();
   }
 
   /**
@@ -112,7 +113,14 @@ public class C8Client {
     flowNodeActivations.forEach(flowNodeActivation -> {
       String activityId = flowNodeActivation.activityId();
       Map<String, Object> variables = flowNodeActivation.variables();
-      modifyProcessInstance.activateElement(activityId).withVariables(variables, activityId);
+      // if variables is empty, no variables will be set
+      if (variables != null && variables.size() != 0) {
+        // Add a step to set the variables before activating the element
+        modifyProcessInstance.activateElement(activityId).withVariables(variables, activityId);
+      } else {
+        modifyProcessInstance.activateElement(activityId);
+      }
+
     });
 
     callApi(() -> ((ModifyProcessInstanceCommandStep3) modifyProcessInstance).execute(), FAILED_TO_MODIFY_PROCESS_INSTANCE + processInstanceKey);
