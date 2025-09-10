@@ -61,8 +61,6 @@ public interface IdKeyMapper {
     return HISTORY_TYPES;
   }
 
-  String findLatestIdByType(TYPE type);
-
   boolean checkExistsByIdAndType(@Param("type") TYPE type, @Param("id") String id);
 
   boolean checkHasKeyByIdAndType(@Param("type") TYPE type, @Param("id") String id);
