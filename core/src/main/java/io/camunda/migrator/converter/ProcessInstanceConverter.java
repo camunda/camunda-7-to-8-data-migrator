@@ -45,7 +45,8 @@ public class ProcessInstanceConverter {
         // https://github.com/camunda/camunda-bpm-platform/issues/5359
         //        .parentElementInstanceKey(null)
         //        .treePath(null)
-        .numIncidents(getIncidents(processInstance))
+        // TODO https://github.com/camunda/camunda-bpm-platform/issues/5400
+//        .numIncidents()
         .partitionId(C7_HISTORY_PARTITION_ID)
         .historyCleanupDate(convertDate(processInstance.getRemovalTime()))
         .build();
@@ -67,8 +68,5 @@ public class ProcessInstanceConverter {
         : MigratorConstants.C8_DEFAULT_TENANT;
   }
 
-  protected int getIncidents(HistoricProcessInstance processInstance) {
-    return Math.toIntExact(c7Client.getIncidentsByProcessInstance(processInstance.getId()));
-  }
 
 }
