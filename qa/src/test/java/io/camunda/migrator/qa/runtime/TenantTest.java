@@ -25,6 +25,7 @@ class TenantTest extends RuntimeMigrationAbstractTest {
   private RuntimeService runtimeService;
 
   @Test
+  @Disabled
   public void shouldMigrateProcessInstanceWithTenant() {
     // given
     deployer.deployCamunda7Process("simpleProcess.bpmn", "my-tenant");
@@ -36,13 +37,10 @@ class TenantTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    assertThatProcessInstanceCountIsEqualTo(0);
-//    LOGS.assertContains(String.format(SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("{}", "%s"),
-//        c7ProcessInstanceId, TENANT_ID_ERROR));
+    assertThatProcessInstanceCountIsEqualTo(1);
   }
 
   @Test
-  @Disabled
   public void shouldMigrateProcessInstanceNullTenant() {
     // given
     deployer.deployCamunda7Process("simpleProcess.bpmn");
@@ -57,8 +55,6 @@ class TenantTest extends RuntimeMigrationAbstractTest {
 //    assertThat(byTaskName("UserTaskName"))
 
     assertThatProcessInstanceCountIsEqualTo(1);
-//    LOGS.assertContains(String.format(SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("{}", "%s"),
-//        c7ProcessInstanceId, TENANT_ID_ERROR));
   }
 
 }

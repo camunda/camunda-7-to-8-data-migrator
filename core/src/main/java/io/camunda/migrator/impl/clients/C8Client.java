@@ -18,6 +18,7 @@ import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_MODIFY_PRO
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_SEARCH_PROCESS_DEFINITIONS;
 
 import io.camunda.client.CamundaClient;
+import io.camunda.client.api.command.ActivateJobsCommandStep1;
 import io.camunda.client.api.command.DeployResourceCommandStep1;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3;
 import io.camunda.client.api.response.ActivatedJob;
@@ -85,10 +86,14 @@ public class C8Client {
    * Activates jobs for the specified job type.
    */
   public List<ActivatedJob> activateJobs(String jobType) {
+    Set<String> tenantIds = properties.getTenantIds();
+
     var activateJobs = camundaClient.newActivateJobsCommand()
         .jobType(jobType)
-        .maxJobsToActivate(properties.getPageSize())
-        .tenantIds("<default>","tenant7");
+        .maxJobsToActivate(properties.getPageSize());
+    if (tenantIds != null && !tenantIds.isEmpty()) {
+      activateJobs = activateJobs.tenantIds(List.copyOf(tenantIds));
+    }
     return activateJobs.execute().getJobs();
   }
 

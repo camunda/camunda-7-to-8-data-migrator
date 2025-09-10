@@ -184,11 +184,7 @@ public class RuntimeMigrator {
     RuntimeMigratorLogs.activatingMigratorJobs();
     List<ActivatedJob> migratorJobs;
     do {
-      migratorJobs =  camundaClient.newActivateJobsCommand()
-          .jobType(migratorProperties.getJobActivationType())
-          .maxJobsToActivate(10)
-          .tenantIds("<default>","tenant7").execute().getJobs();
-//      migratorJobs = c8Client.activateJobs(migratorProperties.getJobActivationType());
+      migratorJobs = c8Client.activateJobs(migratorProperties.getJobActivationType());
 
       RuntimeMigratorLogs.migratorJobsFound(migratorJobs.size());
 

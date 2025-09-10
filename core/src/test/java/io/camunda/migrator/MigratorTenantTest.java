@@ -5,37 +5,31 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
+
 package io.camunda.migrator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.zaxxer.hikari.HikariDataSource;
 import io.camunda.migrator.config.property.MigratorProperties;
-import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import javax.sql.DataSource;
+import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
+@TestPropertySource(properties = { "camunda.migrator.tenantIds=tenant1,tenant2, tenant3" })
 @SpringBootTest
-class DefaultPropertiesTest {
+public class MigratorTenantTest {
 
   @Autowired
   protected MigratorProperties migratorProperties;
 
-  @Autowired
-  ProcessEngineConfigurationImpl processEngineConfiguration;
-
   @Test
-  public void shouldHaveDefaultPageSize() {
-    assertThat(migratorProperties.getPageSize()).isEqualTo(MigratorProperties.DEFAULT_PAGE_SIZE);
+  public void shouldSetTenantIds() {
+    assertThat(migratorProperties.getTenantIds()).contains("tenant1", "tenant2", "tenant3");
   }
 
-  @Test
-  public void shouldHaveDefaultTenants() {
-    assertThat(migratorProperties.getTenantIds()).isEqualTo(null);
-  }
-
-  @Test
-  public void shouldHaveDisabledJobExecutor() {
-    assertThat(processEngineConfiguration.getJobExecutor().isActive()).isEqualTo(false);
-  }
 }

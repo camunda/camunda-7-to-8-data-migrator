@@ -195,11 +195,6 @@ public class RuntimeValidator {
       String processInstanceId = processInstance.getId();
       String c7DefinitionId = processInstance.getProcessDefinitionId();
       String c8DefinitionId = processInstance.getProcessDefinitionKey();
-//      String tenantId = processInstance.getTenantId();
-//
-//      if (tenantId != null) {
-//        throw new IllegalStateException(TENANT_ID_ERROR);
-//      }
 
       var c8Definitions = c8Client.searchProcessDefinitions(c8DefinitionId);
       validateC8DefinitionExists(c8Definitions.items(), c8DefinitionId, processInstanceId);
