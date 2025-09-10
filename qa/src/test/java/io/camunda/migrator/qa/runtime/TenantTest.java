@@ -52,8 +52,6 @@ class TenantTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-//    assertThat(byTaskName("UserTaskName"))
-
     assertThatProcessInstanceCountIsEqualTo(1);
   }
 

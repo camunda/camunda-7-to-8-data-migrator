@@ -7,10 +7,9 @@
  */
 package io.camunda.migrator.config.property;
 
+import java.util.List;
 import java.util.Set;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import java.util.List;
 
 @ConfigurationProperties(MigratorProperties.PREFIX)
 public class MigratorProperties {
@@ -28,7 +27,6 @@ public class MigratorProperties {
   protected String jobType = DEFAULT_JOB_TYPE;
   protected String validationJobType;
   protected Set<String> tenantIds;
-
 
   protected Boolean autoDdl;
   protected String tablePrefix;

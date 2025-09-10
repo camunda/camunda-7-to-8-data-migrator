@@ -94,7 +94,7 @@ public class C8Client {
     if (tenantIds != null && !tenantIds.isEmpty()) {
       activateJobs = activateJobs.tenantIds(List.copyOf(tenantIds));
     }
-    return activateJobs.execute().getJobs();
+    return callApi(activateJobs::execute, FAILED_TO_ACTIVATE_JOBS + jobType).getJobs();
   }
 
   /**
@@ -119,7 +119,7 @@ public class C8Client {
       String activityId = flowNodeActivation.activityId();
       Map<String, Object> variables = flowNodeActivation.variables();
       // if variables is empty, no variables will be set
-      if (variables != null && variables.size() != 0) {
+      if (variables != null && !variables.isEmpty()) {
         // Add a step to set the variables before activating the element
         modifyProcessInstance.activateElement(activityId).withVariables(variables, activityId);
       } else {
