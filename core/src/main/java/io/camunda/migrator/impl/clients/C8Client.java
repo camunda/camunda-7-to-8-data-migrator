@@ -107,7 +107,7 @@ public class C8Client {
     flowNodeActivations.forEach(flowNodeActivation -> {
       String activityId = flowNodeActivation.activityId();
       Map<String, Object> variables = flowNodeActivation.variables();
-      if (variables != null && variables.size() != 0) {
+      if (variables != null && !variables.isEmpty()) {
         modifyProcessInstance.activateElement(activityId).withVariables(variables, activityId);
       } else {
         modifyProcessInstance.activateElement(activityId);
