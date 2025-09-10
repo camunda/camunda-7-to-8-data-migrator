@@ -17,7 +17,6 @@ import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import io.camunda.migrator.constants.MigratorConstants;
 import io.camunda.migrator.impl.clients.C7Client;
 import io.camunda.migrator.impl.util.ConverterUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 
