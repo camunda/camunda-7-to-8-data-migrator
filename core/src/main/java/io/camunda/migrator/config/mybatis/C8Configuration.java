@@ -7,11 +7,13 @@
  */
 package io.camunda.migrator.config.mybatis;
 
+import io.camunda.client.metrics.MetricsRecorder;
 import io.camunda.db.rdbms.RdbmsService;
 import io.camunda.db.rdbms.config.VendorDatabaseProperties;
 import io.camunda.db.rdbms.read.service.AuthorizationDbReader;
 import io.camunda.db.rdbms.read.service.BatchOperationDbReader;
 import io.camunda.db.rdbms.read.service.BatchOperationItemDbReader;
+import io.camunda.db.rdbms.read.service.CorrelatedMessageDbReader;
 import io.camunda.db.rdbms.read.service.DecisionDefinitionDbReader;
 import io.camunda.db.rdbms.read.service.DecisionInstanceDbReader;
 import io.camunda.db.rdbms.read.service.DecisionRequirementsDbReader;
@@ -34,6 +36,7 @@ import io.camunda.db.rdbms.read.service.UserTaskDbReader;
 import io.camunda.db.rdbms.read.service.VariableDbReader;
 import io.camunda.db.rdbms.sql.AuthorizationMapper;
 import io.camunda.db.rdbms.sql.BatchOperationMapper;
+import io.camunda.db.rdbms.sql.CorrelatedMessageMapper;
 import io.camunda.db.rdbms.sql.DecisionDefinitionMapper;
 import io.camunda.db.rdbms.sql.DecisionInstanceMapper;
 import io.camunda.db.rdbms.sql.DecisionRequirementsMapper;
@@ -58,10 +61,8 @@ import io.camunda.db.rdbms.sql.UserTaskMapper;
 import io.camunda.db.rdbms.sql.VariableMapper;
 import io.camunda.db.rdbms.write.RdbmsWriterFactory;
 import io.camunda.db.rdbms.write.RdbmsWriterMetrics;
-import io.camunda.db.rdbms.sql.CorrelatedMessageMapper;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.config.property.MigratorProperties;
-import io.camunda.spring.client.metrics.MetricsRecorder;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Properties;
@@ -376,6 +377,11 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
+  public CorrelatedMessageDbReader correlatedMessageReader(CorrelatedMessageMapper correlatedMessageMapper) {
+    return new CorrelatedMessageDbReader(correlatedMessageMapper);
+  }
+
+  @Bean
   public RdbmsWriterFactory rdbmsWriterFactory(
       @Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory,
       ExporterPositionMapper exporterPositionMapper,
@@ -443,7 +449,8 @@ public class C8Configuration extends AbstractConfiguration {
       JobDbReader jobReader,
       UsageMetricsDbReader usageMetricsReader,
       UsageMetricTUDbReader usageMetricTUDbReader,
-      MessageSubscriptionDbReader messageSubscriptionDbReader) {
+      MessageSubscriptionDbReader messageSubscriptionDbReader,
+      CorrelatedMessageDbReader correlatedMessageDbReader) {
     return new RdbmsService(
         rdbmsWriterFactory,
         authorizationReader,
@@ -468,7 +475,8 @@ public class C8Configuration extends AbstractConfiguration {
         jobReader,
         usageMetricsReader,
         usageMetricTUDbReader,
-        messageSubscriptionDbReader);
+        messageSubscriptionDbReader,
+        correlatedMessageDbReader);
   }
 
 }
