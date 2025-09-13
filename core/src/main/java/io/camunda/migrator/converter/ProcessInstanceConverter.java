@@ -17,7 +17,6 @@ import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import io.camunda.migrator.constants.MigratorConstants;
 import io.camunda.migrator.impl.clients.C7Client;
 import io.camunda.migrator.impl.util.ConverterUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,7 +44,8 @@ public class ProcessInstanceConverter {
         // https://github.com/camunda/camunda-bpm-platform/issues/5359
         //        .parentElementInstanceKey(null)
         //        .treePath(null)
-        .numIncidents(getIncidents(processInstance))
+        // TODO https://github.com/camunda/camunda-bpm-platform/issues/5400
+//        .numIncidents()
         .partitionId(C7_HISTORY_PARTITION_ID)
         .historyCleanupDate(convertDate(processInstance.getRemovalTime()))
         .build();
@@ -67,8 +67,5 @@ public class ProcessInstanceConverter {
         : MigratorConstants.C8_DEFAULT_TENANT;
   }
 
-  protected int getIncidents(HistoricProcessInstance processInstance) {
-    return Math.toIntExact(c7Client.getIncidentsByProcessInstance(processInstance.getId()));
-  }
 
 }
