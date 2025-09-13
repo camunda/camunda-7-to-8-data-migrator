@@ -17,8 +17,8 @@ camunda:
         driver-class-name: org.h2.Driver
 
 logging:
-  level.io.camunda.migrator: DEBUG
-  level.org.camunda.bpm.engine.impl.persistence.entity.HistoricProcessInstanceEntity: DEBUG
+  level.io.camunda.migrator: INFO
+  level.org.camunda.bpm.engine.impl.persistence.entity.HistoricProcessInstanceEntity: INFO
   level.io.camunda.migrator.qa.variables.TestVariableInterceptor: INFO
 
 ---
