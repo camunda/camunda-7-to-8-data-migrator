@@ -16,6 +16,11 @@
     <result property="type" column="TYPE" jdbcType="VARCHAR"/>
   </resultMap>
 
+  <select id="countSkipped" resultType="long">
+    SELECT COUNT(ID) FROM ${prefix}MIGRATION_MAPPING
+    WHERE INSTANCE_KEY IS NULL
+  </select>
+
   <select id="countSkippedByType" resultType="long">
     SELECT COUNT(ID) FROM ${prefix}MIGRATION_MAPPING
     WHERE TYPE = #{type} AND INSTANCE_KEY IS NULL
