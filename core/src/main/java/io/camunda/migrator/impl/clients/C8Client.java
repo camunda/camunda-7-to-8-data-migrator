@@ -8,6 +8,7 @@
 package io.camunda.migrator.impl.clients;
 
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_DEPLOY_C8_RESOURCES;
+import static io.camunda.migrator.impl.util.ConverterUtil.getTenantId;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_CREATE_PROCESS_INSTANCE;
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_ACTIVATE_JOBS;
@@ -17,6 +18,7 @@ import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_MODIFY_PRO
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_SEARCH_PROCESS_DEFINITIONS;
 
 import io.camunda.client.CamundaClient;
+import io.camunda.client.api.command.ActivateJobsCommandStep1;
 import io.camunda.client.api.command.DeployResourceCommandStep1;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3;
 import io.camunda.client.api.response.ActivatedJob;
@@ -25,6 +27,7 @@ import io.camunda.client.api.search.response.ProcessDefinition;
 import io.camunda.client.api.search.response.SearchResponse;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.model.FlowNodeActivation;
+import io.camunda.migrator.impl.util.ConverterUtil;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -48,11 +51,14 @@ public class C8Client {
   /**
    * Creates a new process instance with the given BPMN process ID and variables.
    */
-  public ProcessInstanceEvent createProcessInstance(String bpmnProcessId, Map<String, Object> variables) {
+  public ProcessInstanceEvent createProcessInstance(String bpmnProcessId, String tenantId,
+                                                    Map<String, Object> variables) {
     var createProcessInstance = camundaClient.newCreateInstanceCommand()
         .bpmnProcessId(bpmnProcessId)
         .latestVersion()
-        .variables(variables);
+        .variables(variables)
+        .tenantId(getTenantId(tenantId));
+
 
     return callApi(createProcessInstance::execute, FAILED_TO_CREATE_PROCESS_INSTANCE + bpmnProcessId);
   }
@@ -80,9 +86,14 @@ public class C8Client {
    * Activates jobs for the specified job type.
    */
   public List<ActivatedJob> activateJobs(String jobType) {
+    Set<String> tenantIds = properties.getTenantIds();
+
     var activateJobs = camundaClient.newActivateJobsCommand()
         .jobType(jobType)
         .maxJobsToActivate(properties.getPageSize());
+    if (tenantIds != null && !tenantIds.isEmpty()) {
+      activateJobs = activateJobs.tenantIds(List.copyOf(tenantIds));
+    }
     return callApi(activateJobs::execute, FAILED_TO_ACTIVATE_JOBS + jobType).getJobs();
   }
 
@@ -107,7 +118,14 @@ public class C8Client {
     flowNodeActivations.forEach(flowNodeActivation -> {
       String activityId = flowNodeActivation.activityId();
       Map<String, Object> variables = flowNodeActivation.variables();
-      modifyProcessInstance.activateElement(activityId).withVariables(variables, activityId);
+      // if variables is empty, no variables will be set
+      if (variables != null && !variables.isEmpty()) {
+        // Add a step to set the variables before activating the element
+        modifyProcessInstance.activateElement(activityId).withVariables(variables, activityId);
+      } else {
+        modifyProcessInstance.activateElement(activityId);
+      }
+
     });
 
     callApi(() -> ((ModifyProcessInstanceCommandStep3) modifyProcessInstance).execute(), FAILED_TO_MODIFY_PROCESS_INSTANCE + processInstanceKey);

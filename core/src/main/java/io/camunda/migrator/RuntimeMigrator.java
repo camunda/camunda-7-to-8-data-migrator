@@ -10,25 +10,24 @@ package io.camunda.migrator;
 import static io.camunda.migrator.MigratorMode.LIST_SKIPPED;
 import static io.camunda.migrator.MigratorMode.MIGRATE;
 import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
-import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE;
-
-import io.camunda.migrator.impl.logging.RuntimeMigratorLogs;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE;
+import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE;
 
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.exception.VariableInterceptorException;
+import io.camunda.migrator.impl.RuntimeValidator;
+import io.camunda.migrator.impl.VariableService;
 import io.camunda.migrator.impl.clients.C7Client;
 import io.camunda.migrator.impl.clients.C8Client;
 import io.camunda.migrator.impl.clients.DbClient;
-import io.camunda.migrator.impl.util.C7Utils;
-import io.camunda.migrator.impl.util.ExceptionUtils;
-import io.camunda.migrator.impl.util.PrintUtils;
+import io.camunda.migrator.impl.logging.RuntimeMigratorLogs;
 import io.camunda.migrator.impl.model.FlowNode;
 import io.camunda.migrator.impl.model.FlowNodeActivation;
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
-import io.camunda.migrator.impl.VariableService;
-import io.camunda.migrator.impl.RuntimeValidator;
+import io.camunda.migrator.impl.util.C7Utils;
+import io.camunda.migrator.impl.util.ExceptionUtils;
+import io.camunda.migrator.impl.util.PrintUtils;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -169,7 +168,7 @@ public class RuntimeMigrator {
       // Ensure all variables are fetched and can be transformed before starting the new instance
       Map<String, Object> globalVariables = variableService.getGlobalVariables(legacyProcessInstanceId);
 
-      return c8Client.createProcessInstance(bpmnProcessId, globalVariables)
+      return c8Client.createProcessInstance(bpmnProcessId, processInstance.getTenantId(), globalVariables)
           .getProcessInstanceKey();
     } else {
       RuntimeMigratorLogs.processInstanceNotExists(legacyProcessInstanceId);
