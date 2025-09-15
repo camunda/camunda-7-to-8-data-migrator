@@ -10,6 +10,16 @@ package io.camunda.migrator.config;
 import io.camunda.migrator.config.property.InterceptorProperty;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.exception.MigratorException;
+import io.camunda.migrator.impl.interceptor.ByteArrayVariableValidator;
+import io.camunda.migrator.impl.interceptor.DateVariableTransformer;
+import io.camunda.migrator.impl.interceptor.FileVariableValidator;
+import io.camunda.migrator.impl.interceptor.NullVariableTransformer;
+import io.camunda.migrator.impl.interceptor.ObjectJavaVariableValidator;
+import io.camunda.migrator.impl.interceptor.ObjectJsonVariableTransformer;
+import io.camunda.migrator.impl.interceptor.ObjectXmlVariableTransformer;
+import io.camunda.migrator.impl.interceptor.PrimitiveVariableTransformer;
+import io.camunda.migrator.impl.interceptor.SpinJsonVariableTransformer;
+import io.camunda.migrator.impl.interceptor.SpinXmlVariableTransformer;
 import io.camunda.migrator.impl.logging.ConfigurationLogs;
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import java.util.Map;
@@ -54,8 +64,8 @@ public class InterceptorConfiguration {
     List<VariableInterceptor> contextInterceptors = new ArrayList<>(
         context.getBeansOfType(VariableInterceptor.class).values());
 
-    // Add interceptors from configuration
-    registerYamlInterceptors(contextInterceptors, migratorProperties.getInterceptors());
+    // Handle unified interceptor configuration (supports both custom and built-in interceptor control)
+    processUnifiedInterceptorConfiguration(contextInterceptors, migratorProperties.getInterceptors());
 
     // Sort by order annotation if present
     AnnotationAwareOrderComparator.sort(contextInterceptors);
@@ -65,27 +75,84 @@ public class InterceptorConfiguration {
   }
 
   /**
-   * Creates variable interceptor instances from config data files and adds them to the context interceptors list.
+   * Processes unified interceptor configuration that supports both custom interceptors
+   * and property-based configuration including the enabled property.
    *
    * @param contextInterceptors List of interceptors discovered from Spring context
-   * @param yamlInterceptors List of interceptor configurations from config data files
+   * @param interceptorConfigs List of interceptor configurations from config files
    */
-  public void registerYamlInterceptors(List<VariableInterceptor> contextInterceptors,
-                                              List<InterceptorProperty> yamlInterceptors) {
-    if (yamlInterceptors == null || yamlInterceptors.isEmpty()) {
-      ConfigurationLogs.logNoYamlInterceptors();
+  protected void processUnifiedInterceptorConfiguration(List<VariableInterceptor> contextInterceptors,
+                                                       List<InterceptorProperty> interceptorConfigs) {
+    if (interceptorConfigs == null || interceptorConfigs.isEmpty()) {
+      ConfigurationLogs.logNoInterceptorsConfigured();
       return;
     }
 
-    for (InterceptorProperty interceptorProperty : yamlInterceptors) {
-      try {
-        VariableInterceptor interceptor = createInterceptorInstance(interceptorProperty);
-        contextInterceptors.add(interceptor);
-        ConfigurationLogs.logSuccessfullyRegistered(interceptorProperty.getClassName());
-      } catch (Exception e) {
-        ConfigurationLogs.logFailedToRegister(interceptorProperty.getClassName(), e);
-        throw new MigratorException(ConfigurationLogs.getFailedToRegisterError(interceptorProperty.getClassName()), e);
+    for (InterceptorProperty interceptorConfig : interceptorConfigs) {
+      if (!interceptorConfig.isEnabled()) {
+        // Handle interceptor disable by removing from context
+        handleInterceptorDisable(contextInterceptors, interceptorConfig);
+      } else {
+        // Handle interceptor creation/registration or property binding
+        VariableInterceptor existingInterceptor = findExistingInterceptor(contextInterceptors, interceptorConfig.getClassName());
+        if (existingInterceptor != null) {
+          // Interceptor already loaded by Spring @Component - log that it's already loaded
+          ConfigurationLogs.logInterceptorAlreadyLoaded(interceptorConfig.getClassName());
+        } else {
+          // Create new interceptor instance
+          registerCustomInterceptor(contextInterceptors, interceptorConfig);
+        }
       }
+    }
+  }
+
+  /**
+   * Finds an existing interceptor in the context by class name.
+   *
+   * @param contextInterceptors List of interceptors in context
+   * @param className Class name to search for
+   * @return The interceptor if found, null otherwise
+   */
+  protected VariableInterceptor findExistingInterceptor(List<VariableInterceptor> contextInterceptors, String className) {
+    return contextInterceptors.stream()
+        .filter(interceptor -> interceptor.getClass().getName().equals(className))
+        .findFirst()
+        .orElse(null);
+  }
+
+  /**
+   * Handles disabling any interceptor (built-in, programmatically, or declarative) by removing it from the context.
+   *
+   * @param contextInterceptors List of context interceptors to modify
+   * @param interceptorConfig Configuration for the interceptor to disable
+   */
+  protected void handleInterceptorDisable(List<VariableInterceptor> contextInterceptors,
+                                         InterceptorProperty interceptorConfig) {
+    boolean removed = contextInterceptors.removeIf(interceptor ->
+        interceptor.getClass().getName().equals(interceptorConfig.getClassName()));
+
+    if (removed) {
+      ConfigurationLogs.logInterceptorDisabled(interceptorConfig.getClassName());
+    } else {
+      ConfigurationLogs.logInterceptorNotFoundForDisabling(interceptorConfig.getClassName());
+    }
+  }
+
+  /**
+   * Registers a custom interceptor from configuration.
+   *
+   * @param contextInterceptors List of interceptors to add to
+   * @param interceptorConfig Configuration for the custom interceptor
+   */
+  protected void registerCustomInterceptor(List<VariableInterceptor> contextInterceptors,
+                                          InterceptorProperty interceptorConfig) {
+    try {
+      VariableInterceptor interceptor = createInterceptorInstance(interceptorConfig);
+      contextInterceptors.add(interceptor);
+      ConfigurationLogs.logSuccessfullyRegistered(interceptorConfig.getClassName());
+    } catch (Exception e) {
+      ConfigurationLogs.logFailedToRegister(interceptorConfig.getClassName(), e);
+      throw new MigratorException(ConfigurationLogs.getFailedToRegisterError(interceptorConfig.getClassName()), e);
     }
   }
 
@@ -134,6 +201,56 @@ public class InterceptorConfiguration {
     } catch (Exception e) {
       throw new MigratorException(ConfigurationLogs.getParsingConfigurationError(), e);
     }
+  }
+
+  @Bean
+  public ByteArrayVariableValidator byteArrayVariableValidator() {
+    return new ByteArrayVariableValidator();
+  }
+
+  @Bean
+  public DateVariableTransformer dateVariableTransformer() {
+    return new DateVariableTransformer();
+  }
+
+  @Bean
+  public FileVariableValidator fileVariableValidator() {
+    return new FileVariableValidator();
+  }
+
+  @Bean
+  public NullVariableTransformer nullVariableTransformer() {
+    return new NullVariableTransformer();
+  }
+
+  @Bean
+  public ObjectJavaVariableValidator objectJavaVariableValidator() {
+    return new ObjectJavaVariableValidator();
+  }
+
+  @Bean
+  public ObjectJsonVariableTransformer objectJsonVariableTransformer() {
+    return new ObjectJsonVariableTransformer();
+  }
+
+  @Bean
+  public ObjectXmlVariableTransformer objectXmlVariableTransformer() {
+    return new ObjectXmlVariableTransformer();
+  }
+
+  @Bean
+  public PrimitiveVariableTransformer primitiveVariableTransformer() {
+    return new PrimitiveVariableTransformer();
+  }
+
+  @Bean
+  public SpinJsonVariableTransformer spinJsonVariableTransformer() {
+    return new SpinJsonVariableTransformer();
+  }
+
+  @Bean
+  public SpinXmlVariableTransformer spinXmlVariableTransformer() {
+    return new SpinXmlVariableTransformer();
   }
 
 }

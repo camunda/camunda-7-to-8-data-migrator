@@ -5,20 +5,22 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.qa.runtime.variables;
+package io.camunda.migrator.qa.runtime.variables.interceptor.bean;
 
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-@Order(20)
+@Order(102)
 @Component
-public class TestVariableInterceptor implements VariableInterceptor {
+@Profile("programmatic")
+public class ComplexInterceptor implements VariableInterceptor {
 
-  protected static final Logger LOGGER = LoggerFactory.getLogger(TestVariableInterceptor.class);
+  protected static final Logger LOGGER = LoggerFactory.getLogger(ComplexInterceptor.class);
 
   protected static final String INTERCEPTOR_START_MESSAGE = "Start {} execution for variable: {}";
   protected static final String INTERCEPTOR_END_MESSAGE = "End {} execution for variable: {}";
@@ -28,7 +30,7 @@ public class TestVariableInterceptor implements VariableInterceptor {
 
   @Override
   public void execute(VariableInvocation invocation) {
-    LOGGER.debug(INTERCEPTOR_START_MESSAGE, TestVariableInterceptor.class,
+    LOGGER.debug(INTERCEPTOR_START_MESSAGE, ComplexInterceptor.class,
         invocation.getC7Variable().getName());
     if (invocation.getC7Variable().getName().equals("varIntercept")) {
       LOGGER.info(HELLO_FROM_INTERCEPTOR_MESSAGE);
@@ -36,13 +38,13 @@ public class TestVariableInterceptor implements VariableInterceptor {
     }
 
     if (invocation.getC7Variable().getName().equals("exFlag")) {
-      if (Boolean.valueOf(invocation.getC7Variable().getValue().toString()) == true) {
+      if (Boolean.parseBoolean(invocation.getC7Variable().getValue().toString())) {
         throw new RuntimeException(EXPECTED_EXCEPTION_MESSAGE);
       } else {
         LOGGER.info(BYE_FROM_INTERCEPTOR_MESSAGE);
       }
     }
-    LOGGER.debug(INTERCEPTOR_END_MESSAGE, TestVariableInterceptor.class,
+    LOGGER.debug(INTERCEPTOR_END_MESSAGE, ComplexInterceptor.class,
         invocation.getC7Variable().getName());
   }
 }

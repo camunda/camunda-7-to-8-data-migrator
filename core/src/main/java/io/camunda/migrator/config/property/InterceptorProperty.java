@@ -11,11 +11,13 @@ import java.util.Map;
 
 /**
  * Configuration properties for interceptors that can be loaded from config data file.
+ * Supports both custom interceptors and any interceptor control via enabled property.
  */
 public class InterceptorProperty {
 
   private String className;
   private Map<String, Object> properties;
+  private boolean enabled = true;
 
   public String getClassName() {
     return className;
@@ -31,5 +33,13 @@ public class InterceptorProperty {
 
   public void setProperties(Map<String, Object> properties) {
     this.properties = properties;
+  }
+
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
   }
 }

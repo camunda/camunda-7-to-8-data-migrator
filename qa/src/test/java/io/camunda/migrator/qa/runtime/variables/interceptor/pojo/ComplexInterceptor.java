@@ -5,25 +5,25 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.qa.runtime.variables;
+package io.camunda.migrator.qa.runtime.variables.interceptor.pojo;
 
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class YamlVariableInterceptor implements VariableInterceptor {
+public class ComplexInterceptor implements VariableInterceptor {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(YamlVariableInterceptor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ComplexInterceptor.class);
 
-  // Configurable properties that can be set via YAML
-  private String logMessage = "Hello from YAML interceptor configured via properties";
+  // Configurable properties that can be set declaratively
+  private String logMessage = "Hello from declarative interceptor configured via properties";
   private boolean enableTransformation = true;
-  private String targetVariable = "yamlVar";
+  private String targetVariable = "var";
 
   @Override
   public void execute(VariableInvocation invocation) {
-    LOGGER.debug("Start {} execution for variable: {}", YamlVariableInterceptor.class,
+    LOGGER.debug("Start {} execution for variable: {}", ComplexInterceptor.class,
         invocation.getC7Variable().getName());
 
     String variableName = invocation.getC7Variable().getName();
@@ -40,19 +40,19 @@ public class YamlVariableInterceptor implements VariableInterceptor {
     }
 
     // Handle exception testing scenario
-    if ("yamlExFlag".equals(variableName)) {
-      if (Boolean.valueOf(invocation.getC7Variable().getValue().toString()) == true) {
-        throw new RuntimeException("Expected exception from YAML interceptor");
+    if ("exFlag".equals(variableName)) {
+      if (Boolean.parseBoolean(invocation.getC7Variable().getValue().toString())) {
+        throw new RuntimeException("Expected exception from interceptor");
       } else {
-        LOGGER.info("Success from YAML interceptor");
+        LOGGER.info("Success from interceptor");
       }
     }
 
-    LOGGER.debug("End {} execution for variable: {}", YamlVariableInterceptor.class,
+    LOGGER.debug("End {} execution for variable: {}", ComplexInterceptor.class,
         invocation.getC7Variable().getName());
   }
 
-  // Setter methods for YAML configuration
+  // Setter methods for configuration
   public void setLogMessage(String logMessage) {
     this.logMessage = logMessage;
   }
