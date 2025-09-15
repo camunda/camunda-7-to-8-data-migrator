@@ -25,13 +25,13 @@ public class ConfigurationLogs {
   public static final String ERROR_PARSING_CONFIGURATION = "An exception occurred while parsing interceptor configuration.";
 
   // Info Messages
-  public static final String INFO_CONFIGURING_INTERCEPTORS = "Configuring variable interceptors from Spring context and YAML";
-  public static final String INFO_TOTAL_INTERCEPTORS_CONFIGURED = "Total {} variable interceptors configured";
+  public static final String INFO_CONFIGURING_INTERCEPTORS = "Configuring variable interceptors";
+  public static final String INFO_TOTAL_INTERCEPTORS_CONFIGURED = "In total {} variable interceptors configured";
   public static final String INFO_SUCCESSFULLY_REGISTERED = "Successfully registered variable interceptor: {}";
   public static final String INFO_LIQUIBASE_CREATING_TABLE_SCHEMA = "Creating table schema with Liquibase change log file '{}' with table prefix '{}'.";
 
   // Debug Messages
-  public static final String DEBUG_NO_YAML_INTERCEPTORS = "No variable interceptors configured in YAML";
+  public static final String DEBUG_NO_INTERCEPTORS = "No variable interceptors configured in configuration file";
   public static final String DEBUG_CREATING_INSTANCE = "Creating variable interceptor instance for class: {}";
   public static final String DEBUG_SETTING_PROPERTIES = "Setting properties for variable interceptor: {}";
 
@@ -52,10 +52,10 @@ public class ConfigurationLogs {
   }
 
   /**
-   * Logs when no interceptors are configured in config data file.
+   * Logs when no interceptors are configured in config file.
    */
-  public static void logNoYamlInterceptors() {
-    LOGGER.debug(DEBUG_NO_YAML_INTERCEPTORS);
+  public static void logNoInterceptorsConfigured() {
+    LOGGER.debug(DEBUG_NO_INTERCEPTORS);
   }
 
   /**
@@ -93,6 +93,33 @@ public class ConfigurationLogs {
    */
   public static void logSettingProperties(String className) {
     LOGGER.debug(DEBUG_SETTING_PROPERTIES, className);
+  }
+
+  /**
+   * Logs when any interceptor is disabled via configuration.
+   *
+   * @param className the class name of the disabled interceptor
+   */
+  public static void logInterceptorDisabled(String className) {
+    LOGGER.info("Interceptor disabled via configuration: {}", className);
+  }
+
+  /**
+   * Logs when an interceptor is already loaded and doesn't need to be created again.
+   *
+   * @param className the class name of the interceptor already loaded
+   */
+  public static void logInterceptorAlreadyLoaded(String className) {
+    LOGGER.debug("Interceptor already loaded: {}", className);
+  }
+
+  /**
+   * Logs when an interceptor specified for disabling was not found in the context.
+   *
+   * @param className the class name of the interceptor not found
+   */
+  public static void logInterceptorNotFoundForDisabling(String className) {
+    LOGGER.warn("Interceptor specified for disabling not found in context: {}", className);
   }
 
   /**

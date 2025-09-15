@@ -8,7 +8,13 @@
 package io.camunda.migrator.exception;
 
 public class VariableInterceptorException extends MigratorException {
+
+  public VariableInterceptorException(String message) {
+    super(message, null);
+  }
+
   public VariableInterceptorException(String message, Throwable cause) {
     super(message, cause);
   }
+
 }

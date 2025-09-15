@@ -11,6 +11,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
 
+/**
+ * Configuration properties for the migrator.
+ */
 @ConfigurationProperties(MigratorProperties.PREFIX)
 public class MigratorProperties {
 
