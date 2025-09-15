@@ -251,23 +251,10 @@ public class C7Client {
    * Processes historic root process instances with pagination using the provided callback consumer.
    */
   public void fetchAndHandleHistoricRootProcessInstances(Consumer<IdKeyDbModel> callback, Date startedAfter) {
-    Set<String> tenantIds = properties.getTenantIds();
-    HistoricProcessInstanceQuery query = historyService.createHistoricProcessInstanceQuery()
+    var query = historyService.createHistoricProcessInstanceQuery()
         .startedAfter(startedAfter)
         .rootProcessInstances()
-        .unfinished();
-
-    if (tenantIds == null || tenantIds.isEmpty()) {
-      query = query.withoutTenantId();
-    } else {
-      query = query
-          .or()
-          .withoutTenantId()
-          .tenantIdIn(tenantIds.toArray(new String[0]))
-          .endOr();
-    }
-
-    query = query
+        .unfinished()
         .orderByProcessInstanceStartTime()
         .asc()
         // Ensure order is predictable with two order criteria:
@@ -275,11 +262,10 @@ public class C7Client {
         .orderByProcessInstanceId()
         .asc();
 
-    HistoricProcessInstanceQuery finalQuery = query;
     new Pagination<IdKeyDbModel>()
         .pageSize(properties.getPageSize())
         .maxCount(query::count)
-        .page(offset -> finalQuery.listPage(offset, properties.getPageSize())
+        .page(offset -> query.listPage(offset, properties.getPageSize())
             .stream()
             .map(hpi -> new IdKeyDbModel(hpi.getId(), hpi.getStartTime()))
             .collect(Collectors.toList()))

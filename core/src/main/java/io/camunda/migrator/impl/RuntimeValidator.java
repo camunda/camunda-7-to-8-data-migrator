@@ -8,6 +8,7 @@
 package io.camunda.migrator.impl;
 
 import static io.camunda.migrator.constants.MigratorConstants.LEGACY_ID_VAR_NAME;
+import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.TENANT_ID_ERROR;
 import static io.camunda.migrator.impl.util.C7Utils.MULTI_INSTANCE_BODY_SUFFIX;
 import static io.camunda.migrator.impl.util.C7Utils.getActiveActivityIdsById;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
@@ -36,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.Activity;
 import org.camunda.bpm.model.bpmn.instance.FlowElement;
@@ -195,6 +197,11 @@ public class RuntimeValidator {
       String processInstanceId = processInstance.getId();
       String c7DefinitionId = processInstance.getProcessDefinitionId();
       String c8DefinitionId = processInstance.getProcessDefinitionKey();
+      String tenantId = processInstance.getTenantId();
+
+      if (tenantId != null || !properties.getTenantIds().contains(tenantId)) {
+        throw new IllegalStateException(TENANT_ID_ERROR);
+      }
 
       var c8Definitions = c8Client.searchProcessDefinitions(c8DefinitionId);
       validateC8DefinitionExists(c8Definitions.items(), c8DefinitionId, processInstanceId);
