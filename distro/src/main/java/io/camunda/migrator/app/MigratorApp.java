@@ -114,6 +114,7 @@ public class MigratorApp {
 
     // Check if drop schema flag is set
     if (argsList.contains("--" + ARG_DROP_SCHEMA)) {
+      LOGGER.info("Migration will be executed with drop-schema option");
       defaultProperties.put("camunda.migrator.drop-schema", "true");
     }
 
@@ -125,7 +126,7 @@ public class MigratorApp {
 
   protected static void printUsage() {
     System.out.println();
-    System.out.println("Usage: start.sh/bat [--help] [--runtime] [--history] [--list-skipped [ENTITY_TYPES...]|--retry-skipped]");
+    System.out.println("Usage: start.sh/bat [--help] [--runtime] [--history] [--list-skipped [ENTITY_TYPES...]|--retry-skipped] [--drop-schema]");
     System.out.println("Options:");
     System.out.println("  --help            - Show this help message");
     System.out.println("  --runtime         - Migrate runtime data only");
@@ -137,6 +138,7 @@ public class MigratorApp {
     System.out.println("                      HISTORY_VARIABLE, HISTORY_USER_TASK, HISTORY_FLOW_NODE,");
     System.out.println("                      HISTORY_DECISION_INSTANCE, HISTORY_DECISION_DEFINITION");
     System.out.println("  --retry-skipped   - Retry only previously skipped history data");
+    System.out.println("  --drop-schema     - If migration was successful, drop the migrator schema on shutdown");
     System.out.println();
     System.out.println("Examples:");
     System.out.println("  start.sh --history --list-skipped");

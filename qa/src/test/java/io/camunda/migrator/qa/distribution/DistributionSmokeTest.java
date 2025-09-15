@@ -130,7 +130,7 @@ class DistributionSmokeTest {
   @Timeout(value = 60, unit = TimeUnit.SECONDS)
   void shouldAcceptValidFlags() throws Exception {
     // given
-    String[] validFlags = {"--runtime", "--history", "--list-skipped", "--retry-skipped"};
+    String[] validFlags = {"--runtime", "--history", "--list-skipped", "--retry-skipped", "--drop-schema"};
 
     for (String flag : validFlags) {
       ProcessBuilder processBuilder = createProcessBuilder(flag);
