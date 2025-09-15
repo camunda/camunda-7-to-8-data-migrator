@@ -18,7 +18,7 @@
     <version.testcontainers>1.21.3</version.testcontainers>
     <version.postgres>42.7.7</version.postgres>
     <version.oracle>23.9.0.25.07</version.oracle>
-    <version.jakarta-xml-bind-api>4.0.2</version.jakarta-xml-bind-api>
+    <version.jakarta-xml-bind-api>4.0.4</version.jakarta-xml-bind-api>
   </properties>
 
   <dependencies>
@@ -169,7 +169,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.5.3</version>
+        <version>3.5.4</version>
       </plugin>
       <plugin>
         <groupId>com.mycila</groupId>
