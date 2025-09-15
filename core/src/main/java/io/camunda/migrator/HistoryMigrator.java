@@ -26,6 +26,9 @@ import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_M
 import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_PROCESS_INSTANCE;
 import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_PROCESS_INSTANCE_KEY;
 import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_SCOPE_KEY;
+import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_DECISION_REQUIREMENTS;
+import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_DECISION_DEFINITION;
+import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_PARENT_DECISION_INSTANCE;
 
 import io.camunda.db.rdbms.read.domain.DecisionDefinitionDbQuery;
 import io.camunda.db.rdbms.read.domain.DecisionInstanceDbQuery;
@@ -317,7 +320,7 @@ public class HistoryMigrator {
             HISTORY_DECISION_REQUIREMENT);
 
         if (decisionRequirementsKey == null) {
-          saveRecord(legacyId, null, HISTORY_DECISION_DEFINITION);
+          saveRecord(legacyId, null, HISTORY_DECISION_DEFINITION, SKIP_REASON_MISSING_DECISION_REQUIREMENTS);
           HistoryMigratorLogs.skippingDecisionDefinition(legacyId);
           return;
         }
@@ -357,19 +360,19 @@ public class HistoryMigrator {
       HistoryMigratorLogs.migratingDecisionInstance(legacyDecisionInstanceId);
 
       if (!isMigrated(legacyDecisionInstance.getDecisionDefinitionId(), HISTORY_DECISION_DEFINITION)) {
-        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE, SKIP_REASON_MISSING_DECISION_DEFINITION);
         HistoryMigratorLogs.skippingDecisionInstanceDueToMissingDecisionDefinition(legacyDecisionInstanceId);
         return;
       }
 
       if (!isMigrated(legacyDecisionInstance.getProcessDefinitionId(), HISTORY_PROCESS_DEFINITION)) {
-        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE, SKIP_REASON_MISSING_PROCESS_DEFINITION);
         HistoryMigratorLogs.skippingDecisionInstanceDueToMissingProcessDefinition(legacyDecisionInstanceId);
         return;
       }
 
       if (!isMigrated(legacyDecisionInstance.getProcessInstanceId(), HISTORY_PROCESS_INSTANCE)) {
-        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE, SKIP_REASON_MISSING_PROCESS_INSTANCE);
         HistoryMigratorLogs.skippingDecisionInstanceDueToMissingProcessInstance(legacyDecisionInstanceId);
         return;
       }
@@ -378,7 +381,7 @@ public class HistoryMigrator {
       Long parentDecisionDefinitionKey = null;
       if (legacyRootDecisionInstanceId != null) {
         if (!isMigrated(legacyRootDecisionInstanceId, HISTORY_DECISION_INSTANCE)) {
-          saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+          saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE, SKIP_REASON_MISSING_PARENT_DECISION_INSTANCE);
           HistoryMigratorLogs.skippingDecisionInstanceDueToMissingParent(legacyDecisionInstanceId);
           return;
         }
@@ -386,7 +389,7 @@ public class HistoryMigrator {
       }
 
       if (!isMigrated(legacyDecisionInstance.getActivityInstanceId(), HISTORY_FLOW_NODE)) {
-        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE, SKIP_REASON_MISSING_FLOW_NODE);
         HistoryMigratorLogs.skippingDecisionInstanceDueToMissingFlowNodeInstanceInstance(legacyDecisionInstanceId);
         return;
       }

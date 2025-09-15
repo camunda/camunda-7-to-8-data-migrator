@@ -94,7 +94,7 @@ public class RuntimeMigrator {
   protected String getSkipReason(String legacyProcessInstanceId) {
     try {
       runtimeValidator.validateProcessInstanceState(legacyProcessInstanceId);
-      return null; // No skip reason, validation passed
+      return null;
     } catch (IllegalStateException e) {
       RuntimeMigratorLogs.skippingProcessInstanceValidationError(legacyProcessInstanceId, e.getMessage());
       return e.getMessage();
@@ -102,7 +102,6 @@ public class RuntimeMigrator {
   }
 
   protected boolean shouldStartProcessInstance(String legacyProcessInstanceId) {
-    // Skip reason is now handled in migrate() method
     return RETRY_SKIPPED.equals(mode) || isUnknown(legacyProcessInstanceId);
   }
 

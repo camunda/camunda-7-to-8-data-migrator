@@ -12,7 +12,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureTrue;
 
 import io.camunda.migrator.config.property.MigratorProperties;
-import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE;
@@ -23,9 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class SaveSkipReasonTest extends RuntimeMigrationAbstractTest {
-
-  @Autowired
-  private DbClient dbClient;
 
   @Autowired
   private IdKeyMapper idKeyMapper;
