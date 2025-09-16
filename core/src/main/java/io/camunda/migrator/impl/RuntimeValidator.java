@@ -199,8 +199,10 @@ public class RuntimeValidator {
       String c8DefinitionId = processInstance.getProcessDefinitionKey();
       String tenantId = processInstance.getTenantId();
 
-      if (tenantId != null || !properties.getTenantIds().contains(tenantId)) {
-        throw new IllegalStateException(TENANT_ID_ERROR);
+      if (tenantId != null  ) {
+        if (properties.getTenantIds() != null && !properties.getTenantIds().contains(tenantId)) {
+          throw new IllegalStateException(TENANT_ID_ERROR);
+        }
       }
 
       var c8Definitions = c8Client.searchProcessDefinitions(c8DefinitionId);
