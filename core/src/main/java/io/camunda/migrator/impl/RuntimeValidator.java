@@ -18,7 +18,6 @@ import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.MULTI_INSTAN
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_C8_DEPLOYMENT_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_EXECUTION_LISTENER_OF_TYPE_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_NONE_START_EVENT_ERROR;
-import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.CALL_ACTIVITY_LEGACY_ID_ERROR;
 
 import io.camunda.migrator.impl.logging.RuntimeValidatorLogs;
@@ -37,7 +36,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.Activity;
 import org.camunda.bpm.model.bpmn.instance.FlowElement;
@@ -197,13 +195,8 @@ public class RuntimeValidator {
       String processInstanceId = processInstance.getId();
       String c7DefinitionId = processInstance.getProcessDefinitionId();
       String c8DefinitionId = processInstance.getProcessDefinitionKey();
-      String tenantId = processInstance.getTenantId();
 
-      if (tenantId != null  ) {
-        if (properties.getTenantIds() != null && !properties.getTenantIds().contains(tenantId)) {
-          throw new IllegalStateException(TENANT_ID_ERROR);
-        }
-      }
+      validateMultiTenancy(processInstance.getTenantId());
 
       var c8Definitions = c8Client.searchProcessDefinitions(c8DefinitionId);
       validateC8DefinitionExists(c8Definitions.items(), c8DefinitionId, processInstanceId);
@@ -224,6 +217,14 @@ public class RuntimeValidator {
         validateC8FlowNodes(c8XmlString, flowNode.activityId());
       }
     }, legacyProcessInstanceId);
+  }
+
+  protected void validateMultiTenancy(String tenantId) {
+    if (tenantId != null) {
+      if (properties.getTenantIds() != null && !properties.getTenantIds().contains(tenantId)) {
+        throw new IllegalStateException(String.format(TENANT_ID_ERROR, tenantId));
+      }
+    }
   }
 
 }

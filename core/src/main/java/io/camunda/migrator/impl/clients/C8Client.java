@@ -18,7 +18,6 @@ import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_MODIFY_PRO
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_SEARCH_PROCESS_DEFINITIONS;
 
 import io.camunda.client.CamundaClient;
-import io.camunda.client.api.command.ActivateJobsCommandStep1;
 import io.camunda.client.api.command.DeployResourceCommandStep1;
 import io.camunda.client.api.command.ModifyProcessInstanceCommandStep1.ModifyProcessInstanceCommandStep3;
 import io.camunda.client.api.response.ActivatedJob;
@@ -27,7 +26,6 @@ import io.camunda.client.api.search.response.ProcessDefinition;
 import io.camunda.client.api.search.response.SearchResponse;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.model.FlowNodeActivation;
-import io.camunda.migrator.impl.util.ConverterUtil;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;

@@ -26,7 +26,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 @CamundaSpringProcessTest
     //@WithMultiDb
     //@WithSpringProfile("history-level-full")
-@Disabled
+@Disabled("https://github.com/camunda/camunda-bpm-platform/issues/5414")
 class MultiTenancyTest /*extends RuntimeMigrationAbstractTest*/ {
 
   // Migrator ---------------------------------------
