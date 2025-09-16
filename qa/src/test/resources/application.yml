@@ -21,11 +21,6 @@ logging:
   level.org.camunda.bpm.engine.impl.persistence.entity.HistoricProcessInstanceEntity: DEBUG
   level.io.camunda.migrator.qa.variables.TestVariableInterceptor: INFO
 
-spring:
-  datasource:
-    hikari:
-      leak-detection-threshold: 2000
-      
 ---
 
 spring:
