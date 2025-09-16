@@ -87,7 +87,7 @@ public class MigratorApp {
     List<String> argsList = java.util.Arrays.asList(args);
 
     if (!argsList.contains("--" + ARG_HISTORY_MIGRATION) && !argsList.contains("--" + ARG_RUNTIME_MIGRATION)) {
-      throw new IllegalArgumentException("Error: Must specify either runtime or history, or both.");
+      throw new IllegalArgumentException("Must specify at least one migration type: use --runtime, --history, or both.");
     }
 
     boolean listSkippedHistoryFound =
@@ -147,17 +147,17 @@ public class MigratorApp {
   }
 
   protected static void runMigratorsInOrder(ConfigurableApplicationContext context, ApplicationArguments appArgs, MigratorMode mode, String[] args) {
-    boolean hasRuntimeFlag = appArgs.containsOption(ARG_RUNTIME_MIGRATION);
-    boolean hasHistoryFlag = appArgs.containsOption(ARG_HISTORY_MIGRATION);
+    boolean runtimeAlreadyProcessed = false;
+    boolean historyAlreadyProcessed = false;
 
     // Run migrators in the order they appear in command line arguments
     for (String arg : args) {
-      if (("--" + ARG_RUNTIME_MIGRATION).equals(arg) && hasRuntimeFlag) {
+      if (("--" + ARG_RUNTIME_MIGRATION).equals(arg) && !runtimeAlreadyProcessed) {
         migrateRuntime(context, mode);
-        hasRuntimeFlag = false; // Prevent running twice
-      } else if (("--" + ARG_HISTORY_MIGRATION).equals(arg) && hasHistoryFlag) {
+        runtimeAlreadyProcessed = true;
+      } else if (("--" + ARG_HISTORY_MIGRATION).equals(arg) && !historyAlreadyProcessed) {
         migrateHistory(context, appArgs, mode);
-        hasHistoryFlag = false; // Prevent running twice
+        historyAlreadyProcessed = true;
       }
     }
   }
