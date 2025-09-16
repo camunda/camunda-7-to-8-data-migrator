@@ -137,7 +137,7 @@ class DistributionSmokeTest {
 
     // then
     String output = readProcessOutput(process);
-    assertThat(output).contains("Error: Must specify either runtime or history, or both.");
+    assertThat(output).contains("Must specify at least one migration type: use --runtime, --history, or both.");
     assertThat(output).contains("Usage: start.sh/bat");
   }
 
