@@ -29,7 +29,7 @@ class TenantTest extends RuntimeMigrationAbstractTest {
   public void shouldSkipProcessInstance() {
     // given
     deployer.deployCamunda7Process("simpleProcess.bpmn", "my-tenant");
-    deployer.deployCamunda8Process("simpleProcess.bpmn", "my-tenant");
+    deployer.deployCamunda8Process("simpleProcess.bpmn");
 
     String c7ProcessInstanceId = runtimeService.startProcessInstanceByKey("simpleProcess").getId();
 
