@@ -100,6 +100,7 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
   }
 
   @Test
+  @Disabled("https://github.com/camunda/camunda-bpm-platform/issues/5400")
   public void shouldMigrateProcessInstanceWithIncident() {
     // given
     deployer.deployCamunda7Process("incidentProcess.bpmn");
