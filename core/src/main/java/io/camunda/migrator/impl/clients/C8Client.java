@@ -118,14 +118,11 @@ public class C8Client {
     flowNodeActivations.forEach(flowNodeActivation -> {
       String activityId = flowNodeActivation.activityId();
       Map<String, Object> variables = flowNodeActivation.variables();
-      // if variables is empty, no variables will be set
       if (variables != null && !variables.isEmpty()) {
-        // Add a step to set the variables before activating the element
         modifyProcessInstance.activateElement(activityId).withVariables(variables, activityId);
       } else {
         modifyProcessInstance.activateElement(activityId);
       }
-
     });
 
     callApi(() -> ((ModifyProcessInstanceCommandStep3) modifyProcessInstance).execute(), FAILED_TO_MODIFY_PROCESS_INSTANCE + processInstanceKey);
