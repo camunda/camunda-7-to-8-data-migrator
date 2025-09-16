@@ -412,13 +412,15 @@ public class C7Client {
   /**
    * Processes variables with pagination using the provided callback consumer.
    */
-  public void fetchAndHandleHistoricVariables(Consumer<HistoricVariableInstance> callback, String latestLegacyId) {
+  public void fetchAndHandleHistoricVariables(Consumer<HistoricVariableInstance> callback, Date createdAfter) {
     HistoricVariableInstanceQueryImpl query = (HistoricVariableInstanceQueryImpl) historyService.createHistoricVariableInstanceQuery()
+        .orderByCreationTime()
+        .asc()
         .orderByVariableId()
         .asc();
 
-    if (latestLegacyId != null) {
-      query.idAfter(latestLegacyId);
+    if (createdAfter != null) {
+      query.createdAfter(createdAfter);
     }
 
     new Pagination<HistoricVariableInstance>()

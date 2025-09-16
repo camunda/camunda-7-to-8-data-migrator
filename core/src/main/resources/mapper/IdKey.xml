@@ -49,11 +49,6 @@
     WHERE ID = #{id, jdbcType=VARCHAR} AND TYPE = #{type, jdbcType=VARCHAR}
   </update>
 
-  <select id="findLatestIdByType" parameterType="java.lang.String">
-    SELECT ID FROM ${prefix}MIGRATION_MAPPING WHERE TYPE = '${type}' ORDER BY ID DESC
-    <include refid="io.camunda.migrator.Commons.singleResultSql"/>
-  </select>
-
   <select id="checkHasKeyByIdAndType" resultType="boolean">
     SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END
     FROM ${prefix}MIGRATION_MAPPING
