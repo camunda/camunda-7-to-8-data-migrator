@@ -221,7 +221,7 @@ public class RuntimeValidator {
 
   protected void validateMultiTenancy(String tenantId) {
     if (tenantId != null) {
-      if (properties.getTenantIds() != null && !properties.getTenantIds().contains(tenantId)) {
+      if (properties.getTenantIds() == null || !properties.getTenantIds().contains(tenantId)) {
         throw new IllegalStateException(String.format(TENANT_ID_ERROR, tenantId));
       }
     }

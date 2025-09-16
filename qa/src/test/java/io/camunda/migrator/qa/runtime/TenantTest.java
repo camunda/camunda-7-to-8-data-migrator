@@ -8,7 +8,6 @@
 package io.camunda.migrator.qa.runtime;
 
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR;
-import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.FLOW_NODE_NOT_EXISTS_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.TENANT_ID_ERROR;
 
 import io.camunda.migrator.RuntimeMigrator;
@@ -30,6 +29,7 @@ class TenantTest extends RuntimeMigrationAbstractTest {
   public void shouldSkipProcessInstance() {
     // given
     deployer.deployCamunda7Process("simpleProcess.bpmn", "my-tenant");
+    deployer.deployCamunda8Process("simpleProcess.bpmn", "my-tenant");
 
     String c7ProcessInstanceId = runtimeService.startProcessInstanceByKey("simpleProcess").getId();
 
