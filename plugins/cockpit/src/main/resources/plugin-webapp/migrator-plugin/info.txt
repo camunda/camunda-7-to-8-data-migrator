@@ -1,1 +1,1 @@
-# Client side assets of the cockpit-plugin-sample
+Client side assets of the migrator plugin

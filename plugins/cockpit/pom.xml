@@ -15,7 +15,6 @@
 
   <name>Camunda 7 to 8 Data Migrator - Plugins – Cockpit</name>
   <description>A Cockpit plugin for Camunda 7 that helps identify and fix entities that were skipped during Camunda 7 to 8 data migration.</description>
-  <url>https://github.com/camunda/camunda-bpm-examples/tree/7.23/cockpit/cockpit-sample-plugin</url>
 
   <properties>
     <frontend-maven-plugin.version>1.14.0</frontend-maven-plugin.version>

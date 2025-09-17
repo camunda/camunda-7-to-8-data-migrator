@@ -1,5 +1,5 @@
 {
-  "name": "camunda-cockpit-sample-plugin",
+  "name": "camunda-7-to-8-data-migrator-cockpit-plugin",
   "version": "0.0.1",
   "scripts": {
     "build": "NODE_ENV=production rollup -c",

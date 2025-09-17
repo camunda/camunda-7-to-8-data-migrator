@@ -32,6 +32,7 @@ replay_pid*
 # Plugin front end dependencies
 node_modules/
 node
+dist
 
 # VS Code
 *.DS_Store
