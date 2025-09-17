@@ -14,23 +14,27 @@ import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.clients.DbClient;
 import jakarta.annotation.PreDestroy;
 import java.sql.Connection;
-import java.util.Optional;
 import javax.sql.DataSource;
 import liquibase.Liquibase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.core.env.Environment;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(prefix = MigratorProperties.PREFIX, name = "drop-schema", havingValue = "true")
+@Conditional(SchemaShutdownCleaner.DropSchemaCondition.class)
 public class SchemaShutdownCleaner {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(SchemaShutdownCleaner.class);
@@ -45,15 +49,23 @@ public class SchemaShutdownCleaner {
   @Autowired
   protected DbClient dbClient;
 
+  @Autowired
+  protected Environment environment;
+
   @PreDestroy
   public void cleanUp() {
-    if (configProperties.getDropSchema()) {
+    if (schemaDropEnabled(environment)) {
       Long skipped = dbClient.countSkipped();
+      LOGGER.info("[{}] entities were skipped during migration", skipped);
+      String tablePrefix = StringUtils.trimToEmpty(configProperties.getTablePrefix());
       if (skipped == 0) {
-        String tablePrefix = Optional.ofNullable(configProperties.getTablePrefix()).orElse("");
+        LOGGER.info("Migration was completed without skipped entities, dropping migration schema");
+        callApi(() -> rollbackTableCreation(tablePrefix), FAILED_TO_DROP_MIGRATION_TABLE);
+      } else if (forceEnabled(environment)) {
+        LOGGER.warn("Some entities were skipped during migration but `--force` is enabled, dropping migration schema");
         callApi(() -> rollbackTableCreation(tablePrefix), FAILED_TO_DROP_MIGRATION_TABLE);
       } else {
-        LOGGER.warn(FAILED_TO_DROP_MIGRATION_TABLE + ": [{}] entities were skipped during migration.", skipped);
+        LOGGER.info("Some entities were skipped during migration, enable `--force` to drop the migration schema");
       }
     }
   }
@@ -72,4 +84,19 @@ public class SchemaShutdownCleaner {
     }
   }
 
+  private static boolean schemaDropEnabled(Environment context) {
+    return context.containsProperty("drop-schema");
+  }
+
+  private static boolean forceEnabled(Environment context) {
+    return context.containsProperty("force");
+  }
+
+  protected static class DropSchemaCondition implements Condition {
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+      return schemaDropEnabled(context.getEnvironment());
+    }
+
+  }
 }
