@@ -110,6 +110,14 @@ public class MigratorApp {
       }
     }
 
+    // Validate drop schema configuration
+    boolean dropSchema = argsList.contains("--" + ARG_DROP_SCHEMA);
+    boolean force = argsList.contains("--" + ARG_FORCE);
+    LOGGER.debug("Migration will be run with `drop-schema={}` and `force={}`", dropSchema, force);
+    if (force && !dropSchema) {
+      LOGGER.warn("`--force` flag will be ignored because `--drop-schema` is not present");
+    }
+
     // Check if we have too many flags (not counting entity type parameters)
     if (flagCount > MAX_ARGUMENTS) {
       throw new IllegalArgumentException("Error: Too many arguments.");
@@ -130,7 +138,8 @@ public class MigratorApp {
     System.out.println("                      HISTORY_VARIABLE, HISTORY_USER_TASK, HISTORY_FLOW_NODE,");
     System.out.println("                      HISTORY_DECISION_INSTANCE, HISTORY_DECISION_DEFINITION");
     System.out.println("  --retry-skipped   - Retry only previously skipped history data");
-    System.out.println("  --drop-schema     - If migration was successful, drop the migrator schema on shutdown");
+    System.out.println("  --drop-schema     - Drop the migrator schema on shutdown ff migration was successful");
+    System.out.println("  --force           - Force the dropping of the migrator schema in all cases, to be used in combination with --drop-schema");
     System.out.println();
     System.out.println("Examples:");
     System.out.println("  start.sh --history --list-skipped");
