@@ -12,7 +12,6 @@ import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.MigratorMode;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +29,7 @@ public class MigratorApp {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(MigratorApp.class);
 
-  protected static final int MAX_ARGUMENTS = 5;
+  protected static final int MAX_FLAGS = 5;
 
   protected static final String ARG_HELP = "help";
   protected static final String ARG_HISTORY_MIGRATION = "history";
