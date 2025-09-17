@@ -7,7 +7,6 @@
  */
 package io.camunda.migrator.app;
 
-
 import io.camunda.migrator.impl.AutoDeployer;
 import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.MigratorMode;
@@ -31,7 +30,7 @@ public class MigratorApp {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(MigratorApp.class);
 
-  protected static final int MAX_ARGUMENTS = 4;
+  protected static final int MAX_FLAGS = 5;
 
   protected static final String ARG_HELP = "help";
   protected static final String ARG_HISTORY_MIGRATION = "history";
@@ -62,12 +61,7 @@ public class MigratorApp {
       printUsage();
       System.exit(1);
     }
-
-    if (args.length == 0) {
-      LOGGER.info("Starting application without migration flags");
-    } else {
-      LOGGER.info("Starting migration with flags: {}", String.join(" ", args));
-    }
+    LOGGER.info("Starting migration with flags: {}", String.join(" ", args));
 
     // Continue with Spring Boot application
     ConfigurableApplicationContext context = new SpringApplicationBuilder(MigratorApp.class).properties(defaultProperties).run(args);
@@ -79,14 +73,8 @@ public class MigratorApp {
       if (appArgs.containsOption(ARG_HELP)) {
         printUsage();
         System.exit(1);
-      } else if (shouldRunFullMigration(appArgs)) {
-        LOGGER.info("Migrating both runtime and history");
-        migrateRuntime(context, mode);
-        migrateHistory(context, appArgs, mode);
-      } else if (appArgs.containsOption(ARG_RUNTIME_MIGRATION)) {
-        migrateRuntime(context, mode);
-      } else if (appArgs.containsOption(ARG_HISTORY_MIGRATION)) {
-        migrateHistory(context, appArgs, mode);
+      } else if (hasMigrationFlags(appArgs)) {
+        runMigratorsInOrder(context, appArgs, mode, args);
       } else {
         LOGGER.warn("Invalid argument combination");
       }
@@ -97,8 +85,13 @@ public class MigratorApp {
 
   protected static void validateArguments(String[] args) {
     List<String> argsList = java.util.Arrays.asList(args);
-    boolean listSkippedHistoryFound = argsList.contains("--" + ARG_LIST_SKIPPED) &&
-                                      argsList.contains("--" + ARG_HISTORY_MIGRATION);
+
+    if (!argsList.contains("--" + ARG_HISTORY_MIGRATION) && !argsList.contains("--" + ARG_RUNTIME_MIGRATION)) {
+      throw new IllegalArgumentException("Must specify at least one migration type: use --runtime, --history, or both.");
+    }
+
+    boolean listSkippedHistoryFound =
+        argsList.contains("--" + ARG_LIST_SKIPPED) && argsList.contains("--" + ARG_HISTORY_MIGRATION);
     int flagCount = 0;
 
     for (String arg : args) {
@@ -119,7 +112,7 @@ public class MigratorApp {
     }
 
     // Check if we have too many flags (not counting entity type parameters)
-    if (flagCount > MAX_ARGUMENTS) {
+    if (flagCount > MAX_FLAGS) {
       throw new IllegalArgumentException("Error: Too many arguments.");
     }
   }
@@ -128,9 +121,10 @@ public class MigratorApp {
     System.out.println();
     System.out.println("Usage: start.sh/bat [--help] [--runtime] [--history] [--list-skipped [ENTITY_TYPES...]|--retry-skipped] [--drop-schema]");
     System.out.println("Options:");
-    System.out.println("  --help            - Show this help message");
-    System.out.println("  --runtime         - Migrate runtime data only");
-    System.out.println("  --history         - Migrate history data only. This option is still EXPERIMENTAL and not meant for production use.");
+    System.out.println("  --help              - Show this help message");
+    System.out.println("  --runtime           - Migrate runtime data only");
+    System.out.println("  --history           - Migrate history data only. This option is still EXPERIMENTAL and not meant for production use.");
+    System.out.println("  --runtime --history - Migrate both runtime and history data in the specified order");
     System.out.println("  --list-skipped [ENTITY_TYPES...]");
     System.out.println("                    - List previously skipped migration data. For history data, optionally specify entity types to filter.");
     System.out.println("                      Filter only applicable with history migration. Available entity types:");
@@ -143,6 +137,26 @@ public class MigratorApp {
     System.out.println("Examples:");
     System.out.println("  start.sh --history --list-skipped");
     System.out.println("  start.sh --history --list-skipped HISTORY_PROCESS_INSTANCE HISTORY_USER_TASK");
+  }
+
+  protected static boolean hasMigrationFlags(ApplicationArguments appArgs) {
+    return appArgs.containsOption(ARG_RUNTIME_MIGRATION) || appArgs.containsOption(ARG_HISTORY_MIGRATION);
+  }
+
+  protected static void runMigratorsInOrder(ConfigurableApplicationContext context, ApplicationArguments appArgs, MigratorMode mode, String[] args) {
+    boolean runtimeAlreadyProcessed = false;
+    boolean historyAlreadyProcessed = false;
+
+    // Run migrators in the order they appear in command line arguments
+    for (String arg : args) {
+      if (("--" + ARG_RUNTIME_MIGRATION).equals(arg) && !runtimeAlreadyProcessed) {
+        migrateRuntime(context, mode);
+        runtimeAlreadyProcessed = true;
+      } else if (("--" + ARG_HISTORY_MIGRATION).equals(arg) && !historyAlreadyProcessed) {
+        migrateHistory(context, appArgs, mode);
+        historyAlreadyProcessed = true;
+      }
+    }
   }
 
   public static void migrateRuntime(ConfigurableApplicationContext context, MigratorMode mode) {
@@ -174,10 +188,6 @@ public class MigratorApp {
         .filter(VALID_ENTITY_TYPES::contains)
         .map(IdKeyMapper.TYPE::valueOf)
         .toList();
-  }
-
-  protected static boolean shouldRunFullMigration(ApplicationArguments appArgs) {
-    return appArgs.containsOption(ARG_RUNTIME_MIGRATION) && appArgs.containsOption(ARG_HISTORY_MIGRATION);
   }
 
   protected static MigratorMode getMigratorMode(ApplicationArguments appArgs) {
