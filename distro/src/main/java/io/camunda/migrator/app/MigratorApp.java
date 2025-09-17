@@ -12,7 +12,6 @@ import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.MigratorMode;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
