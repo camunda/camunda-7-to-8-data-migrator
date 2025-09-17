@@ -12,6 +12,7 @@ import static io.camunda.migrator.config.property.MigratorProperties.DataSource.
 import static org.camunda.bpm.engine.ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE;
 import static org.camunda.bpm.engine.ProcessEngineConfiguration.HISTORY_AUTO;
 
+import io.camunda.migrator.config.mybatis.SchemaShutdownCleaner;
 import io.camunda.migrator.impl.AutoDeployer;
 import com.zaxxer.hikari.HikariDataSource;
 import io.camunda.migrator.HistoryMigrator;
@@ -63,7 +64,8 @@ import org.springframework.transaction.PlatformTransactionManager;
     VariableService.class,
     RuntimeValidator.class,
     HistoryMigrator.class,
-    RuntimeMigrator.class
+    RuntimeMigrator.class,
+    SchemaShutdownCleaner.class
 })
 @Configuration
 @EnableConfigurationProperties(MigratorProperties.class)

@@ -136,6 +136,13 @@ public class DbClient {
   }
 
   /**
+   * Finds the count of skipped entities for all types
+   */
+  public Long countSkipped() {
+    return callApi(() -> idKeyMapper.countSkipped(), FAILED_TO_FIND_SKIPPED_COUNT);
+  }
+
+  /**
    * Finds the count of skipped entities for the given type
    */
   public Long countSkippedByType(TYPE type) {

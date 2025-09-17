@@ -27,6 +27,7 @@ Options
 - `--history` – Migrate history data
 - `--list-skipped` – List previously skipped data
 - `--retry-skipped` – Only retry the migration of previously skipped data
+- `--drop-schema` – If migration was successful, drop the migrator schema on shutdown
 
 ==================
 

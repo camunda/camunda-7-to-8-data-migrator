@@ -13,7 +13,9 @@ import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.MigratorMode;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +23,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.DefaultApplicationArguments;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
 @SpringBootApplication
@@ -28,21 +31,25 @@ public class MigratorApp {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(MigratorApp.class);
 
-  protected static final int MAX_ARGUMENTS = 3;
+  protected static final int MAX_ARGUMENTS = 4;
 
   protected static final String ARG_HELP = "help";
   protected static final String ARG_HISTORY_MIGRATION = "history";
   protected static final String ARG_RUNTIME_MIGRATION = "runtime";
   protected static final String ARG_RETRY_SKIPPED = "retry-skipped";
   protected static final String ARG_LIST_SKIPPED = "list-skipped";
+  protected static final String ARG_DROP_SCHEMA = "drop-schema";
 
   protected static final Set<String> VALID_FLAGS = Set.of(
       "--" + ARG_RUNTIME_MIGRATION,
       "--" + ARG_HISTORY_MIGRATION,
       "--" + ARG_LIST_SKIPPED,
       "--" + ARG_RETRY_SKIPPED,
+      "--" + ARG_DROP_SCHEMA,
       "--" + ARG_HELP
   );
+
+  protected static Map<String, Object> defaultProperties = new HashMap<>();
 
   protected static final Set<String> VALID_ENTITY_TYPES = IdKeyMapper.getHistoryTypeNames();
 
@@ -63,7 +70,7 @@ public class MigratorApp {
     }
 
     // Continue with Spring Boot application
-    ConfigurableApplicationContext context = SpringApplication.run(MigratorApp.class, args);
+    ConfigurableApplicationContext context = new SpringApplicationBuilder(MigratorApp.class).properties(defaultProperties).run(args);
     ApplicationArguments appArgs = new DefaultApplicationArguments(args);
     MigratorMode mode = getMigratorMode(appArgs);
     try {
@@ -105,15 +112,21 @@ public class MigratorApp {
       }
     }
 
+    // Check if drop schema flag is set
+    if (argsList.contains("--" + ARG_DROP_SCHEMA)) {
+      LOGGER.info("Migration will be executed with drop-schema option");
+      defaultProperties.put("camunda.migrator.drop-schema", "true");
+    }
+
     // Check if we have too many flags (not counting entity type parameters)
-    if (flagCount > 3) {
+    if (flagCount > MAX_ARGUMENTS) {
       throw new IllegalArgumentException("Error: Too many arguments.");
     }
   }
 
   protected static void printUsage() {
     System.out.println();
-    System.out.println("Usage: start.sh/bat [--help] [--runtime] [--history] [--list-skipped [ENTITY_TYPES...]|--retry-skipped]");
+    System.out.println("Usage: start.sh/bat [--help] [--runtime] [--history] [--list-skipped [ENTITY_TYPES...]|--retry-skipped] [--drop-schema]");
     System.out.println("Options:");
     System.out.println("  --help            - Show this help message");
     System.out.println("  --runtime         - Migrate runtime data only");
@@ -125,6 +138,7 @@ public class MigratorApp {
     System.out.println("                      HISTORY_VARIABLE, HISTORY_USER_TASK, HISTORY_FLOW_NODE,");
     System.out.println("                      HISTORY_DECISION_INSTANCE, HISTORY_DECISION_DEFINITION");
     System.out.println("  --retry-skipped   - Retry only previously skipped history data");
+    System.out.println("  --drop-schema     - If migration was successful, drop the migrator schema on shutdown");
     System.out.println();
     System.out.println("Examples:");
     System.out.println("  start.sh --history --list-skipped");

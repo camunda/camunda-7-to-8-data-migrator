@@ -12,6 +12,10 @@
   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
+  <changeSet id="tag_before_create_migration_mapping_table" author="Camunda">
+    <tagDatabase tag="tag_before_create_migration_mapping_table"/>
+  </changeSet>
+
   <changeSet id="create_migration_mapping_table" author="Camunda">
     <createTable tableName="${prefix}MIGRATION_MAPPING">
       <column name="ID" type="VARCHAR(64)">
