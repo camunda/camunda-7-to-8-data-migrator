@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(properties = { "camunda.migrator.tenantIds=tenant1,tenant2, tenant3" })
+@TestPropertySource(properties = { "camunda.migrator.tenantIds=tenant1,tenant2,tenant3" })
 @SpringBootTest
 public class MigratorTenantTest {
 

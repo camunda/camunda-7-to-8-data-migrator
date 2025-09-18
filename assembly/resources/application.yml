@@ -52,6 +52,9 @@ camunda:
     # You can use FEEL expressions (starting with '=')
     # validation-job-type: =if legacyId != null then "migrator" else "noop"
 
+    # Comma-separated list of tenant ids for which process instances should be migrated.
+    # tenantIds: tenant1, tenant2
+
     # Camunda 7 configuration
     c7:
       data-source:
