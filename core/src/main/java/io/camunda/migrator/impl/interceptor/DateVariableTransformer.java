@@ -5,7 +5,7 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
-package io.camunda.migrator.impl;
+package io.camunda.migrator.impl.interceptor;
 
 import static io.camunda.migrator.impl.logging.VariableServiceLogs.DATE_FORMAT_PATTERN;
 import static io.camunda.migrator.impl.logging.VariableServiceLogs.logConvertedDate;
@@ -14,35 +14,36 @@ import static io.camunda.migrator.impl.logging.VariableServiceLogs.logConverting
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInvocation;
 import java.text.SimpleDateFormat;
+import java.util.Set;
 import org.camunda.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
 import org.camunda.bpm.engine.variable.value.DateValue;
-import org.camunda.bpm.engine.variable.value.TypedValue;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * Built-in implementation of {@link VariableInterceptor} that handles Date variable processing
- * during migration from Camunda 7 to Camunda 8.
+ * Transformer for Date variables during migration from Camunda 7 to Camunda 8.
  * <p>
  * Converts Date variables to ISO 8601 formatted strings compatible with Camunda 8.
- * The interceptor is ordered with priority 10 to ensure it runs after the default transformer.
+ * This interceptor runs after other transformers to handle date conversion.
+ * Can be disabled via the configuration file using the {@code enabled} property.
  */
-@Order(10)
+@Order(20)  // Transform dates - runs after all other type transformers
 @Component
-public class BuiltInDateVariableTransformer implements VariableInterceptor {
+public class DateVariableTransformer implements VariableInterceptor {
+
+  @Override
+  public Set<Class<?>> getTypes() {
+    return Set.of(DateValue.class); // Only handle DateValue types
+  }
 
   @Override
   public void execute(VariableInvocation invocation) {
     VariableInstanceEntity variable = invocation.getC7Variable();
-    TypedValue typedValue = variable.getTypedValue(false);
+    DateValue dateValue = (DateValue) variable.getTypedValue(false);
 
-    if (typedValue instanceof DateValue value) {
-      logConvertingDate(variable.getName());
-
-      String formattedDate = new SimpleDateFormat(DATE_FORMAT_PATTERN).format(value.getValue());
-      logConvertedDate(variable.getName(), value.getValue(), formattedDate);
-      invocation.setVariableValue(formattedDate);
-    }
-
+    logConvertingDate(variable.getName());
+    String formattedDate = new SimpleDateFormat(DATE_FORMAT_PATTERN).format(dateValue.getValue());
+    logConvertedDate(variable.getName(), dateValue.getValue(), formattedDate);
+    invocation.setVariableValue(formattedDate);
   }
 }

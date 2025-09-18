@@ -14,6 +14,7 @@ import io.camunda.migrator.impl.clients.C8Client;
 import io.camunda.migrator.impl.model.ActivityVariables;
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInvocation;
+import io.camunda.migrator.interceptor.VariableTypeDetector;
 import io.camunda.migrator.impl.logging.VariableServiceLogs;
 import java.util.HashMap;
 import java.util.List;
@@ -151,6 +152,7 @@ public class VariableService {
 
   /**
    * Executes all configured variable interceptors on the given variable invocation.
+   * Only interceptors that support the variable's type will be called.
    *
    * @param variableInvocation the variable invocation to process
    * @throws VariableInterceptorException if any interceptor fails
@@ -158,18 +160,20 @@ public class VariableService {
   private void executeInterceptors(VariableInvocation variableInvocation) {
     if (hasInterceptors()) {
       for (VariableInterceptor interceptor : configuredVariableInterceptors) {
-        try {
-          interceptor.execute(variableInvocation);
-        } catch (Exception ex) {
-          String interceptorName = interceptor.getClass().getSimpleName();
-          String variableName = variableInvocation.getC7Variable().getName();
-          VariableServiceLogs.logInterceptorWarn(interceptorName, variableName);
+        // Only execute interceptors that support this variable type using Camunda's native types
+        if (VariableTypeDetector.supportsVariable(interceptor, variableInvocation)) {
+          try {
+            interceptor.execute(variableInvocation);
+          } catch (Exception ex) {
+            String interceptorName = interceptor.getClass().getSimpleName();
+            String variableName = variableInvocation.getC7Variable().getName();
+            VariableServiceLogs.logInterceptorWarn(interceptorName, variableName);
 
-          if (ex instanceof VariableInterceptorException) {
-            throw ex;
-
-          } else {
-            throw new VariableInterceptorException(VariableServiceLogs.formatInterceptorWarn(interceptorName, variableName), ex);
+            if (ex instanceof VariableInterceptorException) {
+              throw ex;
+            } else {
+              throw new VariableInterceptorException(VariableServiceLogs.formatInterceptorWarn(interceptorName, variableName), ex);
+            }
           }
         }
       }

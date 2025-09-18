@@ -9,6 +9,7 @@ package io.camunda.migrator.example;
 
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInvocation;
+import java.util.Set;
 import org.camunda.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
 import org.camunda.bpm.engine.variable.type.ValueType;
 import org.camunda.bpm.engine.variable.value.TypedValue;
@@ -35,13 +36,13 @@ public class MyCustomVariableInterceptor implements VariableInterceptor {
     @Override
     public void execute(VariableInvocation invocation) {
         VariableInstanceEntity variable = invocation.getC7Variable();
-        if (enableLogging) {
+      TypedValue typedValue = variable.getTypedValue(false);
+      if (enableLogging) {
             LOGGER.info("Processing variable: {} with value: {}",
                 variable.getName(),
-                variable.getValue());
+                typedValue.getValue());
         }
 
-        TypedValue typedValue = variable.getTypedValue(false);
         if (ValueType.STRING.getName().equals(typedValue.getType().getName())) {
             Object originalValue = invocation.getMigrationVariable().getValue();
             if (originalValue != null) {
