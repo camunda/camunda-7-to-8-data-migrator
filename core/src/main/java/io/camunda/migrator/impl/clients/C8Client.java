@@ -64,11 +64,13 @@ public class C8Client {
   /**
    * Searches for process definitions with the given process definition ID.
    */
-  public SearchResponse<ProcessDefinition> searchProcessDefinitions(String processDefinitionId) {
-    var searchRequest = camundaClient.newProcessDefinitionSearchRequest()
-        .filter(filter -> filter.processDefinitionId(processDefinitionId))
-        .sort(s -> s.version().desc());
-
+  public SearchResponse<ProcessDefinition> searchProcessDefinitions(String processDefinitionId, String tenantId) {
+    var searchRequest = camundaClient.newProcessDefinitionSearchRequest().filter(filter -> {
+      var filterBuilder = filter.processDefinitionId(processDefinitionId);
+      if (tenantId != null && !tenantId.isEmpty()) {
+        filterBuilder.tenantId(tenantId);
+      }
+    }).sort(s -> s.version().desc());
     return callApi(searchRequest::execute, FAILED_TO_SEARCH_PROCESS_DEFINITIONS + processDefinitionId);
   }
 
