@@ -17,6 +17,7 @@ import io.camunda.migrator.qa.MigrationTestApplication;
 import io.camunda.migrator.qa.util.WithMultiDb;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
@@ -53,9 +54,62 @@ public class DropSchemaTest {
   }
 
   @Test
-  void shouldMigrationSchemaBeDroppedOnShutdown() throws Exception {
+  void shouldMigrationSchemaWithPrefixBeDroppedOnShutdown() throws Exception {
     // given spring application is running with drop-schema flag enabled
-    var context = springApplication.properties(Map.of("camunda.migrator.drop-schema", true)).run();
+    String prefix = "FOO_";
+    var context = springApplication.properties(Map.of("camunda.migrator.table-prefix", prefix)).run("--drop-schema");
+    DataSource durableDataSource = createDurableDataSource(context);
+    ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, prefix + MIGRATION_MAPPING_TABLE));
+
+    // when application is shut down
+    context.close();
+
+    // then migration schema is dropped
+    assertThat(tableExists(durableDataSource, prefix + MIGRATION_MAPPING_TABLE)).isFalse();
+  }
+
+  @Test
+  void shouldMigrationSchemaBeKeptOnSkippedEntities() throws Exception {
+    // given spring application is running with drop-schema flag enabled
+    var context = springApplication.run("--drop-schema");
+    DataSource durableDataSource = createDurableDataSource(context);
+    ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, MIGRATION_MAPPING_TABLE));
+    DbClient dbClient = context.getBean("dbClient", DbClient.class);
+    // and some entities are marked as skipped
+    dbClient.insert("legacyId", null, IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
+
+    // when application is shut down
+    context.close();
+
+    // then migration schema is kept
+    assertThat(tableExists(durableDataSource, MIGRATION_MAPPING_TABLE)).isTrue();
+
+    // cleanup db after text
+    clearMigrationMappingTable(durableDataSource, "");
+  }
+
+  @Test
+  void shouldMigrationSchemaBeDroppedOnSkippedEntitiesWithForceFlag() throws Exception {
+    // given spring application is running with drop-schema and force flags enabled
+    String prefix = "BAR_";
+    var context = springApplication.properties(Map.of("camunda.migrator.table-prefix", prefix)).run("--drop-schema", "--force");
+    DataSource durableDataSource = createDurableDataSource(context);
+    ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, prefix + MIGRATION_MAPPING_TABLE));
+    DbClient dbClient = context.getBean("dbClient", DbClient.class);
+    // and some entities are marked as skipped
+    dbClient.insert("legacyId", null, IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
+
+    // when application is shut down
+    context.close();
+
+    // then migration schema is dropped
+    assertThat(tableExists(durableDataSource, prefix + MIGRATION_MAPPING_TABLE)).isFalse();
+  }
+
+  @Test
+  void shouldMigrationSchemaBeDroppedOnShutdownWithoutPrefix() throws Exception {
+    // given spring application is running with drop-schema flag enabled
+    var context = springApplication.run("--drop-schema");
     DataSource durableDataSource = createDurableDataSource(context);
     ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, MIGRATION_MAPPING_TABLE));
 
@@ -67,33 +121,18 @@ public class DropSchemaTest {
   }
 
   @Test
-  void shouldMigrationSchemaBeDroppedOnShutdownWithPrefix() throws Exception {
-    // given spring application is running with drop-schema flag enabled
-    var context = springApplication.properties(Map.of("camunda.migrator.drop-schema", true, "camunda.migrator.table-prefix", "FOO_")).run();
+  void shouldMigrationSchemaBeKeptOnForceFlagOnly() throws Exception {
+    // given spring application is running with only force flag enabled
+    var context = springApplication.run("--force");
     DataSource durableDataSource = createDurableDataSource(context);
-    ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, "FOO_" + MIGRATION_MAPPING_TABLE));
-
-    // when application is shut down
-    context.close();
-
-    // then migration schema is dropped
-    assertThat(tableExists(durableDataSource, "FOO_" + MIGRATION_MAPPING_TABLE)).isFalse();
-  }
-
-  @Test
-  void shouldMigrationSchemaBeKeptOnSkippedEntities() throws Exception {
-    // given spring application is running with drop-schema flag enabled
-    var context = springApplication.properties(Map.of("camunda.migrator.drop-schema", true, "camunda.migrator.table-prefix", "FOO_")).run();
-    DataSource durableDataSource = createDurableDataSource(context);
+    ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, MIGRATION_MAPPING_TABLE));
     DbClient dbClient = context.getBean("dbClient", DbClient.class);
-    dbClient.insert("legacyId", null, IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
-    ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, "FOO_" + MIGRATION_MAPPING_TABLE));
 
     // when application is shut down
     context.close();
 
     // then migration schema is kept
-    assertThat(tableExists(durableDataSource, "FOO_" + MIGRATION_MAPPING_TABLE)).isTrue();
+    assertThat(tableExists(durableDataSource, MIGRATION_MAPPING_TABLE)).isTrue();
   }
 
   /**
@@ -106,6 +145,16 @@ public class DropSchemaTest {
     durableDataSource.setUsername(context.getEnvironment().getProperty("camunda.migrator.c7.data-source.username"));
     durableDataSource.setPassword(context.getEnvironment().getProperty("camunda.migrator.c7.data-source.password"));
     return durableDataSource;
+  }
+
+  public static void clearMigrationMappingTable(DataSource dataSource, String prefix) {
+    String sql = "DELETE FROM " + prefix + MIGRATION_MAPPING_TABLE;
+    try (Connection conn = dataSource.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.executeUpdate();
+    } catch (SQLException e) {
+      throw new RuntimeException("Failed to clear table: " + prefix + MIGRATION_MAPPING_TABLE, e);
+    }
   }
 
   private static boolean tableExists(DataSource dataSource, String tableName) throws SQLException {

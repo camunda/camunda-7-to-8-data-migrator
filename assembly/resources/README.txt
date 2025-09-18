@@ -28,6 +28,7 @@ Options
 - `--list-skipped` – List previously skipped data
 - `--retry-skipped` – Only retry the migration of previously skipped data
 - `--drop-schema` – If migration was successful, drop the migrator schema on shutdown
+- `--force` – Force the dropping of the migrator schema in all cases, to be used in combination with --drop-schema (warning: this can lead to data loss)
 
 ==================
 

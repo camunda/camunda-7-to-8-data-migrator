@@ -13,9 +13,7 @@ import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.MigratorMode;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +29,7 @@ public class MigratorApp {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(MigratorApp.class);
 
-  protected static final int MAX_ARGUMENTS = 4;
+  protected static final int MAX_ARGUMENTS = 5;
 
   protected static final String ARG_HELP = "help";
   protected static final String ARG_HISTORY_MIGRATION = "history";
@@ -39,6 +37,7 @@ public class MigratorApp {
   protected static final String ARG_RETRY_SKIPPED = "retry-skipped";
   protected static final String ARG_LIST_SKIPPED = "list-skipped";
   protected static final String ARG_DROP_SCHEMA = "drop-schema";
+  protected static final String ARG_FORCE = "force";
 
   protected static final Set<String> VALID_FLAGS = Set.of(
       "--" + ARG_RUNTIME_MIGRATION,
@@ -46,10 +45,9 @@ public class MigratorApp {
       "--" + ARG_LIST_SKIPPED,
       "--" + ARG_RETRY_SKIPPED,
       "--" + ARG_DROP_SCHEMA,
+      "--" + ARG_FORCE,
       "--" + ARG_HELP
   );
-
-  protected static Map<String, Object> defaultProperties = new HashMap<>();
 
   protected static final Set<String> VALID_ENTITY_TYPES = IdKeyMapper.getHistoryTypeNames();
 
@@ -70,7 +68,7 @@ public class MigratorApp {
     }
 
     // Continue with Spring Boot application
-    ConfigurableApplicationContext context = new SpringApplicationBuilder(MigratorApp.class).properties(defaultProperties).run(args);
+    ConfigurableApplicationContext context = new SpringApplicationBuilder(MigratorApp.class).run(args);
     ApplicationArguments appArgs = new DefaultApplicationArguments(args);
     MigratorMode mode = getMigratorMode(appArgs);
     try {
@@ -112,10 +110,12 @@ public class MigratorApp {
       }
     }
 
-    // Check if drop schema flag is set
-    if (argsList.contains("--" + ARG_DROP_SCHEMA)) {
-      LOGGER.info("Migration will be executed with drop-schema option");
-      defaultProperties.put("camunda.migrator.drop-schema", "true");
+    // Validate drop schema configuration
+    boolean dropSchema = argsList.contains("--" + ARG_DROP_SCHEMA);
+    boolean force = argsList.contains("--" + ARG_FORCE);
+    LOGGER.debug("Migration will be run with `drop-schema={}` and `force={}`", dropSchema, force);
+    if (force && !dropSchema) {
+      LOGGER.warn("`--force` flag will be ignored because `--drop-schema` is not present");
     }
 
     // Check if we have too many flags (not counting entity type parameters)
@@ -138,7 +138,8 @@ public class MigratorApp {
     System.out.println("                      HISTORY_VARIABLE, HISTORY_USER_TASK, HISTORY_FLOW_NODE,");
     System.out.println("                      HISTORY_DECISION_INSTANCE, HISTORY_DECISION_DEFINITION");
     System.out.println("  --retry-skipped   - Retry only previously skipped history data");
-    System.out.println("  --drop-schema     - If migration was successful, drop the migrator schema on shutdown");
+    System.out.println("  --drop-schema     - Drop the migrator schema on shutdown ff migration was successful");
+    System.out.println("  --force           - Force the dropping of the migrator schema in all cases, to be used in combination with --drop-schema");
     System.out.println();
     System.out.println("Examples:");
     System.out.println("  start.sh --history --list-skipped");

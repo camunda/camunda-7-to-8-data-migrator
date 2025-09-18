@@ -112,7 +112,7 @@ class DistributionSmokeTest {
   @Timeout(value = 60, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenTooManyArgumentsProvided() throws Exception {
     // given
-    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history", "--drop-schema", "--list-skipped", "--retry-skipped");
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history", "--drop-schema", "--force", "--list-skipped", "--retry-skipped");
 
     // when
     Process process = processBuilder.start();
@@ -130,7 +130,7 @@ class DistributionSmokeTest {
   @Timeout(value = 60, unit = TimeUnit.SECONDS)
   void shouldAcceptValidFlags() throws Exception {
     // given
-    String[] validFlags = {"--runtime", "--history", "--list-skipped", "--retry-skipped", "--drop-schema"};
+    String[] validFlags = {"--runtime", "--history", "--list-skipped", "--retry-skipped", "--drop-schema", "--force"};
 
     for (String flag : validFlags) {
       ProcessBuilder processBuilder = createProcessBuilder(flag);
