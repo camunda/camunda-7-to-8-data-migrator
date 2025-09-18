@@ -8,6 +8,10 @@
 package io.camunda.migrator.config.mybatis;
 
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_DROP_MIGRATION_TABLE;
+import static io.camunda.migrator.impl.logging.SchemaShutdownCleanerLogs.logForceDrop;
+import static io.camunda.migrator.impl.logging.SchemaShutdownCleanerLogs.logSkippedEntitiesCount;
+import static io.camunda.migrator.impl.logging.SchemaShutdownCleanerLogs.logSkippingDrop;
+import static io.camunda.migrator.impl.logging.SchemaShutdownCleanerLogs.logSuccessfulMigrationDrop;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 
 import io.camunda.migrator.config.property.MigratorProperties;
@@ -22,8 +26,6 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.exceptions.PersistenceException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Condition;
@@ -36,8 +38,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Conditional(SchemaShutdownCleaner.DropSchemaCondition.class)
 public class SchemaShutdownCleaner {
-
-  protected static final Logger LOGGER = LoggerFactory.getLogger(SchemaShutdownCleaner.class);
 
   @Autowired
   @Qualifier("migratorDataSource")
@@ -56,16 +56,16 @@ public class SchemaShutdownCleaner {
   public void cleanUp() {
     if (schemaDropEnabled(environment)) {
       Long skipped = dbClient.countSkipped();
-      LOGGER.info("[{}] entities were skipped during migration", skipped);
+      logSkippedEntitiesCount(skipped);
       String tablePrefix = StringUtils.trimToEmpty(configProperties.getTablePrefix());
       if (skipped == 0) {
-        LOGGER.info("Migration was completed without skipped entities, dropping migration schema");
+        logSuccessfulMigrationDrop();
         callApi(() -> rollbackTableCreation(tablePrefix), FAILED_TO_DROP_MIGRATION_TABLE);
       } else if (forceEnabled(environment)) {
-        LOGGER.warn("Some entities were skipped during migration but `--force` is enabled, dropping migration schema");
+        logForceDrop();
         callApi(() -> rollbackTableCreation(tablePrefix), FAILED_TO_DROP_MIGRATION_TABLE);
       } else {
-        LOGGER.info("Some entities were skipped during migration, enable `--force` to drop the migration schema");
+        logSkippingDrop();
       }
     }
   }

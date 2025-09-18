@@ -54,7 +54,7 @@ public class DropSchemaTest {
   }
 
   @Test
-  void shouldMigrationSchemaBeDroppedOnShutdown() throws Exception {
+  void shouldMigrationSchemaWithPrefixBeDroppedOnShutdown() throws Exception {
     // given spring application is running with drop-schema flag enabled
     String prefix = "FOO_";
     var context = springApplication.properties(Map.of("camunda.migrator.table-prefix", prefix)).run("--drop-schema");
@@ -118,6 +118,21 @@ public class DropSchemaTest {
 
     // then migration schema is dropped
     assertThat(tableExists(durableDataSource, MIGRATION_MAPPING_TABLE)).isFalse();
+  }
+
+  @Test
+  void shouldMigrationSchemaBeKeptOnForceFlagOnly() throws Exception {
+    // given spring application is running with only force flag enabled
+    var context = springApplication.run("--force");
+    DataSource durableDataSource = createDurableDataSource(context);
+    ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, MIGRATION_MAPPING_TABLE));
+    DbClient dbClient = context.getBean("dbClient", DbClient.class);
+
+    // when application is shut down
+    context.close();
+
+    // then migration schema is kept
+    assertThat(tableExists(durableDataSource, MIGRATION_MAPPING_TABLE)).isTrue();
   }
 
   /**
