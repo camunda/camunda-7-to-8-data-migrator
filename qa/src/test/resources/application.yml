@@ -17,7 +17,7 @@ camunda:
         driver-class-name: org.h2.Driver
   process-test:
 #    camunda-docker-image-version: 8.8-SNAPSHOT
- #   multitenancy-enabled: true
+    multi-tenancy-enabled: true
 
 
 logging:
