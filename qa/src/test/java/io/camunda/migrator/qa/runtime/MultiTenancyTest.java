@@ -8,17 +8,13 @@
 package io.camunda.migrator.qa.runtime;
 
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR;
-import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_C8_DEPLOYMENT_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_C8_TENANT_DEPLOYMENT_ERROR;
-import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.TENANT_ID_ERROR;
-import static io.camunda.process.test.api.CamundaAssert.assertThatProcessInstance;
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.process.test.api.CamundaAssert;
-import io.camunda.process.test.api.CamundaProcessTestContext;
 import io.github.netmikey.logunit.api.LogCapturer;
 import org.camunda.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,16 +30,16 @@ class MultiTenancyTest extends RuntimeMigrationAbstractTest {
 
   @RegisterExtension
   protected final LogCapturer logs = LogCapturer.create().captureForType(RuntimeMigrator.class);
-  // C8 ---------------------------------------
 
+  // Test constants
   protected static final String DEFAULT_USERNAME = "demo";
   protected static final String TENANT_ID_1 = "tenant-1";
   protected static final String TENANT_ID_2 = "tenant-2";
+  protected static final String SIMPLE_PROCESS_BPMN = "simpleProcess.bpmn";
+  protected static final String SIMPLE_PROCESS_ID = "simpleProcess";
+
   @Autowired
   protected CamundaClient client;
-  @Autowired
-  protected CamundaProcessTestContext processTestContext;
-  protected CamundaClient clientForTenant1;
 
   @BeforeEach
   void setupTenants() {
@@ -56,21 +52,20 @@ class MultiTenancyTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  @Disabled
   public void shouldMigrateProcessInstanceWithTenant() {
     // given
-    deployer.deployProcessInC7AndC8("simpleProcess.bpmn", TENANT_ID_1);
+    deployer.deployProcessInC7AndC8(SIMPLE_PROCESS_BPMN, TENANT_ID_1);
 
-    String c7ProcessInstanceId = runtimeService.startProcessInstanceByKey("simpleProcess",
+    String c7ProcessInstanceId = runtimeService.startProcessInstanceByKey(SIMPLE_PROCESS_ID,
         Variables.putValue("myVar", 1234)).getId();
 
     // when
     runtimeMigrator.start();
 
     // then
-    CamundaAssert.assertThat(byProcessId("simpleProcess")).isActive();
+    CamundaAssert.assertThat(byProcessId(SIMPLE_PROCESS_ID)).isActive();
     var c8ProcessInstanceTenant = client.newProcessInstanceSearchRequest()
-        .filter(f -> f.processDefinitionId("simpleProcess"))
+        .filter(f -> f.processDefinitionId(SIMPLE_PROCESS_ID))
         .send()
         .join()
         .items()
@@ -90,10 +85,10 @@ class MultiTenancyTest extends RuntimeMigrationAbstractTest {
   @Test
   public void shouldSkipProcessInstanceWhenProcessDefinitionHasNoTenant() {
     // given
-    deployer.deployCamunda7Process("simpleProcess.bpmn", TENANT_ID_1);
-    deployer.deployCamunda8Process("simpleProcess.bpmn");
+    deployer.deployCamunda7Process(SIMPLE_PROCESS_BPMN, TENANT_ID_1);
+    deployer.deployCamunda8Process(SIMPLE_PROCESS_BPMN);
 
-    String c7ProcessInstanceId = runtimeService.startProcessInstanceByKey("simpleProcess").getId();
+    String c7ProcessInstanceId = runtimeService.startProcessInstanceByKey(SIMPLE_PROCESS_ID).getId();
 
     // when
     runtimeMigrator.start();
@@ -102,16 +97,16 @@ class MultiTenancyTest extends RuntimeMigrationAbstractTest {
     assertThatProcessInstanceCountIsEqualTo(0);
     logs.assertContains(
         String.format(SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("{}", "%s"), c7ProcessInstanceId,
-            String.format(NO_C8_TENANT_DEPLOYMENT_ERROR, "simpleProcess", TENANT_ID_1, c7ProcessInstanceId)));
+            String.format(NO_C8_TENANT_DEPLOYMENT_ERROR, SIMPLE_PROCESS_ID, TENANT_ID_1, c7ProcessInstanceId)));
   }
 
   @Test
   public void shouldSkipProcessInstanceWhenProcessDefinitionHasDifferentTenant() {
     // given
-    deployer.deployCamunda7Process("simpleProcess.bpmn", TENANT_ID_1);
-    deployer.deployCamunda8Process("simpleProcess.bpmn", TENANT_ID_2);
+    deployer.deployCamunda7Process(SIMPLE_PROCESS_BPMN, TENANT_ID_1);
+    deployer.deployCamunda8Process(SIMPLE_PROCESS_BPMN, TENANT_ID_2);
 
-    String c7ProcessInstanceId = runtimeService.startProcessInstanceByKey("simpleProcess").getId();
+    String c7ProcessInstanceId = runtimeService.startProcessInstanceByKey(SIMPLE_PROCESS_ID).getId();
 
     // when
     runtimeMigrator.start();
@@ -120,7 +115,7 @@ class MultiTenancyTest extends RuntimeMigrationAbstractTest {
     assertThatProcessInstanceCountIsEqualTo(0);
     logs.assertContains(
         String.format(SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("{}", "%s"), c7ProcessInstanceId,
-            String.format(NO_C8_TENANT_DEPLOYMENT_ERROR, "simpleProcess", TENANT_ID_1, c7ProcessInstanceId)));
+            String.format(NO_C8_TENANT_DEPLOYMENT_ERROR, SIMPLE_PROCESS_ID, TENANT_ID_1, c7ProcessInstanceId)));
   }
 
 }

@@ -37,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.Activity;
 import org.camunda.bpm.model.bpmn.instance.FlowElement;
@@ -158,8 +159,9 @@ public class RuntimeValidator {
   public void validateC8DefinitionExists(List<ProcessDefinition> c8Definitions, String c8DefinitionId, String tenantId,
                                          String legacyProcessInstanceId) {
     if (c8Definitions.isEmpty()) {
-      if (tenantId != null && !tenantId.isEmpty()) {
-        throw new IllegalStateException(String.format(NO_C8_TENANT_DEPLOYMENT_ERROR, c8DefinitionId, tenantId, legacyProcessInstanceId));
+      if (hasTenant(tenantId)) {
+        throw new IllegalStateException(
+            String.format(NO_C8_TENANT_DEPLOYMENT_ERROR, c8DefinitionId, tenantId, legacyProcessInstanceId));
       } else {
         throw new IllegalStateException(String.format(NO_C8_DEPLOYMENT_ERROR, c8DefinitionId, legacyProcessInstanceId));
       }
@@ -225,11 +227,17 @@ public class RuntimeValidator {
   }
 
   protected void validateMultiTenancy(String tenantId) {
-    if (tenantId != null && !tenantId.isEmpty()) {
+    if (hasTenant(tenantId)) {
       if (properties.getTenantIds() == null || !properties.getTenantIds().contains(tenantId)) {
         throw new IllegalStateException(String.format(TENANT_ID_ERROR, tenantId));
       }
     }
   }
 
+  /**
+   * Checks if a tenant ID is present and not empty.
+   */
+  private boolean hasTenant(String tenantId) {
+    return !StringUtils.isEmpty(tenantId);
+  }
 }
