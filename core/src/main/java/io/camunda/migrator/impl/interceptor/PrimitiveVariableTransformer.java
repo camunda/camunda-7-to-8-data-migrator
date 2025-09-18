@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
  * Handles primitive variable types (String, Integer, Boolean, etc.).
  * Can be disabled via the configuration file using the {@code enabled} property.
  */
-@Order(14)  // Transform primitives - runs after validators and complex type transformers
+@Order(15)  // Transform primitives - runs after validators and complex type transformers
 @Component
 public class PrimitiveVariableTransformer implements VariableInterceptor {
 

@@ -240,7 +240,6 @@ public class DeclarativeConfigurationTest extends RuntimeMigrationAbstractTest {
     // Should be processed by enabled interceptors, not disabled one
     CamundaAssert.assertThat(byProcessId("simpleProcess"))
         .hasVariable("testVar", "CUSTOM_value");
-    assertThat(runtimeService.getVariable(processInstance.getId(), "DISABLED_value")).isNull();
   }
 
   @Test

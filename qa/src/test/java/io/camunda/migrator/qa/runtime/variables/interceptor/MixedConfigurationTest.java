@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
@@ -42,7 +41,7 @@ public class MixedConfigurationTest extends RuntimeMigrationAbstractTest {
 
     // Set up variables that will trigger both types of interceptors
     var processInstance = runtimeService.startProcessInstanceByKey("simpleProcess");
-    runtimeService.setVariable(processInstance.getId(), "varIntercept", "springValue"); // For TestVariableInterceptor (@Component)
+    runtimeService.setVariable(processInstance.getId(), "varIntercept", "springValue"); // For ComplexVariableInterceptor (@Component)
     runtimeService.setVariable(processInstance.getId(), "var", "value"); // For ComplexInterceptor (declarative)
 
     // when running runtime migration
@@ -54,7 +53,7 @@ public class MixedConfigurationTest extends RuntimeMigrationAbstractTest {
         .hasVariable("var", "transformedValue"); // Transformed by declarative interceptor
 
     // verify both interceptors logged their messages
-    assertThat(output.getOut()).contains("Hello from interceptor"); // From TestVariableInterceptor
+    assertThat(output.getOut()).contains("Hello from interceptor"); // From ComplexVariableInterceptor
     assertThat(output.getOut()).contains("Hello from declarative interceptor configured via properties"); // From declarative interceptor
   }
 
