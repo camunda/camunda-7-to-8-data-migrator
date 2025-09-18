@@ -165,6 +165,31 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-core-resources</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeGroupIds>io.camunda</includeGroupIds>
+              <includeArtifactIds>camunda-7-to-8-data-migrator-core</includeArtifactIds>
+              <includes>
+                mapper/*.xml,
+                db/properties/*.properties,
+                io/camunda/migrator/impl/persistence/IdKeyDbModel.class,
+                io/camunda/migrator/impl/persistence/IdKeyMapper.class,
+                io/camunda/migrator/impl/persistence/IdKeyMapper$TYPE.class
+              </includes>
+              <outputDirectory>${project.build.directory}/classes</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <configuration>
