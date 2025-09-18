@@ -24,8 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(properties = {
-  "camunda.process-test.multitenancy-enabled=true",
-  "camunda.process-test.container-runtime.environment.CAMUNDA_MULTITENANCY_ENABLED=true"
+  "camunda.process-test.multi-tenancy-enabled=true"
+    //,
+//  "camunda.process-test.container-runtime.environment.CAMUNDA_MULTITENANCY_ENABLED=true"
 })
 @CamundaSpringProcessTest
     //@WithMultiDb
