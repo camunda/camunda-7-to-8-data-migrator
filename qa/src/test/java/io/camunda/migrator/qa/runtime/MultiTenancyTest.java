@@ -13,6 +13,7 @@ import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.qa.util.ProcessDefinitionDeployer;
 import io.camunda.process.test.api.CamundaProcessTestContext;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
+import io.camunda.process.test.impl.runtime.CamundaProcessTestRuntimeBuilder;
 import org.assertj.core.api.Assertions;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
@@ -22,11 +23,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest(properties = { "camunda.process-test.multitenancy-enabled=true" })
+@SpringBootTest(properties = {
+  "camunda.process-test.multitenancy-enabled=true",
+  "camunda.process-test.container-runtime.environment.CAMUNDA_MULTITENANCY_ENABLED=true"
+})
 @CamundaSpringProcessTest
     //@WithMultiDb
-    //@WithSpringProfile("history-level-full")
-@Disabled("https://github.com/camunda/camunda-bpm-platform/issues/5414")
+//@Disabled("https://github.com/camunda/camunda-bpm-platform/issues/5414")
 class MultiTenancyTest /*extends RuntimeMigrationAbstractTest*/ {
 
   // Migrator ---------------------------------------
@@ -58,6 +61,7 @@ class MultiTenancyTest /*extends RuntimeMigrationAbstractTest*/ {
   @Autowired
   private CamundaProcessTestContext processTestContext;
   private CamundaClient clientForTenant1;
+
 
   @BeforeEach
   void setupTenants() {
@@ -93,11 +97,11 @@ class MultiTenancyTest /*extends RuntimeMigrationAbstractTest*/ {
   public void shouldMigrateProcessInstanceWithTenant() {
     // given
     deployer.deployCamunda7Process("simpleProcess.bpmn", "my-tenant");
-    //    deployer.deployCamunda8Process("simpleProcess.bpmn", "my-tenant");
-    clientForTenant1.newDeployResourceCommand()
-        .addResourceFromClasspath("io/camunda/migrator/bpmn/c8/simpleProcess.bpmn")
-        .send()
-        .join();
+        deployer.deployCamunda8Process("simpleProcess.bpmn", TENANT_ID_1);
+//    clientForTenant1.newDeployResourceCommand()
+//        .addResourceFromClasspath("io/camunda/migrator/bpmn/c8/simpleProcess.bpmn")
+//        .send()
+//        .join();
 
     String c7ProcessInstanceId = runtimeService.startProcessInstanceByKey("simpleProcess").getId();
 
