@@ -149,7 +149,7 @@ public class MigratorResourceTest extends AbstractCockpitPluginTest {
         stmt.setTimestamp(3, null);
         stmt.setString(4, String.valueOf(idKeyDbModel.type()));
         stmt.setString(5, idKeyDbModel.skipReason());
-        if(idKeyDbModel.instanceKey() == null) {
+        if (idKeyDbModel.instanceKey() == null) {
           stmt.setNull(2, java.sql.Types.BIGINT);
         } else {
           stmt.setLong(2, idKeyDbModel.instanceKey());
