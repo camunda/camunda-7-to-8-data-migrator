@@ -16,16 +16,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Test to verify that IdKeyDbModel startDate is mapped correctly across different database types
+ * Test to verify that IdKeyDbModel createTime is mapped correctly across different database types
  * when running actual migration queries defined in IdKey.xml.
  */
-public class IdKeyStartDateMappingTest extends HistoryMigrationAbstractTest {
+public class IdKeyCreateTimeMappingTest extends HistoryMigrationAbstractTest {
 
   @Autowired
   private IdKeyMapper idKeyMapper;
 
   @Test
-  public void shouldCorrectlyMapStartDateDuringActualMigration() {
+  public void shouldCorrectlyMapCreateTimeDuringActualMigration() {
 
     // Given
     deployer.deployCamunda7Process("simpleProcess.bpmn");
@@ -40,8 +40,8 @@ public class IdKeyStartDateMappingTest extends HistoryMigrationAbstractTest {
     IdKeyDbModel migratedInstance = idKeyMapper.findMigratedByType(
         IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE, 0, Integer.MAX_VALUE).stream().toList().getFirst();
 
-    assertThat(migratedInstance.getId()).isEqualTo(processInstanceId);
-    assertThat(migratedInstance.getStartDate()).isNotNull().isBefore(beforeMigration); // Should be before we started the test
-    assertThat(migratedInstance.getInstanceKey()).isNotNull().isPositive();
+    assertThat(migratedInstance.getC7Id()).isEqualTo(processInstanceId);
+    assertThat(migratedInstance.getCreateTime()).isNotNull().isBefore(beforeMigration); // Should be before we started the test
+    assertThat(migratedInstance.getC8Key()).isNotNull().isPositive();
   }
 }

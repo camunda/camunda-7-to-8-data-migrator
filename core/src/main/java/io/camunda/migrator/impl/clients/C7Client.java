@@ -83,35 +83,35 @@ public class C7Client {
   /**
    * Gets a single process definition by ID.
    */
-  public ProcessDefinition getProcessDefinition(String legacyId) {
-    var query = repositoryService.createProcessDefinitionQuery().processDefinitionId(legacyId);
-    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "ProcessDefinition", legacyId));
+  public ProcessDefinition getProcessDefinition(String c7Id) {
+    var query = repositoryService.createProcessDefinitionQuery().processDefinitionId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "ProcessDefinition", c7Id));
   }
 
   /**
    * Gets a single decision requirements definition by ID.
    */
-  public DecisionRequirementsDefinition getDecisionRequirementsDefinition(String legacyId) {
+  public DecisionRequirementsDefinition getDecisionRequirementsDefinition(String c7Id) {
     var query = repositoryService.createDecisionRequirementsDefinitionQuery()
-        .decisionRequirementsDefinitionId(legacyId);
+        .decisionRequirementsDefinitionId(c7Id);
     return callApi(query::singleResult,
-        format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "DecisionRequirementsDefinition", legacyId));
+        format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "DecisionRequirementsDefinition", c7Id));
   }
 
   /**
    * Gets a single decision definition by ID.
    */
-  public DecisionDefinition getDecisionDefinition(String legacyId) {
-    var query = repositoryService.createDecisionDefinitionQuery().decisionDefinitionId(legacyId);
-    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "DecisionDefinition", legacyId));
+  public DecisionDefinition getDecisionDefinition(String c7Id) {
+    var query = repositoryService.createDecisionDefinitionQuery().decisionDefinitionId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "DecisionDefinition", c7Id));
   }
 
   /**
    * Gets a single historic decision instance by ID.
    */
-  public HistoricDecisionInstance getHistoricDecisionInstance(String legacyId) {
-    var query = historyService.createHistoricDecisionInstanceQuery().decisionInstanceId(legacyId);
-    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricDecisionInstance", legacyId));
+  public HistoricDecisionInstance getHistoricDecisionInstance(String c7Id) {
+    var query = historyService.createHistoricDecisionInstanceQuery().decisionInstanceId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricDecisionInstance", c7Id));
   }
 
   /**
@@ -125,41 +125,41 @@ public class C7Client {
   /**
    * Gets a single historic process instance by ID.
    */
-  public HistoricProcessInstance getHistoricProcessInstance(String legacyId) {
-    var query = historyService.createHistoricProcessInstanceQuery().processInstanceId(legacyId);
-    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricProcessInstance", legacyId));
+  public HistoricProcessInstance getHistoricProcessInstance(String c7Id) {
+    var query = historyService.createHistoricProcessInstanceQuery().processInstanceId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricProcessInstance", c7Id));
   }
 
   /**
    * Gets a single historic activity instance by ID.
    */
-  public HistoricActivityInstance getHistoricActivityInstance(String legacyId) {
-    var query = historyService.createHistoricActivityInstanceQuery().activityInstanceId(legacyId);
-    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricActivityInstance", legacyId));
+  public HistoricActivityInstance getHistoricActivityInstance(String c7Id) {
+    var query = historyService.createHistoricActivityInstanceQuery().activityInstanceId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricActivityInstance", c7Id));
   }
 
   /**
    * Gets a single historic task instance by ID.
    */
-  public HistoricTaskInstance getHistoricTaskInstance(String legacyId) {
-    var query = historyService.createHistoricTaskInstanceQuery().taskId(legacyId);
-    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricTaskInstance", legacyId));
+  public HistoricTaskInstance getHistoricTaskInstance(String c7Id) {
+    var query = historyService.createHistoricTaskInstanceQuery().taskId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricTaskInstance", c7Id));
   }
 
   /**
    * Gets a single historic variable instance by ID.
    */
-  public HistoricVariableInstance getHistoricVariableInstance(String legacyId) {
-    var query = historyService.createHistoricVariableInstanceQuery().variableId(legacyId);
-    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricVariableInstance", legacyId));
+  public HistoricVariableInstance getHistoricVariableInstance(String c7Id) {
+    var query = historyService.createHistoricVariableInstanceQuery().variableId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricVariableInstance", c7Id));
   }
 
   /**
    * Gets a single historic incident by ID.
    */
-  public HistoricIncident getHistoricIncident(String legacyId) {
-    var query = historyService.createHistoricIncidentQuery().incidentId(legacyId);
-    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricIncident", legacyId));
+  public HistoricIncident getHistoricIncident(String c7Id) {
+    var query = historyService.createHistoricIncidentQuery().incidentId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricIncident", c7Id));
   }
 
   /**
@@ -173,10 +173,10 @@ public class C7Client {
   /**
    * Gets all variables for a process instance with pagination and variable transformation.
    */
-  public List<VariableInstance> getAllVariables(String legacyProcessInstanceId) {
+  public List<VariableInstance> getAllVariables(String c7ProcessInstanceId) {
     VariableInstanceQuery variableQuery = runtimeService.createVariableInstanceQuery()
         .disableCustomObjectDeserialization()
-        .processInstanceIdIn(legacyProcessInstanceId);
+        .processInstanceIdIn(c7ProcessInstanceId);
 
     return new Pagination<VariableInstance>()
         .pageSize(properties.getPageSize())

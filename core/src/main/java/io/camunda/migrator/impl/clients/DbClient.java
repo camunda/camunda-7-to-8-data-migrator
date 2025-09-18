@@ -13,7 +13,7 @@ import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_DELETE;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_ALL;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_ALL_SKIPPED;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_KEY_BY_ID;
-import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_LATEST_START_DATE;
+import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_LATEST_CREATE_TIME;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_SKIPPED_COUNT;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_INSERT_RECORD;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_UPDATE_KEY;
@@ -49,76 +49,76 @@ public class DbClient {
   /**
    * Checks if an entity exists in the mapping table by type and id.
    */
-  public boolean checkExistsByIdAndType(String legacyId, TYPE type) {
-    return callApi(() -> idKeyMapper.checkExistsByIdAndType(type, legacyId), FAILED_TO_CHECK_EXISTENCE + legacyId);
+  public boolean checkExistsByC7IdAndType(String c7Id, TYPE type) {
+    return callApi(() -> idKeyMapper.checkExistsByC7IdAndType(type, c7Id), FAILED_TO_CHECK_EXISTENCE + c7Id);
   }
 
   /**
    * Checks if an entity exists in the mapping table by type and id.
    */
-  public boolean checkHasKeyByIdAndType(String legacyId, TYPE type) {
-    return callApi(() -> idKeyMapper.checkHasKeyByIdAndType(type, legacyId), FAILED_TO_CHECK_KEY + legacyId);
+  public boolean checkHasC8KeyByC7IdAndType(String c7Id, TYPE type) {
+    return callApi(() -> idKeyMapper.checkHasC8KeyByC7IdAndType(type, c7Id), FAILED_TO_CHECK_KEY + c7Id);
   }
 
   /**
-   * Finds the latest start date by type.
+   * Finds the latest create time by type.
    */
-  public Date findLatestStartDateByType(TYPE type) {
-    Date latestStartDate = callApi(() -> idKeyMapper.findLatestStartDateByType(type),
-        FAILED_TO_FIND_LATEST_START_DATE + type);
-    DbClientLogs.foundLatestStartDate(latestStartDate, type);
-    return latestStartDate;
+  public Date findLatestCreateTimeByType(TYPE type) {
+    Date latestCreateTime = callApi(() -> idKeyMapper.findLatestCreateTimeByType(type),
+        FAILED_TO_FIND_LATEST_CREATE_TIME + type);
+    DbClientLogs.foundLatestCreateTime(latestCreateTime, type);
+    return latestCreateTime;
   }
 
   /**
-   * Finds the key by legacy ID and type.
+   * Finds the key by C7 ID and type.
    */
-  public Long findKeyByIdAndType(String legacyId, TYPE type) {
-    return callApi(() -> idKeyMapper.findKeysByIdAndType(legacyId, type), FAILED_TO_FIND_KEY_BY_ID + legacyId);
+  public Long findC8KeyByC7IdAndType(String c7Id, TYPE type) {
+    return callApi(() -> idKeyMapper.findC8KeyByC7IdAndType(c7Id, type), FAILED_TO_FIND_KEY_BY_ID + c7Id);
   }
 
   /**
-   * Finds all legacy IDs.
+   * Finds all C7 IDs.
    */
-  public List<String> findAllIds() {
-    return callApi(() -> idKeyMapper.findAllIds(), FAILED_TO_FIND_ALL);
+  public List<String> findAllC7Ids() {
+    return callApi(() -> idKeyMapper.findAllC7Ids(), FAILED_TO_FIND_ALL);
   }
 
   /**
    * Updates a record by setting the key for an existing ID and type.
    */
-  public void updateKeyByIdAndType(String legacyId, Long entityKey, TYPE type) {
-    DbClientLogs.updatingKeyForLegacyId(legacyId, entityKey);
-    var model = createIdKeyDbModel(legacyId, null, entityKey, type);
-    callApi(() -> idKeyMapper.updateKeyByIdAndType(model), FAILED_TO_UPDATE_KEY + entityKey);
+  public void updateC8KeyByC7IdAndType(String c7Id, Long c8Key, TYPE type) {
+    DbClientLogs.updatingC8KeyForC7Id(c7Id, c8Key);
+    var model = createIdKeyDbModel(c7Id, null, c8Key, type);
+    callApi(() -> idKeyMapper.updateC8KeyByC7IdAndType(model), FAILED_TO_UPDATE_KEY + c8Key);
   }
 
   /**
    * Inserts a new process instance record into the mapping table.
    */
-  public void insert(String legacyId, Date startDate, Long entityKey, TYPE type) {
-    DbClientLogs.insertingRecord(legacyId, startDate, entityKey, null);
-    var model = createIdKeyDbModel(legacyId, startDate, entityKey, type);
-    callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + legacyId);
+  public void insert(String c7Id, Date createTime, Long c8Key, TYPE type) {
+    DbClientLogs.insertingRecord(c7Id, createTime, c8Key, null);
+    var model = createIdKeyDbModel(c7Id, createTime, c8Key, type);
+    callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + c7Id);
   }
 
   /**
    * Inserts a new record into the mapping table.
    */
-  public void insert(String legacyId, Long key, TYPE type) {
-    DbClientLogs.insertingRecord(legacyId, null, key, null);
-    var model = createIdKeyDbModel(legacyId, null, key, type);
-    callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + legacyId);
+  public void insert(String c7Id, Long c8Key, TYPE type) {
+    DbClientLogs.insertingRecord(c7Id, null, c8Key, null);
+    var model = createIdKeyDbModel(c7Id, null, c8Key, type);
+    callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + c7Id);
   }
 
   /**
    * Inserts a new process instance record into the mapping table.
    */
-  public void insert(String legacyId, Date startDate, TYPE type, String skipReason) {
+  public void insert(String c7Id, Date createTime, TYPE type, String skipReason) {
     String finalSkipReason = properties.getSaveSkipReason() ? skipReason : null;
-    DbClientLogs.insertingRecord(legacyId, startDate, null, finalSkipReason);
-    var model = createIdKeyDbModel(legacyId, startDate, null, type, finalSkipReason);
-    callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + legacyId);
+    DbClientLogs.insertingRecord(c7Id, createTime, null, finalSkipReason);
+    var model = createIdKeyDbModel(c7Id, createTime, null, type, finalSkipReason);
+    callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + c7Id);
   }
 
   /**
@@ -129,7 +129,7 @@ public class DbClient {
         .maxCount(() -> idKeyMapper.countSkippedByType(type))
         .page(offset -> idKeyMapper.findSkippedByType(type, offset, properties.getPageSize())
             .stream()
-            .map(IdKeyDbModel::getId)
+            .map(IdKeyDbModel::getC7Id)
             .collect(Collectors.toList()))
         .callback(PrintUtils::print);
   }
@@ -171,24 +171,24 @@ public class DbClient {
    * Deletes all mappings from the database.
    */
   public void deleteAllMappings() {
-    findAllIds().forEach(this::delete);
+    findAllC7Ids().forEach(this::deleteByC7Id);
   }
 
   /**
-   * Deletes a mapping by legacy ID.
+   * Deletes a mapping by C7 ID.
    */
-  protected void delete(String legacyId) {
-    callApi(() -> idKeyMapper.delete(legacyId), FAILED_TO_DELETE + legacyId);
+  protected void deleteByC7Id(String c7Id) {
+    callApi(() -> idKeyMapper.deleteByC7Id(c7Id), FAILED_TO_DELETE + c7Id);
   }
 
   /**
    * Creates a new IdKeyDbModel instance with the provided parameters including skip reason.
    */
-  protected IdKeyDbModel createIdKeyDbModel(String id, Date startDate, Long key, TYPE type, String skipReason) {
+  protected IdKeyDbModel createIdKeyDbModel(String c7Id, Date createTime, Long c8Key, TYPE type, String skipReason) {
     var keyIdDbModel = new IdKeyDbModel();
-    keyIdDbModel.setId(id);
-    keyIdDbModel.setStartDate(startDate);
-    keyIdDbModel.setInstanceKey(key);
+    keyIdDbModel.setC7Id(c7Id);
+    keyIdDbModel.setCreateTime(createTime);
+    keyIdDbModel.setC8Key(c8Key);
     keyIdDbModel.setType(type);
     keyIdDbModel.setSkipReason(skipReason);
     return keyIdDbModel;
@@ -197,8 +197,8 @@ public class DbClient {
   /**
    * Creates a new IdKeyDbModel instance with the provided parameters.
    */
-  protected IdKeyDbModel createIdKeyDbModel(String id, Date startDate, Long key, TYPE type) {
-    return createIdKeyDbModel(id, startDate, key, type, null);
+  protected IdKeyDbModel createIdKeyDbModel(String c7Id, Date createTime, Long c8Key, TYPE type) {
+    return createIdKeyDbModel(c7Id, createTime, c8Key, type, null);
   }
 
 }

@@ -19,9 +19,6 @@ public class VariableServiceLogs {
 
   static final Logger LOGGER = LoggerFactory.getLogger(VariableService.class);
 
-  // Constants
-  public static final String LEGACY_ID_VARIABLE = "legacyId";
-
   // Date format constants
   public static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 

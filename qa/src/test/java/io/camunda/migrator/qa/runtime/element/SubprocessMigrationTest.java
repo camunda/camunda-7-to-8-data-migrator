@@ -75,7 +75,7 @@ public class SubprocessMigrationTest extends RuntimeMigrationAbstractTest {
     assertThatProcessInstanceCountIsEqualTo(0);
 
     // verify the correct error message was logged
-    logs.assertContains(String.format("Skipping process instance with legacyId [%s]: " + CALL_ACTIVITY_LEGACY_ID_ERROR,
+    logs.assertContains(String.format("Skipping process instance with C7 ID [%s]: " + CALL_ACTIVITY_LEGACY_ID_ERROR,
                 parentInstance.getId(), "callActivityId"));
   }
 

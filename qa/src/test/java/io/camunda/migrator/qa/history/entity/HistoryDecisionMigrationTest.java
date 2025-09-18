@@ -132,11 +132,11 @@ public class HistoryDecisionMigrationTest extends HistoryMigrationAbstractTest {
         migratedProcessInstances.getFirst().processInstanceKey(), BUSINESS_RULE_TASK);
     assertThat(migratedFlowNodeInstances).singleElement();
     List<DecisionInstanceEntity> migratedInstances = searchHistoricDecisionInstances("simpleDecisionId");
-    HistoricDecisionInstance legacyInstance = c7Client.getHistoricDecisionInstanceByDefinitionKey("simpleDecisionId");
+    HistoricDecisionInstance c7Instance = c7Client.getHistoricDecisionInstanceByDefinitionKey("simpleDecisionId");
 
     assertThat(migratedInstances).singleElement().satisfies(instance -> {
       assertThat(instance.decisionInstanceId()).isEqualTo(
-          instance.decisionInstanceKey() + "-" + legacyInstance.getId());
+          instance.decisionInstanceKey() + "-" + c7Instance.getId());
       assertThat(instance.decisionInstanceKey()).isNotNull();
       assertThat(instance.state()).isEqualTo(DecisionInstanceEntity.DecisionInstanceState.UNSPECIFIED);
       assertThat(instance.evaluationDate()).isEqualTo(

@@ -25,7 +25,7 @@ import org.camunda.bpm.engine.variable.VariableMap;
 import org.camunda.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.Test;
 
-public class HistoryMigrationOrderedByStartDateTest extends HistoryMigrationAbstractTest {
+public class HistoryMigrationOrderedByCreateTimeTest extends HistoryMigrationAbstractTest {
 
   @Test
   public void shouldMigrateProcessDefinitionsDeployedBetweenRuns() {
@@ -129,7 +129,7 @@ public class HistoryMigrationOrderedByStartDateTest extends HistoryMigrationAbst
   }
 
   @Test
-  public void shouldMigrateProcessInstancesWithSameStartDate() {
+  public void shouldMigrateProcessInstancesWithSameCreateTime() {
     // given
     deployer.deployCamunda7Process("simpleStartEndProcess.bpmn");
     runtimeService.startProcessInstanceByKey("simpleStartEndProcessId");
@@ -162,7 +162,7 @@ public class HistoryMigrationOrderedByStartDateTest extends HistoryMigrationAbst
     // then
     assertThat(instanceSupplier.get()).singleElement()
         .extracting(ProcessInstanceEntity::processInstanceKey)
-        .satisfies(instanceKey -> assertThat(searchHistoricUserTasks(instanceKey)).singleElement());
+        .satisfies(c8Key -> assertThat(searchHistoricUserTasks(c8Key)).singleElement());
 
     // given
     runtimeService.startProcessInstanceByKey("userTaskProcessId");
@@ -174,11 +174,11 @@ public class HistoryMigrationOrderedByStartDateTest extends HistoryMigrationAbst
     // then
     assertThat(instanceSupplier.get()).hasSize(2)
         .extracting(ProcessInstanceEntity::processInstanceKey)
-        .allSatisfy(instanceKey -> assertThat(searchHistoricUserTasks(instanceKey)).singleElement());
+        .allSatisfy(c8Key -> assertThat(searchHistoricUserTasks(c8Key)).singleElement());
   }
 
   @Test
-  public void shouldMigrateUserTasksWithSameStartDate() {
+  public void shouldMigrateUserTasksWithSameCreateTime() {
     // given
     deployer.deployCamunda7Process("userTaskProcess.bpmn");
     runtimeService.startProcessInstanceByKey("userTaskProcessId");
@@ -197,7 +197,7 @@ public class HistoryMigrationOrderedByStartDateTest extends HistoryMigrationAbst
     // then
     assertThat(searchHistoricProcessInstances("userTaskProcessId")).hasSize(3)
         .extracting(ProcessInstanceEntity::processInstanceKey)
-        .allSatisfy(instanceKey -> assertThat(searchHistoricUserTasks(instanceKey)).singleElement());
+        .allSatisfy(c8Key -> assertThat(searchHistoricUserTasks(c8Key)).singleElement());
   }
 
   @Test
@@ -235,7 +235,7 @@ public class HistoryMigrationOrderedByStartDateTest extends HistoryMigrationAbst
   }
 
   @Test
-  public void shouldMigrateFlowNodesWithSameStartDate() {
+  public void shouldMigrateFlowNodesWithSameCreateTime() {
     // given
     deployer.deployCamunda7Process("multipleSignalProcess.bpmn");
     runtimeService.startProcessInstanceByKey("multipleSignalProcessId");

@@ -15,15 +15,15 @@ import org.camunda.bpm.engine.repository.DecisionRequirementsDefinition;
 
 public class DecisionRequirementsDefinitionConverter {
 
-  public DecisionRequirementsDbModel apply(DecisionRequirementsDefinition legacyDecisionRequirements) {
+  public DecisionRequirementsDbModel apply(DecisionRequirementsDefinition c7DecisionRequirements) {
     return new DecisionRequirementsDbModel.Builder()
         .decisionRequirementsKey(getNextKey())
-        .decisionRequirementsId(legacyDecisionRequirements.getKey())
-        .name(legacyDecisionRequirements.getName())
-        .resourceName(legacyDecisionRequirements.getResourceName())
-        .version(legacyDecisionRequirements.getVersion())
+        .decisionRequirementsId(c7DecisionRequirements.getKey())
+        .name(c7DecisionRequirements.getName())
+        .resourceName(c7DecisionRequirements.getResourceName())
+        .version(c7DecisionRequirements.getVersion())
         .xml(null) // TODO not stored in C7 DecisionRequirementsDefinition
-        .tenantId(getTenantId(legacyDecisionRequirements.getTenantId()))
+        .tenantId(getTenantId(c7DecisionRequirements.getTenantId()))
         .build();
   }
 }
