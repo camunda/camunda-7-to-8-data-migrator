@@ -77,8 +77,8 @@ public class RuntimeMigrator {
 
   protected void migrate() {
     fetchProcessInstancesToMigrate(legacyProcessInstance -> {
-      String legacyProcessInstanceId = legacyProcessInstance.id();
-      Date startDate = legacyProcessInstance.startDate();
+      String legacyProcessInstanceId = legacyProcessInstance.getId();
+      Date startDate = legacyProcessInstance.getStartDate();
 
       String skipReason = getSkipReason(legacyProcessInstanceId);
       if (skipReason == null && shouldStartProcessInstance(legacyProcessInstanceId)) {

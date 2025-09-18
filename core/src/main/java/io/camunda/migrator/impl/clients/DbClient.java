@@ -129,7 +129,7 @@ public class DbClient {
         .maxCount(() -> idKeyMapper.countSkippedByType(type))
         .page(offset -> idKeyMapper.findSkippedByType(type, offset, properties.getPageSize())
             .stream()
-            .map(IdKeyDbModel::id)
+            .map(IdKeyDbModel::getId)
             .collect(Collectors.toList()))
         .callback(PrintUtils::print);
   }

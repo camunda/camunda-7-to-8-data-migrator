@@ -206,7 +206,7 @@ public class HistoryMigrator {
     HistoryMigratorLogs.migratingProcessDefinitions();
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_PROCESS_DEFINITION, idKeyDbModel -> {
-        ProcessDefinition historicProcessDefinition = c7Client.getProcessDefinition(idKeyDbModel.id());
+        ProcessDefinition historicProcessDefinition = c7Client.getProcessDefinition(idKeyDbModel.getId());
         migrateProcessDefinition(historicProcessDefinition);
       });
     } else {
@@ -230,7 +230,7 @@ public class HistoryMigrator {
     HistoryMigratorLogs.migratingProcessInstances();
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_PROCESS_INSTANCE, idKeyDbModel -> {
-        HistoricProcessInstance historicProcessInstance = c7Client.getHistoricProcessInstance(idKeyDbModel.id());
+        HistoricProcessInstance historicProcessInstance = c7Client.getHistoricProcessInstance(idKeyDbModel.getId());
         migrateProcessInstance(historicProcessInstance);
       });
     } else {
@@ -276,7 +276,7 @@ public class HistoryMigrator {
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_DECISION_REQUIREMENT, idKeyDbModel -> {
         DecisionRequirementsDefinition legacyDecisionRequirement = c7Client.getDecisionRequirementsDefinition(
-            idKeyDbModel.id());
+            idKeyDbModel.getId());
         migrateDecisionRequirementsDefinition(legacyDecisionRequirement);
       });
     } else {
@@ -300,7 +300,7 @@ public class HistoryMigrator {
 
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_DECISION_DEFINITION, idKeyDbModel -> {
-        DecisionDefinition legacyDecisionDefinition = c7Client.getDecisionDefinition(idKeyDbModel.id());
+        DecisionDefinition legacyDecisionDefinition = c7Client.getDecisionDefinition(idKeyDbModel.getId());
         migrateDecisionDefinition(legacyDecisionDefinition);
       });
     } else {
@@ -339,7 +339,7 @@ public class HistoryMigrator {
     HistoryMigratorLogs.migratingDecisionInstances();
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_DECISION_INSTANCE, idKeyDbModel -> {
-        HistoricDecisionInstance historicDecisionInstance = c7Client.getHistoricDecisionInstance(idKeyDbModel.id());
+        HistoricDecisionInstance historicDecisionInstance = c7Client.getHistoricDecisionInstance(idKeyDbModel.getId());
         migrateDecisionInstance(historicDecisionInstance);
       });
     } else {
@@ -416,7 +416,7 @@ public class HistoryMigrator {
     HistoryMigratorLogs.migratingHistoricIncidents();
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_INCIDENT, idKeyDbModel -> {
-        HistoricIncident historicIncident = c7Client.getHistoricIncident(idKeyDbModel.id());
+        HistoricIncident historicIncident = c7Client.getHistoricIncident(idKeyDbModel.getId());
         migrateIncident(historicIncident);
       });
     } else {
@@ -455,7 +455,7 @@ public class HistoryMigrator {
 
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_VARIABLE, idKeyDbModel -> {
-        HistoricVariableInstance historicVariableInstance = c7Client.getHistoricVariableInstance(idKeyDbModel.id());
+        HistoricVariableInstance historicVariableInstance = c7Client.getHistoricVariableInstance(idKeyDbModel.getId());
         migrateVariable(historicVariableInstance);
       });
     } else {
@@ -508,7 +508,7 @@ public class HistoryMigrator {
 
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_USER_TASK, idKeyDbModel -> {
-        HistoricTaskInstance historicTaskInstance = c7Client.getHistoricTaskInstance(idKeyDbModel.id());
+        HistoricTaskInstance historicTaskInstance = c7Client.getHistoricTaskInstance(idKeyDbModel.getId());
         migrateUserTask(historicTaskInstance);
       });
     } else {
@@ -545,7 +545,7 @@ public class HistoryMigrator {
 
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_FLOW_NODE, idKeyDbModel -> {
-        HistoricActivityInstance historicActivityInstance = c7Client.getHistoricActivityInstance(idKeyDbModel.id());
+        HistoricActivityInstance historicActivityInstance = c7Client.getHistoricActivityInstance(idKeyDbModel.getId());
         migrateFlowNode(historicActivityInstance);
       });
     } else {

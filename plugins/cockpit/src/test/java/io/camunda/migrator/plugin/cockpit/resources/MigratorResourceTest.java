@@ -107,10 +107,10 @@ public class MigratorResourceTest extends AbstractCockpitPluginTest {
 
     // Sort both lists by ID for comparison
     List<IdKeyDbModel> sortedExpected = expected.stream()
-        .sorted(Comparator.comparing(IdKeyDbModel::id))
+        .sorted(Comparator.comparing(IdKeyDbModel::getId))
         .toList();
     List<IdKeyDbModel> sortedActual = actual.stream()
-        .sorted(Comparator.comparing(IdKeyDbModel::id))
+        .sorted(Comparator.comparing(IdKeyDbModel::getId))
         .toList();
 
     // Compare each element
@@ -118,10 +118,10 @@ public class MigratorResourceTest extends AbstractCockpitPluginTest {
       IdKeyDbModel expectedModel = sortedExpected.get(i);
       IdKeyDbModel actualModel = sortedActual.get(i);
 
-      assertThat(actualModel.id()).isEqualTo(expectedModel.id());
-      assertThat(actualModel.instanceKey()).isEqualTo(expectedModel.instanceKey());
-      assertThat(actualModel.type()).isEqualTo(expectedModel.type());
-      assertThat(actualModel.skipReason()).isEqualTo(expectedModel.skipReason());
+      assertThat(actualModel.getId()).isEqualTo(expectedModel.getId());
+      assertThat(actualModel.getInstanceKey()).isEqualTo(expectedModel.getInstanceKey());
+      assertThat(actualModel.getType()).isEqualTo(expectedModel.getType());
+      assertThat(actualModel.getSkipReason()).isEqualTo(expectedModel.getSkipReason());
     }
   }
 
@@ -145,14 +145,14 @@ public class MigratorResourceTest extends AbstractCockpitPluginTest {
         "jdbc:h2:mem:default-process-engine;DB_CLOSE_DELAY=-1", "sa", "")) {
       String insertSql = "INSERT INTO MIGRATION_MAPPING (ID, INSTANCE_KEY, START_DATE, TYPE, SKIP_REASON) VALUES (?, ?, ?, ?, ?)";
       try (var stmt = conn.prepareStatement(insertSql)) {
-        stmt.setString(1, idKeyDbModel.id());
+        stmt.setString(1, idKeyDbModel.getId());
         stmt.setTimestamp(3, null);
-        stmt.setString(4, String.valueOf(idKeyDbModel.type()));
-        stmt.setString(5, idKeyDbModel.skipReason());
-        if (idKeyDbModel.instanceKey() == null) {
+        stmt.setString(4, String.valueOf(idKeyDbModel.getType()));
+        stmt.setString(5, idKeyDbModel.getSkipReason());
+        if (idKeyDbModel.getInstanceKey() == null) {
           stmt.setNull(2, java.sql.Types.BIGINT);
         } else {
-          stmt.setLong(2, idKeyDbModel.instanceKey());
+          stmt.setLong(2, idKeyDbModel.getInstanceKey());
         }
         stmt.executeUpdate();
       }
