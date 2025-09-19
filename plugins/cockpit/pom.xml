@@ -26,7 +26,7 @@
     <slf4j.version>1.7.36</slf4j.version>
     <node.version>v18.16.0</node.version>
     <npmVersion>10.7.0</npmVersion>
-    <assertj.version>3.27.4</assertj.version>
+    <assertj.version>3.27.5</assertj.version>
     <liquibase.version>4.33.0</liquibase.version>
 
     <frontend.working.directory>frontend/</frontend.working.directory>
