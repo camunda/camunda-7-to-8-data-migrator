@@ -115,7 +115,7 @@ public class DbClient {
    * Inserts a new process instance record into the mapping table.
    */
   public void insert(String legacyId, Date startDate, TYPE type, String skipReason) {
-    String finalSkipReason = Boolean.TRUE.equals(properties.getSaveSkipReason()) ? skipReason : null;
+    String finalSkipReason = properties.getSaveSkipReason() ? skipReason : null;
     DbClientLogs.insertingRecord(legacyId, startDate, null, finalSkipReason);
     var model = createIdKeyDbModel(legacyId, startDate, null, type, finalSkipReason);
     callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + legacyId);

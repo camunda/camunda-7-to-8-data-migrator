@@ -41,7 +41,7 @@ public class MigratorResourceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  public void testMigratorResource() {
+  public void testMigratedRecords() {
     // given - insert multiple migrated records
     IdKeyDbModel expectedMigrated1 = createExpectedMigratedModel("migratedLegacyId1");
     IdKeyDbModel expectedMigrated2 = createExpectedMigratedModel("migratedLegacyId2");
@@ -49,51 +49,83 @@ public class MigratorResourceTest extends AbstractCockpitPluginTest {
     insertTestData(expectedMigrated2);
     String processInstanceType = String.valueOf(IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
 
-    // when - query initial state
-    Long initialMigratedCount = resource.getMigratedCount(processInstanceType);
-    List<IdKeyDbModel> initialMigratedInstances = resource.getMigrated(processInstanceType, 0, 10);
-    Long initialSkippedCount = resource.getSkippedCount(processInstanceType);
-    List<IdKeyDbModel> initialSkippedInstances = resource.getSkipped(processInstanceType, 0, 10);
+    // when - query migrated records
+    Long migratedCount = resource.getMigratedCount(processInstanceType);
+    List<IdKeyDbModel> migratedInstances = resource.getMigrated(processInstanceType, 0, 10);
 
-    // then - verify initial state
-    assertThat(initialMigratedCount).isEqualTo(2L);
-    assertThat(initialSkippedCount).isEqualTo(0L);
-    assertThat(initialMigratedInstances.size()).isEqualTo(2);
-    assertThat(initialSkippedInstances.size()).isEqualTo(0);
-    assertIdKeyDbModelListsEqual(List.of(expectedMigrated1, expectedMigrated2), initialMigratedInstances);
+    // then - verify migrated records
+    assertThat(migratedCount).isEqualTo(2L);
+    assertThat(migratedInstances.size()).isEqualTo(2);
+    assertIdKeyDbModelListsEqual(List.of(expectedMigrated1, expectedMigrated2), migratedInstances);
+  }
 
+  @Test
+  public void testSkippedRecords() {
     // given - insert multiple skipped records
-    IdKeyDbModel expectedSkipped1 = createExpectedSkippedModel("SkippedLegacyId1", "Test skip reason 1");
-    IdKeyDbModel expectedSkipped2 = createExpectedSkippedModel("SkippedLegacyId2", "Test skip reason 2");
+    IdKeyDbModel expectedSkipped1 = createExpectedSkippedModel("skippedLegacyId1", "Test skip reason 1");
+    IdKeyDbModel expectedSkipped2 = createExpectedSkippedModel("skippedLegacyId2", "Test skip reason 2");
     insertTestData(expectedSkipped1);
     insertTestData(expectedSkipped2);
+    String processInstanceType = String.valueOf(IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
 
-    // when - query final state
-    Long finalMigratedCount = resource.getMigratedCount(processInstanceType);
-    List<IdKeyDbModel> finalMigratedInstances = resource.getMigrated(processInstanceType, 0, 10);
-    Long finalSkippedCount = resource.getSkippedCount(processInstanceType);
-    List<IdKeyDbModel> finalSkippedInstances = resource.getSkipped(processInstanceType, 0, 10);
+    // when - query skipped records
+    Long skippedCount = resource.getSkippedCount(processInstanceType);
+    List<IdKeyDbModel> skippedInstances = resource.getSkipped(processInstanceType, 0, 10);
 
-    assertThat(finalMigratedCount).isEqualTo(2L); // should remain unchanged
-    assertThat(finalSkippedCount).isEqualTo(2L);
-    assertThat(finalMigratedInstances.size()).isEqualTo(2);
-    assertThat(finalSkippedInstances.size()).isEqualTo(2);
+    // then - verify skipped records
+    assertThat(skippedCount).isEqualTo(2L);
+    assertThat(skippedInstances.size()).isEqualTo(2);
+    assertIdKeyDbModelListsEqual(List.of(expectedSkipped1, expectedSkipped2), skippedInstances);
+  }
 
-    // then verify content
-    assertIdKeyDbModelListsEqual(List.of(expectedMigrated1, expectedMigrated2), finalMigratedInstances);
-    assertIdKeyDbModelListsEqual(List.of(expectedSkipped1, expectedSkipped2), finalSkippedInstances);
+  @Test
+  public void testPagination() {
+    // given - insert test data for pagination
+    IdKeyDbModel migrated1 = createExpectedMigratedModel("migratedForPagination1");
+    IdKeyDbModel migrated2 = createExpectedMigratedModel("migratedForPagination2");
+    IdKeyDbModel skipped1 = createExpectedSkippedModel("skippedForPagination1", "Skip reason 1");
+    IdKeyDbModel skipped2 = createExpectedSkippedModel("skippedForPagination2", "Skip reason 2");
 
-    // test pagination - offset 1, limit 1
+    insertTestData(migrated1);
+    insertTestData(migrated2);
+    insertTestData(skipped1);
+    insertTestData(skipped2);
+
+    String processInstanceType = String.valueOf(IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
+
+    // when - test pagination with offset 1, limit 1
     List<IdKeyDbModel> migratedSecondPage = resource.getMigrated(processInstanceType, 1, 1);
     List<IdKeyDbModel> skippedSecondPage = resource.getSkipped(processInstanceType, 1, 1);
+
+    // then - verify pagination results
     assertThat(migratedSecondPage.size()).isEqualTo(1);
     assertThat(skippedSecondPage.size()).isEqualTo(1);
 
-    // test pagination - offset 10, limit 1 (beyond available data)
+    // when - test pagination beyond available data
     List<IdKeyDbModel> migratedBeyondData = resource.getMigrated(processInstanceType, 10, 1);
     List<IdKeyDbModel> skippedBeyondData = resource.getSkipped(processInstanceType, 10, 1);
+
+    // then - verify empty results for out-of-bounds pagination
     assertThat(migratedBeyondData.size()).isEqualTo(0);
     assertThat(skippedBeyondData.size()).isEqualTo(0);
+  }
+
+  @Test
+  public void testEmptyState() {
+    // given - no test data inserted
+    String processInstanceType = String.valueOf(IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
+
+    // when - query empty state
+    Long migratedCount = resource.getMigratedCount(processInstanceType);
+    List<IdKeyDbModel> migratedInstances = resource.getMigrated(processInstanceType, 0, 10);
+    Long skippedCount = resource.getSkippedCount(processInstanceType);
+    List<IdKeyDbModel> skippedInstances = resource.getSkipped(processInstanceType, 0, 10);
+
+    // then - verify empty state
+    assertThat(migratedCount).isEqualTo(0L);
+    assertThat(skippedCount).isEqualTo(0L);
+    assertThat(migratedInstances.size()).isEqualTo(0);
+    assertThat(skippedInstances.size()).isEqualTo(0);
   }
 
   private void assertIdKeyDbModelListsEqual(List<IdKeyDbModel> expected, List<IdKeyDbModel> actual) {

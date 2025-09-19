@@ -30,7 +30,7 @@ public class MigratorProperties {
   protected String jobType = DEFAULT_JOB_TYPE;
   protected String validationJobType;
   protected Set<String> tenantIds;
-  protected Boolean saveSkipReason = false;
+  protected boolean saveSkipReason = false;
 
   protected Boolean autoDdl;
   protected String tablePrefix;
@@ -112,11 +112,11 @@ public class MigratorProperties {
     this.tenantIds = tenantIds;
   }
 
-  public Boolean getSaveSkipReason() {
+  public boolean getSaveSkipReason() {
     return saveSkipReason;
   }
 
-  public void setSaveSkipReason(Boolean saveSkipReason) {
+  public void setSaveSkipReason(boolean saveSkipReason) {
     this.saveSkipReason = saveSkipReason;
   }
 
