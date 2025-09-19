@@ -32,11 +32,9 @@ public class MigratorQueryService<T> extends QueryServiceImpl implements Command
 
   @Override
   public T execute(CommandContext commandContext) {
-    ProcessEngineConfigurationImpl engineConfig = getProcessEngineConfiguration(commandContext);
-    configureAuthCheck(new ListQueryParameterObject(), engineConfig, commandContext);
-
     Properties props = new Properties();
     ClassLoader classLoader = getClass().getClassLoader();
+    ProcessEngineConfigurationImpl engineConfig = getProcessEngineConfiguration(commandContext);
     try (InputStream is = classLoader.getResourceAsStream(String.format("db/properties/%s.properties", getDatabaseType(engineConfig)))) {
       if (is != null) {
         props.load(is);
