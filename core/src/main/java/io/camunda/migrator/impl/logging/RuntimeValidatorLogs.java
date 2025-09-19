@@ -33,7 +33,7 @@ public class RuntimeValidatorLogs {
   public static final String NO_C8_DEPLOYMENT_ERROR = "No C8 deployment found for process ID [%s] required for instance with legacyID [%s].";
   public static final String FAILED_TO_PARSE_BPMN_MODEL = "Failed to parse BPMN model from XML";
   public static final String CALL_ACTIVITY_LEGACY_ID_ERROR = "Found call activity with propagateAllParentVariables=false for flow node with id [%s] in C8 process. This is not supported by the migrator unless there is an explicit mapping for the legacyId variable, as it would lead to orphaned sub-process instances.";
-  public static final String TENANT_ID_ERROR = "Process instance with an assigned tenant ID is currently not supported.";
+  public static final String TENANT_ID_ERROR = "Found a process instance with tenant id [%s] that is not configured for migration.";
 
   public static void validateLegacyProcessInstance(String legacyProcessInstanceId) {
     LOGGER.debug(VALIDATE_LEGACY_PROCESS_INSTANCE, legacyProcessInstanceId);
