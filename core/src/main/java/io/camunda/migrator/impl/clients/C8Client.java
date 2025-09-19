@@ -7,6 +7,7 @@
  */
 package io.camunda.migrator.impl.clients;
 
+import static io.camunda.migrator.constants.MigratorConstants.C8_DEFAULT_TENANT;
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_DEPLOY_C8_RESOURCES;
 import static io.camunda.migrator.impl.util.ConverterUtil.getTenantId;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
@@ -88,6 +89,7 @@ public class C8Client {
    */
   public List<ActivatedJob> activateJobs(String jobType) {
     Set<String> tenantIds = properties.getTenantIds();
+    tenantIds.add(C8_DEFAULT_TENANT);
 
     var activateJobs = camundaClient.newActivateJobsCommand()
         .jobType(jobType)
