@@ -40,7 +40,7 @@ class ProcessDefinitionNotFoundTest extends RuntimeMigrationAbstractTest {
     assertThatProcessInstanceCountIsEqualTo(0);
     List<IdKeyDbModel> skippedProcessInstanceIds = dbClient.findSkippedProcessInstances();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
-    assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(c7Instance.getId());
+    assertThat(skippedProcessInstanceIds.getFirst().getId()).isEqualTo(c7Instance.getId());
   }
 
   @Test

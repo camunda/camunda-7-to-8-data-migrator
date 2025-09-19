@@ -140,8 +140,8 @@ jobs:
           ARTIFACT_DIR=$(mktemp -d)
           cp assembly/target/camunda-7-to-8-data-migrator-${RELEASE_VERSION}.tar.gz "${ARTIFACT_DIR}/"
           cp assembly/target/camunda-7-to-8-data-migrator-${RELEASE_VERSION}.zip "${ARTIFACT_DIR}/"
+          cp plugins/cockpit/target/camunda-7-to-8-data-migrator-cockpit-plugin-${RELEASE_VERSION}.jar "${ARTIFACT_DIR}/" 
           echo "dir=${ARTIFACT_DIR}" >> $GITHUB_OUTPUT
-
       - name: Upload Release Artifacts
         if: ${{ !inputs.ONLY_PUSH_TO_MAVEN_CENTRAL }}
         uses: actions/upload-artifact@v4
@@ -226,6 +226,7 @@ jobs:
           mkdir -p docker-context
           cd docker-context
           tar -xzf ../artifacts/camunda-7-to-8-data-migrator-${{ env.RELEASE_VERSION }}.tar.gz
+          cp ../artifacts/camunda-7-to-8-data-migrator-cockpit-plugin-${{ env.RELEASE_VERSION }}.jar ./
           
           # Create Dockerfile
           cat > Dockerfile << 'EOF'
