@@ -89,12 +89,12 @@ public class C8Client {
    */
   public List<ActivatedJob> activateJobs(String jobType) {
     Set<String> tenantIds = properties.getTenantIds();
-    tenantIds.add(C8_DEFAULT_TENANT);
 
     var activateJobs = camundaClient.newActivateJobsCommand()
         .jobType(jobType)
         .maxJobsToActivate(properties.getPageSize());
     if (tenantIds != null && !tenantIds.isEmpty()) {
+      tenantIds.add(C8_DEFAULT_TENANT);
       activateJobs = activateJobs.tenantIds(List.copyOf(tenantIds));
     }
     return callApi(activateJobs::execute, FAILED_TO_ACTIVATE_JOBS + jobType).getJobs();
