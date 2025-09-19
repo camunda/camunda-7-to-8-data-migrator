@@ -13,8 +13,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ClientException;
 import io.camunda.client.api.response.DeploymentEvent;
+import io.camunda.client.api.search.request.ProcessDefinitionSearchRequest;
 import io.camunda.client.api.search.response.ProcessDefinition;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.awaitility.Awaitility;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.repository.Deployment;
@@ -63,7 +65,7 @@ public class ProcessDefinitionDeployer {
       throw new IllegalStateException("Could not deploy process");
     }
 
-    checkC8ProcessDefinitionAvailable("io/camunda/migrator/bpmn/c8/" + fileName);
+    checkC8ProcessDefinitionAvailable("io/camunda/migrator/bpmn/c8/" + fileName, tenantId);
   }
 
   public void deployCamunda7Decision(String fileName) {
@@ -80,13 +82,15 @@ public class ProcessDefinitionDeployer {
     }
   }
 
-  private void checkC8ProcessDefinitionAvailable(String resourcePath) {
+  private void checkC8ProcessDefinitionAvailable(String resourcePath, String tenantId) {
+
     Awaitility.await().ignoreException(ClientException.class).untilAsserted(() -> {
-      List<ProcessDefinition> items = camundaClient.newProcessDefinitionSearchRequest()
-          .filter(filter -> filter.resourceName(resourcePath))
-          .send()
-          .join()
-          .items();
+      ProcessDefinitionSearchRequest filter1 = camundaClient.newProcessDefinitionSearchRequest()
+          .filter(filter -> filter.resourceName(resourcePath));
+      if (!StringUtils.isEmpty(tenantId)) {
+        filter1.filter(filter -> filter.tenantId(tenantId));
+      }
+      List<ProcessDefinition> items = filter1.send().join().items();
 
       // assume
       assertThat(items).hasSize(1);
@@ -108,6 +112,6 @@ public class ProcessDefinitionDeployer {
                                      io.camunda.zeebe.model.bpmn.BpmnModelInstance c8Model) {
     repositoryService.createDeployment().addModelInstance(process + ".bpmn", c7Model).deploy();
     camundaClient.newDeployResourceCommand().addProcessModel(c8Model, process + ".bpmn").execute();
-    checkC8ProcessDefinitionAvailable(process + ".bpmn");
+    checkC8ProcessDefinitionAvailable(process + ".bpmn", null);
   }
 }
