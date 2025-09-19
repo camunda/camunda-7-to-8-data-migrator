@@ -68,7 +68,7 @@ public class C8Client {
   public SearchResponse<ProcessDefinition> searchProcessDefinitions(String processDefinitionId, String tenantId) {
     var searchRequest = camundaClient.newProcessDefinitionSearchRequest().filter(filter -> {
       var filterBuilder = filter.processDefinitionId(processDefinitionId);
-      if (tenantId != null && !tenantId.isEmpty()) {
+      if (!StringUtils.isEmpty(tenantId)) {
         filterBuilder.tenantId(tenantId);
       }
     }).sort(s -> s.version().desc());
