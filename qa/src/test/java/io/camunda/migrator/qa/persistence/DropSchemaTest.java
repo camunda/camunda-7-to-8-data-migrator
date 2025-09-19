@@ -36,7 +36,7 @@ public class DropSchemaTest {
   @BeforeEach
   void setup() {
     this.springApplication = new SpringApplicationBuilder(MigrationTestApplication.class);
-    springApplication.profiles("drop-schema");
+    springApplication.profiles("drop-schema", "history-level-full");
   }
 
   @Test
