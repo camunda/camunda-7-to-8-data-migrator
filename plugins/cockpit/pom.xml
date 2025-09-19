@@ -17,7 +17,7 @@
   <description>A Cockpit plugin for Camunda 7 that helps identify and fix entities that were skipped during Camunda 7 to 8 data migration.</description>
 
   <properties>
-    <frontend-maven-plugin.version>1.14.0</frontend-maven-plugin.version>
+    <frontend-maven-plugin.version>1.15.1</frontend-maven-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
     <jakarta.ws.rs-api.version>4.0.0</jakarta.ws.rs-api.version>
