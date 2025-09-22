@@ -149,7 +149,7 @@ class DistributionSmokeTest {
         {"--runtime"},
         {"--history"},
         {"--runtime", "--drop-schema"},
-        {"--force"},
+        {"--runtime", "--drop-schema", "--force"},
         {"--history", "--list-skipped"},
         {"--history", "--retry-skipped"}
     };
