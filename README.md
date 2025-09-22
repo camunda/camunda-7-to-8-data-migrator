@@ -92,6 +92,8 @@ start.bat --help
 
 3. **Find distribution** in `assembly/target/` directory
 
+4. The **Migrator Cockpit Plugin** can be found in `plugins/cockpit/target` directory
+
 ### Running Tests
 
 Execute the full test suite:
