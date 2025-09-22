@@ -85,12 +85,15 @@ public class ProcessDefinitionDeployer {
   private void checkC8ProcessDefinitionAvailable(String resourcePath, String tenantId) {
 
     Awaitility.await().ignoreException(ClientException.class).untilAsserted(() -> {
-      ProcessDefinitionSearchRequest filter1 = camundaClient.newProcessDefinitionSearchRequest()
-          .filter(filter -> filter.resourceName(resourcePath));
+      ProcessDefinitionSearchRequest endFilter = null;
       if (!StringUtils.isEmpty(tenantId)) {
-        filter1.filter(filter -> filter.tenantId(tenantId));
+        endFilter = camundaClient.newProcessDefinitionSearchRequest()
+            .filter(filter -> filter.resourceName(resourcePath).tenantId(tenantId));
+      } else {
+        endFilter = camundaClient.newProcessDefinitionSearchRequest()
+            .filter(filter -> filter.resourceName(resourcePath));
       }
-      List<ProcessDefinition> items = filter1.send().join().items();
+      List<ProcessDefinition> items = endFilter.send().join().items();
 
       // assume
       assertThat(items).hasSize(1);
