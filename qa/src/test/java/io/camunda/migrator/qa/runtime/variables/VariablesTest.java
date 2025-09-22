@@ -81,12 +81,12 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
 
     // given process state in c7
     VariableMap variables = Variables.createVariables();
-    variables.putValue("stringVar", "myStringVar");
-    variables.putValue("booleanVar", true);
-    variables.putValue("integerVar", 1234);
-    variables.putValue("doubleVar", 1.5d);
-    variables.putValue("shortVar", (short) 1);
-    variables.putValue("longVar", 2_147_483_648L);
+    variables.putValue("stringVar",  Arrays.asList("item1", "item2", "item3"));
+//    variables.putValue("booleanVar", true);
+//    variables.putValue("integerVar", 1234);
+//    variables.putValue("doubleVar", 1.5d);
+//    variables.putValue("shortVar", (short) 1);
+//    variables.putValue("longVar", 2_147_483_648L);
 
     runtimeService.startProcessInstanceByKey("simpleProcess", variables);
 
