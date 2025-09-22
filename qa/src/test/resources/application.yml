@@ -16,9 +16,7 @@ camunda:
         password: sa
         driver-class-name: org.h2.Driver
   process-test:
-#    camunda-docker-image-version: 8.8-SNAPSHOT
-#    multi-tenancy-enabled: true
-
+    camunda-docker-image-version: 8.8-SNAPSHOT
 
 logging:
   level.io.camunda.migrator: DEBUG

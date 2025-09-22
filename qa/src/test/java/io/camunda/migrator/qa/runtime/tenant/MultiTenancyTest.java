@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * Combined test class for testing multi-tenancy functionality in the migrator.
@@ -236,7 +236,7 @@ class MultiTenancyTest {
    * Configuration: "camunda.migrator.tenantIds=tenant-1,tenant-2"
    */
   @Nested
-  @SpringBootTest(properties = { "camunda.process-test.multi-tenancy-enabled=true",
+  @TestPropertySource(properties = { "camunda.process-test.multi-tenancy-enabled=true",
       "camunda.migrator.tenantIds=tenant-1,tenant-2" })
   class WithoutDefaultTenantConfiguration extends MultiTenancyTestBase {
     // All test methods are inherited from MultiTenancyTestBase
@@ -247,7 +247,7 @@ class MultiTenancyTest {
    * Configuration: "camunda.migrator.tenantIds=tenant-1,tenant-2,&lt;default&gt;"
    */
   @Nested
-  @SpringBootTest(properties = { "camunda.process-test.multi-tenancy-enabled=true",
+  @TestPropertySource(properties = { "camunda.process-test.multi-tenancy-enabled=true",
       "camunda.migrator.tenantIds=tenant-1,tenant-2,<default>" })
   class WithDefaultTenantConfiguration extends MultiTenancyTestBase {
     // All test methods are inherited from MultiTenancyTestBase

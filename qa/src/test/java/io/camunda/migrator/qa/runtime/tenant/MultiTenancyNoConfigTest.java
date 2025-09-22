@@ -24,9 +24,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
-@SpringBootTest(properties = { "camunda.process-test.multi-tenancy-enabled=true" })
+@TestPropertySource(properties = { "camunda.process-test.multi-tenancy-enabled=true" })
 class MultiTenancyNoConfigTest extends RuntimeMigrationAbstractTest {
 
   @RegisterExtension
