@@ -29,7 +29,7 @@
     "chokidar-cli": "^3.0.0",
     "cpx2": "^8.0.0",
     "livereload": "^0.10.0",
-    "npm-run-all2": "^5.0.0",
+    "npm-run-all2": "^8.0.0",
     "rollup": "~4.52.0",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-scss": "~4.0.0",
