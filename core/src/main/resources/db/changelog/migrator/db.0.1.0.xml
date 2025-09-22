@@ -26,6 +26,7 @@
         <constraints nullable="false"/>
       </column>
       <column name="START_DATE" type="TIMESTAMP WITH TIME ZONE(3)" />
+      <column name="SKIP_REASON" type="VARCHAR(1024)" />
     </createTable>
 
     <addPrimaryKey tableName="${prefix}MIGRATION_MAPPING"

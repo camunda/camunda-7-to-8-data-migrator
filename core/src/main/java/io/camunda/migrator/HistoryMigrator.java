@@ -19,6 +19,16 @@ import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_PROC
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_USER_TASK;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_VARIABLE;
+import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_BELONGS_TO_SKIPPED_TASK;
+import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_FLOW_NODE;
+import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_PARENT_PROCESS_INSTANCE;
+import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_PROCESS_DEFINITION;
+import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_PROCESS_INSTANCE;
+import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_PROCESS_INSTANCE_KEY;
+import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_SCOPE_KEY;
+import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_DECISION_REQUIREMENTS;
+import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_DECISION_DEFINITION;
+import static io.camunda.migrator.impl.logging.HistoryMigratorLogs.SKIP_REASON_MISSING_PARENT_DECISION_INSTANCE;
 
 import io.camunda.db.rdbms.read.domain.DecisionDefinitionDbQuery;
 import io.camunda.db.rdbms.read.domain.DecisionInstanceDbQuery;
@@ -196,7 +206,7 @@ public class HistoryMigrator {
     HistoryMigratorLogs.migratingProcessDefinitions();
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_PROCESS_DEFINITION, idKeyDbModel -> {
-        ProcessDefinition historicProcessDefinition = c7Client.getProcessDefinition(idKeyDbModel.id());
+        ProcessDefinition historicProcessDefinition = c7Client.getProcessDefinition(idKeyDbModel.getId());
         migrateProcessDefinition(historicProcessDefinition);
       });
     } else {
@@ -220,7 +230,7 @@ public class HistoryMigrator {
     HistoryMigratorLogs.migratingProcessInstances();
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_PROCESS_INSTANCE, idKeyDbModel -> {
-        HistoricProcessInstance historicProcessInstance = c7Client.getHistoricProcessInstance(idKeyDbModel.id());
+        HistoricProcessInstance historicProcessInstance = c7Client.getHistoricProcessInstance(idKeyDbModel.getId());
         migrateProcessInstance(historicProcessInstance);
       });
     } else {
@@ -250,11 +260,11 @@ public class HistoryMigrator {
           saveRecord(legacyProcessInstanceId, legacyProcessInstance.getStartTime(), dbModel.processInstanceKey(), HISTORY_PROCESS_INSTANCE);
           HistoryMigratorLogs.migratingProcessInstanceCompleted(legacyProcessInstanceId);
         } else {
-          saveRecord(legacyProcessInstanceId, null, HISTORY_PROCESS_INSTANCE);
+          saveRecord(legacyProcessInstanceId, null, HISTORY_PROCESS_INSTANCE, SKIP_REASON_MISSING_PARENT_PROCESS_INSTANCE);
           HistoryMigratorLogs.skippingProcessInstanceDueToMissingParent(legacyProcessInstanceId);
         }
       } else {
-        saveRecord(legacyProcessInstanceId, null, HISTORY_PROCESS_INSTANCE);
+        saveRecord(legacyProcessInstanceId, null, HISTORY_PROCESS_INSTANCE, SKIP_REASON_MISSING_PROCESS_DEFINITION);
         HistoryMigratorLogs.skippingProcessInstanceDueToMissingDefinition(legacyProcessInstanceId);
       }
     }
@@ -266,7 +276,7 @@ public class HistoryMigrator {
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_DECISION_REQUIREMENT, idKeyDbModel -> {
         DecisionRequirementsDefinition legacyDecisionRequirement = c7Client.getDecisionRequirementsDefinition(
-            idKeyDbModel.id());
+            idKeyDbModel.getId());
         migrateDecisionRequirementsDefinition(legacyDecisionRequirement);
       });
     } else {
@@ -290,7 +300,7 @@ public class HistoryMigrator {
 
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_DECISION_DEFINITION, idKeyDbModel -> {
-        DecisionDefinition legacyDecisionDefinition = c7Client.getDecisionDefinition(idKeyDbModel.id());
+        DecisionDefinition legacyDecisionDefinition = c7Client.getDecisionDefinition(idKeyDbModel.getId());
         migrateDecisionDefinition(legacyDecisionDefinition);
       });
     } else {
@@ -310,7 +320,7 @@ public class HistoryMigrator {
             HISTORY_DECISION_REQUIREMENT);
 
         if (decisionRequirementsKey == null) {
-          saveRecord(legacyId, null, HISTORY_DECISION_DEFINITION);
+          saveRecord(legacyId, null, HISTORY_DECISION_DEFINITION, SKIP_REASON_MISSING_DECISION_REQUIREMENTS);
           HistoryMigratorLogs.skippingDecisionDefinition(legacyId);
           return;
         }
@@ -329,7 +339,7 @@ public class HistoryMigrator {
     HistoryMigratorLogs.migratingDecisionInstances();
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_DECISION_INSTANCE, idKeyDbModel -> {
-        HistoricDecisionInstance historicDecisionInstance = c7Client.getHistoricDecisionInstance(idKeyDbModel.id());
+        HistoricDecisionInstance historicDecisionInstance = c7Client.getHistoricDecisionInstance(idKeyDbModel.getId());
         migrateDecisionInstance(historicDecisionInstance);
       });
     } else {
@@ -350,19 +360,19 @@ public class HistoryMigrator {
       HistoryMigratorLogs.migratingDecisionInstance(legacyDecisionInstanceId);
 
       if (!isMigrated(legacyDecisionInstance.getDecisionDefinitionId(), HISTORY_DECISION_DEFINITION)) {
-        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE, SKIP_REASON_MISSING_DECISION_DEFINITION);
         HistoryMigratorLogs.skippingDecisionInstanceDueToMissingDecisionDefinition(legacyDecisionInstanceId);
         return;
       }
 
       if (!isMigrated(legacyDecisionInstance.getProcessDefinitionId(), HISTORY_PROCESS_DEFINITION)) {
-        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE, SKIP_REASON_MISSING_PROCESS_DEFINITION);
         HistoryMigratorLogs.skippingDecisionInstanceDueToMissingProcessDefinition(legacyDecisionInstanceId);
         return;
       }
 
       if (!isMigrated(legacyDecisionInstance.getProcessInstanceId(), HISTORY_PROCESS_INSTANCE)) {
-        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE, SKIP_REASON_MISSING_PROCESS_INSTANCE);
         HistoryMigratorLogs.skippingDecisionInstanceDueToMissingProcessInstance(legacyDecisionInstanceId);
         return;
       }
@@ -371,7 +381,7 @@ public class HistoryMigrator {
       Long parentDecisionDefinitionKey = null;
       if (legacyRootDecisionInstanceId != null) {
         if (!isMigrated(legacyRootDecisionInstanceId, HISTORY_DECISION_INSTANCE)) {
-          saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+          saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE, SKIP_REASON_MISSING_PARENT_DECISION_INSTANCE);
           HistoryMigratorLogs.skippingDecisionInstanceDueToMissingParent(legacyDecisionInstanceId);
           return;
         }
@@ -379,7 +389,7 @@ public class HistoryMigrator {
       }
 
       if (!isMigrated(legacyDecisionInstance.getActivityInstanceId(), HISTORY_FLOW_NODE)) {
-        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE);
+        saveRecord(legacyDecisionInstanceId, null, IdKeyMapper.TYPE.HISTORY_DECISION_INSTANCE, SKIP_REASON_MISSING_FLOW_NODE);
         HistoryMigratorLogs.skippingDecisionInstanceDueToMissingFlowNodeInstanceInstance(legacyDecisionInstanceId);
         return;
       }
@@ -406,7 +416,7 @@ public class HistoryMigrator {
     HistoryMigratorLogs.migratingHistoricIncidents();
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_INCIDENT, idKeyDbModel -> {
-        HistoricIncident historicIncident = c7Client.getHistoricIncident(idKeyDbModel.id());
+        HistoricIncident historicIncident = c7Client.getHistoricIncident(idKeyDbModel.getId());
         migrateIncident(historicIncident);
       });
     } else {
@@ -430,11 +440,11 @@ public class HistoryMigrator {
           saveRecord(legacyIncidentId, legacyIncident.getCreateTime(), dbModel.incidentKey(), HISTORY_INCIDENT);
           HistoryMigratorLogs.migratingHistoricIncidentCompleted(legacyIncidentId);
         } else {
-          saveRecord(legacyIncidentId, null, HISTORY_INCIDENT);
+          saveRecord(legacyIncidentId, null, HISTORY_INCIDENT, SKIP_REASON_MISSING_PROCESS_INSTANCE_KEY);
           HistoryMigratorLogs.skippingHistoricIncident(legacyIncidentId);
         }
       } else {
-        saveRecord(legacyIncidentId, null, HISTORY_INCIDENT);
+        saveRecord(legacyIncidentId, null, HISTORY_INCIDENT, SKIP_REASON_MISSING_PROCESS_INSTANCE);
         HistoryMigratorLogs.skippingHistoricIncident(legacyIncidentId);
       }
     }
@@ -445,7 +455,7 @@ public class HistoryMigrator {
 
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_VARIABLE, idKeyDbModel -> {
-        HistoricVariableInstance historicVariableInstance = c7Client.getHistoricVariableInstance(idKeyDbModel.id());
+        HistoricVariableInstance historicVariableInstance = c7Client.getHistoricVariableInstance(idKeyDbModel.getId());
         migrateVariable(historicVariableInstance);
       });
     } else {
@@ -461,7 +471,7 @@ public class HistoryMigrator {
       String taskId = legacyVariable.getTaskId();
       if (taskId != null && !isMigrated(taskId, HISTORY_USER_TASK)) {
         // Skip variable if it belongs to a skipped task
-        saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE);
+        saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE, SKIP_REASON_BELONGS_TO_SKIPPED_TASK);
         HistoryMigratorLogs.skippingHistoricVariableDueToMissingTask(legacyVariableId, taskId);
         return;
       }
@@ -479,15 +489,15 @@ public class HistoryMigrator {
             saveRecord(legacyVariableId, legacyVariable.getCreateTime(), dbModel.variableKey(), HISTORY_VARIABLE);
             HistoryMigratorLogs.migratingHistoricVariableCompleted(legacyVariableId);
           } else {
-            saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE);
+            saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE, SKIP_REASON_MISSING_SCOPE_KEY);
             HistoryMigratorLogs.skippingHistoricVariableDueToMissingScopeKey(legacyVariableId);
           }
         } else {
-          saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE);
+          saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE, SKIP_REASON_MISSING_FLOW_NODE);
           HistoryMigratorLogs.skippingHistoricVariableDueToMissingFlowNode(legacyVariableId);
         }
       } else {
-        saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE);
+        saveRecord(legacyVariableId, null, IdKeyMapper.TYPE.HISTORY_VARIABLE, SKIP_REASON_MISSING_PROCESS_INSTANCE);
         HistoryMigratorLogs.skippingHistoricVariableDueToMissingProcessInstance(legacyVariableId);
       }
     }
@@ -498,7 +508,7 @@ public class HistoryMigrator {
 
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_USER_TASK, idKeyDbModel -> {
-        HistoricTaskInstance historicTaskInstance = c7Client.getHistoricTaskInstance(idKeyDbModel.id());
+        HistoricTaskInstance historicTaskInstance = c7Client.getHistoricTaskInstance(idKeyDbModel.getId());
         migrateUserTask(historicTaskInstance);
       });
     } else {
@@ -520,11 +530,11 @@ public class HistoryMigrator {
           saveRecord(legacyUserTaskId, legacyUserTask.getStartTime(), dbModel.userTaskKey(), HISTORY_USER_TASK);
           HistoryMigratorLogs.migratingHistoricUserTaskCompleted(legacyUserTaskId);
         } else {
-          saveRecord(legacyUserTaskId, null, IdKeyMapper.TYPE.HISTORY_USER_TASK);
+          saveRecord(legacyUserTaskId, null, IdKeyMapper.TYPE.HISTORY_USER_TASK, SKIP_REASON_MISSING_FLOW_NODE);
           HistoryMigratorLogs.skippingHistoricUserTaskDueToMissingFlowNode(legacyUserTaskId);
         }
       } else {
-        saveRecord(legacyUserTaskId, null, IdKeyMapper.TYPE.HISTORY_USER_TASK);
+        saveRecord(legacyUserTaskId, null, IdKeyMapper.TYPE.HISTORY_USER_TASK, SKIP_REASON_MISSING_PROCESS_INSTANCE);
         HistoryMigratorLogs.skippingHistoricUserTaskDueToMissingProcessInstance(legacyUserTaskId);
       }
     }
@@ -535,7 +545,7 @@ public class HistoryMigrator {
 
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(HISTORY_FLOW_NODE, idKeyDbModel -> {
-        HistoricActivityInstance historicActivityInstance = c7Client.getHistoricActivityInstance(idKeyDbModel.id());
+        HistoricActivityInstance historicActivityInstance = c7Client.getHistoricActivityInstance(idKeyDbModel.getId());
         migrateFlowNode(historicActivityInstance);
       });
     } else {
@@ -556,7 +566,7 @@ public class HistoryMigrator {
         saveRecord(legacyFlowNodeId, legacyFlowNode.getStartTime(), dbModel.flowNodeInstanceKey(), HISTORY_FLOW_NODE);
         HistoryMigratorLogs.migratingHistoricFlowNodeCompleted(legacyFlowNodeId);
       } else {
-        saveRecord(legacyFlowNodeId, null, HISTORY_FLOW_NODE);
+        saveRecord(legacyFlowNodeId, null, HISTORY_FLOW_NODE, SKIP_REASON_MISSING_PROCESS_INSTANCE);
         HistoryMigratorLogs.skippingHistoricFlowNode(legacyFlowNodeId);
       }
     }
@@ -693,6 +703,15 @@ public class HistoryMigrator {
       dbClient.updateKeyByIdAndType(entityId, entityKey, type);
     } else if (MIGRATE.equals(mode)) {
       dbClient.insert(entityId, date, entityKey, type);
+    }
+  }
+
+  protected void saveRecord(String entityId, Long entityKey, IdKeyMapper.TYPE type, String skipReason) {
+    if (RETRY_SKIPPED.equals(mode)) {
+      dbClient.updateKeyByIdAndType(entityId, entityKey, type);
+    } else if (MIGRATE.equals(mode)) {
+      dbClient.insert(entityId, null, type, skipReason);
+
     }
   }
 

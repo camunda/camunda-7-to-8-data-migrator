@@ -16,7 +16,7 @@
 
   <properties>
     <version.testcontainers>1.21.3</version.testcontainers>
-    <version.postgres>42.7.7</version.postgres>
+    <version.postgres>42.7.8</version.postgres>
     <version.oracle>23.9.0.25.07</version.oracle>
     <version.jakarta-xml-bind-api>4.0.4</version.jakarta-xml-bind-api>
   </properties>

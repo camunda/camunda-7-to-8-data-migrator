@@ -69,7 +69,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
 
     List<IdKeyDbModel> skippedProcessInstanceIds = findSkippedRuntimeProcessInstances().stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
-    assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(process.getId());
+    assertThat(skippedProcessInstanceIds.getFirst().getId()).isEqualTo(process.getId());
 
     logs.assertContains(String.format(SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("{}", "%s"), process.getId(),
         String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, "multiUserTask")));
@@ -90,7 +90,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
 
     List<IdKeyDbModel> skippedProcessInstanceIds = dbClient.findSkippedProcessInstances().stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
-    assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(process.getId());
+    assertThat(skippedProcessInstanceIds.getFirst().getId()).isEqualTo(process.getId());
 
     // Logs should contains the activityId without the multi-instance body suffix
     String activityIdWithoutMultiInstanceBody = "ServiceTask_1";
@@ -115,7 +115,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     assertThatProcessInstanceCountIsEqualTo(0);
     List<IdKeyDbModel> skippedProcessInstanceIds = findSkippedRuntimeProcessInstances().stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
-    assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(process.getId());
+    assertThat(skippedProcessInstanceIds.getFirst().getId()).isEqualTo(process.getId());
 
     logs.assertContains(String.format(SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("{}", "%s"), process.getId(),
         String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, "multiUserTask")));
@@ -138,7 +138,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     assertThatProcessInstanceCountIsEqualTo(0);
     List<IdKeyDbModel> skippedProcessInstanceIds = findSkippedRuntimeProcessInstances().stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
-    assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(process.getId());
+    assertThat(skippedProcessInstanceIds.getFirst().getId()).isEqualTo(process.getId());
 
     var events = logs.getEvents();
     Assertions.assertThat(events.stream()

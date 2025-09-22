@@ -13,7 +13,7 @@ import io.camunda.db.rdbms.config.VendorDatabaseProperties;
 import io.camunda.db.rdbms.read.service.AuthorizationDbReader;
 import io.camunda.db.rdbms.read.service.BatchOperationDbReader;
 import io.camunda.db.rdbms.read.service.BatchOperationItemDbReader;
-import io.camunda.db.rdbms.read.service.CorrelatedMessageDbReader;
+import io.camunda.db.rdbms.read.service.CorrelatedMessageSubscriptionDbReader;
 import io.camunda.db.rdbms.read.service.DecisionDefinitionDbReader;
 import io.camunda.db.rdbms.read.service.DecisionInstanceDbReader;
 import io.camunda.db.rdbms.read.service.DecisionRequirementsDbReader;
@@ -36,7 +36,7 @@ import io.camunda.db.rdbms.read.service.UserTaskDbReader;
 import io.camunda.db.rdbms.read.service.VariableDbReader;
 import io.camunda.db.rdbms.sql.AuthorizationMapper;
 import io.camunda.db.rdbms.sql.BatchOperationMapper;
-import io.camunda.db.rdbms.sql.CorrelatedMessageMapper;
+import io.camunda.db.rdbms.sql.CorrelatedMessageSubscriptionMapper;
 import io.camunda.db.rdbms.sql.DecisionDefinitionMapper;
 import io.camunda.db.rdbms.sql.DecisionInstanceMapper;
 import io.camunda.db.rdbms.sql.DecisionRequirementsMapper;
@@ -239,8 +239,8 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
-  MapperFactoryBean<CorrelatedMessageMapper> correlatedMessageMapper(@Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory) {
-    return createMapperFactoryBean(c8SqlSessionFactory, CorrelatedMessageMapper.class);
+  MapperFactoryBean<CorrelatedMessageSubscriptionMapper> correlatedMessageMapper(@Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory) {
+    return createMapperFactoryBean(c8SqlSessionFactory, CorrelatedMessageSubscriptionMapper.class);
   }
 
   @Bean
@@ -377,8 +377,8 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
-  public CorrelatedMessageDbReader correlatedMessageReader(CorrelatedMessageMapper correlatedMessageMapper) {
-    return new CorrelatedMessageDbReader(correlatedMessageMapper);
+  public CorrelatedMessageSubscriptionDbReader correlatedMessageReader(CorrelatedMessageSubscriptionMapper correlatedMessageMapper) {
+    return new CorrelatedMessageSubscriptionDbReader(correlatedMessageMapper);
   }
 
   @Bean
@@ -401,7 +401,7 @@ public class C8Configuration extends AbstractConfiguration {
       UsageMetricTUMapper usageMetricTUMapper,
       BatchOperationMapper batchOperationMapper,
       MessageSubscriptionMapper messageSubscriptionMapper,
-      CorrelatedMessageMapper correlatedMessageMapper) {
+      CorrelatedMessageSubscriptionMapper correlatedMessageMapper) {
     return new RdbmsWriterFactory(
         c8SqlSessionFactory,
         exporterPositionMapper,
@@ -450,7 +450,7 @@ public class C8Configuration extends AbstractConfiguration {
       UsageMetricsDbReader usageMetricsReader,
       UsageMetricTUDbReader usageMetricTUDbReader,
       MessageSubscriptionDbReader messageSubscriptionDbReader,
-      CorrelatedMessageDbReader correlatedMessageDbReader) {
+      CorrelatedMessageSubscriptionDbReader correlatedMessageDbReader) {
     return new RdbmsService(
         rdbmsWriterFactory,
         authorizationReader,

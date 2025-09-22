@@ -38,4 +38,10 @@ class DefaultPropertiesTest {
   public void shouldHaveDisabledJobExecutor() {
     assertThat(processEngineConfiguration.getJobExecutor().isActive()).isEqualTo(false);
   }
+
+  @Test
+  public void shouldHaveFalseDefaultSaveSkipReason() {
+    assertThat(migratorProperties.getSaveSkipReason()).isFalse();
+
+  }
 }

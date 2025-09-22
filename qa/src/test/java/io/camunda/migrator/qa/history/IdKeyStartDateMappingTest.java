@@ -40,8 +40,8 @@ public class IdKeyStartDateMappingTest extends HistoryMigrationAbstractTest {
     IdKeyDbModel migratedInstance = idKeyMapper.findMigratedByType(
         IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE, 0, Integer.MAX_VALUE).stream().toList().getFirst();
 
-    assertThat(migratedInstance.id()).isEqualTo(processInstanceId);
-    assertThat(migratedInstance.startDate()).isNotNull().isBefore(beforeMigration); // Should be before we started the test
-    assertThat(migratedInstance.instanceKey()).isNotNull().isPositive();
+    assertThat(migratedInstance.getId()).isEqualTo(processInstanceId);
+    assertThat(migratedInstance.getStartDate()).isNotNull().isBefore(beforeMigration); // Should be before we started the test
+    assertThat(migratedInstance.getInstanceKey()).isNotNull().isPositive();
   }
 }

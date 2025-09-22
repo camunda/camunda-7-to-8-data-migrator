@@ -58,6 +58,12 @@ camunda:
     # Comma-separated list of tenant ids for which process instances should be migrated.
     # tenantIds: tenant1, tenant2
 
+    # Controls whether to save skip reasons to the database (default: false)
+    # When enabled, the reason for a skipped migration will be stored.
+    # Note: This property must be set to 'true' when using the Cockpit plugin.
+    # Find more information about the Cockpit plugin here: https://docs.camunda.io/docs/next/guides/migrating-from-camunda-7/data-migrator/cockpit-plugin/
+    # save-skip-reason: false
+
     # Camunda 7 configuration
     c7:
       data-source:
