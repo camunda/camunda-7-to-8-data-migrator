@@ -233,22 +233,22 @@ class MultiTenancyTest {
 
   /**
    * Tests for multi-tenancy configuration without default tenant support.
-   * Configuration: "camunda.migrator.tenantIds=tenant-1,tenant-2"
+   * Configuration: "camunda.migrator.tenant-ids=tenant-1,tenant-2"
    */
   @Nested
   @TestPropertySource(properties = { "camunda.process-test.multi-tenancy-enabled=true",
-      "camunda.migrator.tenantIds=tenant-1,tenant-2" })
+      "camunda.migrator.tenant-ids=tenant-1,tenant-2" })
   class WithoutDefaultTenantConfiguration extends MultiTenancyTestBase {
     // All test methods are inherited from MultiTenancyTestBase
   }
 
   /**
    * Tests for multi-tenancy configuration with default tenant support.
-   * Configuration: "camunda.migrator.tenantIds=tenant-1,tenant-2,&lt;default&gt;"
+   * Configuration: "camunda.migrator.tenant-ids=tenant-1,tenant-2,&lt;default&gt;"
    */
   @Nested
   @TestPropertySource(properties = { "camunda.process-test.multi-tenancy-enabled=true",
-      "camunda.migrator.tenantIds=tenant-1,tenant-2,<default>" })
+      "camunda.migrator.tenant-ids=tenant-1,tenant-2,<default>" })
   class WithDefaultTenantConfiguration extends MultiTenancyTestBase {
     // All test methods are inherited from MultiTenancyTestBase
   }
