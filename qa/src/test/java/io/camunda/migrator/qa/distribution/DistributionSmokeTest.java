@@ -169,7 +169,7 @@ class DistributionSmokeTest {
 
   @Test
   @Timeout(value = 30, unit = TimeUnit.SECONDS)
-  void shouldShowWarningWhenListAndRetryAreProvided() throws Exception {
+  void shouldShowUsageWhenListAndRetryAreProvided() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--list-skipped", "--retry-skipped");
 
@@ -182,11 +182,12 @@ class DistributionSmokeTest {
 
     assertThat(exitCode).isEqualTo(1);
     assertThat(output).contains("Conflicting flags: --list-skipped and --retry-skipped cannot be used together");
+    assertThat(output).contains("Usage: start.sh/bat");
   }
 
   @Test
   @Timeout(value = 30, unit = TimeUnit.SECONDS)
-  void shouldShowWarningWhenForceWithoutDropIsProvided() throws Exception {
+  void shouldShowUsageWhenForceWithoutDropIsProvided() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--force");
 
@@ -199,6 +200,7 @@ class DistributionSmokeTest {
 
     assertThat(exitCode).isEqualTo(1);
     assertThat(output).contains("Invalid flag combination: --force requires --drop-schema. Use both flags together or remove --force.");
+    assertThat(output).contains("Usage: start.sh/bat");
   }
 
   @Test
