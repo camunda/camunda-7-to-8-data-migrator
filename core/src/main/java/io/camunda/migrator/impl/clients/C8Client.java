@@ -106,11 +106,13 @@ public class C8Client {
 
     flowNodeActivations.forEach(flowNodeActivation -> {
       String activityId = flowNodeActivation.activityId();
-      Map<String, Object> variables = flowNodeActivation.variables();
-      if (variables != null && !variables.isEmpty()) {
-        modifyProcessInstance.activateElement(activityId).withVariables(variables, activityId);
-      } else {
-        modifyProcessInstance.activateElement(activityId);
+      if (!activityId.contains("#multiInstanceBody")) { // TODO: Handle multi-instance bodies properly
+        Map<String, Object> variables = flowNodeActivation.variables();
+        if (variables != null && !variables.isEmpty()) {
+          modifyProcessInstance.activateElement(activityId).withVariables(variables, activityId);
+        } else {
+          modifyProcessInstance.activateElement(activityId);
+        }
       }
     });
 

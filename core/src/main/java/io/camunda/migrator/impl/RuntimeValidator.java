@@ -37,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.Activity;
 import org.camunda.bpm.model.bpmn.instance.FlowElement;
@@ -172,16 +173,14 @@ public class RuntimeValidator {
   }
 
   /**
-   * Checks if an activity is a multi-instance activity either by its ID suffix or its characteristics
+   * Checks if an activity is a multi-instance activity (either by its ID suffix or its characteristics)
+   * and if it's parallel
+   * @return true if the activity is a parallel multi-instance activity, false otherwise
    */
   private boolean isMultiInstanceActivity(String activityId, FlowElement element) {
-    boolean isMultiInstanceBody = activityId.endsWith(MULTI_INSTANCE_BODY_SUFFIX);
-    if (isMultiInstanceBody) {
-      return true;
-    }
-    boolean hasMultiInstanceCharacteristics = element instanceof Activity activity
-        && activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics;
-    return hasMultiInstanceCharacteristics;
+    return element instanceof Activity activity
+        && activity.getLoopCharacteristics() instanceof MultiInstanceLoopCharacteristics
+        && !Boolean.parseBoolean(activity.getLoopCharacteristics().getAttributeValue("isSequential"));
   }
 
   /**
@@ -215,6 +214,10 @@ public class RuntimeValidator {
       RuntimeValidatorLogs.collectingActiveDescendantActivitiesValidation(processInstanceId);
       Map<String, FlowNode> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
       RuntimeValidatorLogs.foundActiveActivitiesToValidate(activityInstanceMap.size());
+
+      // TODO: Handle multi-instance bodies properly
+      var keys = activityInstanceMap.keySet().stream().filter(s -> s.contains("#multiInstanceBody")).toList();
+      keys.forEach(activityInstanceMap::remove);
 
       for (FlowNode flowNode : activityInstanceMap.values()) {
         validateC7FlowNodes(c7DefinitionId, flowNode.activityId());
