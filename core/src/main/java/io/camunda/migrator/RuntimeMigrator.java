@@ -84,7 +84,7 @@ public class RuntimeMigrator {
       if (skipReason == null && shouldStartProcessInstance(c7ProcessInstanceId)) {
         startProcessInstance(c7ProcessInstanceId, createTime);
       } else if (isUnknown(c7ProcessInstanceId)) {
-        dbClient.insert(c7ProcessInstanceId, createTime, TYPE.RUNTIME_PROCESS_INSTANCE, skipReason);
+        dbClient.insert(c7ProcessInstanceId, null, createTime, TYPE.RUNTIME_PROCESS_INSTANCE, skipReason);
       }
     });
 
@@ -129,7 +129,7 @@ public class RuntimeMigrator {
     RuntimeMigratorLogs.stacktrace(e);
 
     if (MIGRATE.equals(mode)) {
-      dbClient.insert(c7ProcessInstanceId, createTime, TYPE.RUNTIME_PROCESS_INSTANCE, e.getMessage());
+      dbClient.insert(c7ProcessInstanceId, null, createTime, TYPE.RUNTIME_PROCESS_INSTANCE, e.getMessage());
     }
   }
 
@@ -137,7 +137,7 @@ public class RuntimeMigrator {
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.updateC8KeyByC7IdAndType(c7ProcessInstanceId, processInstanceKey, TYPE.RUNTIME_PROCESS_INSTANCE);
     } else if (MIGRATE.equals(mode)) {
-      dbClient.insert(c7ProcessInstanceId, createTime, processInstanceKey, TYPE.RUNTIME_PROCESS_INSTANCE);
+      dbClient.insert(c7ProcessInstanceId, processInstanceKey, createTime, TYPE.RUNTIME_PROCESS_INSTANCE);
     }
   }
 

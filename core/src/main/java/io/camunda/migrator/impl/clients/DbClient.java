@@ -96,28 +96,24 @@ public class DbClient {
   /**
    * Inserts a new process instance record into the mapping table.
    */
-  public void insert(String c7Id, Date createTime, Long c8Key, TYPE type) {
-    DbClientLogs.insertingRecord(c7Id, createTime, c8Key, null);
-    var model = createIdKeyDbModel(c7Id, createTime, c8Key, type);
-    callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + c7Id);
+  public void insert(String c7Id, Long c8Key, Date createTime, TYPE type) {
+    insert(c7Id, c8Key, createTime, type, null);
   }
 
   /**
    * Inserts a new record into the mapping table.
    */
   public void insert(String c7Id, Long c8Key, TYPE type) {
-    DbClientLogs.insertingRecord(c7Id, null, c8Key, null);
-    var model = createIdKeyDbModel(c7Id, null, c8Key, type);
-    callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + c7Id);
+    insert(c7Id, c8Key, null, type, null);
   }
 
   /**
    * Inserts a new process instance record into the mapping table.
    */
-  public void insert(String c7Id, Date createTime, TYPE type, String skipReason) {
+  public void insert(String c7Id, Long c8Key, Date createTime, TYPE type, String skipReason) {
     String finalSkipReason = properties.getSaveSkipReason() ? skipReason : null;
     DbClientLogs.insertingRecord(c7Id, createTime, null, finalSkipReason);
-    var model = createIdKeyDbModel(c7Id, createTime, null, type, finalSkipReason);
+    var model = createIdKeyDbModel(c7Id, createTime, c8Key, type, finalSkipReason);
     callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + c7Id);
   }
 
