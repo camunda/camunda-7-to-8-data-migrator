@@ -7,12 +7,13 @@
  */
 package io.camunda.migrator.app;
 
+import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_C8_DEPLOYMENT_ERROR;
+
 import io.camunda.migrator.impl.AutoDeployer;
 import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.MigratorMode;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -89,9 +90,13 @@ public class MigratorApp {
       throw new IllegalArgumentException("Must specify at least one migration type: use --runtime, --history, or both.");
     }
 
+    boolean hasListSkipped = argsList.contains("--" + ARG_LIST_SKIPPED);
+    boolean hasRetrySkipped = argsList.contains("--" + ARG_RETRY_SKIPPED);
+
     boolean listSkippedHistoryFound =
-        argsList.contains("--" + ARG_LIST_SKIPPED) && argsList.contains("--" + ARG_HISTORY_MIGRATION);
+        hasListSkipped && argsList.contains("--" + ARG_HISTORY_MIGRATION);
     int flagCount = 0;
+
 
     for (String arg : args) {
       if (VALID_FLAGS.contains(arg)) {
@@ -104,17 +109,26 @@ public class MigratorApp {
       }
     }
 
+    // Check if we have too many flags (not counting entity type parameters)
+    if (flagCount > MAX_FLAGS) {
+      throw new IllegalArgumentException("Error: Too many arguments.");
+    } else if (argsList.contains("--" + ARG_HELP) && flagCount > 1) {
+      LOGGER.warn(String.format("All flags but `--%s` are ignored", ARG_HELP));
+      return;
+    }
+
+    // Validate skipped migration configuration
+    if (hasListSkipped && hasRetrySkipped) {
+      LOGGER.warn(String.format("`--%s` flag will be ignored because `--%s` is passed", ARG_RETRY_SKIPPED,
+          ARG_LIST_SKIPPED));
+    }
+
     // Validate drop schema configuration
     boolean dropSchema = argsList.contains("--" + ARG_DROP_SCHEMA);
     boolean force = argsList.contains("--" + ARG_FORCE);
     LOGGER.debug("Migration will be run with `drop-schema={}` and `force={}`", dropSchema, force);
     if (force && !dropSchema) {
-      LOGGER.warn("`--force` flag will be ignored because `--drop-schema` is not present");
-    }
-
-    // Check if we have too many flags (not counting entity type parameters)
-    if (flagCount > MAX_FLAGS) {
-      throw new IllegalArgumentException("Error: Too many arguments.");
+      LOGGER.warn(String.format("`--%s` flag will be ignored because `--%s` is not present", ARG_FORCE, ARG_DROP_SCHEMA));
     }
   }
 

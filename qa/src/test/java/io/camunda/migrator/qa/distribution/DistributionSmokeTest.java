@@ -169,6 +169,57 @@ class DistributionSmokeTest {
 
   @Test
   @Timeout(value = 30, unit = TimeUnit.SECONDS)
+  void shouldShowWarningWhenListAndRetryAreProvided() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--list-skipped", "--retry-skipped");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("`--retry-skipped` flag will be ignored because `--list-skipped` is passed");
+  }
+
+  @Test
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
+  void shouldShowWarningWhenForceWithoutDropIsProvided() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--force");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("`--force` flag will be ignored because `--drop-schema` is not present");
+  }
+
+  @Test
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
+  void shouldShowWarningWhenTooManyArgumentsProvided() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder("--help", "--history");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("All flags but `--help` are ignored");
+  }
+
+  @Test
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldStartWithoutArgumentsAndShowExpectedMessage() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history");
