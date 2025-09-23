@@ -169,7 +169,7 @@ class DistributionSmokeTest {
 
   @Test
   @Timeout(value = 30, unit = TimeUnit.SECONDS)
-  void shouldStartWithoutArgumentsAndShowExpectedMessage() throws Exception {
+  void shouldStartWithCombinedArgumentsAndShowExpectedMessage() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history");
 
