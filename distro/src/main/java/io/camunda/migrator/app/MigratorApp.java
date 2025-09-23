@@ -7,12 +7,10 @@
  */
 package io.camunda.migrator.app;
 
-import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_C8_DEPLOYMENT_ERROR;
-
-import io.camunda.migrator.impl.AutoDeployer;
 import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.MigratorMode;
 import io.camunda.migrator.RuntimeMigrator;
+import io.camunda.migrator.impl.AutoDeployer;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import java.util.List;
 import java.util.Set;
@@ -92,11 +90,9 @@ public class MigratorApp {
 
     boolean hasListSkipped = argsList.contains("--" + ARG_LIST_SKIPPED);
     boolean hasRetrySkipped = argsList.contains("--" + ARG_RETRY_SKIPPED);
-
     boolean listSkippedHistoryFound =
         hasListSkipped && argsList.contains("--" + ARG_HISTORY_MIGRATION);
     int flagCount = 0;
-
 
     for (String arg : args) {
       if (VALID_FLAGS.contains(arg)) {
@@ -112,15 +108,12 @@ public class MigratorApp {
     // Check if we have too many flags (not counting entity type parameters)
     if (flagCount > MAX_FLAGS) {
       throw new IllegalArgumentException("Error: Too many arguments.");
-    } else if (argsList.contains("--" + ARG_HELP) && flagCount > 1) {
-      LOGGER.warn(String.format("All flags but `--%s` are ignored", ARG_HELP));
-      return;
     }
 
     // Validate skipped migration configuration
     if (hasListSkipped && hasRetrySkipped) {
-      LOGGER.warn(String.format("`--%s` flag will be ignored because `--%s` is passed", ARG_RETRY_SKIPPED,
-          ARG_LIST_SKIPPED));
+      throw new IllegalArgumentException(
+          "Conflicting flags: --list-skipped and --retry-skipped cannot be used together. Please specify only one migration mode.");
     }
 
     // Validate drop schema configuration
@@ -128,13 +121,14 @@ public class MigratorApp {
     boolean force = argsList.contains("--" + ARG_FORCE);
     LOGGER.debug("Migration will be run with `drop-schema={}` and `force={}`", dropSchema, force);
     if (force && !dropSchema) {
-      LOGGER.warn(String.format("`--%s` flag will be ignored because `--%s` is not present", ARG_FORCE, ARG_DROP_SCHEMA));
+      throw new IllegalArgumentException(
+          "Invalid flag combination: --force requires --drop-schema. Use both flags together or remove --force.");
     }
   }
 
   protected static void printUsage() {
     System.out.println();
-    System.out.println("Usage: start.sh/bat [--help] [--runtime] [--history] [--list-skipped [ENTITY_TYPES...]|--retry-skipped] [--drop-schema]");
+    System.out.println("Usage: start.sh/bat [--help] [--runtime] [--history] [--list-skipped [ENTITY_TYPES...]|--retry-skipped] [--drop-schema|--drop-schema --force]");
     System.out.println("Options:");
     System.out.println("  --help              - Show this help message");
     System.out.println("  --runtime           - Migrate runtime data only");
@@ -150,6 +144,9 @@ public class MigratorApp {
     System.out.println("  --drop-schema     - Drop the migrator schema on shutdown ff migration was successful");
     System.out.println("  --force           - Force the dropping of the migrator schema in all cases, to be used in combination with --drop-schema");
     System.out.println();
+    System.out.println("Mutually Exclusive Options:");
+    System.out.println("  --list-skipped and --retry-skipped cannot be used together");
+    System.out.println("  --force can only be used with --drop-schema");
     System.out.println("Examples:");
     System.out.println("  start.sh --history --list-skipped");
     System.out.println("  start.sh --history --list-skipped HISTORY_PROCESS_INSTANCE HISTORY_USER_TASK");

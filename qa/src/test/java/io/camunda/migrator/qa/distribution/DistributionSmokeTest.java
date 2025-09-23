@@ -181,7 +181,7 @@ class DistributionSmokeTest {
     int exitCode = process.waitFor();
 
     assertThat(exitCode).isEqualTo(1);
-    assertThat(output).contains("`--retry-skipped` flag will be ignored because `--list-skipped` is passed");
+    assertThat(output).contains("Conflicting flags: --list-skipped and --retry-skipped cannot be used together");
   }
 
   @Test
@@ -198,24 +198,7 @@ class DistributionSmokeTest {
     int exitCode = process.waitFor();
 
     assertThat(exitCode).isEqualTo(1);
-    assertThat(output).contains("`--force` flag will be ignored because `--drop-schema` is not present");
-  }
-
-  @Test
-  @Timeout(value = 30, unit = TimeUnit.SECONDS)
-  void shouldShowWarningWhenTooManyArgumentsProvided() throws Exception {
-    // given
-    ProcessBuilder processBuilder = createProcessBuilder("--help", "--history");
-
-    // when
-    Process process = processBuilder.start();
-
-    // then
-    String output = readProcessOutput(process);
-    int exitCode = process.waitFor();
-
-    assertThat(exitCode).isEqualTo(1);
-    assertThat(output).contains("All flags but `--help` are ignored");
+    assertThat(output).contains("Invalid flag combination: --force requires --drop-schema. Use both flags together or remove --force.");
   }
 
   @Test
