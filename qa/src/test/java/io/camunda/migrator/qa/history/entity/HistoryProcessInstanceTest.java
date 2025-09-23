@@ -157,9 +157,9 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
     assertThat(processInstance.processDefinitionId()).isEqualTo(processDefinitionId);
     assertThat(processInstance.state()).isEqualTo(processInstanceState);
     assertThat(processInstance.processInstanceKey()).isEqualTo(
-        dbClient.findKeyByIdAndType(historicProcessInstance.getId(), IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE));
+        dbClient.findC8KeyByC7IdAndType(historicProcessInstance.getId(), IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE));
     assertThat(processInstance.processDefinitionKey()).isEqualTo(
-        dbClient.findKeyByIdAndType(historicProcessInstance.getProcessDefinitionId(),
+        dbClient.findC8KeyByC7IdAndType(historicProcessInstance.getProcessDefinitionId(),
             IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION));
     assertThat(processInstance.tenantId()).isEqualTo(tenantId);
     assertThat(processInstance.startDate()).isEqualTo(
@@ -170,7 +170,7 @@ public class HistoryProcessInstanceTest extends HistoryMigrationAbstractTest {
 
     if (hasParent) {
       assertThat(processInstance.parentProcessInstanceKey()).isEqualTo(
-          dbClient.findKeyByIdAndType(historicProcessInstance.getSuperProcessInstanceId(),
+          dbClient.findC8KeyByC7IdAndType(historicProcessInstance.getSuperProcessInstanceId(),
               IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE));
       assertThat(processInstance.parentFlowNodeInstanceKey()).isNull();
     } else {

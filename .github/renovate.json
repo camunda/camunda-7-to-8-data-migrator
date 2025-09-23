@@ -17,6 +17,11 @@
       "addLabels": [
         "automerge"
       ]
+    },
+    {
+      "description": "Disable npm updates",
+      "matchManagers": ["npm"],
+      "enabled": false
     }
   ],
   "vulnerabilityAlerts": {

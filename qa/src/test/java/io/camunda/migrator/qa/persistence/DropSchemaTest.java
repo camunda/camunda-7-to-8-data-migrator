@@ -76,7 +76,7 @@ public class DropSchemaTest {
     ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, MIGRATION_MAPPING_TABLE));
     DbClient dbClient = context.getBean("dbClient", DbClient.class);
     // and some entities are marked as skipped
-    dbClient.insert("legacyId", null, IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
+    dbClient.insert("c7Id", null, IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
 
     // when application is shut down
     context.close();
@@ -97,7 +97,7 @@ public class DropSchemaTest {
     ensureTrue("Migration mapping table does not exist", tableExists(durableDataSource, prefix + MIGRATION_MAPPING_TABLE));
     DbClient dbClient = context.getBean("dbClient", DbClient.class);
     // and some entities are marked as skipped
-    dbClient.insert("legacyId", null, IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
+    dbClient.insert("c7Id", null, IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
 
     // when application is shut down
     context.close();

@@ -15,14 +15,14 @@ import org.camunda.bpm.engine.repository.DecisionDefinition;
 
 public class DecisionDefinitionConverter {
 
-  public DecisionDefinitionDbModel apply(DecisionDefinition legacyDecisionDefinition, Long decisionRequirementsKey) {
+  public DecisionDefinitionDbModel apply(DecisionDefinition c7DecisionDefinition, Long decisionRequirementsKey) {
 
     return new DecisionDefinitionDbModel.DecisionDefinitionDbModelBuilder().decisionDefinitionKey(getNextKey())
-        .name(legacyDecisionDefinition.getName())
-        .decisionDefinitionId(legacyDecisionDefinition.getKey())
-        .tenantId(getTenantId(legacyDecisionDefinition.getTenantId()))
-        .version(legacyDecisionDefinition.getVersion())
-        .decisionRequirementsId(legacyDecisionDefinition.getDecisionRequirementsDefinitionKey())
+        .name(c7DecisionDefinition.getName())
+        .decisionDefinitionId(c7DecisionDefinition.getKey())
+        .tenantId(getTenantId(c7DecisionDefinition.getTenantId()))
+        .version(c7DecisionDefinition.getVersion())
+        .decisionRequirementsId(c7DecisionDefinition.getDecisionRequirementsDefinitionKey())
         .decisionRequirementsKey(decisionRequirementsKey)
         .build();
   }

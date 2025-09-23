@@ -34,7 +34,7 @@
     <version.junit.jupiter>5.13.4</version.junit.jupiter>
     <version.java>21</version.java>
     <version.h2>2.3.232</version.h2>
-    <plugin.version.compiler>3.14.0</plugin.version.compiler>
+    <plugin.version.compiler>3.14.1</plugin.version.compiler>
     <plugin.version.nexus-staging>1.7.0</plugin.version.nexus-staging>
 
     <url.source>jdbc:h2:~/Downloads/c8_rdbms-source.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE</url.source>

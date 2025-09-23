@@ -384,7 +384,7 @@ public class HistoryVariableTest extends HistoryMigrationAbstractTest {
         .create();
 
     VariableMap fileVar = Variables.createVariables().putValueTyped("fileVar", fileValue);
-    String legacyId = runtimeService.startProcessInstanceByKey("simpleProcess", fileVar).getId();
+    runtimeService.startProcessInstanceByKey("simpleProcess", fileVar);
 
     // when
     historyMigrator.migrate();
@@ -399,8 +399,8 @@ public class HistoryVariableTest extends HistoryMigrationAbstractTest {
     // deploy processes
     deployer.deployCamunda7Process("simpleProcess.bpmn");
 
-    String legacyId = runtimeService.startProcessInstanceByKey("simpleProcess",
-        Collections.singletonMap("bytesVar", "foo".getBytes())).getId();
+    runtimeService.startProcessInstanceByKey("simpleProcess",
+        Collections.singletonMap("bytesVar", "foo".getBytes()));
 
     // when
     historyMigrator.migrate();

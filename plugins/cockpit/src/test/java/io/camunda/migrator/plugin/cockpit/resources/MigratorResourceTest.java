@@ -43,8 +43,8 @@ public class MigratorResourceTest extends AbstractCockpitPluginTest {
   @Test
   public void testMigratedRecords() {
     // given - insert multiple migrated records
-    IdKeyDbModel expectedMigrated1 = createExpectedMigratedModel("migratedLegacyId1");
-    IdKeyDbModel expectedMigrated2 = createExpectedMigratedModel("migratedLegacyId2");
+    IdKeyDbModel expectedMigrated1 = createExpectedMigratedModel("migratedC7Id1");
+    IdKeyDbModel expectedMigrated2 = createExpectedMigratedModel("migratedC7Id2");
     insertTestData(expectedMigrated1);
     insertTestData(expectedMigrated2);
     String processInstanceType = String.valueOf(IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
@@ -62,8 +62,8 @@ public class MigratorResourceTest extends AbstractCockpitPluginTest {
   @Test
   public void testSkippedRecords() {
     // given - insert multiple skipped records
-    IdKeyDbModel expectedSkipped1 = createExpectedSkippedModel("skippedLegacyId1", "Test skip reason 1");
-    IdKeyDbModel expectedSkipped2 = createExpectedSkippedModel("skippedLegacyId2", "Test skip reason 2");
+    IdKeyDbModel expectedSkipped1 = createExpectedSkippedModel("skippedC7Id1", "Test skip reason 1");
+    IdKeyDbModel expectedSkipped2 = createExpectedSkippedModel("skippedC7Id2", "Test skip reason 2");
     insertTestData(expectedSkipped1);
     insertTestData(expectedSkipped2);
     String processInstanceType = String.valueOf(IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
@@ -139,10 +139,10 @@ public class MigratorResourceTest extends AbstractCockpitPluginTest {
 
     // Sort both lists by ID for comparison
     List<IdKeyDbModel> sortedExpected = expected.stream()
-        .sorted(Comparator.comparing(IdKeyDbModel::getId))
+        .sorted(Comparator.comparing(IdKeyDbModel::getC7Id))
         .toList();
     List<IdKeyDbModel> sortedActual = actual.stream()
-        .sorted(Comparator.comparing(IdKeyDbModel::getId))
+        .sorted(Comparator.comparing(IdKeyDbModel::getC7Id))
         .toList();
 
     // Compare each element
@@ -150,41 +150,41 @@ public class MigratorResourceTest extends AbstractCockpitPluginTest {
       IdKeyDbModel expectedModel = sortedExpected.get(i);
       IdKeyDbModel actualModel = sortedActual.get(i);
 
-      assertThat(actualModel.getId()).isEqualTo(expectedModel.getId());
-      assertThat(actualModel.getInstanceKey()).isEqualTo(expectedModel.getInstanceKey());
+      assertThat(actualModel.getC7Id()).isEqualTo(expectedModel.getC7Id());
+      assertThat(actualModel.getC8Key()).isEqualTo(expectedModel.getC8Key());
       assertThat(actualModel.getType()).isEqualTo(expectedModel.getType());
       assertThat(actualModel.getSkipReason()).isEqualTo(expectedModel.getSkipReason());
     }
   }
 
-  private IdKeyDbModel createExpectedMigratedModel(String legacyId) {
+  private IdKeyDbModel createExpectedMigratedModel(String c7Id) {
     IdKeyDbModel model = new IdKeyDbModel();
-    model.setId(legacyId);
-    model.setInstanceKey(getNextKey());
+    model.setC7Id(c7Id);
+    model.setC8Key(getNextKey());
     model.setType(IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
     return model;
   }
 
-  private IdKeyDbModel createExpectedSkippedModel(String legacyId, String skipReason) {
-    IdKeyDbModel model = createExpectedMigratedModel(legacyId);
+  private IdKeyDbModel createExpectedSkippedModel(String c7Id, String skipReason) {
+    IdKeyDbModel model = createExpectedMigratedModel(c7Id);
     model.setSkipReason(skipReason);
-    model.setInstanceKey(null);
+    model.setC8Key(null);
     return model;
   }
 
   private static void insertTestData(IdKeyDbModel idKeyDbModel) {
     try (Connection conn = DriverManager.getConnection(
         "jdbc:h2:mem:default-process-engine;DB_CLOSE_DELAY=-1", "sa", "")) {
-      String insertSql = "INSERT INTO MIGRATION_MAPPING (ID, INSTANCE_KEY, START_DATE, TYPE, SKIP_REASON) VALUES (?, ?, ?, ?, ?)";
+      String insertSql = "INSERT INTO MIGRATION_MAPPING (C7_ID, C8_KEY, CREATE_TIME, TYPE, SKIP_REASON) VALUES (?, ?, ?, ?, ?)";
       try (var stmt = conn.prepareStatement(insertSql)) {
-        stmt.setString(1, idKeyDbModel.getId());
+        stmt.setString(1, idKeyDbModel.getC7Id());
         stmt.setTimestamp(3, null);
         stmt.setString(4, String.valueOf(idKeyDbModel.getType()));
         stmt.setString(5, idKeyDbModel.getSkipReason());
-        if (idKeyDbModel.getInstanceKey() == null) {
+        if (idKeyDbModel.getC8Key() == null) {
           stmt.setNull(2, java.sql.Types.BIGINT);
         } else {
-          stmt.setLong(2, idKeyDbModel.getInstanceKey());
+          stmt.setLong(2, idKeyDbModel.getC8Key());
         }
         stmt.executeUpdate();
       }

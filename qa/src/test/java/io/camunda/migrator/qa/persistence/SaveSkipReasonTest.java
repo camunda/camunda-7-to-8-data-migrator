@@ -53,7 +53,7 @@ public class SaveSkipReasonTest extends RuntimeMigrationAbstractTest {
     assertThat(skippedInstances).hasSize(1);
 
     IdKeyDbModel savedInstance = skippedInstances.getFirst();
-    assertThat(savedInstance.getInstanceKey()).isNull();
+    assertThat(savedInstance.getC8Key()).isNull();
     assertThat(savedInstance.getSkipReason()).isEqualTo(String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, "multiUserTask"));
   }
 
@@ -77,6 +77,6 @@ public class SaveSkipReasonTest extends RuntimeMigrationAbstractTest {
 
     IdKeyDbModel savedInstance = skippedInstances.getFirst();
     assertThat(savedInstance.getSkipReason()).isNull();
-    assertThat(savedInstance.getInstanceKey()).isNull();
+    assertThat(savedInstance.getC8Key()).isNull();
   }
 }
