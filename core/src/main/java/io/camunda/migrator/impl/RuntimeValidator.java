@@ -156,9 +156,9 @@ public class RuntimeValidator {
    */
   public void validateC8DefinitionExists(List<ProcessDefinition> c8Definitions,
                                          String c8DefinitionId,
-                                         String legacyProcessInstanceId) {
+                                         String c7ProcessInstanceId) {
     if (c8Definitions.isEmpty()) {
-      throw new IllegalStateException(String.format(NO_C8_DEPLOYMENT_ERROR, c8DefinitionId, legacyProcessInstanceId));
+      throw new IllegalStateException(String.format(NO_C8_DEPLOYMENT_ERROR, c8DefinitionId, c7ProcessInstanceId));
     }
   }
 
@@ -187,10 +187,10 @@ public class RuntimeValidator {
    * This method iterates over all the activity instances of the root process instance and its
    * children until it either finds an activityInstance that cannot be migrated or the iteration ends.
    *
-   * @param legacyProcessInstanceId the legacy id of the root process instance.
+   * @param c7ProcessInstanceId the C7 id of the root process instance.
    */
-  public void validateProcessInstanceState(String legacyProcessInstanceId) {
-    RuntimeValidatorLogs.validateLegacyProcessInstance(legacyProcessInstanceId);
+  public void validateProcessInstanceState(String c7ProcessInstanceId) {
+    RuntimeValidatorLogs.validateC7ProcessInstance(c7ProcessInstanceId);
     c7Client.fetchAndHandleProcessInstances(processInstance -> {
       String processInstanceId = processInstance.getId();
       String c7DefinitionId = processInstance.getProcessDefinitionId();
@@ -216,7 +216,7 @@ public class RuntimeValidator {
         validateC7FlowNodes(c7DefinitionId, flowNode.activityId());
         validateC8FlowNodes(c8XmlString, flowNode.activityId());
       }
-    }, legacyProcessInstanceId);
+    }, c7ProcessInstanceId);
   }
 
   protected void validateMultiTenancy(String tenantId) {

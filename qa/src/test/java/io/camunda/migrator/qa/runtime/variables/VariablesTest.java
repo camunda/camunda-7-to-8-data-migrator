@@ -130,7 +130,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // deploy processes
     deployer.deployProcessInC7AndC8("simpleProcess.bpmn");
 
-    String legacyId = runtimeService.startProcessInstanceByKey("simpleProcess", Collections.singletonMap("bytesVar", "foo".getBytes())).getId();
+    String c7Id = runtimeService.startProcessInstanceByKey("simpleProcess", Collections.singletonMap("bytesVar", "foo".getBytes())).getId();
 
     // when running runtime migration
     runtimeMigrator.start();
@@ -138,7 +138,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // then
     assertThatProcessInstanceCountIsEqualTo(0);
     LOGS.assertContains(
-        String.format(SKIPPING_PROCESS_INSTANCE_VARIABLE_ERROR.replace("{}", "%s"), legacyId,
+        String.format(SKIPPING_PROCESS_INSTANCE_VARIABLE_ERROR.replace("{}", "%s"), c7Id,
             BYTE_ARRAY_UNSUPPORTED_ERROR));
   }
 
@@ -244,7 +244,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     deployer.deployProcessInC7AndC8("simpleProcess.bpmn");
 
     // given process state in c7
-    String legacyId = runtimeService.startProcessInstanceByKey("simpleProcess").getId();
+    String c7Id = runtimeService.startProcessInstanceByKey("simpleProcess").getId();
 
     String json = "{ broken syntax!";
     ObjectValue objectValue = Variables.serializedObjectValue(json)
@@ -252,14 +252,14 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
         .objectTypeName("io.camunda.migrator.qa.runtime.variables.JsonSerializable")
         .create();
 
-    runtimeService.setVariable(legacyId, "var", objectValue);
+    runtimeService.setVariable(c7Id, "var", objectValue);
 
     // when running runtime migration
     runtimeMigrator.start();
 
     // then
     assertThatProcessInstanceCountIsEqualTo(0);
-    LOGS.assertContains(String.format(SKIPPING_PROCESS_INSTANCE_VARIABLE_ERROR.replace("{}", "%s"), legacyId,
+    LOGS.assertContains(String.format(SKIPPING_PROCESS_INSTANCE_VARIABLE_ERROR.replace("{}", "%s"), c7Id,
         "Error while deserializing JSON into Map type."));
   }
 
@@ -304,7 +304,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
         .create();
 
     VariableMap fileVar = Variables.createVariables().putValueTyped("fileVar", fileValue);
-    String legacyId = runtimeService.startProcessInstanceByKey("simpleProcess", fileVar).getId();
+    String c7Id = runtimeService.startProcessInstanceByKey("simpleProcess", fileVar).getId();
 
     // when running runtime migration
     runtimeMigrator.start();
@@ -312,7 +312,7 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     // then
     assertThatProcessInstanceCountIsEqualTo(0);
     LOGS.assertContains(
-        String.format(SKIPPING_PROCESS_INSTANCE_VARIABLE_ERROR.replace("{}", "%s"), legacyId,
+        String.format(SKIPPING_PROCESS_INSTANCE_VARIABLE_ERROR.replace("{}", "%s"), c7Id,
             FILE_TYPE_UNSUPPORTED_ERROR));
   }
 
