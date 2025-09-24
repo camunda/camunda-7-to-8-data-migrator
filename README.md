@@ -89,6 +89,12 @@ start.bat --help
    ```bash
    mvn clean install
    ```
+   This will build all submodules and execute unit tests. You can restrict the build to the module you are changing by running the same command in the corresponding directory.
+   
+   The Cockpit plugin module requires Node.js. You can exclude building it by running:
+   ```bash
+   mvn clean install -pl '!plugins/cockpit'
+   ```
 
 3. **Find distribution** in `assembly/target/` directory
 

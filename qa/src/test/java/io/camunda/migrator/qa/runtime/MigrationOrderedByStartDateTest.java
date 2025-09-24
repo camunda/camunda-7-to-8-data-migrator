@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 import org.camunda.bpm.engine.impl.util.ClockUtil;
 import org.junit.jupiter.api.Test;
 
-class MigrationOrderedByStartDateTest extends RuntimeMigrationAbstractTest {
+class MigrationOrderedByCreateTimeTest extends RuntimeMigrationAbstractTest {
 
   @Test
   public void shouldMigrateStartedBetweenRuns() {
@@ -44,7 +44,7 @@ class MigrationOrderedByStartDateTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  public void shouldMigrateWithSameStartDate() {
+  public void shouldMigrateWithSameCreateTime() {
     // given
     deployer.deployProcessInC7AndC8("simpleProcess.bpmn");
 
@@ -68,7 +68,7 @@ class MigrationOrderedByStartDateTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  public void shouldRerunWithDifferentStartDateProcessInstancesMigratedAndValidationFailure() {
+  public void shouldRerunWithDifferentCreateTimeProcessInstancesMigratedAndValidationFailure() {
     // given
     deployer.deployProcessInC7AndC8("simpleProcess.bpmn");
 
@@ -94,7 +94,7 @@ class MigrationOrderedByStartDateTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  public void shouldRerunWithDifferentStartDateWithProcessInstancesSkippedAndValidationFailure() {
+  public void shouldRerunWithDifferentCreateTimeWithProcessInstancesSkippedAndValidationFailure() {
     // given
     deployer.deployCamunda7Process("simpleProcess.bpmn");
     deployer.deployCamunda8Process("simpleProcessWithoutListener.bpmn");
@@ -121,7 +121,7 @@ class MigrationOrderedByStartDateTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  public void shouldRerunSameStartDateWithProcessInstancesMigratedAndValidationFailure() {
+  public void shouldRerunSameCreateTimeWithProcessInstancesMigratedAndValidationFailure() {
     // given
     deployer.deployProcessInC7AndC8("simpleProcess.bpmn");
 
@@ -146,7 +146,7 @@ class MigrationOrderedByStartDateTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  public void shouldRerunWithSameStartDateWithProcessInstancesSkippedAndValidationFailure() {
+  public void shouldRerunWithSameCreateTimeWithProcessInstancesSkippedAndValidationFailure() {
     // given
     deployer.deployCamunda7Process("simpleProcess.bpmn");
     deployer.deployCamunda8Process("simpleProcessWithoutListener.bpmn");

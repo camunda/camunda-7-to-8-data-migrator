@@ -85,6 +85,32 @@ class DistributionSmokeTest {
 
   @Test
   @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  void shouldShowUsageWhenNoFlagProvided() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder();
+
+    // Read the existing configuration file and set auto-dll to true
+    replaceConfigProperty("auto-ddl: false", "auto-ddl: true");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("Error: Must specify at least one migration type");
+    assertThat(output).contains("Usage: start.sh/bat");
+    assertThat(output).contains("--help");
+    assertThat(output).contains("--runtime");
+    assertThat(output).contains("--history");
+    assertThat(output).contains("--list-skipped");
+    assertThat(output).contains("--retry-skipped");
+  }
+
+  @Test
+  @Timeout(value = 60, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenHelpFlagProvided() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--help");
@@ -100,6 +126,7 @@ class DistributionSmokeTest {
     int exitCode = process.waitFor();
 
     assertThat(exitCode).isEqualTo(1);
+    assertThat(output).doesNotContain("Error");
     assertThat(output).contains("Usage: start.sh/bat");
     assertThat(output).contains("--help");
     assertThat(output).contains("--runtime");
@@ -110,9 +137,12 @@ class DistributionSmokeTest {
 
   @Test
   @Timeout(value = 60, unit = TimeUnit.SECONDS)
-  void shouldShowUsageWhenTooManyArgumentsProvided() throws Exception {
+  void shouldShowUsageWhenHelpFlagCombinedWithOtherFlags() throws Exception {
     // given
-    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history", "--history", "--drop-schema", "--force", "--list-skipped");
+    ProcessBuilder processBuilder = createProcessBuilder("--help", "--runtime");
+
+    // Read the existing configuration file and set auto-dll to true
+    replaceConfigProperty("auto-ddl: false", "auto-ddl: true");
 
     // when
     Process process = processBuilder.start();
@@ -122,49 +152,13 @@ class DistributionSmokeTest {
     int exitCode = process.waitFor();
 
     assertThat(exitCode).isEqualTo(1);
-    assertThat(output).contains("Error: Too many arguments.");
+    assertThat(output).contains("Error: The --help flag cannot be combined with other flags.");
     assertThat(output).contains("Usage: start.sh/bat");
-  }
-
-  @Test
-  @Timeout(value = 30, unit = TimeUnit.SECONDS)
-  void shouldShowUsageWhenNoRuntimeOrHistoryArgumentsProvided() throws Exception {
-    // given
-    ProcessBuilder processBuilder = createProcessBuilder();
-
-    // when
-    process = processBuilder.start();
-
-    // then
-    String output = readProcessOutput(process);
-    assertThat(output).contains("Must specify at least one migration type: use --runtime, --history, or both.");
-    assertThat(output).contains("Usage: start.sh/bat");
-  }
-
-  @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
-  void shouldAcceptValidFlags() throws Exception {
-    // given
-    String[][] validFlags = {
-        {"--runtime"},
-        {"--history"},
-        {"--runtime", "--drop-schema"},
-        {"--runtime", "--drop-schema", "--force"},
-        {"--history", "--list-skipped"},
-        {"--history", "--retry-skipped"}
-    };
-
-    for (String[] flag : validFlags) {
-      ProcessBuilder processBuilder = createProcessBuilder(flag);
-
-      // when
-      process = processBuilder.start();
-
-      // then
-      String output = readProcessOutput(process);
-
-      assertThat(output).contains("Starting migration with flags: " + String.join(" ", flag));
-    }
+    assertThat(output).contains("--help");
+    assertThat(output).contains("--runtime");
+    assertThat(output).contains("--history");
+    assertThat(output).contains("--list-skipped");
+    assertThat(output).contains("--retry-skipped");
   }
 
   @Test
@@ -205,26 +199,47 @@ class DistributionSmokeTest {
 
   @Test
   @Timeout(value = 30, unit = TimeUnit.SECONDS)
-  void shouldStartWithoutArgumentsAndShowExpectedMessage() throws Exception {
+  void shouldShowUsageWhenTooManyArgumentsProvided() throws Exception {
     // given
-    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history");
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history", "--history", "--drop-schema", "--force", "--list-skipped");
 
     // when
-    process = processBuilder.start();
+    Process process = processBuilder.start();
 
     // then
     String output = readProcessOutput(process);
-    assertThat(output).contains("Starting migration with flags: --runtime --history");
+    int exitCode = process.waitFor();
 
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("Error: Too many arguments.");
+    assertThat(output).contains("Usage: start.sh/bat");
+  }
+
+  @Test
+  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  void shouldAcceptValidFlags() throws Exception {
     // given
-    processBuilder = createProcessBuilder("--history", "--runtime");
+    String[][] validFlags = {
+        {"--runtime"},
+        {"--history"},
+        {"--runtime", "--history"},
+        {"--runtime", "--drop-schema"},
+        {"--runtime", "--drop-schema", "--force"},
+        {"--history", "--list-skipped"},
+        {"--history", "--retry-skipped"}
+    };
 
-    // when
-    process = processBuilder.start();
+    for (String[] flag : validFlags) {
+      ProcessBuilder processBuilder = createProcessBuilder(flag);
 
-    // then
-    output = readProcessOutput(process);
-    assertThat(output).contains("Starting migration with flags: --history --runtime");
+      // when
+      process = processBuilder.start();
+
+      // then
+      String output = readProcessOutput(process);
+
+      assertThat(output).contains("Starting migration with flags: " + String.join(" ", flag));
+    }
   }
 
   @Test

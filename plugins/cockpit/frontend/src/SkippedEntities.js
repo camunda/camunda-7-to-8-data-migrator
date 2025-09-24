@@ -29,11 +29,11 @@ function SkippedEntities({camundaAPI}) {
 
   const getEntityLink = (entity) => {
     if (entity.type === ENTITY_TYPES.RUNTIME_PROCESS_INSTANCE) {
-      return <a href={`#/process-instance/${entity.id}/runtime`}>{entity.id}</a>;
+      return <a href={`#/process-instance/${entity.c7Id}/runtime`}>{entity.c7Id}</a>;
     } else if (entity.type === ENTITY_TYPES.HISTORY_PROCESS_INSTANCE) {
-      return <a href={`#/process-instance/${entity.id}/history`}>{entity.id}</a>;
+      return <a href={`#/process-instance/${entity.c7Id}/history`}>{entity.c7Id}</a>;
     } else {
-      return entity.id;
+      return entity.c7Id;
     }
   }
 
@@ -77,8 +77,8 @@ function SkippedEntities({camundaAPI}) {
 
       // Create link to history process instance view with activity highlighting
       const processInstanceId = entity.type === ENTITY_TYPES.HISTORY_VARIABLE
-        ? processInstanceIds[entity.id]
-        : entity.id;
+        ? processInstanceIds[entity.c7Id]
+        : entity.c7Id;
 
       if (processInstanceId) {
         parts.push("flow node with id ");
@@ -110,14 +110,14 @@ function SkippedEntities({camundaAPI}) {
   const columns = useMemo(
     () => {
       let baseColumns = [
-        columnHelper.accessor('id', {
+        columnHelper.accessor('c7Id', {
           header: getColumnHeader(),
           cell: info => getEntityLink(info.row.original),
           size: 370
         })];
 
       if (!showSkipped) {
-        baseColumns.push(columnHelper.accessor('instanceKey', {
+        baseColumns.push(columnHelper.accessor('c8Key', {
           header: 'C8 Key',
           cell: info =>
             <a href={`http://localhost:8080/operate/processes/${info.getValue()}`} target={"_blank"}>{info.getValue()}</a>,
@@ -137,7 +137,7 @@ function SkippedEntities({camundaAPI}) {
       // Add process instance column for HISTORY_VARIABLE type
       if (selectedType === ENTITY_TYPES.HISTORY_VARIABLE) {
         baseColumns.splice(1, 0,
-          columnHelper.accessor('id', {
+          columnHelper.accessor('c7Id', {
             id: 'processInstanceId',
             header: 'Process Instance ID',
             cell: info => {
@@ -152,14 +152,14 @@ function SkippedEntities({camundaAPI}) {
           columnHelper.accessor('name', {
             header: 'Variable Name',
             cell: info => {
-              const variableId = info.row.original.id;
+              const variableId = info.row.original.c7Id;
               return variableMetadata[variableId]?.name || <span>Loading...</span>;
             },
           }),
           columnHelper.accessor('type', {
             header: 'Variable Type',
             cell: info => {
-              const variableId = info.row.original.id;
+              const variableId = info.row.original.c7Id;
               return variableMetadata[variableId]?.type || <span>Loading...</span>;
             },
           })
@@ -169,7 +169,7 @@ function SkippedEntities({camundaAPI}) {
       // Add process definition key column for RUNTIME_PROCESS_INSTANCE type
       if (selectedType === ENTITY_TYPES.RUNTIME_PROCESS_INSTANCE) {
         baseColumns.splice(1, 0,
-          columnHelper.accessor('id', {
+          columnHelper.accessor('c7Id', {
             id: 'processDefinitionKey',
             header: 'Process Definition Key',
             cell: info => {
@@ -185,7 +185,7 @@ function SkippedEntities({camundaAPI}) {
       // Add process definition key column for HISTORY_PROCESS_INSTANCE type
       if (selectedType === ENTITY_TYPES.HISTORY_PROCESS_INSTANCE) {
         baseColumns.splice(1, 0,
-          columnHelper.accessor('id', {
+          columnHelper.accessor('c7Id', {
             id: 'historyProcessDefinitionKey',
             header: 'Process Definition Key',
             cell: info => {
@@ -302,11 +302,11 @@ function SkippedEntities({camundaAPI}) {
 
     const fetchPromises = entities.map(async (entity) => {
       // Skip if we already have the process instance ID
-      if (newProcessInstanceIds[entity.id]) return;
+      if (newProcessInstanceIds[entity.c7Id]) return;
 
       try {
         const response = await fetch(
-          `${restApi}/history/variable-instance/${entity.id}`,
+          `${restApi}/history/variable-instance/${entity.c7Id}`,
           {
             headers: {
               'Accept': 'application/json'
@@ -316,7 +316,7 @@ function SkippedEntities({camundaAPI}) {
         const data = await response.json();
 
         if (data && data.processInstanceId) {
-          newProcessInstanceIds[entity.id] = data.processInstanceId;
+          newProcessInstanceIds[entity.c7Id] = data.processInstanceId;
           hasChanges = true;
         }
 
@@ -328,11 +328,11 @@ function SkippedEntities({camundaAPI}) {
           // Store variable metadata separately
           setVariableMetadata(prevMetadata => ({
             ...prevMetadata,
-            [entity.id]: {name: data.name, type: data.type}
+            [entity.c7Id]: {name: data.name, type: data.type}
           }));
         }
       } catch (err) {
-        console.error(`Failed to fetch process instance ID for variable ${entity.id}:`, err);
+        console.error(`Failed to fetch process instance ID for variable ${entity.c7Id}:`, err);
       }
     });
 
@@ -351,7 +351,7 @@ function SkippedEntities({camundaAPI}) {
 
     const fetchPromises = entities.map(async (entity) => {
       // Skip if we already have the process definition key
-      if (newProcessDefinitionKeys[entity.id]) return;
+      if (newProcessDefinitionKeys[entity.c7Id]) return;
 
       try {
         let response;
@@ -359,7 +359,7 @@ function SkippedEntities({camundaAPI}) {
         // Use different endpoints for runtime vs history
         if (selectedType === ENTITY_TYPES.RUNTIME_PROCESS_INSTANCE) {
           response = await fetch(
-            `${restApi}/process-instance/${entity.id}`,
+            `${restApi}/process-instance/${entity.c7Id}`,
             {
               headers: {
                 'Accept': 'application/json'
@@ -368,7 +368,7 @@ function SkippedEntities({camundaAPI}) {
           );
         } else if (selectedType === ENTITY_TYPES.HISTORY_PROCESS_INSTANCE) {
           response = await fetch(
-            `${restApi}/history/process-instance/${entity.id}`,
+            `${restApi}/history/process-instance/${entity.c7Id}`,
             {
               headers: {
                 'Accept': 'application/json'
@@ -378,8 +378,8 @@ function SkippedEntities({camundaAPI}) {
         }
 
         if (!response.ok) {
-          console.error(`Failed to fetch process instance ${entity.id}:`, response.status, response.statusText);
-          newProcessDefinitionKeys[entity.id] = 'Error';
+          console.error(`Failed to fetch process instance ${entity.c7Id}:`, response.status, response.statusText);
+          newProcessDefinitionKeys[entity.c7Id] = 'Error';
           hasChanges = true;
           return;
         }
@@ -387,16 +387,16 @@ function SkippedEntities({camundaAPI}) {
         const data = await response.json();
 
         if (data && (data.processDefinitionKey || data.definitionKey)) {
-          newProcessDefinitionKeys[entity.id] = data.processDefinitionKey || data.definitionKey;
+          newProcessDefinitionKeys[entity.c7Id] = data.processDefinitionKey || data.definitionKey;
           hasChanges = true;
         } else {
-          console.warn('No processDefinitionKey found for process instance:', entity.id, 'Available fields:', Object.keys(data || {}));
-          newProcessDefinitionKeys[entity.id] = 'Unknown';
+          console.warn('No processDefinitionKey found for process instance:', entity.c7Id, 'Available fields:', Object.keys(data || {}));
+          newProcessDefinitionKeys[entity.c7Id] = 'Unknown';
           hasChanges = true;
         }
       } catch (err) {
-        console.error(`Failed to fetch process definition key for process instance ${entity.id}:`, err);
-        newProcessDefinitionKeys[entity.id] = 'Error';
+        console.error(`Failed to fetch process definition key for process instance ${entity.c7Id}:`, err);
+        newProcessDefinitionKeys[entity.c7Id] = 'Error';
         hasChanges = true;
       }
     });

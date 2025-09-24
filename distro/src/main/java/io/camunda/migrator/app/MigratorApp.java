@@ -85,6 +85,14 @@ public class MigratorApp {
   protected static void validateArguments(String[] args) {
     List<String> argsList = java.util.Arrays.asList(args);
 
+    if (argsList.contains("--" + ARG_HELP)) {
+      if (argsList.size() > 1) {
+        throw new IllegalArgumentException("The --help flag cannot be combined with other flags.");
+      } else {
+        return;
+      }
+    }
+
     if (!argsList.contains("--" + ARG_HISTORY_MIGRATION) && !argsList.contains("--" + ARG_RUNTIME_MIGRATION)) {
       throw new IllegalArgumentException("Must specify at least one migration type: use --runtime, --history, or both.");
     }

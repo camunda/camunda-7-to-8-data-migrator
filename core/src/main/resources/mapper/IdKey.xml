@@ -10,21 +10,21 @@
 <mapper namespace="io.camunda.migrator.impl.persistence.IdKeyMapper">
 
   <resultMap id="idKeyResultMap" type="io.camunda.migrator.impl.persistence.IdKeyDbModel">
-    <id property="id" column="ID" jdbcType="VARCHAR"/>
-    <result property="instanceKey" column="INSTANCE_KEY" jdbcType="BIGINT"/>
-    <result property="startDate" column="START_DATE" jdbcType="TIMESTAMP"/>
+    <id property="c7Id" column="C7_ID" jdbcType="VARCHAR"/>
+    <result property="c8Key" column="C8_KEY" jdbcType="BIGINT"/>
+    <result property="createTime" column="CREATE_TIME" jdbcType="TIMESTAMP"/>
     <result property="type" column="TYPE" jdbcType="VARCHAR"/>
     <result property="skipReason" column="SKIP_REASON" jdbcType="VARCHAR"/>
   </resultMap>
 
   <select id="countSkipped" resultType="long">
-    SELECT COUNT(ID) FROM ${prefix}MIGRATION_MAPPING
-    WHERE INSTANCE_KEY IS NULL
+    SELECT COUNT(C7_ID) FROM ${prefix}MIGRATION_MAPPING
+    WHERE C8_KEY IS NULL
   </select>
 
   <select id="countSkippedByType" resultType="long">
-    SELECT COUNT(ID) FROM ${prefix}MIGRATION_MAPPING
-    WHERE TYPE = #{type} AND INSTANCE_KEY IS NULL
+    SELECT COUNT(C7_ID) FROM ${prefix}MIGRATION_MAPPING
+    WHERE TYPE = #{type} AND C8_KEY IS NULL
   </select>
 
   <!-- countMigratedByType is used for testing and by the migrator cockpit plugin -->
@@ -34,58 +34,58 @@
 
   <!-- countMigratedByType is used by the migrator cockpit plugin -->
   <select id="countMigratedByType" resultType="long">
-    SELECT COUNT(ID) FROM ${prefix}MIGRATION_MAPPING
-    WHERE TYPE = #{type} AND INSTANCE_KEY IS NOT NULL
+    SELECT COUNT(C7_ID) FROM ${prefix}MIGRATION_MAPPING
+    WHERE TYPE = #{type} AND C8_KEY IS NOT NULL
   </select>
 
   <!-- findMigratedByType is used for testing and by the migrator cockpit plugin -->
   <select id="findMigratedByType" resultMap="idKeyResultMap">
-    SELECT ID, INSTANCE_KEY, START_DATE, TYPE, SKIP_REASON FROM ${prefix}MIGRATION_MAPPING
-    WHERE TYPE = #{type} AND INSTANCE_KEY IS NOT NULL
+    SELECT C7_ID, C8_KEY, CREATE_TIME, TYPE, SKIP_REASON FROM ${prefix}MIGRATION_MAPPING
+    WHERE TYPE = #{type} AND C8_KEY IS NOT NULL
     <include refid="io.camunda.migrator.Commons.pageSql"/>
   </select>
 
   <sql id="findSkippedByQueryCriteriaSql">
-    SELECT ID, INSTANCE_KEY, START_DATE, TYPE, SKIP_REASON FROM ${prefix}MIGRATION_MAPPING
-    WHERE TYPE = #{type} AND INSTANCE_KEY IS NULL
+    SELECT C7_ID, C8_KEY, CREATE_TIME, TYPE, SKIP_REASON FROM ${prefix}MIGRATION_MAPPING
+    WHERE TYPE = #{type} AND C8_KEY IS NULL
     <include refid="io.camunda.migrator.Commons.pageSql"/>
   </sql>
 
-  <select id="findAllIds">
-    SELECT ID
+  <select id="findAllC7Ids">
+    SELECT C7_ID
     FROM ${prefix}MIGRATION_MAPPING
   </select>
 
-  <update id="updateKeyByIdAndType" parameterType="io.camunda.migrator.impl.persistence.IdKeyDbModel">
+  <update id="updateC8KeyByC7IdAndType" parameterType="io.camunda.migrator.impl.persistence.IdKeyDbModel">
     UPDATE ${prefix}MIGRATION_MAPPING
-    SET INSTANCE_KEY = #{instanceKey, jdbcType=BIGINT}
-    WHERE ID = #{id, jdbcType=VARCHAR} AND TYPE = #{type, jdbcType=VARCHAR}
+    SET C8_KEY = #{c8Key, jdbcType=BIGINT}
+    WHERE C7_ID = #{c7Id, jdbcType=VARCHAR} AND TYPE = #{type, jdbcType=VARCHAR}
   </update>
 
-  <select id="checkHasKeyByIdAndType" resultType="boolean">
+  <select id="checkHasC8KeyByC7IdAndType" resultType="boolean">
     SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END
     FROM ${prefix}MIGRATION_MAPPING
-    WHERE ID = #{id, jdbcType=VARCHAR}
+    WHERE C7_ID = #{c7Id, jdbcType=VARCHAR}
     AND TYPE = #{type, jdbcType=VARCHAR}
-    AND INSTANCE_KEY IS NOT NULL
+    AND C8_KEY IS NOT NULL
   </select>
 
-  <select id="checkExistsByIdAndType" resultType="boolean">
+  <select id="checkExistsByC7IdAndType" resultType="boolean">
     SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END
     FROM ${prefix}MIGRATION_MAPPING
-    WHERE ID = #{id, jdbcType=VARCHAR}
+    WHERE C7_ID = #{c7Id, jdbcType=VARCHAR}
     AND TYPE = #{type, jdbcType=VARCHAR}
   </select>
 
-  <select id="findLatestStartDateByType" parameterType="java.lang.String">
-    <!-- No need to order with two criteria since we limit result to return exactly one start date -->
-    SELECT START_DATE FROM ${prefix}MIGRATION_MAPPING WHERE TYPE = '${type}' ORDER BY START_DATE DESC
+  <select id="findLatestCreateTimeByType" parameterType="java.lang.String">
+    <!-- No need to order with two criteria since we limit result to return exactly one create time -->
+    SELECT CREATE_TIME FROM ${prefix}MIGRATION_MAPPING WHERE TYPE = '${type}' ORDER BY CREATE_TIME DESC
     <include refid="io.camunda.migrator.Commons.singleResultSql"/>
   </select>
 
-  <select id="findKeysByIdAndType" resultType="java.lang.Long">
-    SELECT INSTANCE_KEY FROM ${prefix}MIGRATION_MAPPING
-    WHERE ID = #{id, jdbcType=VARCHAR} AND TYPE = #{type, jdbcType=VARCHAR}
+  <select id="findC8KeyByC7IdAndType" resultType="java.lang.Long">
+    SELECT C8_KEY FROM ${prefix}MIGRATION_MAPPING
+    WHERE C7_ID = #{c7Id, jdbcType=VARCHAR} AND TYPE = #{type, jdbcType=VARCHAR}
     <include refid="io.camunda.migrator.Commons.singleResultSql"/>
   </select>
 
@@ -93,13 +93,13 @@
     id="insert"
     parameterType="io.camunda.migrator.impl.persistence.IdKeyDbModel"
     flushCache="true">
-    INSERT INTO ${prefix}MIGRATION_MAPPING (ID, INSTANCE_KEY, START_DATE, TYPE, SKIP_REASON)
-    VALUES (#{id, jdbcType=VARCHAR}, #{instanceKey, jdbcType=BIGINT}, #{startDate, jdbcType=TIMESTAMP}, #{type, jdbcType=VARCHAR}, #{skipReason, jdbcType=VARCHAR})
+    INSERT INTO ${prefix}MIGRATION_MAPPING (C7_ID, C8_KEY, CREATE_TIME, TYPE, SKIP_REASON)
+    VALUES (#{c7Id, jdbcType=VARCHAR}, #{c8Key, jdbcType=BIGINT}, #{createTime, jdbcType=TIMESTAMP}, #{type, jdbcType=VARCHAR}, #{skipReason, jdbcType=VARCHAR})
   </insert>
 
-  <delete id="delete">
+  <delete id="deleteByC7Id">
     DELETE FROM ${prefix}MIGRATION_MAPPING
-    WHERE ID = #{id}
+    WHERE C7_ID = #{c7Id}
   </delete>
 
 </mapper>

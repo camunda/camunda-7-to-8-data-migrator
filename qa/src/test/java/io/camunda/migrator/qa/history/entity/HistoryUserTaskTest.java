@@ -17,14 +17,11 @@ import io.camunda.search.entities.UserTaskEntity;
 import java.util.Date;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.history.HistoricTaskInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.Task;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.system.CapturedOutput;
 
 public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
 
@@ -343,13 +340,13 @@ public class HistoryUserTaskTest extends HistoryMigrationAbstractTest {
                                       String expectedElementId) {
     // Basic identifiers
     assertThat(userTask.userTaskKey()).isEqualTo(
-        dbClient.findKeyByIdAndType(c7Task.getId(), IdKeyMapper.TYPE.HISTORY_USER_TASK));
+        dbClient.findC8KeyByC7IdAndType(c7Task.getId(), IdKeyMapper.TYPE.HISTORY_USER_TASK));
     assertThat(userTask.elementId()).isEqualTo(expectedElementId);
     assertThat(userTask.processDefinitionId()).isEqualTo(c7Task.getProcessDefinitionKey());
     assertThat(userTask.processDefinitionKey()).isEqualTo(
-        dbClient.findKeyByIdAndType(c7Task.getProcessDefinitionId(), IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION));
+        dbClient.findC8KeyByC7IdAndType(c7Task.getProcessDefinitionId(), IdKeyMapper.TYPE.HISTORY_PROCESS_DEFINITION));
     assertThat(userTask.elementInstanceKey()).isEqualTo(
-        dbClient.findKeyByIdAndType(c7Task.getActivityInstanceId(), IdKeyMapper.TYPE.HISTORY_FLOW_NODE));
+        dbClient.findC8KeyByC7IdAndType(c7Task.getActivityInstanceId(), IdKeyMapper.TYPE.HISTORY_FLOW_NODE));
 
     // Dates
     assertThat(userTask.creationDate()).isNotNull();

@@ -61,13 +61,13 @@ public interface IdKeyMapper {
     return HISTORY_TYPES;
   }
 
-  boolean checkExistsByIdAndType(@Param("type") TYPE type, @Param("id") String id);
+  boolean checkExistsByC7IdAndType(@Param("type") TYPE type, @Param("c7Id") String c7Id);
 
-  boolean checkHasKeyByIdAndType(@Param("type") TYPE type, @Param("id") String id);
+  boolean checkHasC8KeyByC7IdAndType(@Param("type") TYPE type, @Param("c7Id") String c7Id);
 
-  Date findLatestStartDateByType(TYPE type);
+  Date findLatestCreateTimeByType(TYPE type);
 
-  Long findKeysByIdAndType(@Param("id") String id, @Param("type") TYPE type);
+  Long findC8KeyByC7IdAndType(@Param("c7Id") String id, @Param("type") TYPE type);
 
   void insert(IdKeyDbModel idKeyDbModel);
 
@@ -79,9 +79,9 @@ public interface IdKeyMapper {
 
   long countSkipped();
 
-  List<String> findAllIds();
+  List<String> findAllC7Ids();
 
-  void updateKeyByIdAndType(IdKeyDbModel idKeyDbModel);
+  void updateC8KeyByC7IdAndType(IdKeyDbModel idKeyDbModel);
 
-  void delete(String id);
+  void deleteByC7Id(String c7Id);
 }

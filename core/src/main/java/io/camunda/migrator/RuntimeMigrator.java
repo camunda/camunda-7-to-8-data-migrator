@@ -76,68 +76,68 @@ public class RuntimeMigrator {
   }
 
   protected void migrate() {
-    fetchProcessInstancesToMigrate(legacyProcessInstance -> {
-      String legacyProcessInstanceId = legacyProcessInstance.getId();
-      Date startDate = legacyProcessInstance.getStartDate();
+    fetchProcessInstancesToMigrate(c7ProcessInstance -> {
+      String c7ProcessInstanceId = c7ProcessInstance.getC7Id();
+      Date createTime = c7ProcessInstance.getCreateTime();
 
-      String skipReason = getSkipReason(legacyProcessInstanceId);
-      if (skipReason == null && shouldStartProcessInstance(legacyProcessInstanceId)) {
-        startProcessInstance(legacyProcessInstanceId, startDate);
-      } else if (isUnknown(legacyProcessInstanceId)) {
-        dbClient.insert(legacyProcessInstanceId, startDate, TYPE.RUNTIME_PROCESS_INSTANCE, skipReason);
+      String skipReason = getSkipReason(c7ProcessInstanceId);
+      if (skipReason == null && shouldStartProcessInstance(c7ProcessInstanceId)) {
+        startProcessInstance(c7ProcessInstanceId, createTime);
+      } else if (isUnknown(c7ProcessInstanceId)) {
+        dbClient.insert(c7ProcessInstanceId, null, createTime, TYPE.RUNTIME_PROCESS_INSTANCE, skipReason);
       }
     });
 
     activateMigratorJobs();
   }
 
-  protected String getSkipReason(String legacyProcessInstanceId) {
+  protected String getSkipReason(String c7ProcessInstanceId) {
     try {
-      runtimeValidator.validateProcessInstanceState(legacyProcessInstanceId);
+      runtimeValidator.validateProcessInstanceState(c7ProcessInstanceId);
       return null;
     } catch (IllegalStateException e) {
-      RuntimeMigratorLogs.skippingProcessInstanceValidationError(legacyProcessInstanceId, e.getMessage());
+      RuntimeMigratorLogs.skippingProcessInstanceValidationError(c7ProcessInstanceId, e.getMessage());
       return e.getMessage();
     }
   }
 
-  protected boolean shouldStartProcessInstance(String legacyProcessInstanceId) {
-    return RETRY_SKIPPED.equals(mode) || isUnknown(legacyProcessInstanceId);
+  protected boolean shouldStartProcessInstance(String c7ProcessInstanceId) {
+    return RETRY_SKIPPED.equals(mode) || isUnknown(c7ProcessInstanceId);
   }
 
-  protected boolean isUnknown(String legacyProcessInstanceId) {
-    return MIGRATE.equals(mode) && !dbClient.checkExistsByIdAndType(legacyProcessInstanceId, RUNTIME_PROCESS_INSTANCE);
+  protected boolean isUnknown(String c7ProcessInstanceId) {
+    return MIGRATE.equals(mode) && !dbClient.checkExistsByC7IdAndType(c7ProcessInstanceId, RUNTIME_PROCESS_INSTANCE);
   }
 
-  protected void startProcessInstance(String legacyProcessInstanceId, Date startDate) {
-    RuntimeMigratorLogs.startingNewC8ProcessInstance(legacyProcessInstanceId);
+  protected void startProcessInstance(String c7ProcessInstanceId, Date createTime) {
+    RuntimeMigratorLogs.startingNewC8ProcessInstance(c7ProcessInstanceId);
 
     try {
-      Long processInstanceKey = startNewProcessInstance(legacyProcessInstanceId);
+      Long processInstanceKey = startNewProcessInstance(c7ProcessInstanceId);
       RuntimeMigratorLogs.startedC8ProcessInstance(processInstanceKey);
 
       if (processInstanceKey != null) {
-        saveRecord(legacyProcessInstanceId, startDate, processInstanceKey);
+        saveRecord(c7ProcessInstanceId, createTime, processInstanceKey);
       }
     } catch (VariableInterceptorException e) {
-      handleVariableInterceptorException(e, legacyProcessInstanceId, startDate);
+      handleVariableInterceptorException(e, c7ProcessInstanceId, createTime);
     }
   }
 
-  protected void handleVariableInterceptorException(VariableInterceptorException e, String legacyProcessInstanceId, Date startDate) {
-    RuntimeMigratorLogs.skippingProcessInstanceVariableError(legacyProcessInstanceId, e.getMessage());
+  protected void handleVariableInterceptorException(VariableInterceptorException e, String c7ProcessInstanceId, Date createTime) {
+    RuntimeMigratorLogs.skippingProcessInstanceVariableError(c7ProcessInstanceId, e.getMessage());
     RuntimeMigratorLogs.stacktrace(e);
 
     if (MIGRATE.equals(mode)) {
-      dbClient.insert(legacyProcessInstanceId, startDate, TYPE.RUNTIME_PROCESS_INSTANCE, e.getMessage());
+      dbClient.insert(c7ProcessInstanceId, null, createTime, TYPE.RUNTIME_PROCESS_INSTANCE, e.getMessage());
     }
   }
 
-  protected void saveRecord(String legacyProcessInstanceId, Date startDate, Long processInstanceKey) {
+  protected void saveRecord(String c7ProcessInstanceId, Date createTime, Long processInstanceKey) {
     if (RETRY_SKIPPED.equals(mode)) {
-      dbClient.updateKeyByIdAndType(legacyProcessInstanceId, processInstanceKey, TYPE.RUNTIME_PROCESS_INSTANCE);
+      dbClient.updateC8KeyByC7IdAndType(c7ProcessInstanceId, processInstanceKey, TYPE.RUNTIME_PROCESS_INSTANCE);
     } else if (MIGRATE.equals(mode)) {
-      dbClient.insert(legacyProcessInstanceId, startDate, processInstanceKey, TYPE.RUNTIME_PROCESS_INSTANCE);
+      dbClient.insert(c7ProcessInstanceId, processInstanceKey, createTime, TYPE.RUNTIME_PROCESS_INSTANCE);
     }
   }
 
@@ -147,26 +147,26 @@ public class RuntimeMigrator {
     if (RETRY_SKIPPED.equals(mode)) {
       dbClient.fetchAndHandleSkippedForType(TYPE.RUNTIME_PROCESS_INSTANCE, storeMappingConsumer);
     } else {
-      RuntimeMigratorLogs.fetchingLatestStartDate();
-      Date latestStartDate = dbClient.findLatestStartDateByType(TYPE.RUNTIME_PROCESS_INSTANCE);
-      RuntimeMigratorLogs.latestStartDate(latestStartDate);
+      RuntimeMigratorLogs.fetchingLatestCreateTime();
+      Date latestCreateTime = dbClient.findLatestCreateTimeByType(TYPE.RUNTIME_PROCESS_INSTANCE);
+      RuntimeMigratorLogs.latestCreateTime(latestCreateTime);
 
-      c7Client.fetchAndHandleHistoricRootProcessInstances(storeMappingConsumer, latestStartDate);
+      c7Client.fetchAndHandleHistoricRootProcessInstances(storeMappingConsumer, latestCreateTime);
     }
   }
 
-  protected Long startNewProcessInstance(String legacyProcessInstanceId) throws VariableInterceptorException {
-    var processInstance = c7Client.getProcessInstance(legacyProcessInstanceId);
+  protected Long startNewProcessInstance(String c7ProcessInstanceId) throws VariableInterceptorException {
+    var processInstance = c7Client.getProcessInstance(c7ProcessInstanceId);
     if (processInstance != null) {
       String bpmnProcessId = processInstance.getProcessDefinitionKey();
 
       // Ensure all variables are fetched and can be transformed before starting the new instance
-      Map<String, Object> globalVariables = variableService.getGlobalVariables(legacyProcessInstanceId);
+      Map<String, Object> globalVariables = variableService.getGlobalVariables(c7ProcessInstanceId);
 
       return c8Client.createProcessInstance(bpmnProcessId, processInstance.getTenantId(), globalVariables)
           .getProcessInstanceKey();
     } else {
-      RuntimeMigratorLogs.processInstanceNotExists(legacyProcessInstanceId);
+      RuntimeMigratorLogs.processInstanceNotExists(c7ProcessInstanceId);
       return null;
     }
   }
@@ -182,8 +182,8 @@ public class RuntimeMigrator {
       migratorJobs.forEach(job -> {
         boolean externallyStarted = variableService.isExternallyStartedJob(job);
         if (!externallyStarted) {
-          String legacyId = variableService.getLegacyIdFromJob(job);
-          var activityInstanceTree = c7Client.getActivityInstance(legacyId);
+          String c7Id = variableService.getC7IdFromJob(job);
+          var activityInstanceTree = c7Client.getActivityInstance(c7Id);
 
           RuntimeMigratorLogs.collectingActiveDescendantActivities(activityInstanceTree.getActivityId());
           Map<String, FlowNode> activityInstanceMap = C7Utils.getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
