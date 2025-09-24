@@ -100,6 +100,7 @@ class DistributionSmokeTest {
     int exitCode = process.waitFor();
 
     assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("Error: Must specify at least one migration type");
     assertThat(output).contains("Usage: start.sh/bat");
     assertThat(output).contains("--help");
     assertThat(output).contains("--runtime");
@@ -183,6 +184,7 @@ class DistributionSmokeTest {
   void shouldAcceptValidFlags() throws Exception {
     // given
     String[][] validFlags = {
+        {"--help"},
         {"--runtime"},
         {"--history"},
         {"--runtime", "--drop-schema"},
