@@ -94,8 +94,9 @@ public class C8Client {
         .jobType(jobType)
         .maxJobsToActivate(properties.getPageSize());
     if (tenantIds != null && !tenantIds.isEmpty()) {
-      tenantIds.add(C8_DEFAULT_TENANT);
-      activateJobs = activateJobs.tenantIds(List.copyOf(tenantIds));
+      Set<String> tenantIdsWithDefault = new java.util.HashSet<>(tenantIds);
+      tenantIdsWithDefault.add(C8_DEFAULT_TENANT);
+      activateJobs = activateJobs.tenantIds(List.copyOf(tenantIdsWithDefault));
     }
     return callApi(activateJobs::execute, FAILED_TO_ACTIVATE_JOBS + jobType).getJobs();
   }

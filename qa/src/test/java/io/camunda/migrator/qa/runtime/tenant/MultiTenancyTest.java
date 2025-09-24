@@ -60,11 +60,9 @@ class MultiTenancyTest {
       // create tenants
       client.newCreateTenantCommand().tenantId(TENANT_ID_1).name(TENANT_ID_1).send().join();
       client.newCreateTenantCommand().tenantId(TENANT_ID_2).name(TENANT_ID_2).send().join();
-      client.newCreateTenantCommand().tenantId(TENANT_ID_3).name(TENANT_ID_3).send().join();
       // assign the default user to the tenants
       client.newAssignUserToTenantCommand().username(DEFAULT_USERNAME).tenantId(TENANT_ID_1).send().join();
       client.newAssignUserToTenantCommand().username(DEFAULT_USERNAME).tenantId(TENANT_ID_2).send().join();
-      client.newAssignUserToTenantCommand().username(DEFAULT_USERNAME).tenantId(TENANT_ID_3).send().join();
     }
 
     @Test
@@ -199,7 +197,7 @@ class MultiTenancyTest {
     }
 
     @Test
-    public void shouldSkipProcessInstanceWhenTenantNotConfigured() {
+    public void shouldSkipProcessInstanceWhenConfiguredTenantNotAvailableInC8() {
       // given
       deployer.deployCamunda7Process(SIMPLE_PROCESS_BPMN, TENANT_ID_3); // not configured
       deployer.deployCamunda8Process(SIMPLE_PROCESS_BPMN, TENANT_ID_1);

@@ -53,7 +53,7 @@ class MultiTenancyNoConfigTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  public void shouldMigrateProcessInstanceWithTenant() {
+  public void shouldSkipProcessInstanceWithTenantMismatch() {
     // given
     deployer.deployProcessInC7AndC8(SIMPLE_PROCESS_BPMN, TENANT_ID_1);
 
@@ -96,7 +96,7 @@ class MultiTenancyNoConfigTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  public void shouldMigrateProcessInstancesWithAndWithoutTenant() {
+  public void shouldMigrateProcessInstancesOnlyWithoutTenant() {
     // given
     deployer.deployProcessInC7AndC8(SIMPLE_PROCESS_BPMN);
     deployer.deployProcessInC7AndC8(SIMPLE_PROCESS_BPMN, TENANT_ID_1);
