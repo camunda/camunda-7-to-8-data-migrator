@@ -61,7 +61,7 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenInvalidFlagProvided() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--invalid-flag");
@@ -84,7 +84,7 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenNoFlagProvided() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder();
@@ -110,7 +110,7 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenHelpFlagProvided() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--help");
@@ -136,7 +136,7 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenHelpFlagCombinedWithOtherFlags() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--help", "--runtime");
