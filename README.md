@@ -155,7 +155,7 @@ See our [issue tracker](https://github.com/camunda/camunda-bpm-platform/issues).
 ### Before Contributing
 
 1. **Read the [Contributions Guide](https://github.com/camunda/camunda-bpm-platform/blob/master/CONTRIBUTING.md)**
-2. **Check existing issues** to avoid duplicates
+2. **Check existing issues** to avoid duplicates [link](https://github.com/camunda/camunda-bpm-platform/issues?q=is%3Aissue%20state%3Aopen%20label%3Ascope%3Adata-migrator)
 3. **Discuss major changes** in an issue before implementing
 
 ### Development Guidelines
