@@ -19,6 +19,16 @@ public class ConverterConfiguration {
   }
 
   @Bean
+  public DecisionRequirementsDefinitionConverter decisionRequirementsDefinitionConverter() {
+    return new DecisionRequirementsDefinitionConverter();
+  }
+
+  @Bean
+  public DecisionInstanceConverter decisionInstanceConverter() {
+    return new DecisionInstanceConverter();
+  }
+
+  @Bean
   public FlowNodeConverter flowNodeConverter() {
     return new FlowNodeConverter();
   }

@@ -20,19 +20,27 @@ import io.camunda.migrator.config.MigratorAutoConfiguration;
 import io.camunda.migrator.qa.AbstractMigratorTest;
 import io.camunda.migrator.qa.config.TestProcessEngineConfiguration;
 import io.camunda.migrator.qa.util.WithSpringProfile;
+import io.camunda.search.entities.DecisionDefinitionEntity;
+import io.camunda.search.entities.DecisionInstanceEntity;
+import io.camunda.search.entities.DecisionRequirementsEntity;
 import io.camunda.search.entities.FlowNodeInstanceEntity;
 import io.camunda.search.entities.IncidentEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import io.camunda.search.entities.UserTaskEntity;
 import io.camunda.search.entities.VariableEntity;
+import io.camunda.search.query.DecisionDefinitionQuery;
+import io.camunda.search.query.DecisionInstanceQuery;
+import io.camunda.search.query.DecisionRequirementsQuery;
 import io.camunda.search.query.FlowNodeInstanceQuery;
 import io.camunda.search.query.IncidentQuery;
 import io.camunda.search.query.ProcessDefinitionQuery;
 import io.camunda.search.query.ProcessInstanceQuery;
 import io.camunda.search.query.UserTaskQuery;
 import io.camunda.search.query.VariableQuery;
+import io.camunda.search.result.DecisionInstanceQueryResultConfig;
 import java.util.List;
+import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.impl.util.ClockUtil;
 import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.AfterEach;
@@ -41,7 +49,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
 
 @Import({
   HistoryMigrationAbstractTest.HistoryCustomConfiguration.class,
@@ -64,6 +71,11 @@ public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest 
   @Autowired
   protected RdbmsService rdbmsService;
 
+  // C7 ---------------------------------------
+
+  @Autowired
+  protected HistoryService historyService;
+
   @AfterEach
   public void cleanup() {
     // C7
@@ -73,6 +85,7 @@ public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest 
     // Migrator
     dbClient.deleteAllMappings();
     historyMigrator.setMode(MigratorMode.MIGRATE);
+    historyMigrator.setRequestedEntityTypes(null);
 
     // C8
     rdbmsPurger.purgeRdbms();
@@ -86,11 +99,35 @@ public abstract class HistoryMigrationAbstractTest extends AbstractMigratorTest 
         .items();
   }
 
+  public List<DecisionDefinitionEntity> searchHistoricDecisionDefinitions(String decisionDefinitionId) {
+    return rdbmsService.getDecisionDefinitionReader()
+        .search(DecisionDefinitionQuery.of(queryBuilder ->
+            queryBuilder.filter(filterBuilder ->
+                filterBuilder.decisionDefinitionIds(decisionDefinitionId))))
+        .items();
+  }
+
+  public List<DecisionRequirementsEntity> searchHistoricDecisionRequirementsDefinition(String decisionRequirementsId) {
+    return rdbmsService.getDecisionRequirementsReader()
+        .search(DecisionRequirementsQuery.of(queryBuilder ->
+            queryBuilder.filter(filterBuilder ->
+                filterBuilder.decisionRequirementsIds(decisionRequirementsId))))
+        .items();
+  }
+
   public List<ProcessInstanceEntity> searchHistoricProcessInstances(String processDefinitionId) {
     return rdbmsService.getProcessInstanceReader()
         .search(ProcessInstanceQuery.of(queryBuilder ->
             queryBuilder.filter(filterBuilder ->
                 filterBuilder.processDefinitionIds(processDefinitionId))))
+        .items();
+  }
+
+  public List<DecisionInstanceEntity> searchHistoricDecisionInstances(String decisionDefinitionId) {
+    return rdbmsService.getDecisionInstanceReader()
+        .search(DecisionInstanceQuery.of(queryBuilder -> queryBuilder.filter(
+                filterBuilder -> filterBuilder.decisionDefinitionIds(decisionDefinitionId))
+            .resultConfig(DecisionInstanceQueryResultConfig.of(DecisionInstanceQueryResultConfig.Builder::includeAll))))
         .items();
   }
 

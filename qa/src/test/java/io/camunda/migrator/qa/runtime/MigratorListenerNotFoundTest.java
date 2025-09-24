@@ -44,8 +44,8 @@ public class MigratorListenerNotFoundTest extends RuntimeMigrationAbstractTest {
             .matches(String.format(".*" + String.format(
                 SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("[{}]", "\\[%s\\]").replace("{}", "%s"), id,
                 String.format(
-                    NO_EXECUTION_LISTENER_OF_TYPE_ERROR.replace(".", "\\.").replace("[%s]", "\\[%s\\]"),
-                    "migrator", "Event_1px2j50", "(\\d+)", "migrator")))))).hasSize(1);
+                    NO_EXECUTION_LISTENER_OF_TYPE_ERROR.replace(".", "\\.").replace("[", "\\[").replace("]", "\\]"),
+                    "migrator", "Event_1px2j50", "noMigratorListener", 1, "migrator")))))).hasSize(1);
   }
 
   @Test
@@ -70,8 +70,8 @@ public class MigratorListenerNotFoundTest extends RuntimeMigrationAbstractTest {
             .matches(String.format(".*" + String.format(
                 SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("[{}]", "\\[%s\\]").replace("{}", "%s"), id,
                 String.format(
-                    NO_EXECUTION_LISTENER_OF_TYPE_ERROR.replace(".", "\\.").replace("[%s]", "\\[%s\\]"),
-                    "migrator", "Event_1px2j50", "(\\d+)", "migrator")))))).hasSize(1);
+                    NO_EXECUTION_LISTENER_OF_TYPE_ERROR.replace(".", "\\.").replace("[", "\\[").replace("]", "\\]"),
+                    "migrator", "Event_1px2j50", "migratorListenerCustomType", 1, "migrator")))))).hasSize(1);
   }
 
   @Test

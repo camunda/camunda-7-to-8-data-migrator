@@ -51,8 +51,8 @@ public class ValidationJobTypeOnlyTest extends RuntimeMigrationAbstractTest {
             .matches(String.format(".*" + String.format(
                 SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("[{}]", "\\[%s\\]").replace("{}", "%s"), id,
                 String.format(
-                    NO_EXECUTION_LISTENER_OF_TYPE_ERROR.replace(".", "\\.").replace("[%s]", "\\[%s\\]"),
-                    VALIDATION_JOB_TYPE, "Event_1px2j50", "(\\d+)", VALIDATION_JOB_TYPE)))))).hasSize(1);
+                    NO_EXECUTION_LISTENER_OF_TYPE_ERROR.replace(".", "\\.").replace("[", "\\[").replace("]", "\\]"),
+                    VALIDATION_JOB_TYPE, "Event_1px2j50", "noMigratorListener", 1, VALIDATION_JOB_TYPE)))))).hasSize(1);
   }
 
   @Test
@@ -77,8 +77,8 @@ public class ValidationJobTypeOnlyTest extends RuntimeMigrationAbstractTest {
             .matches(String.format(".*" + String.format(
                 SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("[{}]", "\\[%s\\]").replace("{}", "%s"), id,
                 String.format(
-                    NO_EXECUTION_LISTENER_OF_TYPE_ERROR.replace(".", "\\.").replace("[%s]", "\\[%s\\]"),
-                    VALIDATION_JOB_TYPE, "Event_1px2j50", "(\\d+)", VALIDATION_JOB_TYPE)))))).hasSize(1);
+                    NO_EXECUTION_LISTENER_OF_TYPE_ERROR.replace(".", "\\.").replace("[", "\\[").replace("]", "\\]"),
+                    VALIDATION_JOB_TYPE, "Event_1px2j50", "migratorListenerCustomType", 1, VALIDATION_JOB_TYPE)))))).hasSize(1);
   }
 
   @Test

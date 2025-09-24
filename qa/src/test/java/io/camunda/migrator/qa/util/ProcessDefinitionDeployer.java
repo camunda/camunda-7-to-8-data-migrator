@@ -50,7 +50,7 @@ public class ProcessDefinitionDeployer {
   }
 
   public void deployCamunda8Process(String fileName, String tenantId) {
-    if (tenantId == null) {
+    if (tenantId == null || tenantId.isEmpty()) {
       tenantId = DEFAULT_TENANT_IDENTIFIER;
     }
 
@@ -64,6 +64,20 @@ public class ProcessDefinitionDeployer {
     }
 
     checkC8ProcessDefinitionAvailable("io/camunda/migrator/bpmn/c8/" + fileName);
+  }
+
+  public void deployCamunda7Decision(String fileName) {
+    deployCamunda7Decision(fileName, null);
+  }
+
+  public void deployCamunda7Decision(String fileName, String tenantId) {
+    Deployment deployment = repositoryService.createDeployment()
+        .tenantId(tenantId)
+        .addClasspathResource("io/camunda/migrator/dmn/c7/" + fileName)
+        .deploy();
+    if (deployment == null) {
+      throw new IllegalStateException("Could not deploy decision");
+    }
   }
 
   private void checkC8ProcessDefinitionAvailable(String resourcePath) {

@@ -13,17 +13,13 @@ import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
+import org.apache.commons.lang3.StringUtils;
 
+import static io.camunda.migrator.constants.MigratorConstants.C7_HISTORY_PARTITION_ID;
+import static io.camunda.migrator.constants.MigratorConstants.C8_DEFAULT_TENANT;
 import static io.camunda.zeebe.protocol.Protocol.KEY_BITS;
 
 public class ConverterUtil {
-
-  /**
-   * Partition ID used for history data migration from Camunda 7 to Camunda 8.
-   * Set to 4095 (maximum possible partition value) to ensure generated keys don't
-   * collide with actual Zeebe partition keys during migration.
-   */
-  public static int C7_HISTORY_PARTITION_ID = 4095;
 
   public static Long getNextKey() {
     SecureRandom secureRandom = new SecureRandom();
@@ -37,6 +33,10 @@ public class ConverterUtil {
   public static OffsetDateTime convertDate(Date date) {
     if (date == null) return null;
     return date.toInstant().atOffset(ZoneOffset.UTC);
+  }
+
+  public static String getTenantId(String c7TenantId) {
+    return StringUtils.isEmpty(c7TenantId) ? C8_DEFAULT_TENANT : c7TenantId;
   }
 
 }

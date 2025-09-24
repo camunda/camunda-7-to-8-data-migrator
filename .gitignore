@@ -29,4 +29,11 @@ replay_pid*
 .project
 .settings
 
+# Plugin front end dependencies
+node_modules/
+node
+dist
+
+# VS Code
 *.DS_Store
+

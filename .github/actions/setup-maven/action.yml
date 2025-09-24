@@ -56,7 +56,7 @@ runs:
         secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_USR;
         secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
   - name: Setup Java
-    uses: actions/setup-java@v4
+    uses: actions/setup-java@v5
     with:
       java-version: ${{ inputs.java-version }}
       distribution: ${{ inputs.distribution }}
@@ -115,7 +115,7 @@ runs:
       echo servers=$servers >> $GITHUB_OUTPUT
     shell: bash
   - name: Update Maven settings.xml
-    uses: s4u/maven-settings-action@v3.1.0
+    uses: s4u/maven-settings-action@v4.0.0
     with:
       githubServer: false
       servers: ${{ steps.maven.outputs.servers }}

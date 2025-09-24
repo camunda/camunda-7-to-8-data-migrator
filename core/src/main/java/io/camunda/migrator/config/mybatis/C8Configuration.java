@@ -7,11 +7,13 @@
  */
 package io.camunda.migrator.config.mybatis;
 
+import io.camunda.client.metrics.MetricsRecorder;
 import io.camunda.db.rdbms.RdbmsService;
 import io.camunda.db.rdbms.config.VendorDatabaseProperties;
 import io.camunda.db.rdbms.read.service.AuthorizationDbReader;
 import io.camunda.db.rdbms.read.service.BatchOperationDbReader;
 import io.camunda.db.rdbms.read.service.BatchOperationItemDbReader;
+import io.camunda.db.rdbms.read.service.CorrelatedMessageSubscriptionDbReader;
 import io.camunda.db.rdbms.read.service.DecisionDefinitionDbReader;
 import io.camunda.db.rdbms.read.service.DecisionInstanceDbReader;
 import io.camunda.db.rdbms.read.service.DecisionRequirementsDbReader;
@@ -21,6 +23,7 @@ import io.camunda.db.rdbms.read.service.GroupDbReader;
 import io.camunda.db.rdbms.read.service.IncidentDbReader;
 import io.camunda.db.rdbms.read.service.JobDbReader;
 import io.camunda.db.rdbms.read.service.MappingRuleDbReader;
+import io.camunda.db.rdbms.read.service.MessageSubscriptionDbReader;
 import io.camunda.db.rdbms.read.service.ProcessDefinitionDbReader;
 import io.camunda.db.rdbms.read.service.ProcessInstanceDbReader;
 import io.camunda.db.rdbms.read.service.RoleDbReader;
@@ -33,6 +36,7 @@ import io.camunda.db.rdbms.read.service.UserTaskDbReader;
 import io.camunda.db.rdbms.read.service.VariableDbReader;
 import io.camunda.db.rdbms.sql.AuthorizationMapper;
 import io.camunda.db.rdbms.sql.BatchOperationMapper;
+import io.camunda.db.rdbms.sql.CorrelatedMessageSubscriptionMapper;
 import io.camunda.db.rdbms.sql.DecisionDefinitionMapper;
 import io.camunda.db.rdbms.sql.DecisionInstanceMapper;
 import io.camunda.db.rdbms.sql.DecisionRequirementsMapper;
@@ -43,6 +47,7 @@ import io.camunda.db.rdbms.sql.GroupMapper;
 import io.camunda.db.rdbms.sql.IncidentMapper;
 import io.camunda.db.rdbms.sql.JobMapper;
 import io.camunda.db.rdbms.sql.MappingRuleMapper;
+import io.camunda.db.rdbms.sql.MessageSubscriptionMapper;
 import io.camunda.db.rdbms.sql.ProcessDefinitionMapper;
 import io.camunda.db.rdbms.sql.ProcessInstanceMapper;
 import io.camunda.db.rdbms.sql.PurgeMapper;
@@ -55,9 +60,11 @@ import io.camunda.db.rdbms.sql.UserMapper;
 import io.camunda.db.rdbms.sql.UserTaskMapper;
 import io.camunda.db.rdbms.sql.VariableMapper;
 import io.camunda.db.rdbms.write.RdbmsWriterFactory;
+import io.camunda.db.rdbms.write.RdbmsWriterMetrics;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.config.property.MigratorProperties;
-import io.camunda.spring.client.metrics.MetricsRecorder;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Properties;
 import javax.sql.DataSource;
 import liquibase.integration.spring.MultiTenantSpringLiquibase;
@@ -227,6 +234,26 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
+  MapperFactoryBean<MessageSubscriptionMapper> messageSubscriptionMapper(@Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory) {
+    return createMapperFactoryBean(c8SqlSessionFactory, MessageSubscriptionMapper.class);
+  }
+
+  @Bean
+  MapperFactoryBean<CorrelatedMessageSubscriptionMapper> correlatedMessageMapper(@Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory) {
+    return createMapperFactoryBean(c8SqlSessionFactory, CorrelatedMessageSubscriptionMapper.class);
+  }
+
+  @Bean
+  public MeterRegistry meterRegistry() {
+    return new SimpleMeterRegistry();
+  }
+
+  @Bean
+  public RdbmsWriterMetrics rdbmsWriterMetrics(MeterRegistry meterRegistry) {
+    return new RdbmsWriterMetrics(meterRegistry);
+  }
+
+  @Bean
   public VariableDbReader variableRdbmsReader(VariableMapper variableMapper) {
     return new VariableDbReader(variableMapper);
   }
@@ -345,6 +372,16 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
+  public MessageSubscriptionDbReader messageSubscriptionDbReader(MessageSubscriptionMapper messageSubscriptionMapper) {
+    return new MessageSubscriptionDbReader(messageSubscriptionMapper);
+  }
+
+  @Bean
+  public CorrelatedMessageSubscriptionDbReader correlatedMessageReader(CorrelatedMessageSubscriptionMapper correlatedMessageMapper) {
+    return new CorrelatedMessageSubscriptionDbReader(correlatedMessageMapper);
+  }
+
+  @Bean
   public RdbmsWriterFactory rdbmsWriterFactory(
       @Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory,
       ExporterPositionMapper exporterPositionMapper,
@@ -356,11 +393,15 @@ public class C8Configuration extends AbstractConfiguration {
       PurgeMapper purgeMapper,
       UserTaskMapper userTaskMapper,
       VariableMapper variableMapper,
+      RdbmsWriterMetrics rdbmsWriterMetrics,
       BatchOperationDbReader batchOperationReader,
       JobMapper jobMapper,
       SequenceFlowMapper sequenceFlowMapper,
       UsageMetricMapper usageMetricMapper,
-      UsageMetricTUMapper usageMetricTUMapper) {
+      UsageMetricTUMapper usageMetricTUMapper,
+      BatchOperationMapper batchOperationMapper,
+      MessageSubscriptionMapper messageSubscriptionMapper,
+      CorrelatedMessageSubscriptionMapper correlatedMessageMapper) {
     return new RdbmsWriterFactory(
         c8SqlSessionFactory,
         exporterPositionMapper,
@@ -372,12 +413,15 @@ public class C8Configuration extends AbstractConfiguration {
         purgeMapper,
         userTaskMapper,
         variableMapper,
-        null,
+        rdbmsWriterMetrics,
         batchOperationReader,
         jobMapper,
         sequenceFlowMapper,
         usageMetricMapper,
-        usageMetricTUMapper);
+        usageMetricTUMapper,
+        batchOperationMapper,
+        messageSubscriptionMapper,
+        correlatedMessageMapper);
   }
 
   @Bean
@@ -404,7 +448,9 @@ public class C8Configuration extends AbstractConfiguration {
       BatchOperationItemDbReader batchOperationItemReader,
       JobDbReader jobReader,
       UsageMetricsDbReader usageMetricsReader,
-      UsageMetricTUDbReader usageMetricTUDbReader) {
+      UsageMetricTUDbReader usageMetricTUDbReader,
+      MessageSubscriptionDbReader messageSubscriptionDbReader,
+      CorrelatedMessageSubscriptionDbReader correlatedMessageDbReader) {
     return new RdbmsService(
         rdbmsWriterFactory,
         authorizationReader,
@@ -428,7 +474,9 @@ public class C8Configuration extends AbstractConfiguration {
         batchOperationItemReader,
         jobReader,
         usageMetricsReader,
-        usageMetricTUDbReader);
+        usageMetricTUDbReader,
+        messageSubscriptionDbReader,
+        correlatedMessageDbReader);
   }
 
 }

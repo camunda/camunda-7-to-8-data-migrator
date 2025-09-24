@@ -64,7 +64,7 @@ class DistributionSmokeTest {
   @Timeout(value = 60, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenInvalidFlagProvided() throws Exception {
     // given
-    ProcessBuilder processBuilder = createProcessBuilder("--invalid-flag");
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--invalid-flag");
 
     // when
     Process process = processBuilder.start();
@@ -85,9 +85,12 @@ class DistributionSmokeTest {
 
   @Test
   @Timeout(value = 60, unit = TimeUnit.SECONDS)
-  void shouldShowUsageWhenHelpFlagProvided() throws Exception {
+  void shouldShowUsageWhenNoFlagProvided() throws Exception {
     // given
-    ProcessBuilder processBuilder = createProcessBuilder("--help");
+    ProcessBuilder processBuilder = createProcessBuilder();
+
+    // Read the existing configuration file and set auto-dll to true
+    replaceConfigProperty("auto-ddl: false", "auto-ddl: true");
 
     // when
     Process process = processBuilder.start();
@@ -97,6 +100,59 @@ class DistributionSmokeTest {
     int exitCode = process.waitFor();
 
     assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("Error: Must specify at least one migration type");
+    assertThat(output).contains("Usage: start.sh/bat");
+    assertThat(output).contains("--help");
+    assertThat(output).contains("--runtime");
+    assertThat(output).contains("--history");
+    assertThat(output).contains("--list-skipped");
+    assertThat(output).contains("--retry-skipped");
+  }
+
+  @Test
+  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  void shouldShowUsageWhenHelpFlagProvided() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder("--help");
+
+    // Read the existing configuration file and set auto-dll to true
+    replaceConfigProperty("auto-ddl: false", "auto-ddl: true");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).doesNotContain("Error");
+    assertThat(output).contains("Usage: start.sh/bat");
+    assertThat(output).contains("--help");
+    assertThat(output).contains("--runtime");
+    assertThat(output).contains("--history");
+    assertThat(output).contains("--list-skipped");
+    assertThat(output).contains("--retry-skipped");
+  }
+
+  @Test
+  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  void shouldShowUsageWhenHelpFlagCombinedWithOtherFlags() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder("--help", "--runtime");
+
+    // Read the existing configuration file and set auto-dll to true
+    replaceConfigProperty("auto-ddl: false", "auto-ddl: true");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("Error: The --help flag cannot be combined with other flags.");
     assertThat(output).contains("Usage: start.sh/bat");
     assertThat(output).contains("--help");
     assertThat(output).contains("--runtime");
@@ -109,7 +165,7 @@ class DistributionSmokeTest {
   @Timeout(value = 60, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenTooManyArgumentsProvided() throws Exception {
     // given
-    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history", "--list-skipped", "--retry-skipped");
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history", "--history", "--drop-schema", "--force", "--list-skipped", "--retry-skipped");
 
     // when
     Process process = processBuilder.start();
@@ -127,9 +183,17 @@ class DistributionSmokeTest {
   @Timeout(value = 60, unit = TimeUnit.SECONDS)
   void shouldAcceptValidFlags() throws Exception {
     // given
-    String[] validFlags = {"--runtime", "--history", "--list-skipped", "--retry-skipped"};
+    String[][] validFlags = {
+        {"--help"},
+        {"--runtime"},
+        {"--history"},
+        {"--runtime", "--drop-schema"},
+        {"--runtime", "--drop-schema", "--force"},
+        {"--history", "--list-skipped"},
+        {"--history", "--retry-skipped"}
+    };
 
-    for (String flag : validFlags) {
+    for (String[] flag : validFlags) {
       ProcessBuilder processBuilder = createProcessBuilder(flag);
 
       // when
@@ -138,22 +202,8 @@ class DistributionSmokeTest {
       // then
       String output = readProcessOutput(process);
 
-      assertThat(output).contains("Starting migration with flags: " + flag);
+      assertThat(output).contains("Starting migration with flags: " + String.join(" ", flag));
     }
-  }
-
-  @Test
-  @Timeout(value = 30, unit = TimeUnit.SECONDS)
-  void shouldStartWithoutArgumentsAndShowExpectedMessage() throws Exception {
-    // given
-    ProcessBuilder processBuilder = createProcessBuilder();
-
-    // when
-    process = processBuilder.start();
-
-    // then
-    String output = readProcessOutput(process);
-    assertThat(output).contains("Starting application without migration flags");
   }
 
   @Test
@@ -186,6 +236,9 @@ class DistributionSmokeTest {
     // given
     Path resourcesDir = extractedDistributionPath.resolve("configuration/resources");
     Files.createDirectories(resourcesDir);
+
+    // Read the existing configuration file and set auto-dll to true
+    replaceConfigProperty("auto-ddl: false", "auto-ddl: true");
 
     String simpleBpmnModel = "<bpmn:definitions />";
     Path bpmnFile = resourcesDir.resolve("test-process.bpmn");
@@ -227,6 +280,13 @@ class DistributionSmokeTest {
 
     // Verify the application started with our modified configuration
     assertThat(output).contains("ENGINE-03057 There are no Camunda tables in the database.");
+  }
+
+  private void replaceConfigProperty(String before, String after) throws IOException {
+    Path configFile = extractedDistributionPath.resolve("configuration/application.yml");
+    String originalConfig = Files.readString(configFile);
+    String modifiedConfig = originalConfig.replace(before, after);
+    Files.write(configFile, modifiedConfig.getBytes());
   }
 
   protected void extractZipDistribution() throws IOException {

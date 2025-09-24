@@ -7,6 +7,8 @@
  */
 package io.camunda.migrator.impl;
 
+import static io.camunda.migrator.constants.MigratorConstants.LEGACY_ID_VAR_NAME;
+
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.migrator.exception.VariableInterceptorException;
 import io.camunda.migrator.impl.clients.C7Client;
@@ -14,6 +16,7 @@ import io.camunda.migrator.impl.clients.C8Client;
 import io.camunda.migrator.impl.model.ActivityVariables;
 import io.camunda.migrator.interceptor.VariableInterceptor;
 import io.camunda.migrator.interceptor.VariableInvocation;
+import io.camunda.migrator.interceptor.VariableTypeDetector;
 import io.camunda.migrator.impl.logging.VariableServiceLogs;
 import java.util.HashMap;
 import java.util.List;
@@ -42,17 +45,17 @@ public class VariableService {
 
   /**
    * Retrieves and processes all variables for a process instance, including global variables
-   * with the legacy ID added.
+   * with the legacyId added.
    *
-   * @param legacyProcessInstanceId the legacy process instance ID
+   * @param c7ProcessInstanceId the C7 process instance ID
    * @return processed global variables ready for C8 process instance creation
    */
-  public Map<String, Object> getGlobalVariables(String legacyProcessInstanceId) {
-    ActivityVariables activityVariables = processVariablesToActivityGroups(c7Client.getAllVariables(legacyProcessInstanceId));
-    Map<String, Object> globalVariables = activityVariables.getGlobalVariables(legacyProcessInstanceId);
+  public Map<String, Object> getGlobalVariables(String c7ProcessInstanceId) {
+    ActivityVariables activityVariables = processVariablesToActivityGroups(c7Client.getAllVariables(c7ProcessInstanceId));
+    Map<String, Object> globalVariables = activityVariables.getGlobalVariables(c7ProcessInstanceId);
 
-    // Add legacy ID for tracking purposes
-    globalVariables.put(VariableServiceLogs.LEGACY_ID_VARIABLE, legacyProcessInstanceId);
+    // Add legacyId for tracking purposes
+    globalVariables.put(LEGACY_ID_VAR_NAME, c7ProcessInstanceId);
 
     return globalVariables;
   }
@@ -61,16 +64,16 @@ public class VariableService {
    * Retrieves and processes local variables for an activity instance.
    *
    * @param activityInstanceId the activity instance ID
-   * @param subProcessInstanceId optional subprocess instance ID to include as legacy ID
+   * @param subProcessInstanceId optional subprocess instance ID to include as C7 ID
    * @return processed local variables
    */
   public Map<String, Object> getLocalVariables(String activityInstanceId,
                                                String subProcessInstanceId) {
     Map<String, Object> localVariables = processVariablesToMapSingleActivity(c7Client.getLocalVariables(activityInstanceId));
 
-    // Add legacy ID for subprocess tracking if present
+    // Add legacyId for subprocess tracking if present
     if (subProcessInstanceId != null) {
-      localVariables.put(VariableServiceLogs.LEGACY_ID_VARIABLE, subProcessInstanceId);
+      localVariables.put(LEGACY_ID_VAR_NAME, subProcessInstanceId);
     }
 
     return localVariables;
@@ -78,23 +81,23 @@ public class VariableService {
 
   /**
    * Checks if a job was started externally (not through migration) by verifying
-   * the presence of the legacy ID variable.
+   * the presence of the legacyId variable.
    *
    * @param job the activated job to check
    * @return true if the job was started externally, false if it's a migrated job
    */
   public boolean isExternallyStartedJob(ActivatedJob job) {
-    return !job.getVariables().contains(VariableServiceLogs.LEGACY_ID_VARIABLE);
+    return !job.getVariables().contains(LEGACY_ID_VAR_NAME);
   }
 
   /**
-   * Retrieves the legacy ID from a job's variables.
+   * Retrieves the legacyId from a job's variables.
    *
    * @param job the activated job
-   * @return the legacy ID from the job variables
+   * @return the legacyId from the job variables
    */
-  public String getLegacyIdFromJob(ActivatedJob job) {
-    return (String) c8Client.getJobVariable(job, VariableServiceLogs.LEGACY_ID_VARIABLE);
+  public String getC7IdFromJob(ActivatedJob job) {
+    return (String) c8Client.getJobVariable(job, LEGACY_ID_VAR_NAME);
   }
 
   /**
@@ -151,6 +154,7 @@ public class VariableService {
 
   /**
    * Executes all configured variable interceptors on the given variable invocation.
+   * Only interceptors that support the variable's type will be called.
    *
    * @param variableInvocation the variable invocation to process
    * @throws VariableInterceptorException if any interceptor fails
@@ -158,18 +162,20 @@ public class VariableService {
   private void executeInterceptors(VariableInvocation variableInvocation) {
     if (hasInterceptors()) {
       for (VariableInterceptor interceptor : configuredVariableInterceptors) {
-        try {
-          interceptor.execute(variableInvocation);
-        } catch (Exception ex) {
-          String interceptorName = interceptor.getClass().getSimpleName();
-          String variableName = variableInvocation.getC7Variable().getName();
-          VariableServiceLogs.logInterceptorWarn(interceptorName, variableName);
+        // Only execute interceptors that support this variable type using Camunda's native types
+        if (VariableTypeDetector.supportsVariable(interceptor, variableInvocation)) {
+          try {
+            interceptor.execute(variableInvocation);
+          } catch (Exception ex) {
+            String interceptorName = interceptor.getClass().getSimpleName();
+            String variableName = variableInvocation.getC7Variable().getName();
+            VariableServiceLogs.logInterceptorWarn(interceptorName, variableName);
 
-          if (ex instanceof VariableInterceptorException) {
-            throw ex;
-
-          } else {
-            throw new VariableInterceptorException(VariableServiceLogs.formatInterceptorWarn(interceptorName, variableName), ex);
+            if (ex instanceof VariableInterceptorException) {
+              throw ex;
+            } else {
+              throw new VariableInterceptorException(VariableServiceLogs.formatInterceptorWarn(interceptorName, variableName), ex);
+            }
           }
         }
       }

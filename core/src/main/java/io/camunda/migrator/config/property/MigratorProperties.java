@@ -7,14 +7,17 @@
  */
 package io.camunda.migrator.config.property;
 
+import java.util.List;
+import java.util.Set;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.List;
-
+/**
+ * Configuration properties for the migrator.
+ */
 @ConfigurationProperties(MigratorProperties.PREFIX)
 public class MigratorProperties {
 
-  public static final int DEFAULT_PAGE_SIZE = 500;
+  public static final int DEFAULT_PAGE_SIZE = 100;
   public static final String PREFIX = "camunda.migrator";
   public static final String DEFAULT_JOB_TYPE = "migrator";
 
@@ -26,6 +29,8 @@ public class MigratorProperties {
   protected DataSource dataSource = DataSource.C7;
   protected String jobType = DEFAULT_JOB_TYPE;
   protected String validationJobType;
+  protected Set<String> tenantIds;
+  protected boolean saveSkipReason = false;
 
   protected Boolean autoDdl;
   protected String tablePrefix;
@@ -97,6 +102,22 @@ public class MigratorProperties {
 
   public void setValidationJobType(String validationJobType) {
     this.validationJobType = validationJobType;
+  }
+
+  public Set<String> getTenantIds() {
+    return tenantIds;
+  }
+
+  public void setTenantIds(Set<String> tenantIds) {
+    this.tenantIds = tenantIds;
+  }
+
+  public boolean getSaveSkipReason() {
+    return saveSkipReason;
+  }
+
+  public void setSaveSkipReason(boolean saveSkipReason) {
+    this.saveSkipReason = saveSkipReason;
   }
 
   /**

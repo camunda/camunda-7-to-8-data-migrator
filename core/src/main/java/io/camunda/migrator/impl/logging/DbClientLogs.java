@@ -8,7 +8,7 @@
 package io.camunda.migrator.impl.logging;
 
 import io.camunda.migrator.impl.clients.DbClient;
-import io.camunda.migrator.impl.persistence.IdKeyMapper;
+import io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE;
 import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,32 +21,32 @@ public class DbClientLogs {
   protected static final Logger LOGGER = LoggerFactory.getLogger(DbClient.class);
 
   // DbClient Messages
-  public static final String UPDATING_KEY_FOR_LEGACY_ID = "Updating key for legacyId [{}] with value [{}]";
-  public static final String INSERTING_RECORD = "Inserting record [{}], [{}], [{}]";
-  public static final String FOUND_START_DATE_FOR_TYPE = "Latest start date for {}: {}";
+  public static final String UPDATING_KEY_FOR_C7_ID = "Updating key for C7 ID [{}] with value [{}]";
+  public static final String INSERTING_RECORD = "Inserting record [{}], [{}], [{}], [{}]";
+  public static final String FOUND_CREATE_TIME_FOR_TYPE = "Latest create time for {}: {}";
 
   // DbClient Error Messages
-  public static final String FAILED_TO_CHECK_EXISTENCE = "Failed to check existence for legacyId: ";
-  public static final String FAILED_TO_CHECK_KEY = "Failed to check key for legacyId: ";
-  public static final String FAILED_TO_FIND_ALL = "Failed to find all ids";
-  public static final String FAILED_TO_FIND_LATEST_START_DATE = "Failed to find latest start date for type: ";
-  public static final String FAILED_TO_FIND_LATEST_ID = "Failed to find latest legacyId for type: ";
-  public static final String FAILED_TO_FIND_KEY_BY_ID = "Failed to find key by legacyId: ";
-  public static final String FAILED_TO_UPDATE_KEY = "Failed to update key for legacyId: ";
-  public static final String FAILED_TO_INSERT_RECORD = "Failed to insert record for legacyId: ";
+  public static final String FAILED_TO_CHECK_EXISTENCE = "Failed to check existence for C7 ID: ";
+  public static final String FAILED_TO_CHECK_KEY = "Failed to check key for C7 ID: ";
+  public static final String FAILED_TO_FIND_ALL = "Failed to find all C7 IDs";
+  public static final String FAILED_TO_FIND_LATEST_CREATE_TIME = "Failed to find latest create time for type: ";
+  public static final String FAILED_TO_FIND_KEY_BY_ID = "Failed to find key by C7 ID: ";
+  public static final String FAILED_TO_UPDATE_KEY = "Failed to update key for C7 ID: ";
+  public static final String FAILED_TO_INSERT_RECORD = "Failed to insert record for C7 ID: ";
   public static final String FAILED_TO_FIND_SKIPPED_COUNT = "Failed to find skipped count";
-  public static final String FAILED_TO_FIND_ALL_SKIPPED = "Failed to find skipped entity Ids";
-  public static final String FAILED_TO_DELETE = "Failed to delete mapping for legacyId: ";
+  public static final String FAILED_TO_FIND_ALL_SKIPPED = "Failed to find skipped C7 IDs";
+  public static final String FAILED_TO_DELETE = "Failed to delete mapping for C7 ID: ";
+  public static final String FAILED_TO_DROP_MIGRATION_TABLE = "Failed to drop migration mapping table";
 
-  public static void updatingKeyForLegacyId(String legacyProcessInstanceId, Long processInstanceKey) {
-    LOGGER.debug(UPDATING_KEY_FOR_LEGACY_ID, legacyProcessInstanceId, processInstanceKey);
+  public static void updatingC8KeyForC7Id(String c7Id, Long c8Key) {
+    LOGGER.debug(UPDATING_KEY_FOR_C7_ID, c7Id, c8Key);
   }
 
-  public static void insertingRecord(String legacyProcessInstanceId, Object startDate, Long processInstanceKey) {
-    LOGGER.debug(INSERTING_RECORD, legacyProcessInstanceId, startDate, processInstanceKey);
+  public static void insertingRecord(String c7Id, Object startDate, Long c8Key, String skipReason) {
+    LOGGER.debug(INSERTING_RECORD, c7Id, startDate, c8Key, skipReason);
   }
 
-  public static void foundLatestStartDate(Date latestStartDate, IdKeyMapper.TYPE type) {
-    LOGGER.debug(FOUND_START_DATE_FOR_TYPE, type, latestStartDate);
+  public static void foundLatestCreateTime(Date latestCreateTime, TYPE type) {
+    LOGGER.debug(FOUND_CREATE_TIME_FOR_TYPE, type, latestCreateTime);
   }
 }

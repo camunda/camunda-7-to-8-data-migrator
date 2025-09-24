@@ -13,49 +13,58 @@ import java.util.Objects;
 
 public class IdKeyDbModel {
 
-  protected Long instanceKey;
-  protected String id;
+  protected String c7Id;
+  protected Long c8Key;
   protected TYPE type;
-  protected Date startDate;
+  protected Date createTime;
+  protected String skipReason;
 
   public IdKeyDbModel() {
   }
 
-  public IdKeyDbModel(String id, Date startDate) {
-    this.id = id;
-    this.startDate = startDate;
+  public IdKeyDbModel(String c7Id, Date createTime) {
+    this.c7Id = c7Id;
+    this.createTime = createTime;
   }
 
-  public Long instanceKey() {
-    return instanceKey;
+  public Long getC8Key() {
+    return c8Key;
   }
 
-  public String id() {
-    return id;
+  public String getC7Id() {
+    return c7Id;
   }
 
-  public TYPE type() {
+  public TYPE getType() {
     return type;
   }
 
-  public Date startDate() {
-    return startDate;
+  public Date getCreateTime() {
+    return createTime;
   }
 
-  public void setInstanceKey(Long instanceKey) {
-    this.instanceKey = instanceKey;
+  public String getSkipReason() {
+    return skipReason;
   }
 
-  public void setId(String id) {
-    this.id = id;
+  public void setC8Key(Long c8Key) {
+    this.c8Key = c8Key;
+  }
+
+  public void setC7Id(String c7Id) {
+    this.c7Id = c7Id;
   }
 
   public void setType(TYPE type) {
     this.type = type;
   }
 
-  public void setStartDate(Date startDate) {
-    this.startDate = startDate;
+  public void setCreateTime(Date createTime) {
+    this.createTime = createTime;
+  }
+
+  public void setSkipReason(String skipReason) {
+    this.skipReason = skipReason;
   }
 
   @Override
@@ -65,17 +74,17 @@ public class IdKeyDbModel {
     if (obj == null || obj.getClass() != this.getClass())
       return false;
     var that = (IdKeyDbModel) obj;
-    return Objects.equals(this.instanceKey, that.instanceKey) && Objects.equals(this.id, that.id) && Objects.equals(this.type, that.type);
+    return Objects.equals(this.c8Key, that.c8Key) && Objects.equals(this.c7Id, that.c7Id) && Objects.equals(this.type, that.type);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(instanceKey, id, type);
+    return Objects.hash(c8Key, c7Id, type);
   }
 
   @Override
   public String toString() {
-    return "IdKey[" + "instanceKey=" + instanceKey + ", " + "id=" + id + ", " + "type=" + type + ']';
+    return "IdKey[" + "c8Key=" + c8Key + ", " + "c7Id=" + c7Id + ", " + "type=" + type + ']';
   }
 
 }

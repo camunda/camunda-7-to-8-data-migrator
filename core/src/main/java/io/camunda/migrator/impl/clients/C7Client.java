@@ -27,11 +27,13 @@ import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
+import org.camunda.bpm.engine.history.HistoricDecisionInstance;
 import org.camunda.bpm.engine.history.HistoricIncident;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricTaskInstance;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
 import org.camunda.bpm.engine.impl.HistoricActivityInstanceQueryImpl;
+import org.camunda.bpm.engine.impl.HistoricDecisionInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.HistoricIncidentQueryImpl;
 import org.camunda.bpm.engine.impl.HistoricProcessInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.HistoricTaskInstanceQueryImpl;
@@ -39,6 +41,8 @@ import org.camunda.bpm.engine.impl.HistoricVariableInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.ProcessDefinitionQueryImpl;
 import org.camunda.bpm.engine.repository.DecisionDefinition;
 import org.camunda.bpm.engine.repository.DecisionDefinitionQuery;
+import org.camunda.bpm.engine.repository.DecisionRequirementsDefinition;
+import org.camunda.bpm.engine.repository.DecisionRequirementsDefinitionQuery;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ActivityInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
@@ -79,49 +83,83 @@ public class C7Client {
   /**
    * Gets a single process definition by ID.
    */
-  public ProcessDefinition getProcessDefinition(String legacyId) {
-    var query = repositoryService.createProcessDefinitionQuery().processDefinitionId(legacyId);
-    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "ProcessDefinition", legacyId));
+  public ProcessDefinition getProcessDefinition(String c7Id) {
+    var query = repositoryService.createProcessDefinitionQuery().processDefinitionId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "ProcessDefinition", c7Id));
+  }
+
+  /**
+   * Gets a single decision requirements definition by ID.
+   */
+  public DecisionRequirementsDefinition getDecisionRequirementsDefinition(String c7Id) {
+    var query = repositoryService.createDecisionRequirementsDefinitionQuery()
+        .decisionRequirementsDefinitionId(c7Id);
+    return callApi(query::singleResult,
+        format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "DecisionRequirementsDefinition", c7Id));
+  }
+
+  /**
+   * Gets a single decision definition by ID.
+   */
+  public DecisionDefinition getDecisionDefinition(String c7Id) {
+    var query = repositoryService.createDecisionDefinitionQuery().decisionDefinitionId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "DecisionDefinition", c7Id));
+  }
+
+  /**
+   * Gets a single historic decision instance by ID.
+   */
+  public HistoricDecisionInstance getHistoricDecisionInstance(String c7Id) {
+    var query = historyService.createHistoricDecisionInstanceQuery().decisionInstanceId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricDecisionInstance", c7Id));
+  }
+
+  /**
+   * Gets a single historic decision instance by ID.
+   */
+  public HistoricDecisionInstance getHistoricDecisionInstanceByDefinitionKey(String definitionKey) {
+    var query = historyService.createHistoricDecisionInstanceQuery().decisionDefinitionKey(definitionKey);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricDecisionInstance", definitionKey));
   }
 
   /**
    * Gets a single historic process instance by ID.
    */
-  public HistoricProcessInstance getHistoricProcessInstance(String legacyId) {
-    var query = historyService.createHistoricProcessInstanceQuery().processInstanceId(legacyId);
-    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricProcessInstance", legacyId));
+  public HistoricProcessInstance getHistoricProcessInstance(String c7Id) {
+    var query = historyService.createHistoricProcessInstanceQuery().processInstanceId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricProcessInstance", c7Id));
   }
 
   /**
    * Gets a single historic activity instance by ID.
    */
-  public HistoricActivityInstance getHistoricActivityInstance(String legacyId) {
-    var query = historyService.createHistoricActivityInstanceQuery().activityInstanceId(legacyId);
-    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricActivityInstance", legacyId));
+  public HistoricActivityInstance getHistoricActivityInstance(String c7Id) {
+    var query = historyService.createHistoricActivityInstanceQuery().activityInstanceId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricActivityInstance", c7Id));
   }
 
   /**
    * Gets a single historic task instance by ID.
    */
-  public HistoricTaskInstance getHistoricTaskInstance(String legacyId) {
-    var query = historyService.createHistoricTaskInstanceQuery().taskId(legacyId);
-    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricTaskInstance", legacyId));
+  public HistoricTaskInstance getHistoricTaskInstance(String c7Id) {
+    var query = historyService.createHistoricTaskInstanceQuery().taskId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricTaskInstance", c7Id));
   }
 
   /**
    * Gets a single historic variable instance by ID.
    */
-  public HistoricVariableInstance getHistoricVariableInstance(String legacyId) {
-    var query = historyService.createHistoricVariableInstanceQuery().variableId(legacyId);
-    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricVariableInstance", legacyId));
+  public HistoricVariableInstance getHistoricVariableInstance(String c7Id) {
+    var query = historyService.createHistoricVariableInstanceQuery().variableId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricVariableInstance", c7Id));
   }
 
   /**
    * Gets a single historic incident by ID.
    */
-  public HistoricIncident getHistoricIncident(String legacyId) {
-    var query = historyService.createHistoricIncidentQuery().incidentId(legacyId);
-    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricIncident", legacyId));
+  public HistoricIncident getHistoricIncident(String c7Id) {
+    var query = historyService.createHistoricIncidentQuery().incidentId(c7Id);
+    return callApi(query::singleResult, format(FAILED_TO_FETCH_HISTORIC_ELEMENT, "HistoricIncident", c7Id));
   }
 
   /**
@@ -135,10 +173,10 @@ public class C7Client {
   /**
    * Gets all variables for a process instance with pagination and variable transformation.
    */
-  public List<VariableInstance> getAllVariables(String legacyProcessInstanceId) {
+  public List<VariableInstance> getAllVariables(String c7ProcessInstanceId) {
     VariableInstanceQuery variableQuery = runtimeService.createVariableInstanceQuery()
         .disableCustomObjectDeserialization()
-        .processInstanceIdIn(legacyProcessInstanceId);
+        .processInstanceIdIn(c7ProcessInstanceId);
 
     return new Pagination<VariableInstance>()
         .pageSize(properties.getPageSize())
@@ -245,6 +283,29 @@ public class C7Client {
   }
 
   /**
+   * Processes historic decision instances with pagination using the provided callback consumer.
+   */
+  public void fetchAndHandleHistoricDecisionInstances(Consumer<HistoricDecisionInstance> callback, Date evaluatedAfter) {
+    HistoricDecisionInstanceQueryImpl query = (HistoricDecisionInstanceQueryImpl) historyService.createHistoricDecisionInstanceQuery()
+        .includeInputs()
+        .includeOutputs()
+        .orderByEvaluationTime()
+        .asc()
+        .orderByDecisionInstanceId()
+        .asc();
+
+    if (evaluatedAfter != null) {
+      query.evaluatedAfter(evaluatedAfter);
+    }
+
+    new Pagination<HistoricDecisionInstance>()
+        .pageSize(properties.getPageSize())
+        .query(query)
+        .maxCount(query::count)
+        .callback(callback);
+  }
+
+  /**
    * Processes process definitions with pagination using the provided callback consumer.
    */
   public void fetchAndHandleProcessDefinitions(Consumer<ProcessDefinition> callback, Date deployedAfter) {
@@ -305,6 +366,20 @@ public class C7Client {
   }
 
   /**
+   * Processes decision requirements with pagination using the provided callback consumer.
+   */
+  public void fetchAndHandleDecisionRequirementsDefinitions(Consumer<DecisionRequirementsDefinition> callback) {
+    DecisionRequirementsDefinitionQuery query = repositoryService.createDecisionRequirementsDefinitionQuery()
+        .orderByDecisionRequirementsDefinitionId()
+        .asc();
+
+    new Pagination<DecisionRequirementsDefinition>().pageSize(properties.getPageSize())
+        .query(query)
+        .maxCount(query::count)
+        .callback(callback);
+  }
+
+  /**
    * Processes historic incidents with pagination using the provided callback consumer.
    */
   public void fetchAndHandleHistoricIncidents(Consumer<HistoricIncident> callback, Date createdAfter) {
@@ -328,13 +403,15 @@ public class C7Client {
   /**
    * Processes variables with pagination using the provided callback consumer.
    */
-  public void fetchAndHandleHistoricVariables(Consumer<HistoricVariableInstance> callback, String latestLegacyId) {
+  public void fetchAndHandleHistoricVariables(Consumer<HistoricVariableInstance> callback, Date createdAfter) {
     HistoricVariableInstanceQueryImpl query = (HistoricVariableInstanceQueryImpl) historyService.createHistoricVariableInstanceQuery()
+        .orderByCreationTime()
+        .asc()
         .orderByVariableId()
         .asc();
 
-    if (latestLegacyId != null) {
-      query.idAfter(latestLegacyId);
+    if (createdAfter != null) {
+      query.createdAfter(createdAfter);
     }
 
     new Pagination<HistoricVariableInstance>()

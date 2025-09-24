@@ -12,6 +12,7 @@ import static io.camunda.migrator.config.property.MigratorProperties.DataSource.
 import static org.camunda.bpm.engine.ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE;
 import static org.camunda.bpm.engine.ProcessEngineConfiguration.HISTORY_AUTO;
 
+import io.camunda.migrator.config.mybatis.SchemaShutdownCleaner;
 import io.camunda.migrator.impl.AutoDeployer;
 import com.zaxxer.hikari.HikariDataSource;
 import io.camunda.migrator.HistoryMigrator;
@@ -21,8 +22,6 @@ import io.camunda.migrator.config.mybatis.MigratorConfiguration;
 import io.camunda.migrator.config.property.DataSourceProperties;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.converter.ConverterConfiguration;
-import io.camunda.migrator.impl.BuiltInDateVariableTransformer;
-import io.camunda.migrator.impl.BuiltInVariableTransformer;
 import io.camunda.migrator.impl.clients.C7Client;
 import io.camunda.migrator.impl.clients.C8Client;
 import io.camunda.migrator.impl.clients.DbClient;
@@ -63,7 +62,8 @@ import org.springframework.transaction.PlatformTransactionManager;
     VariableService.class,
     RuntimeValidator.class,
     HistoryMigrator.class,
-    RuntimeMigrator.class
+    RuntimeMigrator.class,
+    SchemaShutdownCleaner.class
 })
 @Configuration
 @EnableConfigurationProperties(MigratorProperties.class)
@@ -142,16 +142,6 @@ public class MigratorAutoConfiguration {
 
   @Autowired
   protected PlatformTransactionManager c7TransactionManager;
-
-  @Bean
-  public BuiltInVariableTransformer defaultVariableInterceptor() {
-    return new BuiltInVariableTransformer();
-  }
-
-  @Bean
-  public BuiltInDateVariableTransformer dateVariableInterceptor() {
-    return new BuiltInDateVariableTransformer();
-  }
 
   @Bean
   @ConditionalOnMissingBean(ProcessEngineConfigurationImpl.class)

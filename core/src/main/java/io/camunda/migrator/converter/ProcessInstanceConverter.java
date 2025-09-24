@@ -7,15 +7,23 @@
  */
 package io.camunda.migrator.converter;
 
-import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
-import org.camunda.bpm.engine.history.HistoricProcessInstance;
-
 import static io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel.ProcessInstanceDbModelBuilder;
+import static io.camunda.migrator.constants.MigratorConstants.C7_HISTORY_PARTITION_ID;
 import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
 import static io.camunda.search.entities.ProcessInstanceEntity.ProcessInstanceState;
 
+import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
+import io.camunda.migrator.constants.MigratorConstants;
+import io.camunda.migrator.impl.clients.C7Client;
+import io.camunda.migrator.impl.util.ConverterUtil;
+import org.camunda.bpm.engine.history.HistoricProcessInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+
 public class ProcessInstanceConverter {
+
+  @Autowired
+  protected C7Client c7Client;
 
   public ProcessInstanceDbModel apply(HistoricProcessInstance processInstance,
                                       Long processDefinitionKey,
@@ -28,17 +36,22 @@ public class ProcessInstanceConverter {
         .startDate(convertDate(processInstance.getStartTime()))
         .endDate(convertDate(processInstance.getEndTime()))
         .state(convertState(processInstance.getState()))
-        .tenantId(processInstance.getTenantId())
+        .tenantId(getTenantId(processInstance))
         .version(processInstance.getProcessDefinitionVersion())
         // parent and super process instance are used synonym (process instance that contained the call activity)
         .parentProcessInstanceKey(parentProcessInstanceKey)
-        .elementId(null) // TODO: activityId in C7 but not part of the historic process instance. Not yet populated by RDBMS.
-        .parentElementInstanceKey(null) // TODO: Call activity instance id that created the process. Not part of C7 historic process instance.
-        .numIncidents(0) // TODO: Incremented/decremented whenever incident is created/resolved. RDBMS specific.
+        // TODO: Call activity instance id that created the process in C8. No yet migrated from C7.
+        // https://github.com/camunda/camunda-bpm-platform/issues/5359
+        //        .parentElementInstanceKey(null)
+        //        .treePath(null)
+        // TODO https://github.com/camunda/camunda-bpm-platform/issues/5400
+//        .numIncidents()
+        .partitionId(C7_HISTORY_PARTITION_ID)
+        .historyCleanupDate(convertDate(processInstance.getRemovalTime()))
         .build();
   }
 
-  private ProcessInstanceState convertState(String state) {
+  protected ProcessInstanceState convertState(String state) {
     return switch (state) {
       case "ACTIVE", "SUSPENDED" -> ProcessInstanceState.ACTIVE;
       case "COMPLETED" -> ProcessInstanceState.COMPLETED;
@@ -47,4 +60,12 @@ public class ProcessInstanceConverter {
       default -> throw new IllegalArgumentException("Unknown state: " + state);
     };
   }
+
+  protected String getTenantId(HistoricProcessInstance processInstance) {
+    return processInstance != null
+        ? ConverterUtil.getTenantId(processInstance.getTenantId())
+        : MigratorConstants.C8_DEFAULT_TENANT;
+  }
+
+
 }

@@ -1,21 +1,33 @@
 camunda:
-  # Client configuration for connecting to Camunda 8 for runtime migration
+  # Client configuration for connecting to Camunda 8 for runtime migration.
+  # Warning: For self-managed mode, the default URLs use an HTTP connection. For production environments, it's suggested to configure HTTPS.
+  # For more security related recommendations, please check https://docs.camunda.io/docs/next/self-managed/components/orchestration-cluster/zeebe/security/
   client:
-    # Operation mode of the client ('self-managed' or 'cloud')
+    # # Operation mode of the client ('self-managed' or 'cloud')
     # mode: self-managed
 
-    # The gRPC API endpoint for Camunda 8 Platform
-    # grpc-address: http://localhost:26500
+    # # The gRPC API endpoint for Camunda 8 Platform
+    # grpc-address: https://your-camunda-host:26500
 
-    # The REST API endpoint for Camunda 8 Platform
-    # rest-address: http://localhost:8088
+    # # The REST API endpoint for Camunda 8 Platform
+    # rest-address: https://your-camunda-host:8088
+
+    # # The path to the CA certificate
+    # ca-certificate-path:
+
+    # # Authentication configuration for the client
+    # auth:
+    # # Authentication method for the client ('basic', 'oidc', 'none')
+    #  method: basic
+    #  username:
+    #  password:
 
   migrator:
     # Number of records to process per each page
-    # page-size: 500
+    # page-size: 100
 
     # Automatically create/update database schema
-    auto-ddl: true
+    auto-ddl: false
 
     # Optional prefix for migrator database schema tables
     # table-prefix: MY_TABLE_PREFIX_
@@ -24,8 +36,11 @@ camunda:
     # data-source: C7
 
     # Variable interceptor plugins configuration
-    # These plugins can be packaged in JARs and dropped in the userlib folder
+    # These plugins can be packaged in JARs and dropped in the ./configuration/userlib/ folder
     # interceptors:
+    #   - class-name: io.camunda.migrator.impl.interceptor.ByteArrayVariableValidator
+    #     # Disable built-in interceptors by setting enabled to false
+    #     enabled: false
     #   - class-name: com.example.MyCustomVariableInterceptor
     #     properties:
     #       someProperty: someValue
@@ -40,6 +55,15 @@ camunda:
     # You can use FEEL expressions (starting with '=')
     # validation-job-type: =if legacyId != null then "migrator" else "noop"
 
+    # Comma-separated list of tenant ids for which process instances should be migrated.
+    # tenantIds: tenant1, tenant2
+
+    # Controls whether to save skip reasons to the database (default: false)
+    # When enabled, the reason for a skipped migration will be stored.
+    # Note: This property must be set to 'true' when using the Cockpit plugin.
+    # Find more information about the Cockpit plugin here: https://docs.camunda.io/docs/next/guides/migrating-from-camunda-7/data-migrator/cockpit-plugin/
+    # save-skip-reason: false
+
     # Camunda 7 configuration
     c7:
       data-source:
@@ -47,7 +71,7 @@ camunda:
         # table-prefix:
 
         # Automatically create/update C7 database schema
-        auto-ddl: true
+        auto-ddl: false
 
         # JDBC connection URL for the source Camunda 7 database
         # Using H2 database file in ./h2 directory
@@ -68,7 +92,7 @@ camunda:
     #     # table-prefix:
     #
     #     # Automatically create/update C8 database schema
-    #     # auto-ddl: true
+    #     # auto-ddl: false
     #
     #     # JDBC connection URL for the target Camunda 8 database
     #     # jdbc-url: jdbc:h2:./h2/data-migrator-target.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
@@ -84,7 +108,8 @@ camunda:
 logging:
   level:
     # Root logger level
-    root: INFO
+    root: WARN
+    io.camunda.migrator: WARN
 
     # Uncomment to enable debug migrator logging
     # io.camunda.migrator: DEBUG

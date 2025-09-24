@@ -12,12 +12,11 @@ import static io.camunda.migrator.MigratorMode.RETRY_SKIPPED;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.PROCESS_INSTANCE_NOT_EXISTS;
 import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR;
-import static io.camunda.migrator.impl.util.PrintUtils.NO_SKIPPED_INSTANCES_MESSAGE;
-import static io.camunda.migrator.impl.util.PrintUtils.PREVIOUSLY_SKIPPED_INSTANCES_MESSAGE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureTrue;
 
 import io.camunda.client.api.search.response.ProcessInstance;
+import io.camunda.migrator.HistoryMigrator;
 import io.camunda.migrator.RuntimeMigrator;
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
@@ -51,6 +50,9 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
   @Autowired
   private TaskService taskService;
 
+  @Autowired
+  private HistoryMigrator historyMigrator;
+
   @Test
   public void shouldSkipMultiInstanceProcessMigration() {
     // given process state in c7
@@ -67,7 +69,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
 
     List<IdKeyDbModel> skippedProcessInstanceIds = findSkippedRuntimeProcessInstances().stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
-    assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(process.getId());
+    assertThat(skippedProcessInstanceIds.getFirst().getC7Id()).isEqualTo(process.getId());
 
     logs.assertContains(String.format(SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("{}", "%s"), process.getId(),
         String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, "multiUserTask")));
@@ -88,7 +90,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
 
     List<IdKeyDbModel> skippedProcessInstanceIds = dbClient.findSkippedProcessInstances().stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
-    assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(process.getId());
+    assertThat(skippedProcessInstanceIds.getFirst().getC7Id()).isEqualTo(process.getId());
 
     // Logs should contains the activityId without the multi-instance body suffix
     String activityIdWithoutMultiInstanceBody = "ServiceTask_1";
@@ -113,7 +115,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     assertThatProcessInstanceCountIsEqualTo(0);
     List<IdKeyDbModel> skippedProcessInstanceIds = findSkippedRuntimeProcessInstances().stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
-    assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(process.getId());
+    assertThat(skippedProcessInstanceIds.getFirst().getC7Id()).isEqualTo(process.getId());
 
     logs.assertContains(String.format(SKIPPING_PROCESS_INSTANCE_VALIDATION_ERROR.replace("{}", "%s"), process.getId(),
         String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, "multiUserTask")));
@@ -136,7 +138,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     assertThatProcessInstanceCountIsEqualTo(0);
     List<IdKeyDbModel> skippedProcessInstanceIds = findSkippedRuntimeProcessInstances().stream().toList();
     assertThat(skippedProcessInstanceIds.size()).isEqualTo(1);
-    assertThat(skippedProcessInstanceIds.getFirst().id()).isEqualTo(process.getId());
+    assertThat(skippedProcessInstanceIds.getFirst().getC7Id()).isEqualTo(process.getId());
 
     var events = logs.getEvents();
     Assertions.assertThat(events.stream()
@@ -177,7 +179,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     assertThat(processInstance.getProcessDefinitionId()).isEqualTo(process.getProcessDefinitionKey());
 
     // and the key updated
-    assertThat(dbClient.findKeyById(process.getId())).isNotNull();
+    assertThat(dbClient.findC8KeyByC7IdAndType(process.getId(), IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE)).isNotNull();
 
     // and no additional skipping logs (still 1, not 2 matches)
     Assertions.assertThat(events.stream()
@@ -223,7 +225,8 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then all skipped process instances were listed
-    String regex = PREVIOUSLY_SKIPPED_INSTANCES_MESSAGE + "\\R((?:.+\\R){9}.+)";
+    String expectedHeader = "Previously skipped \\[" + IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE.getDisplayName() + "s\\]:";
+    String regex = expectedHeader + "\\R((?:.+\\R){9}.+)";
     assertThat(output.getOut()).containsPattern(regex);
     Pattern pattern = Pattern.compile(regex);
     Matcher matcher = pattern.matcher(output.getOut());
@@ -244,10 +247,37 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then expected message is printed
-    assertThat(output.getOut().trim()).endsWith(NO_SKIPPED_INSTANCES_MESSAGE);
+    String expectedMessage = "No entities of type [" + IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE.getDisplayName() + "] were skipped during previous migration";
+    assertThat(output.getOut().trim()).endsWith(expectedMessage);
 
     // and no migration was done
-    assertThat(dbClient.findAllIds().size()).isEqualTo(0);
+    assertThat(dbClient.findAllC7Ids().size()).isEqualTo(0);
+  }
+
+  @Test
+  public void shouldMigrateRuntimeProcessInstanceAfterHistoryMigrationWithSameId() {
+    // given a process instance in C7 that will create both history and runtime entries with same ID
+    deployer.deployProcessInC7AndC8("simpleProcess.bpmn");
+    var completedProcess = runtimeService.startProcessInstanceByKey("simpleProcess");
+    String processInstanceId = completedProcess.getId();
+
+    // when running history migration first
+    historyMigrator.start();
+
+    // then verify history process instance was migrated
+    assertThat(dbClient.checkHasC8KeyByC7IdAndType(processInstanceId, IdKeyMapper.TYPE.HISTORY_PROCESS_INSTANCE)).isTrue();
+    // then verify runtime process instance was not yet migrated
+    assertThat(dbClient.checkHasC8KeyByC7IdAndType(processInstanceId, IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE)).isFalse();
+
+    // when running runtime migration afterwards
+    runtimeMigrator.start();
+
+    // then verify runtime process instance was also migrated successfully
+    assertThat(dbClient.checkHasC8KeyByC7IdAndType(processInstanceId, IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE)).isTrue();
+
+    // Verify C8 process instance was created
+    List<ProcessInstance> c8ProcessInstances = camundaClient.newProcessInstanceSearchRequest().execute().items();
+    assertThat(c8ProcessInstances.size()).isEqualTo(1);
   }
 
 }

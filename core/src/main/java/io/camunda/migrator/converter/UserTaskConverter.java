@@ -8,11 +8,15 @@
 package io.camunda.migrator.converter;
 
 import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
+import io.camunda.migrator.constants.MigratorConstants;
+import io.camunda.migrator.impl.util.ConverterUtil;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import org.camunda.bpm.engine.history.HistoricTaskInstance;
 
+import static io.camunda.migrator.constants.MigratorConstants.C7_HISTORY_PARTITION_ID;
 import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
+import static io.camunda.migrator.impl.util.ConverterUtil.getTenantId;
 
 public class UserTaskConverter {
 
@@ -31,24 +35,27 @@ public class UserTaskConverter {
         .state(convertState(historicTask.getTaskState()))
         .processDefinitionKey(processDefinitionKey)
         .processInstanceKey(processInstance.processInstanceKey())
-        .tenantId(historicTask.getTenantId())
+        .tenantId(getTenantId(historicTask.getTenantId()))
         .elementInstanceKey(elementInstanceKey)
         .dueDate(convertDate(historicTask.getDueDate()))
         .followUpDate(convertDate(historicTask.getFollowUpDate()))
         .priority(historicTask.getPriority())
         .processDefinitionVersion(processInstance.processDefinitionVersion())
-        .formKey(null) //TODO ?
+        .formKey(null) // TODO  https://github.com/camunda/camunda-bpm-platform/issues/5347
         .candidateGroups(null) //TODO ?
         .candidateUsers(null) //TODO ?
         .externalFormReference(null) //TODO ?
         .customHeaders(null) //TODO ?
+        .historyCleanupDate(convertDate(historicTask.getRemovalTime()))
+        .partitionId(C7_HISTORY_PARTITION_ID)
+        .name(historicTask.getName())
         .build();
   }
 
   // See TaskEntity.TaskState
   private UserTaskDbModel.UserTaskState convertState(String state) {
     return switch (state) {
-      case "Init", "Created" -> UserTaskDbModel.UserTaskState.CREATED; //TODO check correctness
+      case "Init", "Created" -> UserTaskDbModel.UserTaskState.CREATED;
       case "Completed" -> UserTaskDbModel.UserTaskState.COMPLETED;
       case "Deleted" -> UserTaskDbModel.UserTaskState.CANCELED;
       case "Updated" -> UserTaskDbModel.UserTaskState.CREATED;

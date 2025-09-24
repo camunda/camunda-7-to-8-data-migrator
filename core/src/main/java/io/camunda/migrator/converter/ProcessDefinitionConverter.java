@@ -25,18 +25,18 @@ public class ProcessDefinitionConverter {
   @Autowired
   private C7Client c7Client;
 
-  public ProcessDefinitionDbModel apply(ProcessDefinition legacyProcessDefinition) {
-    String bpmnXml = getBpmnXmlAsString(legacyProcessDefinition);
+  public ProcessDefinitionDbModel apply(ProcessDefinition c7ProcessDefinition) {
+    String bpmnXml = getBpmnXmlAsString(c7ProcessDefinition);
 
     return new ProcessDefinitionDbModel.ProcessDefinitionDbModelBuilder().processDefinitionKey(getNextKey())
-        .processDefinitionId(legacyProcessDefinition.getKey())
-        .resourceName(legacyProcessDefinition.getResourceName())
-        .name(legacyProcessDefinition.getName())
-        .tenantId(legacyProcessDefinition.getTenantId())
-        .versionTag(legacyProcessDefinition.getVersionTag())
-        .version(legacyProcessDefinition.getVersion())
+        .processDefinitionId(c7ProcessDefinition.getKey())
+        .resourceName(c7ProcessDefinition.getResourceName())
+        .name(c7ProcessDefinition.getName())
+        .tenantId(c7ProcessDefinition.getTenantId())
+        .versionTag(c7ProcessDefinition.getVersionTag())
+        .version(c7ProcessDefinition.getVersion())
         .bpmnXml(bpmnXml)
-        .formId(null) // TODO
+        .formId(null) // TODO https://github.com/camunda/camunda-bpm-platform/issues/5347
         .build();
   }
 
