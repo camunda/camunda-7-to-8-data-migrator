@@ -74,7 +74,8 @@ public class MigratorApp {
       } else if (hasMigrationFlags(appArgs)) {
         runMigratorsInOrder(context, appArgs, mode, args);
       } else {
-        LOGGER.warn("Invalid argument combination");
+        LOGGER.error("Error: Invalid argument combination."); // Last resort error, should be caught by validation
+        printUsage();
       }
     } finally {
       SpringApplication.exit(context);
@@ -90,6 +91,20 @@ public class MigratorApp {
 
     boolean hasListSkipped = argsList.contains("--" + ARG_LIST_SKIPPED);
     boolean hasRetrySkipped = argsList.contains("--" + ARG_RETRY_SKIPPED);
+
+    if (hasListSkipped && hasRetrySkipped) {
+      throw new IllegalArgumentException(
+          "Conflicting flags: --list-skipped and --retry-skipped cannot be used together. Please specify only one of them.");
+    }
+
+    boolean dropSchema = argsList.contains("--" + ARG_DROP_SCHEMA);
+    boolean force = argsList.contains("--" + ARG_FORCE);
+    LOGGER.debug("Migration will be run with `drop-schema={}` and `force={}`", dropSchema, force);
+    if (force && !dropSchema) {
+      throw new IllegalArgumentException(
+          "Invalid flag combination: --force requires --drop-schema. Use both flags together or remove --force.");
+    }
+
     boolean listSkippedHistoryFound =
         hasListSkipped && argsList.contains("--" + ARG_HISTORY_MIGRATION);
     int flagCount = 0;
@@ -108,21 +123,6 @@ public class MigratorApp {
     // Check if we have too many flags (not counting entity type parameters)
     if (flagCount > MAX_FLAGS) {
       throw new IllegalArgumentException("Error: Too many arguments.");
-    }
-
-    // Validate skipped migration configuration
-    if (hasListSkipped && hasRetrySkipped) {
-      throw new IllegalArgumentException(
-          "Conflicting flags: --list-skipped and --retry-skipped cannot be used together. Please specify only one migration mode.");
-    }
-
-    // Validate drop schema configuration
-    boolean dropSchema = argsList.contains("--" + ARG_DROP_SCHEMA);
-    boolean force = argsList.contains("--" + ARG_FORCE);
-    LOGGER.debug("Migration will be run with `drop-schema={}` and `force={}`", dropSchema, force);
-    if (force && !dropSchema) {
-      throw new IllegalArgumentException(
-          "Invalid flag combination: --force requires --drop-schema. Use both flags together or remove --force.");
     }
   }
 
@@ -144,9 +144,10 @@ public class MigratorApp {
     System.out.println("  --drop-schema     - Drop the migrator schema on shutdown ff migration was successful");
     System.out.println("  --force           - Force the dropping of the migrator schema in all cases, to be used in combination with --drop-schema");
     System.out.println();
-    System.out.println("Mutually Exclusive Options:");
+    System.out.println("Mutually exclusive options:");
     System.out.println("  --list-skipped and --retry-skipped cannot be used together");
     System.out.println("  --force can only be used with --drop-schema");
+    System.out.println("  --help cannot be used with any other flag");
     System.out.println("Examples:");
     System.out.println("  start.sh --history --list-skipped");
     System.out.println("  start.sh --history --list-skipped HISTORY_PROCESS_INSTANCE HISTORY_USER_TASK");

@@ -112,7 +112,7 @@ class DistributionSmokeTest {
   @Timeout(value = 60, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenTooManyArgumentsProvided() throws Exception {
     // given
-    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history", "--history", "--drop-schema", "--force", "--list-skipped", "--retry-skipped");
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history", "--history", "--drop-schema", "--force", "--list-skipped");
 
     // when
     Process process = processBuilder.start();
