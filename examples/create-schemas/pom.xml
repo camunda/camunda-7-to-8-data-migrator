@@ -136,25 +136,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>com.mycila</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <configuration>
-          <licenseSets>
-            <licenseSet>
-              <header>${project.basedir}/../license/header.txt</header>
-            </licenseSet>
-          </licenseSets>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>verify</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
 <!--            <plugin>-->
 <!--              <groupId>org.liquibase</groupId>-->
 <!--              <artifactId>liquibase-maven-plugin</artifactId>-->

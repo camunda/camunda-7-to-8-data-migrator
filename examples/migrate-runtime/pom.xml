@@ -36,25 +36,6 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${version.spring-boot}</version>
       </plugin>
-      <plugin>
-        <groupId>com.mycila</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <configuration>
-          <licenseSets>
-            <licenseSet>
-              <header>${project.basedir}/../../license/header.txt</header>
-            </licenseSet>
-          </licenseSets>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>verify</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 
