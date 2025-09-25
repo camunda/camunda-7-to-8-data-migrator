@@ -5,23 +5,18 @@ camunda:
   client:
     # # Operation mode of the client ('self-managed' or 'cloud')
     # mode: self-managed
-    #
     # # The gRPC API endpoint for Camunda 8 Platform
     # grpc-address: https://your-camunda-host:26500
-    #
     # # The REST API endpoint for Camunda 8 Platform
     # rest-address: https://your-camunda-host:8088
-    #
     # # The path to the CA certificate
     # ca-certificate-path:
-    #
     # # Authentication configuration for the client
     # auth:
     # # Authentication method for the client ('basic', 'oidc', 'none')
     #  method: basic
     #  username:
     #  password:
-    #
   migrator:
     # # Number of records to process per each page
     # page-size: 100
@@ -69,57 +64,45 @@ camunda:
       data-source:
         # # Optional prefix for C7 database tables
         # table-prefix:
-        #
         # # Automatically create/update C7 database schema
         auto-ddl: false
-
         # JDBC connection URL for the source Camunda 7 database
         # Using H2 database file in ./h2 directory
         jdbc-url: jdbc:h2:./h2/data-migrator-source.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
-
         # Database username
         username: sa
         # Database password
         password:
         # Database driver class name
         driver-class-name: org.h2.Driver
-    #
     # # Camunda 8 RDBMS configuration only needed for history migration
     # c8:
     #   data-source:
     #     # Optional prefix for C8 database tables
     #     table-prefix:
-    #
     #     # Automatically create/update C8 database schema
     #     auto-ddl: false
-    #
     #     # JDBC connection URL for the target Camunda 8 database
     #     # Using H2 database file in ./h2 directory
     #     jdbc-url: jdbc:h2:./h2/data-migrator-target.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
-    #
     #     # Database username
     #     username: sa
     #     # Database password
     #     password:
     #     # Database driver class name
     #     driver-class-name: org.h2.Driver
-    #
-# # Logging configuration
+# Logging configuration
 logging:
   level:
     # Root logger level
     root: WARN
     io.camunda.migrator: WARN
-    #
     # # Enable debug migrator logging
     # io.camunda.migrator: DEBUG
-    #
     # # Enable debug logging for runtime migration
     # io.camunda.migrator.RuntimeMigrator: DEBUG
-    #
     # # Enable debug logging for ID mapping
     # io.camunda.migrator.persistence.IdKeyMapper: DEBUG # persistence
-    #
     # # Enable debug logging for C7
     # org.camunda.bpm: INFO  # C7
   file:
