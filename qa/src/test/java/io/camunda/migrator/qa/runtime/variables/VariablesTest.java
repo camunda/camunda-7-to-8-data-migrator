@@ -11,6 +11,7 @@ import static io.camunda.migrator.impl.logging.RuntimeMigratorLogs.SKIPPING_PROC
 import static io.camunda.migrator.impl.logging.VariableServiceLogs.BYTE_ARRAY_UNSUPPORTED_ERROR;
 import static io.camunda.migrator.impl.logging.VariableServiceLogs.FILE_TYPE_UNSUPPORTED_ERROR;
 import static io.camunda.migrator.impl.logging.VariableServiceLogs.JAVA_SERIALIZED_UNSUPPORTED_ERROR;
+import static io.camunda.process.test.api.assertions.ElementSelectors.byId;
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.variable.Variables.SerializationDataFormats.JSON;
@@ -353,30 +354,8 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    // TODO switch to CPT
-    // https://github.com/camunda/camunda-bpm-platform/issues/5251
-    Awaitility.await().ignoreException(ClientException.class)
-        .timeout(10, TimeUnit.SECONDS)
-        .untilAsserted(() -> {
-      List<Variable> c8vars = camundaClient.newVariableSearchRequest()
-          .filter(f -> f.name("localVariable"))
-          .send()
-          .join()
-          .items();
-
-      List<ElementInstance> elements = camundaClient.newElementInstanceSearchRequest()
-          .filter(f -> f.elementId("userTask_1"))
-          .send()
-          .join()
-          .items();
-
-      assertThat(c8vars.size()).isEqualTo(1);
-      var c8Var = c8vars.get(0);
-      assertThat(c8Var.getValue().contains("local value")).isTrue();
-      assertThat(c8Var.getScopeKey()).isNotEqualTo(elements.get(0).getProcessInstanceKey());
-      assertThat(c8Var.getScopeKey()).isEqualTo(elements.get(0).getElementInstanceKey());
-    });
-
+    CamundaAssert.assertThat(byProcessId(PARALLEL)).hasVariable("variable1", "value1");
+    CamundaAssert.assertThat(byProcessId(PARALLEL)).hasLocalVariable(byId("userTask_1"), "localVariable", "local value");
   }
 
   @Test
@@ -395,27 +374,8 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    // TODO assert local variable when this ticket is completed https://github.com/camunda/camunda/issues/32648
-    Awaitility.await().ignoreException(ClientException.class)
-        .timeout(10, TimeUnit.SECONDS).untilAsserted(() -> {
-      List<Variable> c8vars = camundaClient.newVariableSearchRequest()
-          .filter(f -> f.name("localVariable"))
-          .send()
-          .join()
-          .items();
-
-      List<ElementInstance> elements = camundaClient.newElementInstanceSearchRequest()
-          .filter(f -> f.elementId("userTask_1"))
-          .send()
-          .join()
-          .items();
-
-      assertThat(c8vars.size()).isEqualTo(1);
-      var c8Var = c8vars.get(0);
-      assertThat(c8Var.getValue().contains("local value")).isTrue();
-      assertThat(c8Var.getScopeKey()).isNotEqualTo(elements.get(0).getProcessInstanceKey());
-      assertThat(c8Var.getScopeKey()).isEqualTo(elements.get(0).getElementInstanceKey());
-    });
+    CamundaAssert.assertThat(byProcessId(PARALLEL)).hasVariable("variable1", "value1");
+    CamundaAssert.assertThat(byProcessId(PARALLEL)).hasLocalVariable(byId("userTask_1"), "localVariable", "local value");
   }
 
   @Test
@@ -436,22 +396,8 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
     runtimeMigrator.start();
 
     // then
-    CamundaAssert.assertThat(byProcessId(SUB_PROCESS))
-        .hasVariableNames("variable1", "variable2");
-
-    // TODO assert local variable when this ticket is completed https://github.com/camunda/camunda/issues/32648
-    Awaitility.await().ignoreException(ClientException.class)
-        .timeout(10, TimeUnit.SECONDS).untilAsserted(() -> {
-      List<Variable> c8vars = camundaClient.newVariableSearchRequest()
-          .filter(f -> f.name("localVariable"))
-          .send()
-          .join()
-          .items();
-
-      assertThat(c8vars.size()).isEqualTo(1);
-      var c8Var = c8vars.get(0);
-      assertThat(c8Var.getValue()).isEqualTo("local value");
-    });
+    CamundaAssert.assertThat(byProcessId(SUB_PROCESS)).hasVariableNames("variable1", "variable2");
+    CamundaAssert.assertThat(byProcessId(SUB_PROCESS)).hasLocalVariable(byId("userTask_1"), "localVariable", "local value");
   }
 
   private void deploySubprocessModels() {
