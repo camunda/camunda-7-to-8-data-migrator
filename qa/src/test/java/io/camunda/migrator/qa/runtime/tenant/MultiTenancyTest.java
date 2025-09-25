@@ -197,7 +197,7 @@ class MultiTenancyTest {
     }
 
     @Test
-    public void shouldSkipProcessInstanceWhenConfiguredTenantNotAvailableInC8() {
+    public void shouldSkipProcessInstanceWhenTenantNotConfigured() {
       // given
       deployer.deployCamunda7Process(SIMPLE_PROCESS_BPMN, TENANT_ID_3); // not configured
       deployer.deployCamunda8Process(SIMPLE_PROCESS_BPMN, TENANT_ID_1);
