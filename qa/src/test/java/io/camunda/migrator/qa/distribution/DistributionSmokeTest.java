@@ -61,7 +61,7 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenInvalidFlagProvided() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--invalid-flag");
@@ -84,7 +84,7 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenNoFlagProvided() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder();
@@ -110,7 +110,7 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenHelpFlagProvided() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--help");
@@ -136,7 +136,7 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenHelpFlagCombinedWithOtherFlags() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--help", "--runtime");
@@ -162,10 +162,46 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
+  void shouldShowUsageWhenListAndRetryAreProvided() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--list-skipped", "--retry-skipped");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("Conflicting flags: --list-skipped and --retry-skipped cannot be used together");
+    assertThat(output).contains("Usage: start.sh/bat");
+  }
+
+  @Test
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
+  void shouldShowUsageWhenForceWithoutDropIsProvided() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--force");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("Invalid flag combination: --force requires --drop-schema. Use both flags together or remove --force.");
+    assertThat(output).contains("Usage: start.sh/bat");
+  }
+
+  @Test
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenTooManyArgumentsProvided() throws Exception {
     // given
-    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history", "--history", "--drop-schema", "--force", "--list-skipped", "--retry-skipped");
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history", "--history", "--drop-schema", "--force", "--list-skipped");
 
     // when
     Process process = processBuilder.start();
@@ -184,9 +220,9 @@ class DistributionSmokeTest {
   void shouldAcceptValidFlags() throws Exception {
     // given
     String[][] validFlags = {
-        {"--help"},
         {"--runtime"},
         {"--history"},
+        {"--runtime", "--history"},
         {"--runtime", "--drop-schema"},
         {"--runtime", "--drop-schema", "--force"},
         {"--history", "--list-skipped"},
