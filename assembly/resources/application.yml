@@ -79,10 +79,8 @@ camunda:
 
         # Database username
         username: sa
-
         # Database password
         password:
-
         # Database driver class name
         driver-class-name: org.h2.Driver
     #
@@ -96,6 +94,7 @@ camunda:
     #     auto-ddl: false
     #
     #     # JDBC connection URL for the target Camunda 8 database
+    #     # Using H2 database file in ./h2 directory
     #     jdbc-url: jdbc:h2:./h2/data-migrator-target.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
     #
     #     # Database username
@@ -112,15 +111,16 @@ logging:
     root: WARN
     io.camunda.migrator: WARN
     #
-    # # Uncomment to enable debug migrator logging
+    # # Enable debug migrator logging
     # io.camunda.migrator: DEBUG
-    # # Uncomment to enable debug logging for runtime migration
+    #
+    # # Enable debug logging for runtime migration
     # io.camunda.migrator.RuntimeMigrator: DEBUG
     #
-    # # Uncomment to enable debug logging for ID mapping
+    # # Enable debug logging for ID mapping
     # io.camunda.migrator.persistence.IdKeyMapper: DEBUG # persistence
     #
-    # # Uncomment to enable debug logging for C7
+    # # Enable debug logging for C7
     # org.camunda.bpm: INFO  # C7
   file:
     name: logs/camunda-7-to-8-data-migrator.log
