@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_15zcj2y" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.39.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.23.0">
+  <bpmn:process id="multiInstanceProcess" name="MultiInstanceProcess" isExecutable="true" camunda:historyTimeToLive="999">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_164zo45</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="multiUserTask" name="Multi User Task">
+      <bpmn:incoming>Flow_164zo45</bpmn:incoming>
+      <bpmn:outgoing>Flow_03w1srn</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics isSequential="true" camunda:collection="namesList" camunda:elementVariable="nameElement" />
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_164zo45" sourceRef="StartEvent_1" targetRef="multiUserTask" />
+    <bpmn:endEvent id="Event_187hqtd">
+      <bpmn:incoming>Flow_03w1srn</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_03w1srn" sourceRef="multiUserTask" targetRef="Event_187hqtd" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="multiInstanceProcess">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1nsx85r_di" bpmnElement="multiUserTask">
+        <dc:Bounds x="260" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_187hqtd_di" bpmnElement="Event_187hqtd">
+        <dc:Bounds x="432" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_164zo45_di" bpmnElement="Flow_164zo45">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="260" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_03w1srn_di" bpmnElement="Flow_03w1srn">
+        <di:waypoint x="360" y="120" />
+        <di:waypoint x="432" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
