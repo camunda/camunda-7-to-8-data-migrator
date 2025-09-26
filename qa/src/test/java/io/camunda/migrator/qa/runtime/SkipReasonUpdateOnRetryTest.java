@@ -76,7 +76,7 @@ public class SkipReasonUpdateOnRetryTest extends RuntimeMigrationAbstractTest {
     // when: run initial migration
     runtimeMigrator.start();
 
-    // then: process instance should be skipped with no none start event error
+    // then: process instance should be skipped with no C8 deployment error
     String expectedSkipReason = String.format(NO_C8_DEPLOYMENT_ERROR, "MessageStartEventProcessId", process.getId());
     verifySkipped(process, expectedSkipReason);
 

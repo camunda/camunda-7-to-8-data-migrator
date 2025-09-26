@@ -95,13 +95,13 @@ public class DbClient {
   }
 
   public void updateSkipReason(String c7Id, TYPE type, String skipReason) {
-    if(!properties.getSaveSkipReason()) {
+    if (!properties.getSaveSkipReason()) {
       return;
     }
 
     DbClientLogs.updatingSkipReason(c7Id, skipReason);
     var model = createIdKeyDbModel(c7Id, null, null, type, skipReason);
-    callApi(() -> idKeyMapper.updateSkipReason(model),FAILED_TO_UPDATE_SKIP_REASON + c7Id);
+    callApi(() -> idKeyMapper.updateSkipReason(model), FAILED_TO_UPDATE_SKIP_REASON + c7Id);
   }
 
   /**
