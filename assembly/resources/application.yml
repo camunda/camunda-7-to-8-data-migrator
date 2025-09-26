@@ -52,7 +52,7 @@ camunda:
     # validation-job-type: =if legacyId != null then "migrator" else "noop"
     #
     # # Comma-separated list of tenant ids for which process instances should be migrated.
-    # tenantIds: tenant1, tenant2
+    # tenant-ids: tenant1, tenant2
     #
     # # Controls whether to save skip reasons to the database (default: false)
     # # When enabled, the reason for a skipped migration will be stored.
