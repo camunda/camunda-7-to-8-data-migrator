@@ -5,16 +5,12 @@ camunda:
   client:
     # # Operation mode of the client ('self-managed' or 'cloud')
     # mode: self-managed
-
     # # The gRPC API endpoint for Camunda 8 Platform
     # grpc-address: https://your-camunda-host:26500
-
     # # The REST API endpoint for Camunda 8 Platform
     # rest-address: https://your-camunda-host:8088
-
     # # The path to the CA certificate
     # ca-certificate-path:
-
     # # Authentication configuration for the client
     # auth:
     # # Authentication method for the client ('basic', 'oidc', 'none')
@@ -23,20 +19,20 @@ camunda:
     #  password:
 
   migrator:
-    # Number of records to process per each page
+    # # Number of records to process per each page
     # page-size: 100
-
+    #
     # Automatically create/update database schema
     auto-ddl: false
-
-    # Optional prefix for migrator database schema tables
+    #
+    # # Optional prefix for migrator database schema tables
     # table-prefix: MY_TABLE_PREFIX_
-
-    # Optional property to configure if the migrator schema is created on `C7` or `C8`. Default is 'C7'.
+    #
+    # # Optional property to configure if the migrator schema is created on `C7` or `C8`. Default is 'C7'.
     # data-source: C7
-
-    # Variable interceptor plugins configuration
-    # These plugins can be packaged in JARs and dropped in the ./configuration/userlib/ folder
+    #
+    # # Variable interceptor plugins configuration
+    # # These plugins can be packaged in JARs and dropped in the ./configuration/userlib/ folder
     # interceptors:
     #   - class-name: io.camunda.migrator.impl.interceptor.ByteArrayVariableValidator
     #     # Disable built-in interceptors by setting enabled to false
@@ -46,63 +42,56 @@ camunda:
     #       someProperty: someValue
     #       anotherProperty: anotherValue
     #   - class-name: com.example.AnotherVariableInterceptor
-
-    # Job type for actual job activation (used for validation and activation unless validation-job-type is defined)
+    #
+    # # Job type for actual job activation (used for validation and activation unless validation-job-type is defined)
     # job-type: migrator
-
-    # Job type for validation purposes (optional - falls back to job-type if not defined)
-    # Set to 'DISABLED' to disable job type validation entirely
-    # You can use FEEL expressions (starting with '=')
+    #
+    # # Job type for validation purposes (optional - falls back to job-type if not defined)
+    # # Set to 'DISABLED' to disable job type validation entirely
+    # # You can use FEEL expressions (starting with '=')
     # validation-job-type: =if legacyId != null then "migrator" else "noop"
-
-    # Comma-separated list of tenant ids for which process instances should be migrated.
+    #
+    # # Comma-separated list of tenant ids for which process instances should be migrated.
     # tenantIds: tenant1, tenant2
-
-    # Controls whether to save skip reasons to the database (default: false)
-    # When enabled, the reason for a skipped migration will be stored.
-    # Note: This property must be set to 'true' when using the Cockpit plugin.
-    # Find more information about the Cockpit plugin here: https://docs.camunda.io/docs/next/guides/migrating-from-camunda-7/data-migrator/cockpit-plugin/
+    #
+    # # Controls whether to save skip reasons to the database (default: false)
+    # # When enabled, the reason for a skipped migration will be stored.
+    # # Note: This property must be set to 'true' when using the Cockpit plugin.
+    # # Find more information about the Cockpit plugin here: https://docs.camunda.io/docs/next/guides/migrating-from-camunda-7/data-migrator/cockpit-plugin/
     # save-skip-reason: false
-
-    # Camunda 7 configuration
+    # # Camunda 7 configuration
     c7:
       data-source:
-        # Optional prefix for C7 database tables
+        # # Optional prefix for C7 database tables
         # table-prefix:
-
-        # Automatically create/update C7 database schema
+        # # Automatically create/update C7 database schema
         auto-ddl: false
-
         # JDBC connection URL for the source Camunda 7 database
         # Using H2 database file in ./h2 directory
         jdbc-url: jdbc:h2:./h2/data-migrator-source.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
-
         # Database username
         username: sa
-
         # Database password
         password:
-
         # Database driver class name
         driver-class-name: org.h2.Driver
-    # Camunda 8 RDBMS configuration only needed for history migration
+
+    # # Camunda 8 RDBMS configuration only needed for history migration
     # c8:
     #   data-source:
     #     # Optional prefix for C8 database tables
-    #     # table-prefix:
-    #
+    #     table-prefix:
     #     # Automatically create/update C8 database schema
-    #     # auto-ddl: false
-    #
+    #     auto-ddl: false
     #     # JDBC connection URL for the target Camunda 8 database
-    #     # jdbc-url: jdbc:h2:./h2/data-migrator-target.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
-    #
+    #     # Using H2 database file in ./h2 directory
+    #     jdbc-url: jdbc:h2:./h2/data-migrator-target.db;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
     #     # Database username
-    #     # username: sa
+    #     username: sa
     #     # Database password
-    #     # password:
+    #     password:
     #     # Database driver class name
-    #     # driver-class-name: org.h2.Driver
+    #     driver-class-name: org.h2.Driver
 
 # Logging configuration
 logging:
@@ -110,17 +99,13 @@ logging:
     # Root logger level
     root: WARN
     io.camunda.migrator: WARN
-
-    # Uncomment to enable debug migrator logging
+    # # Enable debug migrator logging
     # io.camunda.migrator: DEBUG
-
-    # Uncomment to enable debug logging for runtime migration
+    # # Enable debug logging for runtime migration
     # io.camunda.migrator.RuntimeMigrator: DEBUG
-
-    # Uncomment to enable debug logging for ID mapping
+    # # Enable debug logging for ID mapping
     # io.camunda.migrator.persistence.IdKeyMapper: DEBUG # persistence
-
-    # Uncomment to enable debug logging for C7
+    # # Enable debug logging for C7
     # org.camunda.bpm: INFO  # C7
   file:
     name: logs/camunda-7-to-8-data-migrator.log
