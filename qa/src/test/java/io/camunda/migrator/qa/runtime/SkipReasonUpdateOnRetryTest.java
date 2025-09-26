@@ -90,7 +90,32 @@ public class SkipReasonUpdateOnRetryTest extends RuntimeMigrationAbstractTest {
     // then: process instance should still be skipped but with updated reason (missing none start event)
     String updatedSkipReason = String.format(NO_NONE_START_EVENT_ERROR, "MessageStartEventProcessId", 1);
     verifySkipped(process, updatedSkipReason);
-//        "C8 process definition [id: MessageStartEventProcessId, version: 1] should have a None Start Event.");
+  }
+
+  @Test
+  public void shouldNotSaveSkipReasonDuringRetry() {
+    // given: disabled skip reason saving
+    migratorProperties.setSaveSkipReason(false);
+
+    // given: deploy process with message start event only in C7
+    deployer.deployCamunda7Process("messageStartEventProcess.bpmn");
+    var process = runtimeService.startProcessInstanceByKey("MessageStartEventProcessId");
+
+    // when: run initial migration
+    runtimeMigrator.start();
+
+    // then: process instance should be skipped with null skip reason
+    verifySkipped(process, null);
+
+    // given: deploy missing C8 process but without a none start event
+    deployer.deployCamunda8Process("messageStartEventProcess.bpmn");
+
+    // when: retry skipped process instances
+    runtimeMigrator.setMode(RETRY_SKIPPED);
+    runtimeMigrator.start();
+
+    // then: process instance should still be skipped with null skip reason
+    verifySkipped(process, null);
   }
 
   private void verifySkipped(ProcessInstance process, String expectedSkipReason) {
