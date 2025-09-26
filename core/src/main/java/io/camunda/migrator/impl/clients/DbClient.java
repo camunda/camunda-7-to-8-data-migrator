@@ -17,6 +17,7 @@ import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_LATES
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_FIND_SKIPPED_COUNT;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_INSERT_RECORD;
 import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_UPDATE_KEY;
+import static io.camunda.migrator.impl.logging.DbClientLogs.FAILED_TO_UPDATE_SKIP_REASON;
 import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 
@@ -91,6 +92,16 @@ public class DbClient {
     DbClientLogs.updatingC8KeyForC7Id(c7Id, c8Key);
     var model = createIdKeyDbModel(c7Id, null, c8Key, type);
     callApi(() -> idKeyMapper.updateC8KeyByC7IdAndType(model), FAILED_TO_UPDATE_KEY + c8Key);
+  }
+
+  public void updateSkipReason(String c7Id, TYPE type, String skipReason) {
+    if(!properties.getSaveSkipReason()) {
+      return;
+    }
+
+    DbClientLogs.updatingSkipReason(c7Id, skipReason);
+    var model = createIdKeyDbModel(c7Id, null, null, type, skipReason);
+    callApi(() -> idKeyMapper.updateSkipReason(model),FAILED_TO_UPDATE_SKIP_REASON + c7Id);
   }
 
   /**
@@ -196,5 +207,4 @@ public class DbClient {
   protected IdKeyDbModel createIdKeyDbModel(String c7Id, Date createTime, Long c8Key, TYPE type) {
     return createIdKeyDbModel(c7Id, createTime, c8Key, type, null);
   }
-
 }
