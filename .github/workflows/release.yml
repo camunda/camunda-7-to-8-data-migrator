@@ -183,7 +183,7 @@ jobs:
             -Dgpg.passphrase="${{ steps.secrets.outputs.MAVEN_CENTRAL_GPG_SIGNING_KEY_PASSPHRASE }}" \
             -DlocalCheckout=${{ inputs.IS_DRY_RUN }} \
             -Pcentral-sonatype-publish,central-release \
-            -DskipTests=true -Dskip.central.release=${SKIP_REPO_DEPLOY} -Dskip.camunda.release=true
+            -DignoreSnapshots=true -DskipTests=true -Dskip.central.release=${SKIP_REPO_DEPLOY} -Dskip.camunda.release=true
 
   docker-image:
     name: Build and Publish Docker Image
