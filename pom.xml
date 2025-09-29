@@ -69,6 +69,7 @@
       <id>central-release</id>
       <modules>
         <module>core</module>
+        <module>plugins/cockpit</module>
       </modules>
     </profile>
   </profiles>
