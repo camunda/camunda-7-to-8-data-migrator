@@ -31,6 +31,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -119,15 +121,30 @@ public class C8Client {
     // Cancel start event instance where migrator job sits to avoid executing the activities twice.
     modifyProcessInstance.terminateElement(startEventInstanceKey);
 
-    flowNodeActivations.forEach(flowNodeActivation -> {
-      String activityId = flowNodeActivation.activityId();
-      Map<String, Object> variables = flowNodeActivation.variables();
-      if (variables != null && !variables.isEmpty()) {
-        modifyProcessInstance.activateElement(activityId).withVariables(variables, activityId);
-      } else {
-        modifyProcessInstance.activateElement(activityId);
-      }
-    });
+    List<FlowNodeActivation> subProcesses = flowNodeActivations.stream()
+        .filter(flowNodeActivation -> flowNodeActivation.activityType().equals("subProcess"))
+        .collect(Collectors.toList());
+    AtomicBoolean isFirstNonSubProcess = new AtomicBoolean(false);
+
+    flowNodeActivations.stream()
+        .filter(flowNodeActivation -> !flowNodeActivation.activityType().equals("subProcess"))
+        .forEach(flowNodeActivation -> {
+          String activityId = flowNodeActivation.activityId();
+          Map<String, Object> variables = flowNodeActivation.variables();
+          var modifyProcessInstanceCommandStep3 = modifyProcessInstance.activateElement(activityId);
+          if (variables != null && !variables.isEmpty()) {
+            modifyProcessInstanceCommandStep3.withVariables(variables, activityId);
+          }
+          if (isFirstNonSubProcess.get()) {
+            for (FlowNodeActivation subProcessActivation : subProcesses) {
+              if (subProcessActivation.variables() != null && !subProcessActivation.variables().isEmpty()) {
+                modifyProcessInstanceCommandStep3.withVariables(subProcessActivation.variables(),
+                    subProcessActivation.activityId());
+              }
+            }
+            isFirstNonSubProcess.set(false);
+          }
+        });
 
     callApi(() -> ((ModifyProcessInstanceCommandStep3) modifyProcessInstance).execute(), FAILED_TO_MODIFY_PROCESS_INSTANCE + processInstanceKey);
   }

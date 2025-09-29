@@ -27,10 +27,10 @@ public class C7Utils {
     Arrays.asList(activityInstance.getChildActivityInstances()).forEach(actInst -> {
       activeActivities.putAll(getActiveActivityIdsById(actInst, activeActivities));
 
-      if (!SUB_PROCESS_ACTIVITY_TYPE.equals(actInst.getActivityType())) {
+//      if (!SUB_PROCESS_ACTIVITY_TYPE.equals(actInst.getActivityType())) {
         activeActivities.put(actInst.getId(),
-            new FlowNode(actInst.getActivityId(), ((ActivityInstanceImpl) actInst).getSubProcessInstanceId()));
-      }
+            new FlowNode(actInst.getActivityId(), ((ActivityInstanceImpl) actInst).getSubProcessInstanceId(), actInst.getActivityType()));
+//      }
     });
 
     /* TODO: Transition instances might map to start before or after.
@@ -40,7 +40,8 @@ public class C7Utils {
       var transitionInstance = ((TransitionInstanceImpl) ti);
       if (!SUB_PROCESS_ACTIVITY_TYPE.equals(transitionInstance.getActivityType())) {
         activeActivities.put(transitionInstance.getId(),
-            new FlowNode(transitionInstance.getActivityId(), transitionInstance.getSubProcessInstanceId()));
+            new FlowNode(transitionInstance.getActivityId(), transitionInstance.getSubProcessInstanceId(),
+                null));
       }
     });
     return activeActivities;

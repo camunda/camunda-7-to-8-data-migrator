@@ -13,5 +13,5 @@ import java.util.Map;
  * Represents the activation data for a specific activity during process instance migration.
  * Contains the variables that should be applied when activating the activity.
  */
-public record FlowNodeActivation(String activityId, Map<String, Object> variables) {
+public record FlowNodeActivation(String activityId, Map<String, Object> variables, String activityType) {
 }

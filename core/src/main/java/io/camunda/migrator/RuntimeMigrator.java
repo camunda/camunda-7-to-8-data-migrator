@@ -200,9 +200,10 @@ public class RuntimeMigrator {
 
                 Map<String, Object> localVariables = variableService.getLocalVariables(activityInstanceId, flowNode.subProcessInstanceId());
                 String activityId = flowNode.activityId();
-                return new FlowNodeActivation(activityId, localVariables);
+                return new FlowNodeActivation(activityId, localVariables, flowNode.activityType());
               })
               .collect(Collectors.toList());
+
 
           long processInstanceKey = job.getProcessInstanceKey();
           long elementInstanceKey = job.getElementInstanceKey();
