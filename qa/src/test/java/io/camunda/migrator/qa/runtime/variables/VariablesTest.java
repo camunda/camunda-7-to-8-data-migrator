@@ -397,7 +397,6 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
         .getFirst();
     assertThat(localVar).isNotNull();
     assertThat(localVar.getValue()).isEqualTo("local value");
-    //    CamundaAssert.assertThat(byProcessId(SUB_PROCESS)).hasVariableNames("local_sub", "local");
 
     //    CamundaAssert.assertThat(byProcessId(SUB_PROCESS)).hasLocalVariable(byId("userTask_1"), "localVariable", "local value");
   }

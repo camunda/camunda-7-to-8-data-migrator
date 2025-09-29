@@ -124,7 +124,7 @@ public class C8Client {
     List<FlowNodeActivation> subProcesses = flowNodeActivations.stream()
         .filter(flowNodeActivation -> flowNodeActivation.activityType().equals("subProcess"))
         .collect(Collectors.toList());
-    AtomicBoolean isFirstNonSubProcess = new AtomicBoolean(false);
+    AtomicBoolean isFirstNonSubProcess = new AtomicBoolean(true);
 
     flowNodeActivations.stream()
         .filter(flowNodeActivation -> !flowNodeActivation.activityType().equals("subProcess"))
