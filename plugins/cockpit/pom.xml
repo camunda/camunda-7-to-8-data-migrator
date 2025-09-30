@@ -27,7 +27,7 @@
     <node.version>v18.16.0</node.version>
     <npmVersion>10.7.0</npmVersion>
     <assertj.version>3.27.6</assertj.version>
-    <liquibase.version>4.33.0</liquibase.version>
+    <liquibase.version>5.0.0</liquibase.version>
 
     <frontend.working.directory>frontend/</frontend.working.directory>
     <frontend.build.path>${frontend.working.directory}dist/</frontend.build.path>
