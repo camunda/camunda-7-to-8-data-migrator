@@ -41,7 +41,7 @@ public class C7Utils {
       if (!SUB_PROCESS_ACTIVITY_TYPE.equals(transitionInstance.getActivityType())) {
         activeActivities.put(transitionInstance.getId(),
             new FlowNode(transitionInstance.getActivityId(), transitionInstance.getSubProcessInstanceId(),
-                null));
+                transitionInstance.getActivityType()));
       }
     });
     return activeActivities;
