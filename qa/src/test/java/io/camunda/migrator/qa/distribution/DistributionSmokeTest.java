@@ -89,7 +89,7 @@ class DistributionSmokeTest {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--history");
 
-    // Read the existing configuration file and set auto-dll to true
+    // Read the existing configuration file and set auto-ddl to true
     replaceConfigProperty("auto-ddl: false", "auto-ddl: true");
 
     // when
