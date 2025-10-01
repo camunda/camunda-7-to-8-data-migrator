@@ -84,6 +84,27 @@ class DistributionSmokeTest {
   }
 
   @Test
+  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  void shouldFailSinceC8DataSourceNotConfigured() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder("--history");
+
+    // Read the existing configuration file and set auto-ddl to true
+    replaceConfigProperty("auto-ddl: false", "auto-ddl: true");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).matches("(?s).*ERROR.*No C8 datasource configured\\. "
+        + "Configure 'camunda\\.migrator\\.c8\\.datasource' to allow history migration\\..*");
+  }
+
+  @Test
   @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenNoFlagProvided() throws Exception {
     // given
