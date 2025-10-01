@@ -197,7 +197,6 @@ public class MigratorApp {
     } catch (NoSuchBeanDefinitionException ex) {
       LOGGER.error("No C8 datasource configured. Configure 'camunda.migrator.c8.datasource' to allow history migration.");
       System.exit(1);
-      return;
     }
 
     historyMigrator.setMode(mode);
