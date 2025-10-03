@@ -18,6 +18,7 @@ public class C7Utils {
 
   public static final String SUB_PROCESS_ACTIVITY_TYPE = "subProcess";
   public static final String MULTI_INSTANCE_BODY_SUFFIX = "#multiInstanceBody";
+  public static final String PARALLEL_GATEWAY_ACTIVITY_TYPE = "parallelGateway";
 
   /**
    * Collects active activity IDs by recursively traversing the activity instance tree.
@@ -27,9 +28,14 @@ public class C7Utils {
     Arrays.asList(activityInstance.getChildActivityInstances()).forEach(actInst -> {
       activeActivities.putAll(getActiveActivityIdsById(actInst, activeActivities));
 
-      if (!SUB_PROCESS_ACTIVITY_TYPE.equals(actInst.getActivityType())) {
+      if (!SUB_PROCESS_ACTIVITY_TYPE.equals(actInst.getActivityType()) && !PARALLEL_GATEWAY_ACTIVITY_TYPE.equals(actInst.getActivityType())) {
         activeActivities.put(actInst.getId(),
             new FlowNode(actInst.getActivityId(), ((ActivityInstanceImpl) actInst).getSubProcessInstanceId()));
+      }
+      if (PARALLEL_GATEWAY_ACTIVITY_TYPE.equals(actInst.getActivityType())) {
+        activeActivities.put("noOpActivity",
+            new FlowNode("noOpActivity", null)
+        );
       }
     });
 
