@@ -225,7 +225,7 @@ public class RuntimeValidator {
       validateC8Process(c8XmlString, c8ProcessDefinition);
 
       RuntimeValidatorLogs.collectingActiveDescendantActivitiesValidation(processInstanceId);
-      Map<String, FlowNode> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>(), properties);
+      Map<String, FlowNode> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>(), properties, c7Client);
       RuntimeValidatorLogs.foundActiveActivitiesToValidate(activityInstanceMap.size());
 
       for (FlowNode flowNode : activityInstanceMap.values()) {

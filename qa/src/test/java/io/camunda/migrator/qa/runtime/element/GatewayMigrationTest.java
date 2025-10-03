@@ -123,7 +123,7 @@ public class GatewayMigrationTest extends RuntimeMigrationAbstractTest {
   }
 
   @Test
-  public void migrateParallelGatewayActivityInstance_ACTIVATE_LAST_ACTIVITIES_Strategy() {
+  public void migrateParallelGatewayActivityInstance_MIGRATE_Strategy() {
     migratorProperties.setMergingGateWayStrategy(MigratorProperties.MergingGatewayStrategy.MIGRATE);
     // while the parallel gateway has no natural wait state, we can test that the tokens are in a consistent state
     // between the Splitting Parallel Gateway & the Merging Parallel Gateway after migrating to C8
@@ -180,9 +180,58 @@ public class GatewayMigrationTest extends RuntimeMigrationAbstractTest {
     verifyProcessInstanceCompleted(c8ProcessInstanceKey);
   }
 
+  @Test
+  public void migrateMultipleParallelGatewayProcess_ACTIVATE_LAST_ACTIVITIES() {
+    migratorProperties.setMergingGateWayStrategy(MigratorProperties.MergingGatewayStrategy.ACTIVATE_LAST_ACTIVITIES);
+
+    // given
+    deployer.deployProcessInC7AndC8("multipleParalellGatewayProcess.bpmn");
+
+    ProcessInstance instance = runtimeService.startProcessInstanceByKey("Process_1szh59u");
+
+    // when
+    runtimeMigrator.start();
+
+    // then
+    long c8ProcessInstanceKey = dbClient.findC8KeyByC7IdAndType(instance.getProcessInstanceId(), IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
+
+    assertThat(byProcessId("Process_1szh59u")).isActive()
+        .hasActiveElementsExactly(byId("userTask1"))
+        .hasCompletedElement(byId("noOp1"), 1)
+        .hasCompletedElement(byId("noOp2"), 0)
+        .hasCompletedElement(byId("noOp3"), 1)
+        .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
+
+    // when - complete the first user task in C8
+    completeUserTaskInC8(c8ProcessInstanceKey, "userTask1");
+
+    // then - verify second user task is active
+    assertThat(byProcessId("Process_1szh59u")).isActive()
+        .hasActiveElementsExactly(byId("userTask2"))
+        .hasCompletedElement(byId("userTask1"), 1)
+        .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
+
+    // when - complete the second user task in C8
+    completeUserTaskInC8(c8ProcessInstanceKey, "userTask2");
+
+    // then - verify the process instance is completed
+    verifyProcessInstanceCompleted(c8ProcessInstanceKey);
+  }
+
+
   private void completeUserTaskInC8(long c8ProcessInstanceKey) {
     var userTasks = camundaClient.newUserTaskSearchRequest()
         .filter(f -> f.processInstanceKey(c8ProcessInstanceKey))
+        .execute().items();
+    assertEquals(1, userTasks.size());
+
+    var userTask = userTasks.getFirst();
+    camundaClient.newCompleteUserTaskCommand(userTask.getUserTaskKey()).execute();
+  }
+
+  private void completeUserTaskInC8(long c8ProcessInstanceKey, String userTaskId) {
+    var userTasks = camundaClient.newUserTaskSearchRequest()
+        .filter(f -> f.processInstanceKey(c8ProcessInstanceKey).elementId(userTaskId))
         .execute().items();
     assertEquals(1, userTasks.size());
 
