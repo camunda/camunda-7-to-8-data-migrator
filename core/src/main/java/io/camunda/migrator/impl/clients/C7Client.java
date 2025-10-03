@@ -19,8 +19,10 @@ import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.Pagination;
 import io.camunda.migrator.impl.persistence.IdKeyDbModel;
 import java.io.InputStream;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.camunda.bpm.engine.HistoryService;
@@ -461,6 +463,52 @@ public class C7Client {
         .query(query)
         .maxCount(query::count)
         .callback(callback);
+  }
+
+  /**
+   * Gets completed activities that are immediate predecessors to a parallel gateway
+   * by analyzing the BPMN model structure.
+   */
+//  TODO this might not work if a branch has run multiple times via signals / compensation / migrations etc.
+  public List<HistoricActivityInstance> getCompletedActivitiesBeforeGateway(ActivityInstance activityInstance, String gatewayActivityId) {
+    // Get the BPMN model for this process
+    BpmnModelInstance bpmnModel = repositoryService.getBpmnModelInstance(activityInstance.getProcessDefinitionId());
+
+    // Find the parallel gateway in the BPMN model
+    org.camunda.bpm.model.bpmn.instance.ParallelGateway mergingGateway = bpmnModel.getModelElementById(gatewayActivityId);
+    if (mergingGateway == null) {
+      throw new RuntimeException("Could not find activity instance with id " + gatewayActivityId);
+    }
+
+    // Get all incoming sequence flows to this merging gateway
+    List<String> immediateSourceActivityIds = mergingGateway.getIncoming().stream()
+        .map(org.camunda.bpm.model.bpmn.instance.SequenceFlow::getSource)
+        .map(org.camunda.bpm.model.bpmn.instance.FlowElement::getId)
+        .toList();
+
+    // Get all completed activities for this process instance
+    List<HistoricActivityInstance> allCompletedActivities = historyService.createHistoricActivityInstanceQuery()
+        .processInstanceId(activityInstance.getProcessInstanceId())
+        .finished()
+        .list();
+
+    // Find the most recent completion of each immediate source activity
+    Map<String, HistoricActivityInstance> latestCompletionPerActivity = allCompletedActivities.stream()
+        .filter(activity -> immediateSourceActivityIds.contains(activity.getActivityId()))
+        .filter(activity -> activity.getEndTime() != null)
+        .collect(Collectors.groupingBy(
+            HistoricActivityInstance::getActivityId,
+            Collectors.maxBy(Comparator.comparing(HistoricActivityInstance::getEndTime))
+        ))
+        .entrySet()
+        .stream()
+        .filter(entry -> entry.getValue().isPresent())
+        .collect(Collectors.toMap(
+            java.util.Map.Entry::getKey,
+            entry -> entry.getValue().get()
+        ));
+
+    return List.copyOf(latestCompletionPerActivity.values());
   }
 
 }
