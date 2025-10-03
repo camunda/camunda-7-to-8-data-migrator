@@ -11,6 +11,7 @@ import static io.camunda.migrator.constants.MigratorConstants.LEGACY_ID_VAR_NAME
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_C8_TENANT_DEPLOYMENT_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.TENANT_ID_ERROR;
 import static io.camunda.migrator.impl.util.C7Utils.MULTI_INSTANCE_BODY_SUFFIX;
+import static io.camunda.migrator.impl.util.C7Utils.PARALLEL_GATEWAY_ACTIVITY_TYPE;
 import static io.camunda.migrator.impl.util.C7Utils.getActiveActivityIdsById;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.FAILED_TO_PARSE_BPMN_MODEL;
@@ -64,13 +65,19 @@ public class RuntimeValidator {
   /**
    * Validates C7 flow nodes for multi-instance loop characteristics.
    */
-  public void validateC7FlowNodes(String processDefinitionId, String activityId) {
+  public void validateC7FlowNodes(String processDefinitionId, FlowNode activity) {
+    String activityId = activity.activityId();
     BpmnModelInstance c7BpmnModelInstance = c7Client.getBpmnModelInstance(processDefinitionId);
     FlowElement element = c7BpmnModelInstance.getModelElementById(activityId);
 
     if (isMultiInstanceActivity(activityId, element)) {
       String activityIdWithoutSuffix = activityId.replace(MULTI_INSTANCE_BODY_SUFFIX, "");
       throw new IllegalStateException(String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, activityIdWithoutSuffix));
+    }
+
+    if(PARALLEL_GATEWAY_ACTIVITY_TYPE.equals(activity.activityType()) && properties.getMergingGateWayStrategy() == MigratorProperties.MergingGatewayStrategy.SKIP) {
+      throw new IllegalStateException("Encountered a parallel gateway during migration. " +
+                          "The configured merging gateway strategy is 'SKIP' which does not allow migrating such process instances. ");
     }
   }
 
@@ -218,11 +225,11 @@ public class RuntimeValidator {
       validateC8Process(c8XmlString, c8ProcessDefinition);
 
       RuntimeValidatorLogs.collectingActiveDescendantActivitiesValidation(processInstanceId);
-      Map<String, FlowNode> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
+      Map<String, FlowNode> activityInstanceMap = getActiveActivityIdsById(activityInstanceTree, new HashMap<>(), properties);
       RuntimeValidatorLogs.foundActiveActivitiesToValidate(activityInstanceMap.size());
 
       for (FlowNode flowNode : activityInstanceMap.values()) {
-        validateC7FlowNodes(c7DefinitionId, flowNode.activityId());
+        validateC7FlowNodes(c7DefinitionId, flowNode);
         validateC8FlowNodes(c8XmlString, flowNode.activityId());
       }
     }, c7ProcessInstanceId);

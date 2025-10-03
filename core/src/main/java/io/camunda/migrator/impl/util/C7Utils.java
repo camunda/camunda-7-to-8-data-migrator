@@ -7,6 +7,7 @@
  */
 package io.camunda.migrator.impl.util;
 
+import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.model.FlowNode;
 import java.util.Arrays;
 import java.util.Map;
@@ -24,18 +25,36 @@ public class C7Utils {
    * Collects active activity IDs by recursively traversing the activity instance tree.
    */
   public static Map<String, FlowNode> getActiveActivityIdsById(ActivityInstance activityInstance,
-                                                               Map<String, FlowNode> activeActivities) {
+                                                               Map<String, FlowNode> activeActivities,
+                                                               MigratorProperties migratorProperties) {
     Arrays.asList(activityInstance.getChildActivityInstances()).forEach(actInst -> {
-      activeActivities.putAll(getActiveActivityIdsById(actInst, activeActivities));
+      activeActivities.putAll(getActiveActivityIdsById(actInst, activeActivities, migratorProperties));
 
       if (!SUB_PROCESS_ACTIVITY_TYPE.equals(actInst.getActivityType()) && !PARALLEL_GATEWAY_ACTIVITY_TYPE.equals(actInst.getActivityType())) {
         activeActivities.put(actInst.getId(),
-            new FlowNode(actInst.getActivityId(), ((ActivityInstanceImpl) actInst).getSubProcessInstanceId()));
+            new FlowNode(actInst.getActivityId(), ((ActivityInstanceImpl) actInst).getSubProcessInstanceId(), actInst.getActivityType()));
       }
       if (PARALLEL_GATEWAY_ACTIVITY_TYPE.equals(actInst.getActivityType())) {
-        activeActivities.put("noOpActivity",
-            new FlowNode("noOpActivity", null)
-        );
+        switch(migratorProperties.getMergingGateWayStrategy()) {
+          case IGNORE -> {
+            // do nothing, the parallel gateway will be ignored by C8 when the next activities are activated
+            // will not progress through the gateway even if all currently active branches are completed
+          }
+          case ACTIVATE_LAST_ACTIVITIES -> {
+            // TODO this is a hardcoded for POC
+            // the last activity will be activated on the completed gateway branch
+            activeActivities.put("noOpActivity",
+                new FlowNode("noOpActivity", null, actInst.getActivityType())
+            );
+          }
+          case MIGRATE, SKIP -> {
+            // MIGRATE: existing BUG behavior that makes the flow continue without waiting in front of the gateway
+            // SKIP: will be handled in the RuntimeValidator
+            activeActivities.put(actInst.getId(),
+                new FlowNode(actInst.getActivityId(), ((ActivityInstanceImpl) actInst).getSubProcessInstanceId(), actInst.getActivityType()));
+          }
+
+        }
       }
     });
 
@@ -46,7 +65,7 @@ public class C7Utils {
       var transitionInstance = ((TransitionInstanceImpl) ti);
       if (!SUB_PROCESS_ACTIVITY_TYPE.equals(transitionInstance.getActivityType())) {
         activeActivities.put(transitionInstance.getId(),
-            new FlowNode(transitionInstance.getActivityId(), transitionInstance.getSubProcessInstanceId()));
+            new FlowNode(transitionInstance.getActivityId(), transitionInstance.getSubProcessInstanceId(), null));
       }
     });
     return activeActivities;

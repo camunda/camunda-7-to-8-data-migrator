@@ -190,7 +190,7 @@ public class RuntimeMigrator {
           var activityInstanceTree = c7Client.getActivityInstance(c7Id);
 
           RuntimeMigratorLogs.collectingActiveDescendantActivities(activityInstanceTree.getActivityId());
-          Map<String, FlowNode> activityInstanceMap = C7Utils.getActiveActivityIdsById(activityInstanceTree, new HashMap<>());
+          Map<String, FlowNode> activityInstanceMap = C7Utils.getActiveActivityIdsById(activityInstanceTree, new HashMap<>(), migratorProperties);
           RuntimeMigratorLogs.foundActiveActivitiesToActivate(activityInstanceMap.size());
 
           List<FlowNodeActivation> flowNodeActivations = activityInstanceMap.entrySet().stream()

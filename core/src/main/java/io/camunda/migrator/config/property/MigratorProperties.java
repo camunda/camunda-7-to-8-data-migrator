@@ -25,12 +25,18 @@ public class MigratorProperties {
     C7, C8
   }
 
+  public enum MergingGatewayStrategy {
+    SKIP, MIGRATE, IGNORE, ACTIVATE_LAST_ACTIVITIES
+  }
+
   protected Integer pageSize = DEFAULT_PAGE_SIZE;
   protected DataSource dataSource = DataSource.C7;
   protected String jobType = DEFAULT_JOB_TYPE;
   protected String validationJobType;
   protected Set<String> tenantIds;
   protected boolean saveSkipReason = false;
+
+  protected MergingGatewayStrategy mergingGateWayStrategy = MergingGatewayStrategy.MIGRATE;
 
   protected Boolean autoDdl;
   protected String tablePrefix;
@@ -151,5 +157,13 @@ public class MigratorProperties {
 
   public void setInterceptors(List<InterceptorProperty> interceptors) {
     this.interceptors = interceptors;
+  }
+
+  public MergingGatewayStrategy getMergingGateWayStrategy() {
+    return mergingGateWayStrategy;
+  }
+
+  public void setMergingGateWayStrategy(MergingGatewayStrategy mergingGateWayStrategy) {
+    this.mergingGateWayStrategy = mergingGateWayStrategy;
   }
 }

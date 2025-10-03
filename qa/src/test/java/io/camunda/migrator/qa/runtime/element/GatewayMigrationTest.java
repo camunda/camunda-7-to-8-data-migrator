@@ -11,11 +11,11 @@ import static io.camunda.migrator.constants.MigratorConstants.LEGACY_ID_VAR_NAME
 import static io.camunda.process.test.api.CamundaAssert.assertThat;
 import static io.camunda.process.test.api.assertions.ElementSelectors.byId;
 import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byProcessId;
-import static io.camunda.process.test.api.assertions.UserTaskSelectors.byTaskName;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.camunda.client.api.search.enums.ProcessInstanceState;
+import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.migrator.qa.runtime.RuntimeMigrationAbstractTest;
 import java.util.Map;
@@ -23,6 +23,7 @@ import org.awaitility.Awaitility;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.variable.Variables;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,6 +33,14 @@ public class GatewayMigrationTest extends RuntimeMigrationAbstractTest {
 
   @Autowired
   private RuntimeService runtimeService;
+
+  @Autowired
+  private MigratorProperties migratorProperties;
+
+  @AfterEach
+  void cleanUp() {
+    migratorProperties.setSaveSkipReason(false);
+  }
 
   @Test
   public void migrateEventBasedActivityInstance() {
@@ -60,7 +69,8 @@ public class GatewayMigrationTest extends RuntimeMigrationAbstractTest {
   }
   
   @Test
-  public void migrateParallelGatewayActivityInstance() {
+  public void migrateParallelGatewayActivityInstanceACTIVATE_LAST_ACTIVITIES() {
+    migratorProperties.setMergingGateWayStrategy(MigratorProperties.MergingGatewayStrategy.ACTIVATE_LAST_ACTIVITIES);
     // while the parallel gateway has no natural wait state, we can test that the tokens are in a consistent state
     // between the Splitting Parallel Gateway & the Merging Parallel Gateway after migrating to C8
     // given
@@ -80,8 +90,97 @@ public class GatewayMigrationTest extends RuntimeMigrationAbstractTest {
         .hasCompletedElement(byId("mergingGatewayActivity"), 0)
         .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
 
+    // when - complete the task in C8
+    completeUserTaskInC8(c8ProcessInstanceKey);
+
+    assertThat(byProcessId("ParallelGatewayProcess")).isCompleted()
+        .hasCompletedElement(byId("usertaskActivity"), 1)
+        .hasCompletedElement(byId("noOpActivity"), 1)
+        .hasCompletedElement(byId("mergingGatewayActivity"), 1)
+        //        .hasCompletedElement(byId("endEventActivity"), 1)
+        .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
+
+    // then - verify the process instance is completed
+    verifyProcessInstanceCompleted(c8ProcessInstanceKey);
+
+
+  }
+
+  @Test
+  public void migrateParallelGatewayActivityInstance_SKIP_Strategy() {
+    migratorProperties.setMergingGateWayStrategy(MigratorProperties.MergingGatewayStrategy.SKIP);
+    // while the parallel gateway has no natural wait state, we can test that the tokens are in a consistent state
+    // between the Splitting Parallel Gateway & the Merging Parallel Gateway after migrating to C8
+    // given
+    deployer.deployProcessInC7AndC8("parallelGateway.bpmn");
+
+    ProcessInstance instance = runtimeService.startProcessInstanceByKey("ParallelGatewayProcess");
+
+    // when
+    runtimeMigrator.start();
+    assertEquals(null, dbClient.findC8KeyByC7IdAndType(instance.getProcessInstanceId(), IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE));    // then
+
+  }
+
+  @Test
+  public void migrateParallelGatewayActivityInstance_ACTIVATE_LAST_ACTIVITIES_Strategy() {
+    migratorProperties.setMergingGateWayStrategy(MigratorProperties.MergingGatewayStrategy.MIGRATE);
+    // while the parallel gateway has no natural wait state, we can test that the tokens are in a consistent state
+    // between the Splitting Parallel Gateway & the Merging Parallel Gateway after migrating to C8
+    // given
+    deployer.deployProcessInC7AndC8("parallelGateway.bpmn");
+
+    ProcessInstance instance = runtimeService.startProcessInstanceByKey("ParallelGatewayProcess");
+
+    // when
+    runtimeMigrator.start();
+
+    // then
+    long c8ProcessInstanceKey = dbClient.findC8KeyByC7IdAndType(instance.getProcessInstanceId(), IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
+
+    assertThat(byProcessId("ParallelGatewayProcess")).isActive()
+        .hasActiveElementsExactly(byId("usertaskActivity"))
+        .hasCompletedElement(byId("noOpActivity"),0)
+//        .hasCompletedElement(byId("mergingGatewayActivity"), 0)
+        .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
 
     // when - complete the task in C8
+    completeUserTaskInC8(c8ProcessInstanceKey);
+
+    // then - verify the process instance is completed
+    verifyProcessInstanceCompleted(c8ProcessInstanceKey);
+  }
+
+  @Test
+  public void migrateParallelGatewayActivityInstance_IGNORE_Strategy() {
+    migratorProperties.setMergingGateWayStrategy(MigratorProperties.MergingGatewayStrategy.IGNORE);
+    // while the parallel gateway has no natural wait state, we can test that the tokens are in a consistent state
+    // between the Splitting Parallel Gateway & the Merging Parallel Gateway after migrating to C8
+    // given
+    deployer.deployProcessInC7AndC8("parallelGateway.bpmn");
+
+    ProcessInstance instance = runtimeService.startProcessInstanceByKey("ParallelGatewayProcess");
+
+    // when
+    runtimeMigrator.start();
+
+    // then
+    long c8ProcessInstanceKey = dbClient.findC8KeyByC7IdAndType(instance.getProcessInstanceId(), IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE);
+
+    assertThat(byProcessId("ParallelGatewayProcess")).isActive()
+        .hasActiveElementsExactly(byId("usertaskActivity"))
+        .hasCompletedElement(byId("noOpActivity"),0) // last activity is not re-run in IGNORE strategy
+        .hasCompletedElement(byId("mergingGatewayActivity"), 0)
+        .hasVariable(LEGACY_ID_VAR_NAME, instance.getProcessInstanceId());
+
+    // when - complete the task in C8
+    completeUserTaskInC8(c8ProcessInstanceKey);
+
+    // then - verify the process instance is completed
+    verifyProcessInstanceCompleted(c8ProcessInstanceKey);
+  }
+
+  private void completeUserTaskInC8(long c8ProcessInstanceKey) {
     var userTasks = camundaClient.newUserTaskSearchRequest()
         .filter(f -> f.processInstanceKey(c8ProcessInstanceKey))
         .execute().items();
@@ -89,8 +188,9 @@ public class GatewayMigrationTest extends RuntimeMigrationAbstractTest {
 
     var userTask = userTasks.getFirst();
     camundaClient.newCompleteUserTaskCommand(userTask.getUserTaskKey()).execute();
+  }
 
-    // then - verify the process instance is completed
+  private void verifyProcessInstanceCompleted(long c8ProcessInstanceKey) {
     Awaitility.await()
         .atMost(java.time.Duration.ofSeconds(10))
         .pollInterval(java.time.Duration.ofMillis(200))
