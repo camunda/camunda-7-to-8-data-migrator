@@ -11,8 +11,8 @@ jobs:
       checks: read
       contents: read
     steps:
-      - uses: wechuli/allcheckspassed@v2.0.0
+      - uses: wechuli/allcheckspassed@v2.1.0
         with:
-          delay: '35'
+          delay: '50'
           retries: '3'
           polling_interval: '5'
