@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.DefaultApplicationArguments;
 import org.springframework.boot.SpringApplication;
@@ -190,7 +191,14 @@ public class MigratorApp {
 
   public static void migrateHistory(ConfigurableApplicationContext context, ApplicationArguments appArgs, MigratorMode mode) {
     LOGGER.info("Migrating history data...");
-    HistoryMigrator historyMigrator = context.getBean(HistoryMigrator.class);
+    HistoryMigrator historyMigrator = null;
+    try {
+      historyMigrator = context.getBean(HistoryMigrator.class);
+    } catch (NoSuchBeanDefinitionException ex) {
+      LOGGER.error("No C8 datasource configured. Configure 'camunda.migrator.c8.datasource' to allow history migration.");
+      System.exit(1);
+    }
+
     historyMigrator.setMode(mode);
 
     // Extract entity type filters if --list-skipped is used
