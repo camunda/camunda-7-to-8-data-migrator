@@ -8,9 +8,11 @@
 package io.camunda.migrator.impl;
 
 import static io.camunda.migrator.constants.MigratorConstants.LEGACY_ID_VAR_NAME;
+import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.ACTIVE_JOINING_PARALLEL_GATEWAY_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_C8_TENANT_DEPLOYMENT_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.TENANT_ID_ERROR;
 import static io.camunda.migrator.impl.util.C7Utils.MULTI_INSTANCE_BODY_SUFFIX;
+import static io.camunda.migrator.impl.util.C7Utils.PARALLEL_GATEWAY_ACTIVITY_TYPE;
 import static io.camunda.migrator.impl.util.C7Utils.getActiveActivityIdsById;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.FAILED_TO_PARSE_BPMN_MODEL;
@@ -64,13 +66,18 @@ public class RuntimeValidator {
   /**
    * Validates C7 flow nodes for multi-instance loop characteristics.
    */
-  public void validateC7FlowNodes(String processDefinitionId, String activityId) {
+  public void validateC7FlowNodes(String processDefinitionId, String processInstanceId, FlowNode activity) {
+    String activityId = activity.activityId();
     BpmnModelInstance c7BpmnModelInstance = c7Client.getBpmnModelInstance(processDefinitionId);
     FlowElement element = c7BpmnModelInstance.getModelElementById(activityId);
 
     if (isMultiInstanceActivity(activityId, element)) {
       String activityIdWithoutSuffix = activityId.replace(MULTI_INSTANCE_BODY_SUFFIX, "");
       throw new IllegalStateException(String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, activityIdWithoutSuffix));
+    }
+
+    if(PARALLEL_GATEWAY_ACTIVITY_TYPE.equals(activity.activityType())) {
+      throw new IllegalStateException(String.format(ACTIVE_JOINING_PARALLEL_GATEWAY_ERROR, activityId, processInstanceId));
     }
   }
 
@@ -222,7 +229,7 @@ public class RuntimeValidator {
       RuntimeValidatorLogs.foundActiveActivitiesToValidate(activityInstanceMap.size());
 
       for (FlowNode flowNode : activityInstanceMap.values()) {
-        validateC7FlowNodes(c7DefinitionId, flowNode.activityId());
+        validateC7FlowNodes(c7DefinitionId, c7ProcessInstanceId, flowNode);
         validateC8FlowNodes(c8XmlString, flowNode.activityId());
       }
     }, c7ProcessInstanceId);
