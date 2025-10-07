@@ -1,5 +1,0 @@
-spring.datasource:
-  url: jdbc:h2:file:~/Downloads/c8_rdbms-source.db
-  username: sa
-  password:
-server.port: 8082
