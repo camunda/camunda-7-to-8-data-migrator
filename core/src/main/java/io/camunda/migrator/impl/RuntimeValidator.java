@@ -66,8 +66,7 @@ public class RuntimeValidator {
   /**
    * Validates C7 flow nodes for multi-instance loop characteristics.
    */
-  public void validateC7FlowNodes(String processDefinitionId, String processInstanceId, FlowNode activity) {
-    String activityId = activity.activityId();
+  public void validateC7FlowNodes(String processDefinitionId, String processInstanceId, String activityId) {
     BpmnModelInstance c7BpmnModelInstance = c7Client.getBpmnModelInstance(processDefinitionId);
     FlowElement element = c7BpmnModelInstance.getModelElementById(activityId);
 
@@ -76,7 +75,7 @@ public class RuntimeValidator {
       throw new IllegalStateException(String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, activityIdWithoutSuffix));
     }
 
-    if(PARALLEL_GATEWAY_ACTIVITY_TYPE.equals(activity.activityType())) {
+    if (PARALLEL_GATEWAY_ACTIVITY_TYPE.equals(element.getElementType().getTypeName())) {
       throw new IllegalStateException(String.format(ACTIVE_JOINING_PARALLEL_GATEWAY_ERROR, activityId, processInstanceId));
     }
   }
@@ -229,7 +228,7 @@ public class RuntimeValidator {
       RuntimeValidatorLogs.foundActiveActivitiesToValidate(activityInstanceMap.size());
 
       for (FlowNode flowNode : activityInstanceMap.values()) {
-        validateC7FlowNodes(c7DefinitionId, c7ProcessInstanceId, flowNode);
+        validateC7FlowNodes(c7DefinitionId, c7ProcessInstanceId, flowNode.activityId());
         validateC8FlowNodes(c8XmlString, flowNode.activityId());
       }
     }, c7ProcessInstanceId);

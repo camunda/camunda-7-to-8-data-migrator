@@ -30,7 +30,7 @@ public class C7Utils {
 
       if (!SUB_PROCESS_ACTIVITY_TYPE.equals(actInst.getActivityType())) {
         activeActivities.put(actInst.getId(),
-            new FlowNode(actInst.getActivityId(), ((ActivityInstanceImpl) actInst).getSubProcessInstanceId(), actInst.getActivityType()));
+            new FlowNode(actInst.getActivityId(), ((ActivityInstanceImpl) actInst).getSubProcessInstanceId()));
       }
     });
 
@@ -41,7 +41,7 @@ public class C7Utils {
       var transitionInstance = ((TransitionInstanceImpl) ti);
       if (!SUB_PROCESS_ACTIVITY_TYPE.equals(transitionInstance.getActivityType())) {
         activeActivities.put(transitionInstance.getId(),
-            new FlowNode(transitionInstance.getActivityId(), transitionInstance.getSubProcessInstanceId(), transitionInstance.getActivityType()));
+            new FlowNode(transitionInstance.getActivityId(), transitionInstance.getSubProcessInstanceId()));
       }
     });
     return activeActivities;

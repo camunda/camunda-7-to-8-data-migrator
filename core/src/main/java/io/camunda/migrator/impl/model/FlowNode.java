@@ -8,7 +8,7 @@
 package io.camunda.migrator.impl.model;
 
 /**
- * Represents a flow node in the migration process with its activity ID, optional subprocess instance ID, and activity type.
+ * Represents a flow node in the migration process with its activity ID and optional subprocess instance ID.
  */
-public record FlowNode(String activityId, String subProcessInstanceId, String activityType) {
+public record FlowNode(String activityId, String subProcessInstanceId) {
 }
