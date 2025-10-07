@@ -18,6 +18,7 @@ public class C7Utils {
 
   public static final String SUB_PROCESS_ACTIVITY_TYPE = "subProcess";
   public static final String MULTI_INSTANCE_BODY_SUFFIX = "#multiInstanceBody";
+  public static final String PARALLEL_GATEWAY_ACTIVITY_TYPE = "parallelGateway";
 
   /**
    * Collects active activity IDs by recursively traversing the activity instance tree.

@@ -2,64 +2,64 @@
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_167acmm" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.31.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.22.0">
   <bpmn:process id="multipleStartEvent" isExecutable="true" camunda:historyTimeToLive="180">
     <bpmn:startEvent id="Event_0sk7eac">
-      <bpmn:outgoing>Flow_03wgrlk</bpmn:outgoing>
+      <bpmn:outgoing>fromStartToUserTask</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:sequenceFlow id="Flow_0bopqya" sourceRef="StartEvent_1" targetRef="Gateway_09k9frn" />
-    <bpmn:sequenceFlow id="Flow_03wgrlk" sourceRef="Event_0sk7eac" targetRef="Gateway_09k9frn" />
+    <bpmn:sequenceFlow id="fromMessageStartToGateway" sourceRef="StartEvent_1" targetRef="Gateway_09k9frn" />
+    <bpmn:sequenceFlow id="fromStartToUserTask" sourceRef="Event_0sk7eac" targetRef="userTask" />
     <bpmn:startEvent id="StartEvent_1">
-      <bpmn:outgoing>Flow_0bopqya</bpmn:outgoing>
+      <bpmn:outgoing>fromMessageStartToGateway</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_0z4db27" messageRef="Message_0jnkcv7" />
     </bpmn:startEvent>
     <bpmn:endEvent id="Event_08d94q7">
-      <bpmn:incoming>Flow_09r49ag</bpmn:incoming>
+      <bpmn:incoming>Flow_07gqc0x</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:parallelGateway id="Gateway_09k9frn">
-      <bpmn:incoming>Flow_0bopqya</bpmn:incoming>
-      <bpmn:incoming>Flow_03wgrlk</bpmn:incoming>
+      <bpmn:incoming>fromMessageStartToGateway</bpmn:incoming>
+      <bpmn:incoming>fromUserTaskToGateway</bpmn:incoming>
       <bpmn:outgoing>Flow_07gqc0x</bpmn:outgoing>
     </bpmn:parallelGateway>
-    <bpmn:sequenceFlow id="Flow_07gqc0x" sourceRef="Gateway_09k9frn" targetRef="Activity_1n3fe3r" />
-    <bpmn:sequenceFlow id="Flow_09r49ag" sourceRef="Activity_1n3fe3r" targetRef="Event_08d94q7" />
-    <bpmn:userTask id="Activity_1n3fe3r">
-      <bpmn:incoming>Flow_07gqc0x</bpmn:incoming>
-      <bpmn:outgoing>Flow_09r49ag</bpmn:outgoing>
+    <bpmn:sequenceFlow id="Flow_07gqc0x" sourceRef="Gateway_09k9frn" targetRef="Event_08d94q7" />
+    <bpmn:sequenceFlow id="fromUserTaskToGateway" sourceRef="userTask" targetRef="Gateway_09k9frn" />
+    <bpmn:userTask id="userTask">
+      <bpmn:incoming>fromStartToUserTask</bpmn:incoming>
+      <bpmn:outgoing>fromUserTaskToGateway</bpmn:outgoing>
     </bpmn:userTask>
   </bpmn:process>
   <bpmn:message id="Message_0jnkcv7" name="MessageName" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="multipleStartEvent">
+      <bpmndi:BPMNShape id="Gateway_01pjxfq_di" bpmnElement="Gateway_09k9frn">
+        <dc:Bounds x="385" y="135" width="50" height="50" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0sk7eac_di" bpmnElement="Event_0sk7eac">
-        <dc:Bounds x="182" y="192" width="36" height="36" />
+        <dc:Bounds x="152" y="192" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1i0pzhn_di" bpmnElement="StartEvent_1">
-        <dc:Bounds x="182" y="82" width="36" height="36" />
+        <dc:Bounds x="152" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1lx3rmp_di" bpmnElement="userTask">
+        <dc:Bounds x="240" y="170" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_08d94q7_di" bpmnElement="Event_08d94q7">
-        <dc:Bounds x="612" y="142" width="36" height="36" />
+        <dc:Bounds x="472" y="142" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_01pjxfq_di" bpmnElement="Gateway_09k9frn">
-        <dc:Bounds x="325" y="135" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_13r2v15_di" bpmnElement="Activity_1n3fe3r">
-        <dc:Bounds x="440" y="120" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_03wgrlk_di" bpmnElement="Flow_03wgrlk">
-        <di:waypoint x="218" y="210" />
-        <di:waypoint x="350" y="210" />
-        <di:waypoint x="350" y="185" />
+      <bpmndi:BPMNEdge id="Flow_0bopqya_di" bpmnElement="fromMessageStartToGateway">
+        <di:waypoint x="188" y="100" />
+        <di:waypoint x="410" y="100" />
+        <di:waypoint x="410" y="135" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0bopqya_di" bpmnElement="Flow_0bopqya">
-        <di:waypoint x="218" y="100" />
-        <di:waypoint x="350" y="100" />
-        <di:waypoint x="350" y="135" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_09r49ag_di" bpmnElement="Flow_09r49ag">
-        <di:waypoint x="540" y="160" />
-        <di:waypoint x="612" y="160" />
+      <bpmndi:BPMNEdge id="Flow_1njmj9n_di" bpmnElement="fromUserTaskToGateway">
+        <di:waypoint x="340" y="210" />
+        <di:waypoint x="410" y="210" />
+        <di:waypoint x="410" y="185" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_07gqc0x_di" bpmnElement="Flow_07gqc0x">
-        <di:waypoint x="375" y="160" />
-        <di:waypoint x="440" y="160" />
+        <di:waypoint x="435" y="160" />
+        <di:waypoint x="472" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_03wgrlk_di" bpmnElement="fromStartToUserTask">
+        <di:waypoint x="188" y="210" />
+        <di:waypoint x="240" y="210" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
