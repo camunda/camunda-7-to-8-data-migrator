@@ -34,7 +34,7 @@ public class RuntimeValidatorLogs {
   public static final String FAILED_TO_PARSE_BPMN_MODEL = "Failed to parse BPMN model from XML";
   public static final String CALL_ACTIVITY_LEGACY_ID_ERROR = "Found call activity with propagateAllParentVariables=false for flow node with id [%s] in C8 process. This is not supported by the migrator unless there is an explicit mapping for the 'legacyId' variable, as it would lead to orphaned sub-process instances.";
   public static final String TENANT_ID_ERROR = "Found a process instance with tenant id [%s] that is not configured for migration.";
-  public static final String ACTIVE_JOINING_PARALLEL_GATEWAY_ERROR = "Found active joining parallel gateway with id [%s] for process instance [%s]. This is currently not supported by the migrator";
+  public static final String ACTIVE_JOINING_PARALLEL_GATEWAY_ERROR = "Found active joining parallel gateway with id [%s] for process instance [%s]. This is currently not supported by the migrator.";
 
   public static void validateC7ProcessInstance(String c7ProcessInstanceId) {
     LOGGER.debug(VALIDATE_C7_PROCESS_INSTANCE, c7ProcessInstanceId);
