@@ -31,7 +31,6 @@ import io.github.netmikey.logunit.api.LogCapturer;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
-import org.awaitility.Awaitility;
 import org.camunda.bpm.engine.task.Task;
 import org.camunda.bpm.engine.variable.VariableMap;
 import org.camunda.bpm.engine.variable.Variables;
@@ -44,8 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.Map;
 
 public class VariablesTest extends RuntimeMigrationAbstractTest {
@@ -267,10 +264,10 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
   @Test
   public void shouldSetLocalJsonObjectVariable() throws JsonProcessingException {
     // deploy processes
-    deployer.deployProcessInC7AndC8("parallelGateway.bpmn");
+    deployer.deployProcessInC7AndC8("simpleProcess.bpmn");
 
     // given process state in c7
-    runtimeService.startProcessInstanceByKey("ParallelGatewayProcess");
+    runtimeService.startProcessInstanceByKey("simpleProcess");
 
     String json = "{\"stringProperty\":\"a String\",\"intProperty\":42,\"booleanProperty\":true}";
     ObjectValue objectValue = Variables.serializedObjectValue(json)
@@ -278,13 +275,13 @@ public class VariablesTest extends RuntimeMigrationAbstractTest {
         .objectTypeName("io.camunda.migrator.qa.runtime.variables.JsonSerializable")
         .create();
 
-    String activityInstanceId = runtimeService.createExecutionQuery().activityId("usertaskActivity").singleResult().getId();
+    String activityInstanceId = runtimeService.createExecutionQuery().activityId("userTask1").singleResult().getId();
     runtimeService.setVariable(activityInstanceId, "var", objectValue);
 
     // when running runtime migration
     runtimeMigrator.start();
 
-    CamundaAssert.assertThat(byProcessId("ParallelGatewayProcess"))
+    CamundaAssert.assertThat(byProcessId("simpleProcess"))
         .hasVariable("var", objectMapper.readValue(json, JsonNode.class));
   }
 
