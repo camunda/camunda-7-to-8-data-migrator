@@ -84,8 +84,8 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
         with:
-          buildx_driver: docker
-          buildx_version: latest
+          driver: docker
+          version: latest
 
       - name: Build and run default tests
         run: mvn clean install --batch-mode
