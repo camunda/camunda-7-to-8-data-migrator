@@ -80,12 +80,12 @@ jobs:
           vault-address: ${{ secrets.VAULT_ADDR }}
           vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
-      - name: Install Docker on Windows
-        run: |
-          Install-Module -Name DockerMsftProvider -Repository PSGallery -Force
-          Install-Package -Name docker -ProviderName DockerMsftProvider -Force
-          Restart-Service docker
-        shell: pwsh
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+        with:
+          buildx_driver: docker
+          buildx_version: latest
 
       - name: Build and run default tests
         run: mvn clean install --batch-mode
