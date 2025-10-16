@@ -129,7 +129,7 @@ jobs:
         with:
           error-messages: |
             The runner has received a shutdown signal
-            Could not transfer artifact org.camunda
+            Could not transfer artifact
             ContainerFetchException: Can't get Docker image: RemoteDockerImage
           run-id: ${{ github.run_id }}
           repository: ${{ github.repository }}
