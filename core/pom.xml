@@ -13,7 +13,7 @@
 
   <packaging>jar</packaging>
 
-  <name>Camunda 7 to 8 Data Migrator – Core</name>
+  <name>Camunda 7 to 8 Data Migrator - Core</name>
 
   <dependencyManagement>
     <dependencies>
