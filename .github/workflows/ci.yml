@@ -80,6 +80,12 @@ jobs:
           vault-address: ${{ secrets.VAULT_ADDR }}
           vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+      - name: Install Docker on Windows
+        run: |
+          Install-Module -Name DockerMsftProvider -Repository PSGallery -Force
+          Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+          Restart-Service docker
+        shell: pwsh
 
       - name: Build and run default tests
         run: mvn clean install --batch-mode
@@ -157,7 +163,6 @@ jobs:
           error-messages: |
             The runner has received a shutdown signal
             Could not transfer artifact
-            ContainerFetchException: Can't get Docker image: RemoteDockerImage
           run-id: ${{ github.run_id }}
           repository: ${{ github.repository }}
           vault-addr: ${{ secrets.VAULT_ADDR }}
