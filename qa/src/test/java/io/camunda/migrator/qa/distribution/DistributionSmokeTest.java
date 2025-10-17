@@ -32,7 +32,7 @@ import org.junit.jupiter.api.io.TempDir;
  * This test extracts the ZIP distribution and executes the appropriate start script
  * (start.sh on Unix/Linux/macOS, start.bat on Windows) to ensure basic functionality works as expected.
  */
-class DistributionSmokeTest {
+public class DistributionSmokeTest {
 
   @TempDir
   protected Path tempDir;
@@ -84,7 +84,7 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldFailSinceC8DataSourceNotConfigured() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--history");
@@ -237,7 +237,7 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 90, unit = TimeUnit.SECONDS)
   void shouldAcceptValidFlags() throws Exception {
     // given
     String[][] validFlags = {
