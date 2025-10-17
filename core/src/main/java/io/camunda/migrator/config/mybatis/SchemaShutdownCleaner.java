@@ -78,6 +78,8 @@ public class SchemaShutdownCleaner {
       database.setDatabaseChangeLogTableName(prefix + "DATABASECHANGELOG");
       database.setDatabaseChangeLogLockTableName(prefix + "DATABASECHANGELOGLOCK");
       liquibase.setChangeLogParameter("prefix", prefix);
+//      liquibase.setChangeLogParameter("userCharColumnSize", userCharColumnSize);
+
       liquibase.clearCheckSums();
       liquibase.rollback("tag_before_create_migration_mapping_table", "");
     } catch (Exception e) {

@@ -7,8 +7,8 @@
  */
 package io.camunda.migrator.config.mybatis;
 
-import io.camunda.migrator.impl.logging.ConfigurationLogs;
 import io.camunda.migrator.config.property.MigratorProperties;
+import io.camunda.migrator.impl.logging.ConfigurationLogs;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
@@ -71,7 +71,10 @@ public class AbstractConfiguration {
     return factoryBean;
   }
 
-  protected MultiTenantSpringLiquibase createSchema(DataSource dataSource, String tablePrefix, String changeLogFile) {
+  protected MultiTenantSpringLiquibase createSchema(DataSource dataSource,
+                                                    String tablePrefix,
+                                                    String changeLogFile,
+                                                    int userCharColumnSize) {
     String prefix = StringUtils.trimToEmpty(tablePrefix);
     ConfigurationLogs.logCreatingTableSchema(changeLogFile, prefix);
 
@@ -79,7 +82,7 @@ public class AbstractConfiguration {
     moduleConfig.setDataSource(dataSource);
     moduleConfig.setDatabaseChangeLogTable(prefix + "DATABASECHANGELOG");
     moduleConfig.setDatabaseChangeLogLockTable(prefix + "DATABASECHANGELOGLOCK");
-    moduleConfig.setParameters(Map.of("prefix", prefix));
+    moduleConfig.setParameters(Map.of("prefix", prefix, "userCharColumnSize", String.valueOf(userCharColumnSize)));
     moduleConfig.setChangeLog(changeLogFile);
 
     return moduleConfig;

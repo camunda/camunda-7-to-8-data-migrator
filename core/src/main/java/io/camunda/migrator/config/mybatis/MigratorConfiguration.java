@@ -34,8 +34,8 @@ public class MigratorConfiguration extends AbstractConfiguration {
   @Bean
   @ConditionalOnProperty(prefix = MigratorProperties.PREFIX, name = "auto-ddl", havingValue = "true")
   public MultiTenantSpringLiquibase createMigratorSchema() {
-    return createSchema(dataSource, configProperties.getTablePrefix(),
-        "db/changelog/migrator/db.changelog-master.yaml");
+    return createSchema(dataSource, configProperties.getTablePrefix(), "db/changelog/migrator/db.changelog-master.yaml",
+        4000);
   }
 
   @Bean

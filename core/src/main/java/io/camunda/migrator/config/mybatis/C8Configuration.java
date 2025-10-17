@@ -89,10 +89,11 @@ public class C8Configuration extends AbstractConfiguration {
   protected DataSource dataSource;
 
   @Bean
-  @ConditionalOnProperty(prefix = MigratorProperties.PREFIX + ".c8.data-source", name = "auto-ddl", havingValue = "true")
-  public MultiTenantSpringLiquibase createRdbmsExporterSchema() {
+  @ConditionalOnProperty(prefix = MigratorProperties.PREFIX
+      + ".c8.data-source", name = "auto-ddl", havingValue = "true")
+  public MultiTenantSpringLiquibase createRdbmsExporterSchema(VendorDatabaseProperties vendorDatabaseProperties) {
     return createSchema(dataSource, configProperties.getC8().getDataSource().getTablePrefix(),
-        "db/changelog/rdbms-exporter/changelog-master.xml");
+        "db/changelog/rdbms-exporter/changelog-master.xml", vendorDatabaseProperties.userCharColumnSize());
   }
 
   @Bean
