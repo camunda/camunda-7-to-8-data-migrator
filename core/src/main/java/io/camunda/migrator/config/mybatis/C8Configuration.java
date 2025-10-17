@@ -20,6 +20,7 @@ import io.camunda.db.rdbms.read.service.DecisionRequirementsDbReader;
 import io.camunda.db.rdbms.read.service.FlowNodeInstanceDbReader;
 import io.camunda.db.rdbms.read.service.FormDbReader;
 import io.camunda.db.rdbms.read.service.GroupDbReader;
+import io.camunda.db.rdbms.read.service.GroupMemberDbReader;
 import io.camunda.db.rdbms.read.service.IncidentDbReader;
 import io.camunda.db.rdbms.read.service.JobDbReader;
 import io.camunda.db.rdbms.read.service.MappingRuleDbReader;
@@ -27,8 +28,10 @@ import io.camunda.db.rdbms.read.service.MessageSubscriptionDbReader;
 import io.camunda.db.rdbms.read.service.ProcessDefinitionDbReader;
 import io.camunda.db.rdbms.read.service.ProcessInstanceDbReader;
 import io.camunda.db.rdbms.read.service.RoleDbReader;
+import io.camunda.db.rdbms.read.service.RoleMemberDbReader;
 import io.camunda.db.rdbms.read.service.SequenceFlowDbReader;
 import io.camunda.db.rdbms.read.service.TenantDbReader;
+import io.camunda.db.rdbms.read.service.TenantMemberDbReader;
 import io.camunda.db.rdbms.read.service.UsageMetricTUDbReader;
 import io.camunda.db.rdbms.read.service.UsageMetricsDbReader;
 import io.camunda.db.rdbms.read.service.UserDbReader;
@@ -63,6 +66,8 @@ import io.camunda.db.rdbms.write.RdbmsWriterFactory;
 import io.camunda.db.rdbms.write.RdbmsWriterMetrics;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.config.property.MigratorProperties;
+import io.camunda.migrator.exception.MigratorException;
+import io.camunda.migrator.impl.logging.ConfigurationLogs;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Properties;
@@ -86,10 +91,17 @@ public class C8Configuration extends AbstractConfiguration {
   protected DataSource dataSource;
 
   @Bean
-  @ConditionalOnProperty(prefix = MigratorProperties.PREFIX + ".c8.data-source", name = "auto-ddl", havingValue = "true")
-  public MultiTenantSpringLiquibase createRdbmsExporterSchema() {
+  @ConditionalOnProperty(prefix = MigratorProperties.PREFIX
+      + ".c8.data-source", name = "auto-ddl", havingValue = "true")
+  public MultiTenantSpringLiquibase createRdbmsExporterSchema(VendorDatabaseProperties vendorDatabaseProperties) {
+    String userCharColumnSize = "";
+    try {
+      userCharColumnSize = String.valueOf(vendorDatabaseProperties.userCharColumnSize());
+    } catch (Exception e) {
+      throw new MigratorException(ConfigurationLogs.getC8RdbmsUserCharColumnSizeError(), e);
+    }
     return createSchema(dataSource, configProperties.getC8().getDataSource().getTablePrefix(),
-        "db/changelog/rdbms-exporter/changelog-master.xml");
+        "db/changelog/rdbms-exporter/changelog-master.xml", userCharColumnSize);
   }
 
   @Bean
@@ -382,6 +394,22 @@ public class C8Configuration extends AbstractConfiguration {
   }
 
   @Bean
+  public GroupMemberDbReader groupMemberReader(GroupMapper groupMapper) {
+    return new GroupMemberDbReader(groupMapper);
+  }
+
+  @Bean
+  public RoleMemberDbReader roleMemberReader(RoleMapper roleMapper) {
+    return new RoleMemberDbReader(roleMapper);
+  }
+
+  @Bean
+  public TenantMemberDbReader tenantMemberReader(TenantMapper tenantMapper) {
+    return new TenantMemberDbReader(tenantMapper);
+  }
+
+
+  @Bean
   public RdbmsWriterFactory rdbmsWriterFactory(
       @Qualifier("c8SqlSessionFactory") SqlSessionFactory c8SqlSessionFactory,
       ExporterPositionMapper exporterPositionMapper,
@@ -434,11 +462,14 @@ public class C8Configuration extends AbstractConfiguration {
       DecisionRequirementsDbReader decisionRequirementsReader,
       FlowNodeInstanceDbReader flowNodeInstanceReader,
       GroupDbReader groupReader,
+      GroupMemberDbReader groupMemberReader,
       IncidentDbReader incidentReader,
       ProcessDefinitionDbReader processDefinitionReader,
       ProcessInstanceDbReader processInstanceReader,
       RoleDbReader roleReader,
+      RoleMemberDbReader roleMemberReader,
       TenantDbReader tenantReader,
+      TenantMemberDbReader tenantMemberReader,
       UserDbReader userReader,
       UserTaskDbReader userTaskReader,
       FormDbReader formReader,
@@ -459,12 +490,15 @@ public class C8Configuration extends AbstractConfiguration {
         decisionRequirementsReader,
         flowNodeInstanceReader,
         groupReader,
+        groupMemberReader,
         incidentReader,
         processDefinitionReader,
         processInstanceReader,
         variableReader,
         roleReader,
+        roleMemberReader,
         tenantReader,
+        tenantMemberReader,
         userReader,
         userTaskReader,
         formReader,
