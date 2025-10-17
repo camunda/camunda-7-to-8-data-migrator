@@ -66,6 +66,8 @@ import io.camunda.db.rdbms.write.RdbmsWriterFactory;
 import io.camunda.db.rdbms.write.RdbmsWriterMetrics;
 import io.camunda.migrator.config.C8DataSourceConfigured;
 import io.camunda.migrator.config.property.MigratorProperties;
+import io.camunda.migrator.exception.MigratorException;
+import io.camunda.migrator.impl.logging.ConfigurationLogs;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Properties;
@@ -92,8 +94,14 @@ public class C8Configuration extends AbstractConfiguration {
   @ConditionalOnProperty(prefix = MigratorProperties.PREFIX
       + ".c8.data-source", name = "auto-ddl", havingValue = "true")
   public MultiTenantSpringLiquibase createRdbmsExporterSchema(VendorDatabaseProperties vendorDatabaseProperties) {
+    String userCharColumnSize = "";
+    try {
+      userCharColumnSize = String.valueOf(vendorDatabaseProperties.userCharColumnSize());
+    } catch (Exception e) {
+      throw new MigratorException(ConfigurationLogs.getC8DatabaseSchemaCreationError(), e);
+    }
     return createSchema(dataSource, configProperties.getC8().getDataSource().getTablePrefix(),
-        "db/changelog/rdbms-exporter/changelog-master.xml", vendorDatabaseProperties.userCharColumnSize());
+        "db/changelog/rdbms-exporter/changelog-master.xml", userCharColumnSize);
   }
 
   @Bean

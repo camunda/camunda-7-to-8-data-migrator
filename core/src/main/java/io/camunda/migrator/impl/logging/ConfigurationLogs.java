@@ -23,6 +23,8 @@ public class ConfigurationLogs {
   public static final String ERROR_CLASS_NOT_IMPLEMENT_INTERFACE = "Class %s does not implement VariableInterceptor interface";
   public static final String ERROR_FAILED_TO_REGISTER = "Failed to register variable interceptor: ";
   public static final String ERROR_PARSING_CONFIGURATION = "An exception occurred while parsing interceptor configuration.";
+  public static final String ERROR_CREATING_C8_DATABASE = "Could not determine userCharColumnSize for C8 database "
+      + "schema creation.";
 
   // Info Messages
   public static final String INFO_CONFIGURING_INTERCEPTORS = "Configuring variable interceptors";
@@ -168,6 +170,15 @@ public class ConfigurationLogs {
    */
   public static String getParsingConfigurationError() {
     return ERROR_PARSING_CONFIGURATION;
+  }
+
+  /**
+   * Gets the error message for C8 database schema creation.
+   *
+   * @return the error message
+   */
+  public static String getC8DatabaseSchemaCreationError() {
+    return ERROR_CREATING_C8_DATABASE;
   }
 
 }
