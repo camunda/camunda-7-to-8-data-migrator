@@ -44,8 +44,7 @@
 
     <nexus.snapshot.repository>https://artifacts.camunda.com/artifactory/zeebe-io-snapshots/</nexus.snapshot.repository>
     <nexus.release.repository>https://artifacts.camunda.com/artifactory/zeebe-io/</nexus.release.repository>
-    <central.sonatype.deployment.name>${project.groupId}:${project.artifactId}:${project
-    .version}</central.sonatype.deployment.name>
+    <central.sonatype.deployment.name>${project.groupId}:${project.artifactId}:${project.version}</central.sonatype.deployment.name>
   </properties>
 
   <profiles>
