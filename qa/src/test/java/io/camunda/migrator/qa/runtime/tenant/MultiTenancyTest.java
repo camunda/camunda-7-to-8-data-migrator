@@ -34,7 +34,7 @@ import org.springframework.test.context.TestPropertySource;
  * - Without default tenant configuration
  * - With default tenant configuration (&lt;default&gt;)
  */
-class MultiTenancyTest {
+public class MultiTenancyTest {
 
   // Shared test constants
   protected static final String DEFAULT_USERNAME = "demo";

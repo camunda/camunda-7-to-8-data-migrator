@@ -88,7 +88,7 @@ jobs:
           version: latest
 
       - name: Build and run default tests
-        run: mvn clean install --batch-mode
+        run: mvn clean install -Pwindows --batch-mode
 
 #  postgresql:
 #    runs-on: ubuntu-latest
