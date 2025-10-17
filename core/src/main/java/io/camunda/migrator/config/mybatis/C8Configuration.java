@@ -98,7 +98,7 @@ public class C8Configuration extends AbstractConfiguration {
     try {
       userCharColumnSize = String.valueOf(vendorDatabaseProperties.userCharColumnSize());
     } catch (Exception e) {
-      throw new MigratorException(ConfigurationLogs.getC8DatabaseSchemaCreationError(), e);
+      throw new MigratorException(ConfigurationLogs.getC8RdbmsUserCharColumnSizeError(), e);
     }
     return createSchema(dataSource, configProperties.getC8().getDataSource().getTablePrefix(),
         "db/changelog/rdbms-exporter/changelog-master.xml", userCharColumnSize);
