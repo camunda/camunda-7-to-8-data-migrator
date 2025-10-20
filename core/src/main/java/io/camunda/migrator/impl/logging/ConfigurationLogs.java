@@ -180,4 +180,111 @@ public class ConfigurationLogs {
     return ERROR_C8_RDBMS_USER_CHAR_COLUMN_SIZE;
   }
 
+  /**
+   * Logs the start of entity interceptor configuration process.
+   */
+  public static void logConfiguringEntityInterceptors() {
+    LOGGER.info("Configuring entity interceptors");
+  }
+
+  /**
+   * Logs the total number of configured entity interceptors.
+   *
+   * @param count the number of configured entity interceptors
+   */
+  public static void logTotalEntityInterceptorsConfigured(int count) {
+    LOGGER.info("In total {} entity interceptors configured", count);
+  }
+
+  /**
+   * Logs when no entity interceptors are configured in config file.
+   */
+  public static void logNoEntityInterceptorsConfigured() {
+    LOGGER.debug("No entity interceptors configured in configuration file");
+  }
+
+  /**
+   * Logs when an entity interceptor is already loaded.
+   *
+   * @param className the class name of the interceptor already loaded
+   */
+  public static void logEntityInterceptorAlreadyLoaded(String className) {
+    LOGGER.debug("Entity interceptor already loaded: {}", className);
+  }
+
+  /**
+   * Logs when an entity interceptor is disabled via configuration.
+   *
+   * @param className the class name of the disabled interceptor
+   */
+  public static void logEntityInterceptorDisabled(String className) {
+    LOGGER.info("Entity interceptor disabled via configuration: {}", className);
+  }
+
+  /**
+   * Logs when an entity interceptor specified for disabling was not found.
+   *
+   * @param className the class name of the interceptor not found
+   */
+  public static void logEntityInterceptorNotFoundForDisabling(String className) {
+    LOGGER.warn("Entity interceptor specified for disabling not found in context: {}", className);
+  }
+
+  /**
+   * Logs successful registration of an entity interceptor.
+   *
+   * @param className the class name of the registered interceptor
+   */
+  public static void logEntityInterceptorSuccessfullyRegistered(String className) {
+    LOGGER.info("Successfully registered entity interceptor: {}", className);
+  }
+
+  /**
+   * Logs failure to register an entity interceptor.
+   *
+   * @param className the class name of the failed interceptor
+   * @param exception the exception that occurred
+   */
+  public static void logFailedToRegisterEntityInterceptor(String className, Exception exception) {
+    LOGGER.error("Failed to register entity interceptor: " + className, exception);
+  }
+
+  /**
+   * Logs the creation of an entity interceptor instance.
+   *
+   * @param className the class name of the interceptor being created
+   */
+  public static void logCreatingEntityInterceptorInstance(String className) {
+    LOGGER.debug("Creating entity interceptor instance for class: {}", className);
+  }
+
+  /**
+   * Logs when setting properties for an entity interceptor.
+   *
+   * @param className the class name of the interceptor
+   */
+  public static void logSettingEntityInterceptorProperties(String className) {
+    LOGGER.debug("Setting properties for entity interceptor: {}", className);
+  }
+
+  /**
+   * Gets the error message for failed entity interceptor registration.
+   *
+   * @param className the class name
+   * @return the formatted error message
+   */
+  public static String getFailedToRegisterEntityInterceptorError(String className) {
+    return "Failed to register entity interceptor: " + className;
+  }
+
+  /**
+   * Gets the error message for entity interceptor class not implementing interface.
+   *
+   * @param className the class name
+   * @return the formatted error message
+   */
+  public static String getEntityInterceptorClassNotImplementInterfaceError(String className) {
+    return String.format("Class %s does not implement EntityInterceptor interface", className);
+  }
+
 }

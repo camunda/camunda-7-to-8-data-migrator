@@ -40,6 +40,8 @@ public class MigratorProperties {
 
   protected List<InterceptorProperty> interceptors;
 
+  protected List<InterceptorProperty> entityInterceptors;
+
   public int getPageSize() {
     return pageSize;
   }
@@ -151,5 +153,13 @@ public class MigratorProperties {
 
   public void setInterceptors(List<InterceptorProperty> interceptors) {
     this.interceptors = interceptors;
+  }
+
+  public List<InterceptorProperty> getEntityInterceptors() {
+    return entityInterceptors;
+  }
+
+  public void setEntityInterceptors(List<InterceptorProperty> entityInterceptors) {
+    this.entityInterceptors = entityInterceptors;
   }
 }

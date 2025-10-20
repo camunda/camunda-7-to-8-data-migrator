@@ -43,9 +43,9 @@ public class ProcessInstanceConverter {
         // TODO: Call activity instance id that created the process in C8. No yet migrated from C7.
         // https://github.com/camunda/camunda-bpm-platform/issues/5359
         //        .parentElementInstanceKey(null)
-        //        .treePath(null)
+        .treePath(null)
         // TODO https://github.com/camunda/camunda-bpm-platform/issues/5400
-//        .numIncidents()
+        //        .numIncidents()
         .partitionId(C7_HISTORY_PARTITION_ID)
         .historyCleanupDate(convertDate(processInstance.getRemovalTime()))
         .build();
