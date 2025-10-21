@@ -62,6 +62,12 @@
     WHERE C7_ID = #{c7Id, jdbcType=VARCHAR} AND TYPE = #{type, jdbcType=VARCHAR}
   </update>
 
+  <update id="updateSkipReason" parameterType="io.camunda.migrator.impl.persistence.IdKeyDbModel">
+    UPDATE ${prefix}MIGRATION_MAPPING
+    SET SKIP_REASON = #{skipReason, jdbcType=VARCHAR}
+    WHERE C7_ID = #{c7Id, jdbcType=VARCHAR} AND TYPE = #{type, jdbcType=VARCHAR}
+  </update>
+
   <select id="checkHasC8KeyByC7IdAndType" resultType="boolean">
     SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END
     FROM ${prefix}MIGRATION_MAPPING

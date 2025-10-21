@@ -12,7 +12,7 @@
 
   <groupId>io.camunda</groupId>
   <artifactId>camunda-7-to-8-data-migrator-root</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.2.0-SNAPSHOT</version>
 
   <packaging>pom</packaging>
 
@@ -28,12 +28,12 @@
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
 
-    <version.camunda-7>7.24.0-SNAPSHOT</version.camunda-7>
-    <version.camunda-8>8.8.0-SNAPSHOT</version.camunda-8>
+    <version.camunda-7>7.24.0</version.camunda-7>
+    <version.camunda-8>8.9.0-SNAPSHOT</version.camunda-8>
     <version.spring-boot>3.5.6</version.spring-boot>
-    <version.junit.jupiter>5.13.4</version.junit.jupiter>
+    <version.junit.jupiter>6.0.0</version.junit.jupiter>
     <version.java>21</version.java>
-    <version.h2>2.3.232</version.h2>
+    <version.h2>2.4.240</version.h2>
     <plugin.version.compiler>3.14.1</plugin.version.compiler>
     <plugin.version.nexus-staging>1.7.0</plugin.version.nexus-staging>
 
@@ -44,6 +44,7 @@
 
     <nexus.snapshot.repository>https://artifacts.camunda.com/artifactory/zeebe-io-snapshots/</nexus.snapshot.repository>
     <nexus.release.repository>https://artifacts.camunda.com/artifactory/zeebe-io/</nexus.release.repository>
+    <central.sonatype.deployment.name>${project.groupId}:${project.artifactId}:${project.version}</central.sonatype.deployment.name>
   </properties>
 
   <profiles>
@@ -69,6 +70,7 @@
       <id>central-release</id>
       <modules>
         <module>core</module>
+        <module>plugins/cockpit</module>
       </modules>
     </profile>
   </profiles>
@@ -162,7 +164,7 @@
         <configuration>
           <licenseSets>
             <licenseSet>
-              <header>${project.basedir}/license/header.txt</header>
+              <header>${maven.multiModuleProjectDirectory}/license/header.txt</header>
             </licenseSet>
           </licenseSets>
         </configuration>

@@ -155,7 +155,7 @@ See our [issue tracker](https://github.com/camunda/camunda-bpm-platform/issues).
 ### Before Contributing
 
 1. **Read the [Contributions Guide](https://github.com/camunda/camunda-bpm-platform/blob/master/CONTRIBUTING.md)**
-2. **Check existing issues** to avoid duplicates
+2. **Check existing issues** to avoid duplicates [link](https://github.com/camunda/camunda-bpm-platform/issues?q=is%3Aissue%20state%3Aopen%20label%3Ascope%3Adata-migrator)
 3. **Discuss major changes** in an issue before implementing
 
 ### Development Guidelines
@@ -191,4 +191,4 @@ The source files in this repository are made available under the [Camunda Licens
 - **[Migration Guide](https://docs.camunda.io/docs/next/guides/migrating-from-camunda-7/)** - General migration guidance
 - **[Migration Analyzer](https://migration-analyzer.consulting-sandbox.camunda.cloud/)** - Tool for migrating BPMN models
 - **[Community Forum](https://forum.camunda.io/)** - Get help from the community
-- **[GitHub Issues](https://github.com/camunda/camunda-bpm-platform/issues)** - Report bugs and request features
+- **[GitHub Issues](https://github.com/camunda/camunda-bpm-platform/issues)** - Report bugs and request features in the issue tracker
