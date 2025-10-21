@@ -10,6 +10,7 @@ package io.camunda.migrator.impl;
 import io.camunda.migrator.config.property.C8Properties;
 import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.clients.C8Client;
+import io.camunda.migrator.impl.logging.AutoDeployerLogs;
 import io.camunda.migrator.impl.util.ExceptionUtils;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,7 +34,10 @@ public class AutoDeployer {
   protected MigratorProperties migratorProperties;
 
   public void deploy() {
-    c8Client.deployResources(getDeploymentResources());
+    Set<Path> deploymentResources = getDeploymentResources();
+    AutoDeployerLogs.logAttemptingDeployment(deploymentResources);
+    c8Client.deployResources(deploymentResources);
+    AutoDeployerLogs.successfullyDeployed();
   }
 
   public Set<Path> getDeploymentResources() {
@@ -44,7 +48,10 @@ public class AutoDeployer {
         Path resourceDir = Paths.get(deploymentDir);
 
         try (Stream<Path> stream = Files.walk(resourceDir)) {
-          return stream.filter(file -> !Files.isDirectory(file)).collect(Collectors.toSet());
+          return stream
+              .filter(file -> !Files.isDirectory(file))
+              .filter(file -> !isHidden(file))
+              .collect(Collectors.toSet());
         } catch (IOException e) {
           throw ExceptionUtils.wrapException("Error occurred: shutting down Data Migrator gracefully.", e);
         }
@@ -52,5 +59,13 @@ public class AutoDeployer {
     }
 
     return Collections.emptySet();
+  }
+
+  private static boolean isHidden(Path file) {
+    try {
+      return Files.isHidden(file);
+    } catch (IOException e) {
+      throw ExceptionUtils.wrapException("Error occurred: shutting down Data Migrator gracefully.", e);
+    }
   }
 }

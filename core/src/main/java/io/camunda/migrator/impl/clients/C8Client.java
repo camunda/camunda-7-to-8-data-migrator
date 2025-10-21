@@ -7,6 +7,7 @@
  */
 package io.camunda.migrator.impl.clients;
 
+import static io.camunda.migrator.constants.MigratorConstants.C8_DEFAULT_TENANT;
 import static io.camunda.migrator.impl.logging.C8ClientLogs.FAILED_TO_DEPLOY_C8_RESOURCES;
 import static io.camunda.migrator.impl.util.ConverterUtil.getTenantId;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
@@ -30,6 +31,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -64,11 +66,13 @@ public class C8Client {
   /**
    * Searches for process definitions with the given process definition ID.
    */
-  public SearchResponse<ProcessDefinition> searchProcessDefinitions(String processDefinitionId) {
-    var searchRequest = camundaClient.newProcessDefinitionSearchRequest()
-        .filter(filter -> filter.processDefinitionId(processDefinitionId))
-        .sort(s -> s.version().desc());
-
+  public SearchResponse<ProcessDefinition> searchProcessDefinitions(String processDefinitionId, String tenantId) {
+    var searchRequest = camundaClient.newProcessDefinitionSearchRequest().filter(filter -> {
+      var filterBuilder = filter.processDefinitionId(processDefinitionId);
+      if (!StringUtils.isEmpty(tenantId)) {
+        filterBuilder.tenantId(tenantId);
+      }
+    }).sort(s -> s.version().desc());
     return callApi(searchRequest::execute, FAILED_TO_SEARCH_PROCESS_DEFINITIONS + processDefinitionId);
   }
 
@@ -90,7 +94,9 @@ public class C8Client {
         .jobType(jobType)
         .maxJobsToActivate(properties.getPageSize());
     if (tenantIds != null && !tenantIds.isEmpty()) {
-      activateJobs = activateJobs.tenantIds(List.copyOf(tenantIds));
+      Set<String> tenantIdsWithDefault = new java.util.HashSet<>(tenantIds);
+      tenantIdsWithDefault.add(C8_DEFAULT_TENANT);
+      activateJobs = activateJobs.tenantIds(List.copyOf(tenantIdsWithDefault));
     }
     return callApi(activateJobs::execute, FAILED_TO_ACTIVATE_JOBS + jobType).getJobs();
   }

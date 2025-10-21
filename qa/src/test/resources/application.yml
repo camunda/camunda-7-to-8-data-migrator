@@ -15,13 +15,12 @@ camunda:
         username: sa
         password: sa
         driver-class-name: org.h2.Driver
-  process-test:
-    camunda-docker-image-version: 8.8-SNAPSHOT
+  #process-test:
+  #  camunda-docker-image-version: 8.9-SNAPSHOT
 
 logging:
   level.io.camunda.migrator: DEBUG
   level.org.camunda.bpm.engine.impl.persistence.entity.HistoricProcessInstanceEntity: DEBUG
-  level.io.camunda.migrator.qa.variables.TestVariableInterceptor: INFO
 
 ---
 

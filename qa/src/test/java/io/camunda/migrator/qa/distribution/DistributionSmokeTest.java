@@ -32,7 +32,7 @@ import org.junit.jupiter.api.io.TempDir;
  * This test extracts the ZIP distribution and executes the appropriate start script
  * (start.sh on Unix/Linux/macOS, start.bat on Windows) to ensure basic functionality works as expected.
  */
-class DistributionSmokeTest {
+public class DistributionSmokeTest {
 
   @TempDir
   protected Path tempDir;
@@ -61,7 +61,7 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenInvalidFlagProvided() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--invalid-flag");
@@ -84,7 +84,54 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
+  void shouldFailSinceC8DataSourceNotConfigured() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder("--history");
+
+    // Read the existing configuration file and set auto-ddl to true
+    replaceConfigProperty("auto-ddl: false", "auto-ddl: true");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).matches("(?s).*ERROR.*No C8 datasource configured\\. "
+        + "Configure 'camunda\\.migrator\\.c8\\.datasource' to allow history migration\\..*");
+  }
+
+  @Test
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
+  void shouldShowUsageWhenNoFlagProvided() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder();
+
+    // Read the existing configuration file and set auto-dll to true
+    replaceConfigProperty("auto-ddl: false", "auto-ddl: true");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("Error: Must specify at least one migration type");
+    assertThat(output).contains("Usage: start.sh/bat");
+    assertThat(output).contains("--help");
+    assertThat(output).contains("--runtime");
+    assertThat(output).contains("--history");
+    assertThat(output).contains("--list-skipped");
+    assertThat(output).contains("--retry-skipped");
+  }
+
+  @Test
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenHelpFlagProvided() throws Exception {
     // given
     ProcessBuilder processBuilder = createProcessBuilder("--help");
@@ -100,6 +147,7 @@ class DistributionSmokeTest {
     int exitCode = process.waitFor();
 
     assertThat(exitCode).isEqualTo(1);
+    assertThat(output).doesNotContain("Error");
     assertThat(output).contains("Usage: start.sh/bat");
     assertThat(output).contains("--help");
     assertThat(output).contains("--runtime");
@@ -109,10 +157,72 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
+  void shouldShowUsageWhenHelpFlagCombinedWithOtherFlags() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder("--help", "--runtime");
+
+    // Read the existing configuration file and set auto-dll to true
+    replaceConfigProperty("auto-ddl: false", "auto-ddl: true");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("Error: The --help flag cannot be combined with other flags.");
+    assertThat(output).contains("Usage: start.sh/bat");
+    assertThat(output).contains("--help");
+    assertThat(output).contains("--runtime");
+    assertThat(output).contains("--history");
+    assertThat(output).contains("--list-skipped");
+    assertThat(output).contains("--retry-skipped");
+  }
+
+  @Test
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
+  void shouldShowUsageWhenListAndRetryAreProvided() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--list-skipped", "--retry-skipped");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("Conflicting flags: --list-skipped and --retry-skipped cannot be used together");
+    assertThat(output).contains("Usage: start.sh/bat");
+  }
+
+  @Test
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
+  void shouldShowUsageWhenForceWithoutDropIsProvided() throws Exception {
+    // given
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--force");
+
+    // when
+    Process process = processBuilder.start();
+
+    // then
+    String output = readProcessOutput(process);
+    int exitCode = process.waitFor();
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output).contains("Invalid flag combination: --force requires --drop-schema. Use both flags together or remove --force.");
+    assertThat(output).contains("Usage: start.sh/bat");
+  }
+
+  @Test
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void shouldShowUsageWhenTooManyArgumentsProvided() throws Exception {
     // given
-    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history", "--history", "--drop-schema", "--force", "--list-skipped", "--retry-skipped");
+    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history", "--history", "--drop-schema", "--force", "--list-skipped");
 
     // when
     Process process = processBuilder.start();
@@ -127,27 +237,13 @@ class DistributionSmokeTest {
   }
 
   @Test
-  @Timeout(value = 30, unit = TimeUnit.SECONDS)
-  void shouldShowUsageWhenNoRuntimeOrHistoryArgumentsProvided() throws Exception {
-    // given
-    ProcessBuilder processBuilder = createProcessBuilder();
-
-    // when
-    process = processBuilder.start();
-
-    // then
-    String output = readProcessOutput(process);
-    assertThat(output).contains("Must specify at least one migration type: use --runtime, --history, or both.");
-    assertThat(output).contains("Usage: start.sh/bat");
-  }
-
-  @Test
-  @Timeout(value = 60, unit = TimeUnit.SECONDS)
+  @Timeout(value = 90, unit = TimeUnit.SECONDS)
   void shouldAcceptValidFlags() throws Exception {
     // given
     String[][] validFlags = {
         {"--runtime"},
         {"--history"},
+        {"--runtime", "--history"},
         {"--runtime", "--drop-schema"},
         {"--runtime", "--drop-schema", "--force"},
         {"--history", "--list-skipped"},
@@ -165,30 +261,6 @@ class DistributionSmokeTest {
 
       assertThat(output).contains("Starting migration with flags: " + String.join(" ", flag));
     }
-  }
-
-  @Test
-  @Timeout(value = 30, unit = TimeUnit.SECONDS)
-  void shouldStartWithoutArgumentsAndShowExpectedMessage() throws Exception {
-    // given
-    ProcessBuilder processBuilder = createProcessBuilder("--runtime", "--history");
-
-    // when
-    process = processBuilder.start();
-
-    // then
-    String output = readProcessOutput(process);
-    assertThat(output).contains("Starting migration with flags: --runtime --history");
-
-    // given
-    processBuilder = createProcessBuilder("--history", "--runtime");
-
-    // when
-    process = processBuilder.start();
-
-    // then
-    output = readProcessOutput(process);
-    assertThat(output).contains("Starting migration with flags: --history --runtime");
   }
 
   @Test

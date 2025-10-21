@@ -8,8 +8,11 @@
 package io.camunda.migrator.impl;
 
 import static io.camunda.migrator.constants.MigratorConstants.LEGACY_ID_VAR_NAME;
+import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.ACTIVE_JOINING_PARALLEL_GATEWAY_ERROR;
+import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.NO_C8_TENANT_DEPLOYMENT_ERROR;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.TENANT_ID_ERROR;
 import static io.camunda.migrator.impl.util.C7Utils.MULTI_INSTANCE_BODY_SUFFIX;
+import static io.camunda.migrator.impl.util.C7Utils.PARALLEL_GATEWAY_ACTIVITY_TYPE;
 import static io.camunda.migrator.impl.util.C7Utils.getActiveActivityIdsById;
 import static io.camunda.migrator.impl.util.ExceptionUtils.callApi;
 import static io.camunda.migrator.impl.logging.RuntimeValidatorLogs.FAILED_TO_PARSE_BPMN_MODEL;
@@ -36,6 +39,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.Activity;
 import org.camunda.bpm.model.bpmn.instance.FlowElement;
@@ -62,13 +66,17 @@ public class RuntimeValidator {
   /**
    * Validates C7 flow nodes for multi-instance loop characteristics.
    */
-  public void validateC7FlowNodes(String processDefinitionId, String activityId) {
+  public void validateC7FlowNodes(String processDefinitionId, String processInstanceId, String activityId) {
     BpmnModelInstance c7BpmnModelInstance = c7Client.getBpmnModelInstance(processDefinitionId);
     FlowElement element = c7BpmnModelInstance.getModelElementById(activityId);
 
     if (isMultiInstanceActivity(activityId, element)) {
       String activityIdWithoutSuffix = activityId.replace(MULTI_INSTANCE_BODY_SUFFIX, "");
       throw new IllegalStateException(String.format(MULTI_INSTANCE_LOOP_CHARACTERISTICS_ERROR, activityIdWithoutSuffix));
+    }
+
+    if (PARALLEL_GATEWAY_ACTIVITY_TYPE.equals(element.getElementType().getTypeName())) {
+      throw new IllegalStateException(String.format(ACTIVE_JOINING_PARALLEL_GATEWAY_ERROR, activityId, processInstanceId));
     }
   }
 
@@ -156,9 +164,15 @@ public class RuntimeValidator {
    */
   public void validateC8DefinitionExists(List<ProcessDefinition> c8Definitions,
                                          String c8DefinitionId,
+                                         String tenantId,
                                          String c7ProcessInstanceId) {
     if (c8Definitions.isEmpty()) {
-      throw new IllegalStateException(String.format(NO_C8_DEPLOYMENT_ERROR, c8DefinitionId, c7ProcessInstanceId));
+      if (hasTenant(tenantId)) {
+        throw new IllegalStateException(
+            String.format(NO_C8_TENANT_DEPLOYMENT_ERROR, c8DefinitionId, tenantId, c7ProcessInstanceId));
+      } else {
+        throw new IllegalStateException(String.format(NO_C8_DEPLOYMENT_ERROR, c8DefinitionId, c7ProcessInstanceId));
+      }
     }
   }
 
@@ -195,11 +209,12 @@ public class RuntimeValidator {
       String processInstanceId = processInstance.getId();
       String c7DefinitionId = processInstance.getProcessDefinitionId();
       String c8DefinitionId = processInstance.getProcessDefinitionKey();
+      String tenantId = processInstance.getTenantId();
 
-      validateMultiTenancy(processInstance.getTenantId());
+      validateMultiTenancy(tenantId);
 
-      var c8Definitions = c8Client.searchProcessDefinitions(c8DefinitionId);
-      validateC8DefinitionExists(c8Definitions.items(), c8DefinitionId, processInstanceId);
+      var c8Definitions = c8Client.searchProcessDefinitions(c8DefinitionId, tenantId);
+      validateC8DefinitionExists(c8Definitions.items(), c8DefinitionId, tenantId, processInstanceId);
 
       var activityInstanceTree = c7Client.getActivityInstance(processInstanceId);
 
@@ -213,18 +228,24 @@ public class RuntimeValidator {
       RuntimeValidatorLogs.foundActiveActivitiesToValidate(activityInstanceMap.size());
 
       for (FlowNode flowNode : activityInstanceMap.values()) {
-        validateC7FlowNodes(c7DefinitionId, flowNode.activityId());
+        validateC7FlowNodes(c7DefinitionId, c7ProcessInstanceId, flowNode.activityId());
         validateC8FlowNodes(c8XmlString, flowNode.activityId());
       }
     }, c7ProcessInstanceId);
   }
 
   protected void validateMultiTenancy(String tenantId) {
-    if (tenantId != null) {
+    if (hasTenant(tenantId)) {
       if (properties.getTenantIds() == null || !properties.getTenantIds().contains(tenantId)) {
         throw new IllegalStateException(String.format(TENANT_ID_ERROR, tenantId));
       }
     }
   }
 
+  /**
+   * Checks if a tenant ID is present and not empty.
+   */
+  private boolean hasTenant(String tenantId) {
+    return !StringUtils.isEmpty(tenantId);
+  }
 }

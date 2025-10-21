@@ -83,5 +83,7 @@ public interface IdKeyMapper {
 
   void updateC8KeyByC7IdAndType(IdKeyDbModel idKeyDbModel);
 
+  void updateSkipReason(IdKeyDbModel idKeyDbModel);
+
   void deleteByC7Id(String c7Id);
 }

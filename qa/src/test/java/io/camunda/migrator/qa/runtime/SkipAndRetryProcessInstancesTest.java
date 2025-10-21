@@ -166,7 +166,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     for (Task task : taskService.createTaskQuery().taskDefinitionKey("multiUserTask").list()) {
       taskService.complete(task.getId());
     }
-    ensureTrue("Unexpected process state: only one task should be active", taskService.createTaskQuery().count() == 1);
+    ensureTrue("Unexpected process state: two tasks should be active", taskService.createTaskQuery().count() == 2);
 
     // when running retrying runtime migration
     runtimeMigrator.setMode(RETRY_SKIPPED);
@@ -181,6 +181,7 @@ class SkipAndRetryProcessInstancesTest extends RuntimeMigrationAbstractTest {
     // and the key updated
     assertThat(dbClient.findC8KeyByC7IdAndType(process.getId(), IdKeyMapper.TYPE.RUNTIME_PROCESS_INSTANCE)).isNotNull();
 
+    events = logs.getEvents();
     // and no additional skipping logs (still 1, not 2 matches)
     Assertions.assertThat(events.stream()
             .filter(event -> event.getMessage()
