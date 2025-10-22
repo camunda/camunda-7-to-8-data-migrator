@@ -9,6 +9,7 @@
 package io.camunda.migrator.impl.logging;
 
 import io.camunda.migrator.HistoryMigrator;
+import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -254,5 +255,13 @@ public class HistoryMigratorLogs {
 
   public static void migratingDecisionRequirementsCompleted(String c7DecisionRequirementsId) {
     LOGGER.debug(MIGRATING_DECISION_REQUIREMENT_COMPLETED, c7DecisionRequirementsId);
+  }
+
+  public static void startingMigrationForType(IdKeyMapper.TYPE entityType) {
+    LOGGER.info("Starting migration for [{}] entities.", entityType.getDisplayName());
+  }
+
+  public static void finishedMigrationForType(IdKeyMapper.TYPE entityType) {
+    LOGGER.info("Finished migration for [{}] entities.", entityType.getDisplayName());
   }
 }
