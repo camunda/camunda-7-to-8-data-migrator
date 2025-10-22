@@ -160,25 +160,6 @@ public class AsyncHistoryMigrator {
 
   protected MigratorMode mode = MIGRATE;
 
-  public void migrate() {
-    migrateProcessDefinitions()                             // Migrate process definitions asynchronously
-        .thenCompose(v -> migrateProcessInstances())   // Trigger migration for process instances but only after definitions are done
-        .join();                                            // Wait for instances to be completed
-
-    var incidentsFuture = migrateIncidents();               // Migrate incidents asynchronously
-
-    var flowNodesFuture = migrateFlowNodes()                // Migrate flow nodes asynchronously
-        .thenCompose(v -> migrateUserTasks())         // After flow nodes are done, migrate user tasks asynchronously
-        .thenCompose(v -> migrateVariables());        // After user tasks are done, migrate variables asynchronously
-
-    var decisionsFuture = migrateDecisionRequirementsDefinitions() // Migrate decision requirements definitions asynchronously
-        .thenCompose(v -> migrateDecisionDefinitions())       // After requirements are done, migrate decision definitions
-        .thenCompose(v -> migrateDecisionInstances());        // After decision definitions are done, migrate decision instances asynchronously
-
-    CompletableFuture.allOf(incidentsFuture, flowNodesFuture, decisionsFuture).join(); // Wait for all futures to be completed before exiting
-    // Finished migration
-  }
-
   @Async
   public CompletableFuture<Void> migrateProcessDefinitions() {
     HistoryMigratorLogs.startingMigrationForType(HISTORY_PROCESS_DEFINITION);
