@@ -19,8 +19,8 @@ camunda:
   #  camunda-docker-image-version: 8.9-SNAPSHOT
 
 logging:
-  level.io.camunda.migrator: DEBUG
-  level.org.camunda.bpm.engine.impl.persistence.entity.HistoricProcessInstanceEntity: DEBUG
+  level.io.camunda.migrator: INFO
+  level.org.camunda.bpm.engine.impl.persistence.entity.HistoricProcessInstanceEntity: INFO
 
 ---
 
