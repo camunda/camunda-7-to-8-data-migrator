@@ -32,7 +32,7 @@ public class EntityConversionService {
    * Converts a C7 entity using a provided context by executing all applicable interceptors.
    *
    * @param context the conversion context with entity and metadata already set
-   * @param <T> the entity type
+   * @param <T>     the entity type
    * @return the conversion context with all properties set by interceptors
    */
   public <T> EntityConversionContext<T> convertWithContext(EntityConversionContext<T> context) {
@@ -55,9 +55,9 @@ public class EntityConversionService {
   /**
    * Converts a C7 entity to C8 properties by executing all applicable interceptors.
    *
-   * @param c7Entity the C7 historic entity
+   * @param c7Entity   the C7 historic entity
    * @param entityType the entity type class
-   * @param <T> the entity type
+   * @param <T>        the entity type
    * @return the conversion context with all properties set
    */
   public <T> EntityConversionContext<T> convert(T c7Entity, Class<?> entityType) {
@@ -69,14 +69,12 @@ public class EntityConversionService {
    * Executes a single interceptor on the conversion context.
    *
    * @param interceptor the interceptor to execute
-   * @param context the conversion context
+   * @param context     the conversion context
    */
   private void executeInterceptor(EntityInterceptor interceptor, EntityConversionContext<?> context) {
     try {
-      EntityConversionServiceLogs.logExecutingInterceptor(
-          interceptor.getClass().getSimpleName(),
-          context.getEntityType().getSimpleName()
-      );
+      EntityConversionServiceLogs.logExecutingInterceptor(interceptor.getClass().getSimpleName(),
+          context.getEntityType().getSimpleName());
       interceptor.execute(context);
     } catch (Exception ex) {
       String interceptorName = interceptor.getClass().getSimpleName();
@@ -87,9 +85,7 @@ public class EntityConversionService {
         throw ex;
       } else {
         throw new EntityInterceptorException(
-            EntityConversionServiceLogs.formatInterceptorError(interceptorName, entityType),
-            ex
-        );
+            EntityConversionServiceLogs.formatInterceptorError(interceptorName, entityType), ex);
       }
     }
   }
