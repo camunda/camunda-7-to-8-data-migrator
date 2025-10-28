@@ -17,6 +17,13 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${version.spring-boot}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <!-- Use dependency management from C8 Mono Repo -->
       <dependency>
         <groupId>io.camunda</groupId>
