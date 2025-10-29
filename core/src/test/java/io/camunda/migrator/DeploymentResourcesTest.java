@@ -42,11 +42,6 @@ class DeploymentResourcesTest {
     field.set(autoDeployer, migratorProperties);
   }
 
-  @AfterEach
-  void tearDown() {
-    // TempDir is automatically cleaned up by JUnit
-  }
-
   @Test
   void shouldReturnEmptySetWhenC8PropertiesIsNull() {
     // given: C8 properties is null
