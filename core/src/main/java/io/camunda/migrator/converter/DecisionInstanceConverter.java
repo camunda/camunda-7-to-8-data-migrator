@@ -35,7 +35,7 @@ public class DecisionInstanceConverter {
         .partitionId(C7_HISTORY_PARTITION_ID)
         .decisionInstanceId(String.format("%d-%s", decisionInstanceKey, decisionInstance.getId()))
         .decisionInstanceKey(decisionInstanceKey)
-        .state(DecisionInstanceEntity.DecisionInstanceState.UNSPECIFIED) // TODO https://github.com/camunda/camunda-bpm-platform/issues/5370
+        .state(null) // TODO https://github.com/camunda/camunda-bpm-platform/issues/5370
         .evaluationDate(convertDate(decisionInstance.getEvaluationTime()))
         .evaluationFailure(null) // not stored in HistoricDecisionInstance
         .evaluationFailureMessage(null) // not stored in HistoricDecisionInstance
@@ -50,7 +50,7 @@ public class DecisionInstanceConverter {
         .decisionRequirementsKey(decisionRequirementsDefinitionKey)
         .decisionRequirementsId(decisionInstance.getDecisionRequirementsDefinitionKey())
         .rootDecisionDefinitionKey(rootDecisionDefinitionKey)
-        .decisionType(DecisionInstanceEntity.DecisionDefinitionType.UNSPECIFIED) // TODO https://github.com/camunda/camunda-bpm-platform/issues/5370
+        .decisionType(null) // TODO https://github.com/camunda/camunda-bpm-platform/issues/5370
         .tenantId(getTenantId(decisionInstance.getTenantId()))
         .evaluatedInputs(mapInputs(decisionInstance.getId(), decisionInstance.getInputs()))
         .evaluatedOutputs(mapOutputs(decisionInstance.getId(), decisionInstance.getOutputs()))
