@@ -3,14 +3,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.community</groupId>
-    <artifactId>community-hub-release-parent</artifactId>
-    <version>2.1.0</version>
+    <!-- TODO should root be renamed to camunda-7-to-8-data-migration -->
+    <groupId>io.camunda</groupId>
+    <artifactId>camunda-7-to-8-data-migrator-root</artifactId>
+    <version>0.2.0-SNAPSHOT</version>
+    <relativePath>../</relativePath>
   </parent>
 
-  <groupId>org.camunda.community.migration</groupId>
   <artifactId>camunda-7-to-8-migration-analyzer</artifactId>
-  <version>0.13.4-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>camunda-7-to-8-migration-analyzer</name>
 
@@ -52,6 +52,8 @@
     <plugin.version.maven-assembly-plugin>3.7.1</plugin.version.maven-assembly-plugin>
     <plugin.version.frontend-maven-plugin>1.15.4</plugin.version.frontend-maven-plugin>
     <plugin.version.maven-source-plugin>3.3.1</plugin.version.maven-source-plugin>
+    <plugin.version.maven-install-plugin>3.1.2</plugin.version.maven-install-plugin>
+    <plugin.version.maven-resources-plugin>3.3.1</plugin.version.maven-resources-plugin>
   </properties>
 
   <dependencyManagement>
@@ -208,7 +210,7 @@
         <version>4.5.0</version>
       </dependency>
       <dependency>
-        <groupId>org.camunda.community.migration</groupId>
+        <groupId>io.camunda</groupId>
         <artifactId>camunda-7-to-8-migration-analyzer-core</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -235,6 +237,18 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
           <version>${plugin.version.maven-assembly-plugin}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>${plugin.version.maven-install-plugin}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>${plugin.version.maven-resources-plugin}</version>
         </plugin>
 
         <plugin>
