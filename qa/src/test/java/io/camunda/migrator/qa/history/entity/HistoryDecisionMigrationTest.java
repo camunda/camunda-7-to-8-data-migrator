@@ -138,7 +138,7 @@ public class HistoryDecisionMigrationTest extends HistoryMigrationAbstractTest {
       assertThat(instance.decisionInstanceId()).isEqualTo(
           instance.decisionInstanceKey() + "-" + c7Instance.getId());
       assertThat(instance.decisionInstanceKey()).isNotNull();
-      assertThat(instance.state()).isEqualTo(DecisionInstanceEntity.DecisionInstanceState.UNSPECIFIED);
+      assertThat(instance.state()).isEqualTo(DecisionInstanceEntity.DecisionInstanceState.EVALUATED);
       assertThat(instance.evaluationDate()).isEqualTo(
           OffsetDateTime.ofInstant(now.toInstant(), ZoneId.systemDefault()));
       assertThat(instance.evaluationFailure()).isNull();
@@ -150,7 +150,7 @@ public class HistoryDecisionMigrationTest extends HistoryMigrationAbstractTest {
       assertThat(instance.decisionDefinitionId()).isEqualTo("simpleDecisionId");
       assertThat(instance.tenantId()).isEqualTo(C8_DEFAULT_TENANT);
       assertThat(instance.decisionDefinitionType()).isEqualTo(
-          DecisionInstanceEntity.DecisionDefinitionType.UNSPECIFIED);
+          DecisionInstanceEntity.DecisionDefinitionType.UNKNOWN);
 
       // TODO find out how to get a result http://github.com/camunda/camunda-bpm-platform/issues/5365
       //      assertThat(instance.result()).isEqualTo("B");

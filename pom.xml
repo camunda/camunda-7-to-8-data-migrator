@@ -61,6 +61,7 @@
         <module>qa</module>
         <module>distro</module>
         <module>assembly</module>
+        <module>camunda-7-to-8-migration-analyzer</module>
       </modules>
     </profile>
     <profile>
