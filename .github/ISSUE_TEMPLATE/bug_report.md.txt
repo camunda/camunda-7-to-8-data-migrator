@@ -28,7 +28,8 @@ assignees:
 ### Links
 
 <!--
-- https://jira.camunda.com/browse/CAM-12398
+- https://jira.camunda.com/browse/SUPPORT-12398
+- https://jira.camunda.com/browse/SEC-12398
 -->
 
 ### Breakdown
