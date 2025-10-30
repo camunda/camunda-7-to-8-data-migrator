@@ -17,22 +17,20 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+public class DeploymentResourcesTest {
 
-class DeploymentResourcesTest {
-
-  private AutoDeployer autoDeployer;
-  private MigratorProperties migratorProperties;
+  protected AutoDeployer autoDeployer;
+  protected MigratorProperties migratorProperties;
 
   @TempDir
-  Path tempDir;
+  protected Path tempDir;
 
   @BeforeEach
-  void setUp() throws Exception {
+  public void setUp() throws Exception {
     autoDeployer = new AutoDeployer();
     migratorProperties = new MigratorProperties();
 
@@ -43,7 +41,7 @@ class DeploymentResourcesTest {
   }
 
   @Test
-  void shouldReturnEmptySetWhenC8PropertiesIsNull() {
+  public void shouldReturnEmptySetWhenC8PropertiesIsNull() {
     // given: C8 properties is null
     migratorProperties.setC8(null);
 
@@ -55,7 +53,7 @@ class DeploymentResourcesTest {
   }
 
   @Test
-  void shouldReturnEmptySetWhenDeploymentDirIsNull() {
+  public void shouldReturnEmptySetWhenDeploymentDirIsNull() {
     // given: deployment directory is null
     C8Properties c8Properties = new C8Properties();
     c8Properties.setDeploymentDir(null);
@@ -69,7 +67,7 @@ class DeploymentResourcesTest {
   }
 
   @Test
-  void shouldReturnEmptySetWhenDeploymentDirIsEmpty() {
+  public void shouldReturnEmptySetWhenDeploymentDirIsEmpty() {
     // given: deployment directory is empty string
     C8Properties c8Properties = new C8Properties();
     c8Properties.setDeploymentDir("");
@@ -83,7 +81,7 @@ class DeploymentResourcesTest {
   }
 
   @Test
-  void shouldReturnEmptySetWhenDeploymentDirIsBlank() {
+  public void shouldReturnEmptySetWhenDeploymentDirIsBlank() {
     // given: deployment directory is blank string
     C8Properties c8Properties = new C8Properties();
     c8Properties.setDeploymentDir("   ");
@@ -97,7 +95,7 @@ class DeploymentResourcesTest {
   }
 
   @Test
-  void shouldReturnEmptySetWhenDeploymentDirIsEmptyDirectory() {
+  public void shouldReturnEmptySetWhenDeploymentDirIsEmptyDirectory() {
     // given: deployment directory exists but is empty
     C8Properties c8Properties = new C8Properties();
     c8Properties.setDeploymentDir(tempDir.toString());
@@ -111,7 +109,7 @@ class DeploymentResourcesTest {
   }
 
   @Test
-  void shouldReturnSingleFileWhenOneFileExists() throws IOException {
+  public void shouldReturnSingleFileWhenOneFileExists() throws IOException {
     // given: deployment directory with one file
     Path bpmnFile = tempDir.resolve("process.bpmn");
     Files.writeString(bpmnFile, "<bpmn></bpmn>");
@@ -129,7 +127,7 @@ class DeploymentResourcesTest {
   }
 
   @Test
-  void shouldReturnMultipleFilesWhenMultipleFilesExist() throws IOException {
+  public void shouldReturnMultipleFilesWhenMultipleFilesExist() throws IOException {
     // given: deployment directory with multiple files
     Path bpmnFile = tempDir.resolve("process.bpmn");
     Files.writeString(bpmnFile, "<bpmn></bpmn>");
@@ -153,7 +151,7 @@ class DeploymentResourcesTest {
   }
 
   @Test
-  void shouldIncludeFilesInSubdirectories() throws IOException {
+  public void shouldIncludeFilesInSubdirectories() throws IOException {
     // given: deployment directory with files in subdirectories
     Path subDir = tempDir.resolve("subdir");
     Files.createDirectories(subDir);
@@ -177,7 +175,7 @@ class DeploymentResourcesTest {
   }
 
   @Test
-  void shouldExcludeDirectories() throws IOException {
+  public void shouldExcludeDirectories() throws IOException {
     // given: deployment directory with files and subdirectories
     Path subDir = tempDir.resolve("subdir");
     Files.createDirectories(subDir);
@@ -199,7 +197,7 @@ class DeploymentResourcesTest {
   }
 
   @Test
-  void shouldExcludeHiddenFiles() throws IOException {
+  public void shouldExcludeHiddenFiles() throws IOException {
     // given: deployment directory with regular and hidden files
     Path regularFile = tempDir.resolve("process.bpmn");
     Files.writeString(regularFile, "<bpmn></bpmn>");
@@ -212,7 +210,6 @@ class DeploymentResourcesTest {
     if (os.contains("win")) {
       Files.setAttribute(hiddenFile, "dos:hidden", true);
     }
-    // On Unix-like systems, files starting with dot are treated as hidden by Files.isHidden()
     assertThat(autoDeployer.isHidden(hiddenFile)).isTrue();
 
     C8Properties c8Properties = new C8Properties();
@@ -229,7 +226,7 @@ class DeploymentResourcesTest {
   }
 
   @Test
-  void shouldExcludeHiddenFilesInSubdirectories() throws IOException {
+  public void shouldExcludeHiddenFilesInSubdirectories() throws IOException {
     // given: deployment directory with hidden files in subdirectories
     Path subDir = tempDir.resolve("subdir");
     Files.createDirectories(subDir);
@@ -245,7 +242,6 @@ class DeploymentResourcesTest {
     if (os.contains("win")) {
       Files.setAttribute(hiddenFile, "dos:hidden", true);
     }
-    // On Unix-like systems, files starting with dot are treated as hidden by Files.isHidden()
     assertThat(autoDeployer.isHidden(hiddenFile)).isTrue();
 
     C8Properties c8Properties = new C8Properties();
@@ -262,7 +258,7 @@ class DeploymentResourcesTest {
   }
 
   @Test
-  void shouldHandleDotPrefixedFilesOnUnixLikeSystems() throws IOException {
+  public void shouldHandleDotPrefixedFilesOnUnixLikeSystems() throws IOException {
     // given: deployment directory with dot-prefixed file
     // Note: On Windows, this might not be treated as hidden unless explicitly set
     Path regularFile = tempDir.resolve("process.bpmn");
@@ -294,7 +290,7 @@ class DeploymentResourcesTest {
   }
 
   @Test
-  void shouldHandleNestedDirectoryStructure() throws IOException {
+  public void shouldHandleNestedDirectoryStructure() throws IOException {
     // given: deployment directory with deeply nested structure
     Path level1 = tempDir.resolve("level1");
     Path level2 = level1.resolve("level2");
