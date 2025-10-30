@@ -2,7 +2,7 @@
 name: Task
 about: Anything that needs to be done that is neither a feature nor a bug fix
 title: ''
-labels: type:task
+type: task
 assignees: ''
 
 ---
