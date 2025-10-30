@@ -2,7 +2,7 @@
 name: Bug report
 about: Report a case where the product is not working as expected
 title: ''
-labels: type:bug
+type: bug
 assignees: 
 
 ---
