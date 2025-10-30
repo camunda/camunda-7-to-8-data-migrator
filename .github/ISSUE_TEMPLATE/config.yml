@@ -1,17 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Browse open tickets
-    url: https://github.com/camunda/camunda-bpm-platform/issues?q=is%3Aissue%20state%3Aopen%20label%3Ascope%3Adata-migrator
+    url: https://github.com/camunda/camunda-7-to-8-data-migrator/issues
     about: Check if a feature or bug has already been reported.
-  - name: Data migrator feature request
-    url: https://github.com/camunda/camunda-bpm-platform/issues/new?assignees=&labels=scope%3Adata-migrator%2Ctype%3Afeature&projects=&template=feature_request.md&title=
-    about: Raise a Data migrator feature request
-  - name: Data migrator bug report
-    url: https://github.com/camunda/camunda-bpm-platform/issues/new?assignees=&labels=scope%3Adata-migrator%2Ctype%3Abug&projects=&template=bug_report.md&title=
-    about: Raise a Data migrator bug report
-  - name: Data migrator task
-    url: https://github.com/camunda/camunda-bpm-platform/issues/new?assignees=&labels=scope%3Adata-migrator%2Ctype%3Atask&projects=&template=task.md&title=
-    about: Raise a Data migrator task
   - name: User Forum
     url: https://forum.camunda.io/tags/c/camunda-platform-8-topics/40/migration
     about: Ask questions about using Data Migrator here.
