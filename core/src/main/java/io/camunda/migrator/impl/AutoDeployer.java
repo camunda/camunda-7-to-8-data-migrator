@@ -61,7 +61,7 @@ public class AutoDeployer {
     return Collections.emptySet();
   }
 
-  private static boolean isHidden(Path file) {
+  public static boolean isHidden(Path file) {
     try {
       return Files.isHidden(file);
     } catch (IOException e) {
