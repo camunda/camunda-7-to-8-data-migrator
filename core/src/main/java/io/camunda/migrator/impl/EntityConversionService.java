@@ -71,7 +71,7 @@ public class EntityConversionService {
    * @param interceptor the interceptor to execute
    * @param context     the conversion context
    */
-  private void executeInterceptor(EntityInterceptor interceptor, EntityConversionContext<?> context) {
+  private void executeInterceptor(EntityInterceptor interceptor, EntityConversionContext<?, ?> context) {
     try {
       EntityConversionServiceLogs.logExecutingInterceptor(interceptor.getClass().getSimpleName(),
           context.getEntityType().getSimpleName());

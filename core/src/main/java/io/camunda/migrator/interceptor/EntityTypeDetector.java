@@ -58,7 +58,7 @@ public final class EntityTypeDetector {
    * @param context the conversion context
    * @return true if the interceptor supports the context's entity type
    */
-  public static boolean supportsContext(EntityInterceptor interceptor, EntityConversionContext<?> context) {
+  public static boolean supportsContext(EntityInterceptor interceptor, EntityConversionContext<?, ?> context) {
     return supportsEntityType(interceptor, context.getEntityType());
   }
 }

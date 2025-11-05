@@ -71,7 +71,10 @@ public class DefaultProcessInstanceConverter implements EntityInterceptor {
         .build();
 
     // Set the built model in the context
-    context.setC8DbModel(dbModel);
+    @SuppressWarnings("unchecked")
+    EntityConversionContext<HistoricProcessInstance, ProcessInstanceDbModel> typedContext =
+        (EntityConversionContext<HistoricProcessInstance, ProcessInstanceDbModel>) context;
+    typedContext.setC8DbModel(dbModel);
   }
 
   protected ProcessInstanceState convertState(String state) {

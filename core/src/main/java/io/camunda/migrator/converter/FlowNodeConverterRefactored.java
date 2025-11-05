@@ -19,25 +19,25 @@ import org.springframework.beans.factory.annotation.Autowired;
  * The actual FlowNodeConverter is still using the old pattern.
  */
 public class FlowNodeConverterRefactored {
-
-  @Autowired
-  private EntityConversionService entityConversionService;
-
-  public FlowNodeInstanceDbModel apply(HistoricActivityInstance activity,
-                                       Long processInstanceKey,
-                                       Long processDefinitionKey) {
-    // Create context with metadata
-    EntityConversionContext<HistoricActivityInstance, FlowNodeInstanceDbModel> context =
-        new EntityConversionContext<>(activity, HistoricActivityInstance.class);
-
-    context.setMetadata("processInstanceKey", processInstanceKey);
-    context.setMetadata("processDefinitionKey", processDefinitionKey);
-
-    // Execute all interceptors - they will build the FlowNodeInstanceDbModel
-    context = entityConversionService.convertWithContext(context);
-
-    // Return the built C8 model
-    return context.getC8DbModel();
-  }
+//
+//  @Autowired
+//  private EntityConversionService entityConversionService;
+//
+//  public FlowNodeInstanceDbModel apply(HistoricActivityInstance activity,
+//                                       Long processInstanceKey,
+//                                       Long processDefinitionKey) {
+//    // Create context with metadata
+//    EntityConversionContext<HistoricActivityInstance, FlowNodeInstanceDbModel> context =
+//        new EntityConversionContext<>(activity, HistoricActivityInstance.class);
+//
+//    context.setMetadata("processInstanceKey", processInstanceKey);
+//    context.setMetadata("processDefinitionKey", processDefinitionKey);
+//
+//    // Execute all interceptors - they will build the FlowNodeInstanceDbModel
+//    context = entityConversionService.convertWithContext(context);
+//
+//    // Return the built C8 model
+//    return context.getC8DbModel();
+//  }
 }
 

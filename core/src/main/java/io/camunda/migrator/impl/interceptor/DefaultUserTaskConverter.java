@@ -77,7 +77,10 @@ public class DefaultUserTaskConverter implements EntityInterceptor {
         .customHeaders(null);
 
     // Set the built model in the context
-    context.setC8DbModel(builder.build());
+    @SuppressWarnings("unchecked")
+    EntityConversionContext<HistoricTaskInstance, UserTaskDbModel> typedContext =
+        (EntityConversionContext<HistoricTaskInstance, UserTaskDbModel>) context;
+    typedContext.setC8DbModel(builder.build());
   }
 
   private UserTaskDbModel.UserTaskState convertState(HistoricTaskInstance task) {

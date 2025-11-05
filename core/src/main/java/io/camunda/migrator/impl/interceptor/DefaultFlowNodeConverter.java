@@ -64,7 +64,10 @@ public class DefaultFlowNodeConverter implements EntityInterceptor {
         .build();
 
     // Set the built model in the context
-    context.setC8DbModel(dbModel);
+    @SuppressWarnings("unchecked")
+    EntityConversionContext<HistoricActivityInstance, FlowNodeInstanceDbModel> typedContext =
+        (EntityConversionContext<HistoricActivityInstance, FlowNodeInstanceDbModel>) context;
+    typedContext.setC8DbModel(dbModel);
   }
 
   private FlowNodeState convertState(HistoricActivityInstance activity) {
