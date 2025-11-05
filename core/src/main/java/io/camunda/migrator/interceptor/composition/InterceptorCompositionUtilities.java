@@ -9,10 +9,8 @@ package io.camunda.migrator.interceptor.composition;
 
 import io.camunda.migrator.interceptor.EntityConversionContext;
 import io.camunda.migrator.interceptor.EntityInterceptor;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +46,7 @@ public final class InterceptorCompositionUtilities {
 
 
       @Override
-      public void execute(EntityConversionContext context) {
+      public void execute(EntityConversionContext<?, ?> context) {
         if (entityType.isInstance(context.getC7Entity())) {
           @SuppressWarnings("unchecked")
           T typedEntity = (T) context.getC7Entity();
@@ -65,7 +63,7 @@ public final class InterceptorCompositionUtilities {
    * @param logic the logic to execute
    * @return a universal interceptor
    */
-  public static EntityInterceptor universal(Consumer<EntityConversionContext> logic) {
+  public static EntityInterceptor universal(Consumer<EntityConversionContext<?, ?>> logic) {
     return new EntityInterceptor() {
       @Override
       public Set<Class<?>> getEntityTypes() {
@@ -74,7 +72,7 @@ public final class InterceptorCompositionUtilities {
 
 
       @Override
-      public void execute(EntityConversionContext context) {
+      public void execute(EntityConversionContext<?, ?> context) {
         logic.accept(context);
       }
     };
@@ -89,7 +87,7 @@ public final class InterceptorCompositionUtilities {
    * @return a conditional interceptor
    */
   public static EntityInterceptor conditional(EntityInterceptor baseInterceptor,
-                                              Predicate<EntityConversionContext> condition) {
+                                              Predicate<EntityConversionContext<?, ?>> condition) {
     return new EntityInterceptor() {
       @Override
       public Set<Class<?>> getEntityTypes() {
@@ -98,37 +96,12 @@ public final class InterceptorCompositionUtilities {
 
 
       @Override
-      public void execute(EntityConversionContext context) {
+      public void execute(EntityConversionContext<?, ?> context) {
         if (condition.test(context)) {
           baseInterceptor.execute(context);
         }
       }
     };
-  }
-
-  /**
-   * Creates a property mapping interceptor for bulk property setting.
-   * Reduces boilerplate for simple property mappings.
-   *
-   * @param entityType the target entity type
-   * @param propertyMappings map of property names to extraction functions
-   * @param <T> the entity type
-   * @return a property mapping interceptor
-   */
-  public static <T> EntityInterceptor propertyMapper(Class<T> entityType,
-                                                     Map<String, Function<T, Object>> propertyMappings) {
-    return typeSafe(entityType, context -> {
-      T entity = context.getEntity();
-      propertyMappings.forEach((propertyName, extractor) -> {
-        try {
-          Object value = extractor.apply(entity);
-          context.setProperty(propertyName, value);
-        } catch (Exception e) {
-          LOGGER.warn("Failed to extract property '{}' from {}: {}",
-                     propertyName, entityType.getSimpleName(), e.getMessage());
-        }
-      });
-    });
   }
 
   /**
@@ -142,10 +115,9 @@ public final class InterceptorCompositionUtilities {
       String entityType = context.getEntityType().getSimpleName();
       LOGGER.info("{} Processing {} conversion", prefix, entityType);
 
-      // Log current properties for debugging
+      // Log C8 model for debugging
       if (LOGGER.isDebugEnabled()) {
-        context.getProperties().forEach((key, value) ->
-            LOGGER.debug("{} Property '{}' = {}", prefix, key, value));
+        LOGGER.debug("{} C8 DbModel: {}", prefix, context.getC8DbModel());
       }
     });
   }
@@ -155,9 +127,9 @@ public final class InterceptorCompositionUtilities {
    */
   public static class TypeSafeContext<T> {
     private final T entity;
-    private final EntityConversionContext<?> context;
+    private final EntityConversionContext<?, ?> context;
 
-    public TypeSafeContext(T entity, EntityConversionContext<?> context) {
+    public TypeSafeContext(T entity, EntityConversionContext<?, ?> context) {
       this.entity = entity;
       this.context = context;
     }
@@ -166,16 +138,14 @@ public final class InterceptorCompositionUtilities {
       return entity;
     }
 
-    public Object getProperty(String propertyName) {
-      return context.getProperty(propertyName);
+    public Object getC8DbModel() {
+      return context.getC8DbModel();
     }
 
-    public void setProperty(String propertyName, Object value) {
-      context.setProperty(propertyName, value);
-    }
-
-    public void nullifyProperty(String propertyName) {
-      context.nullifyProperty(propertyName);
+    public void setC8DbModel(Object dbModel) {
+      @SuppressWarnings("unchecked")
+      EntityConversionContext<Object, Object> typedContext = (EntityConversionContext<Object, Object>) context;
+      typedContext.setC8DbModel(dbModel);
     }
 
     public Object getMetadata(String key) {

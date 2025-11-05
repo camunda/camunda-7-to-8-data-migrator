@@ -13,6 +13,8 @@ import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
 import static io.camunda.search.entities.ProcessInstanceEntity.ProcessInstanceState;
 
+import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
+import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel.ProcessInstanceDbModelBuilder;
 import io.camunda.migrator.constants.MigratorConstants;
 import io.camunda.migrator.interceptor.EntityConversionContext;
 import io.camunda.migrator.interceptor.EntityInterceptor;
@@ -23,7 +25,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * Built-in interceptor for converting HistoricProcessInstance to C8 ProcessInstanceDbModel properties.
+ * Built-in interceptor for converting HistoricProcessInstance to C8 ProcessInstanceDbModel.
  * This implements the default conversion logic that was previously in ProcessInstanceConverter.
  * <p>
  * Users can disable this via configuration and provide their own implementation, or
@@ -41,7 +43,7 @@ public class DefaultProcessInstanceConverter implements EntityInterceptor {
 
 
   @Override
-  public void execute(EntityConversionContext context) {
+  public void execute(EntityConversionContext<?, ?> context) {
     if (!(context.getC7Entity() instanceof HistoricProcessInstance processInstance)) {
       return;
     }
@@ -50,22 +52,26 @@ public class DefaultProcessInstanceConverter implements EntityInterceptor {
     Long processDefinitionKey = (Long) context.getMetadata("processDefinitionKey");
     Long parentProcessInstanceKey = (Long) context.getMetadata("parentProcessInstanceKey");
 
-    // Set all standard properties
-    context.setProperty("processInstanceKey", getNextKey());
-    context.setProperty("processDefinitionKey", processDefinitionKey);
-    context.setProperty("processDefinitionId", processInstance.getProcessDefinitionKey());
-    context.setProperty("startDate", convertDate(processInstance.getStartTime()));
-    context.setProperty("endDate", convertDate(processInstance.getEndTime()));
-    context.setProperty("state", convertState(processInstance.getState()));
-    context.setProperty("tenantId", getTenantId(processInstance));
-    context.setProperty("version", processInstance.getProcessDefinitionVersion());
-    context.setProperty("parentProcessInstanceKey", parentProcessInstanceKey);
-    context.setProperty("partitionId", C7_HISTORY_PARTITION_ID);
-    context.setProperty("historyCleanupDate", convertDate(processInstance.getRemovalTime()));
+    // Build the ProcessInstanceDbModel
+    ProcessInstanceDbModel dbModel = new ProcessInstanceDbModelBuilder()
+        .processInstanceKey(getNextKey())
+        .processDefinitionKey(processDefinitionKey)
+        .processDefinitionId(processInstance.getProcessDefinitionKey())
+        .startDate(convertDate(processInstance.getStartTime()))
+        .endDate(convertDate(processInstance.getEndTime()))
+        .state(convertState(processInstance.getState()))
+        .tenantId(getTenantId(processInstance))
+        .version(processInstance.getProcessDefinitionVersion())
+        .parentProcessInstanceKey(parentProcessInstanceKey)
+        .partitionId(C7_HISTORY_PARTITION_ID)
+        .historyCleanupDate(convertDate(processInstance.getRemovalTime()))
+        // Properties that are not yet migrated from C7 - set to null explicitly
+        .parentElementInstanceKey(null)
+        .treePath(null)
+        .build();
 
-    // Properties that are not yet migrated from C7 - set to null explicitly
-    context.nullifyProperty("parentElementInstanceKey");
-    context.nullifyProperty("treePath");
+    // Set the built model in the context
+    context.setC8DbModel(dbModel);
   }
 
   protected ProcessInstanceState convertState(String state) {

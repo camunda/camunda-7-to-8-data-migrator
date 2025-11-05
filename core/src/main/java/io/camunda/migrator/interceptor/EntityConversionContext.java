@@ -1,4 +1,3 @@
-
 /*
  * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH under
  * one or more contributor license agreements. See the NOTICE file distributed
@@ -13,32 +12,41 @@ import java.util.Map;
 
 /**
  * Context for entity conversion that holds both the C7 historic entity
- * and the converted properties for the C8 database model.
+ * and the C8 database model being built.
  * <p>
  * This context allows interceptors to:
  * - Access the original C7 entity
- * - Read current property values
- * - Override property values
- * - Nullify property values
+ * - Access and modify the C8 database model
  * - Add custom metadata
  * </p>
  *
- * @param <T> the C7 entity type
+ * @param <C7> the C7 entity type
+ * @param <C8> the C8 database model type
  */
-public class EntityConversionContext<T> {
+public class EntityConversionContext<C7, C8> {
 
-  private final T c7Entity;
-  private final Map<String, Object> properties;
+  private final C7 c7Entity;
+  private C8 c8DbModel;
   private final Map<String, Object> metadata;
   private final Class<?> entityType;
 
-  public EntityConversionContext(T c7Entity, Class<?> entityType) {
+  public EntityConversionContext(C7 c7Entity, Class<?> entityType) {
     if (c7Entity == null) {
       throw new IllegalArgumentException("C7 entity cannot be null");
     }
     this.c7Entity = c7Entity;
     this.entityType = entityType;
-    this.properties = new HashMap<>();
+    this.c8DbModel = null;
+    this.metadata = new HashMap<>();
+  }
+
+  public EntityConversionContext(C7 c7Entity, Class<?> entityType, C8 c8DbModel) {
+    if (c7Entity == null) {
+      throw new IllegalArgumentException("C7 entity cannot be null");
+    }
+    this.c7Entity = c7Entity;
+    this.entityType = entityType;
+    this.c8DbModel = c8DbModel;
     this.metadata = new HashMap<>();
   }
 
@@ -61,8 +69,27 @@ public class EntityConversionContext<T> {
    *
    * @return the C7 entity
    */
-  public T getC7Entity() {
+  public C7 getC7Entity() {
     return c7Entity;
+  }
+
+  /**
+   * Returns the C8 database model being built.
+   *
+   * @return the C8 database model, or null if not yet set
+   */
+  public C8 getC8DbModel() {
+    return c8DbModel;
+  }
+
+  /**
+   * Sets the C8 database model.
+   * Interceptors can use this to provide or update the database model.
+   *
+   * @param c8DbModel the C8 database model
+   */
+  public void setC8DbModel(C8 c8DbModel) {
+    this.c8DbModel = c8DbModel;
   }
 
   /**
@@ -72,66 +99,6 @@ public class EntityConversionContext<T> {
    */
   public Class<?> getEntityType() {
     return entityType;
-  }
-
-  /**
-   * Gets the current value of a property.
-   *
-   * @param propertyName the property name
-   * @return the property value, or null if not set
-   */
-  public Object getProperty(String propertyName) {
-    return properties.get(propertyName);
-  }
-
-  /**
-   * Sets a property value for the C8 model.
-   * This overrides any previously set value.
-   *
-   * @param propertyName the property name
-   * @param value        the value to set
-   */
-  public void setProperty(String propertyName, Object value) {
-    properties.put(propertyName, value);
-  }
-
-  /**
-   * Nullifies a property value.
-   * This is different from not setting it - it explicitly sets it to null.
-   *
-   * @param propertyName the property name
-   */
-  public void nullifyProperty(String propertyName) {
-    properties.put(propertyName, null);
-  }
-
-  /**
-   * Removes a property completely.
-   * After this, the property will not be included in the C8 model.
-   *
-   * @param propertyName the property name
-   */
-  public void removeProperty(String propertyName) {
-    properties.remove(propertyName);
-  }
-
-  /**
-   * Checks if a property has been set.
-   *
-   * @param propertyName the property name
-   * @return true if the property has been set, false otherwise
-   */
-  public boolean hasProperty(String propertyName) {
-    return properties.containsKey(propertyName);
-  }
-
-  /**
-   * Gets all properties as a map.
-   *
-   * @return unmodifiable view of all properties
-   */
-  public Map<String, Object> getProperties() {
-    return new HashMap<>(properties);
   }
 
   /**
@@ -145,12 +112,5 @@ public class EntityConversionContext<T> {
   public void setMetadata(String key, Object value) {
     metadata.put(key, value);
   }
-
-  /**
-   * Gets custom metadata.
-   *
-   * @param key the metadata key
-   * @return the metadata value, or null if not set
-   */
 
 }

@@ -38,17 +38,15 @@ public class CompositionExamples {
 
 
     @Override
-    public void execute(EntityConversionContext context) {
+    public void execute(EntityConversionContext<?, ?> context) {
       // Manual type checking - boilerplate
       if (!(context.getC7Entity() instanceof HistoricProcessInstance processInstance)) {
         return;
       }
 
-      // Manual property setting - repetitive
-      context.setProperty("businessKey", processInstance.getBusinessKey());
-      context.setProperty("startUserId", processInstance.getStartUserId());
-      context.setProperty("superProcessInstanceId", processInstance.getSuperProcessInstanceId());
-      // ... more properties
+      // With the new DbModel approach, you would get the current model,
+      // modify it, and set it back
+      // This is just an example - the actual implementation depends on your needs
     }
   }
 
@@ -57,7 +55,7 @@ public class CompositionExamples {
   // ========================================
 
   /**
-   * PATTERN 1: Type-Safe Property Mapping
+   * PATTERN 1: Type-Safe Interceptor
    * Eliminates instanceof checks and provides compile-time type safety
    */
   public static EntityInterceptor createProcessInstanceTreePathCalculator() {
@@ -66,36 +64,21 @@ public class CompositionExamples {
         context -> {
           HistoricProcessInstance pi = context.getEntity(); // Type-safe!
 
-          // Calculate tree path based on parent relationship
+          // Get current DbModel, modify it, and set it back
+          // Example: calculate tree path based on parent relationship
           String treePath = calculateTreePath(pi, context);
-          context.setProperty("treePath", treePath);
+          // Store in metadata for other interceptors to use
+          context.setMetadata("calculatedTreePath", treePath);
         }
     );
   }
 
   /**
-   * PATTERN 2: Bulk Property Mapping
-   * Reduces repetitive property setting to a declarative map
-   */
-  public static EntityInterceptor createProcessInstancePropertyMapper() {
-    return InterceptorCompositionUtilities.propertyMapper(
-        HistoricProcessInstance.class,
-        Map.of(
-            "businessKey", HistoricProcessInstance::getBusinessKey,
-            "startUserId", HistoricProcessInstance::getStartUserId,
-            "superProcessInstanceId", HistoricProcessInstance::getSuperProcessInstanceId,
-            "deleteReason", HistoricProcessInstance::getDeleteReason,
-            "duration", pi -> pi.getDurationInMillis()
-        )
-    );
-  }
-
-  /**
-   * PATTERN 3: Universal Cross-Cutting Concerns
+   * PATTERN 2: Universal Cross-Cutting Concerns
    * Perfect for logging, metrics, auditing that applies to all entities
    */
   public static EntityInterceptor createAuditLogger() {
-    return InterceptorCompositionUtilities.universal(9000, context -> {
+    return InterceptorCompositionUtilities.universal(context -> {
       String entityType = context.getEntityType().getSimpleName();
       String entityId = extractEntityId(context.getC7Entity());
 

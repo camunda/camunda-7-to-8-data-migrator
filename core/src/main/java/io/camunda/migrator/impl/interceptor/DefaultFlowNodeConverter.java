@@ -12,6 +12,8 @@ import static io.camunda.migrator.constants.MigratorConstants.C7_HISTORY_PARTITI
 import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
 
+import io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel;
+import io.camunda.db.rdbms.write.domain.FlowNodeInstanceDbModel.FlowNodeInstanceDbModelBuilder;
 import io.camunda.migrator.interceptor.EntityConversionContext;
 import io.camunda.migrator.interceptor.EntityInterceptor;
 import io.camunda.migrator.impl.util.ConverterUtil;
@@ -22,7 +24,7 @@ import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.springframework.stereotype.Component;
 
 /**
- * Built-in interceptor for converting HistoricActivityInstance (flow nodes) to C8 FlowNodeInstanceDbModel properties.
+ * Built-in interceptor for converting HistoricActivityInstance (flow nodes) to C8 FlowNodeInstanceDbModel.
  * This implements the default conversion logic that was previously in FlowNodeConverter.
  */
 @Component
@@ -35,7 +37,7 @@ public class DefaultFlowNodeConverter implements EntityInterceptor {
 
 
   @Override
-  public void execute(EntityConversionContext context) {
+  public void execute(EntityConversionContext<?, ?> context) {
     if (!(context.getC7Entity() instanceof HistoricActivityInstance activity)) {
       return;
     }
@@ -44,21 +46,25 @@ public class DefaultFlowNodeConverter implements EntityInterceptor {
     Long processInstanceKey = (Long) context.getMetadata("processInstanceKey");
     Long processDefinitionKey = (Long) context.getMetadata("processDefinitionKey");
 
-    // Set all standard properties
-    context.setProperty("flowNodeInstanceKey", getNextKey());
-    context.setProperty("flowNodeId", activity.getActivityId());
-    context.setProperty("processInstanceKey", processInstanceKey);
-    context.setProperty("processDefinitionKey", processDefinitionKey);
-    context.setProperty("startDate", convertDate(activity.getStartTime()));
-    context.setProperty("endDate", convertDate(activity.getEndTime()));
-    context.setProperty("state", convertState(activity));
-    context.setProperty("type", convertType(activity.getActivityType()));
-    context.setProperty("tenantId", ConverterUtil.getTenantId(activity.getTenantId()));
-    context.setProperty("partitionId", C7_HISTORY_PARTITION_ID);
+    // Build the FlowNodeInstanceDbModel
+    FlowNodeInstanceDbModel dbModel = new FlowNodeInstanceDbModelBuilder()
+        .flowNodeInstanceKey(getNextKey())
+        .flowNodeId(activity.getActivityId())
+        .processInstanceKey(processInstanceKey)
+        .processDefinitionKey(processDefinitionKey)
+        .startDate(convertDate(activity.getStartTime()))
+        .endDate(convertDate(activity.getEndTime()))
+        .state(convertState(activity))
+        .type(convertType(activity.getActivityType()))
+        .tenantId(ConverterUtil.getTenantId(activity.getTenantId()))
+        .partitionId(C7_HISTORY_PARTITION_ID)
+        // Properties not yet migrated from C7
+        .incidentKey(null)
+        .treePath(null)
+        .build();
 
-    // Properties not yet migrated from C7
-    context.nullifyProperty("incidentKey");
-    context.nullifyProperty("treePath");
+    // Set the built model in the context
+    context.setC8DbModel(dbModel);
   }
 
   private FlowNodeState convertState(HistoricActivityInstance activity) {

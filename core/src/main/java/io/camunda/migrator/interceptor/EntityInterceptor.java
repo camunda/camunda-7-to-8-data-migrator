@@ -29,11 +29,16 @@ import java.util.Set;
  *   }
  *
  *   &#64;Override
- *   public void execute(EntityConversionContext context) {
+ *   public void execute(EntityConversionContext&lt;?, ?&gt; context) {
  *     // Only called for HistoricProcessInstance entities
- *     if (context.getC7Entity() instanceof HistoricProcessInstance) {
- *       String treePath = calculateTreePath(context);
- *       context.setProperty("treePath", treePath);
+ *     if (context.getC7Entity() instanceof HistoricProcessInstance pi) {
+ *       // Get the current model and create a modified version
+ *       ProcessInstanceDbModel currentModel = (ProcessInstanceDbModel) context.getC8DbModel();
+ *       String treePath = calculateTreePath(pi);
+ *       ProcessInstanceDbModel updatedModel = currentModel.toBuilder()
+ *           .treePath(treePath)
+ *           .build();
+ *       context.setC8DbModel(updatedModel);
  *     }
  *   }
  * }
@@ -49,9 +54,9 @@ import java.util.Set;
  *   }
  *
  *   &#64;Override
- *   public void execute(EntityConversionContext context) {
+ *   public void execute(EntityConversionContext&lt;?, ?&gt; context) {
  *     // Called for all entity types
- *     logEntityConversion(context);
+ *     logEntityConversion(context.getC7Entity(), context.getC8DbModel());
  *   }
  * }
  * </pre>
@@ -72,7 +77,7 @@ public interface EntityInterceptor {
    *
    * @param context the entity conversion context containing C7 entity data and C8 model builder
    */
-  void execute(EntityConversionContext context);
+  void execute(EntityConversionContext<?, ?> context);
 
   /**
    * Returns the set of entity types that this interceptor can handle.

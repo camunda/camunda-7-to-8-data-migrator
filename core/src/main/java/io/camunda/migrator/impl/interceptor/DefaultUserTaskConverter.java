@@ -11,6 +11,7 @@ import static io.camunda.migrator.constants.MigratorConstants.C7_HISTORY_PARTITI
 import static io.camunda.migrator.impl.util.ConverterUtil.convertDate;
 import static io.camunda.migrator.impl.util.ConverterUtil.getNextKey;
 
+import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
 import io.camunda.migrator.interceptor.EntityConversionContext;
 import io.camunda.migrator.interceptor.EntityInterceptor;
 import io.camunda.migrator.impl.util.ConverterUtil;
@@ -19,7 +20,7 @@ import org.camunda.bpm.engine.history.HistoricTaskInstance;
 import org.springframework.stereotype.Component;
 
 /**
- * Built-in interceptor for converting HistoricTaskInstance to C8 UserTaskDbModel properties.
+ * Built-in interceptor for converting HistoricTaskInstance to C8 UserTaskDbModel.
  */
 @Component
 public class DefaultUserTaskConverter implements EntityInterceptor {
@@ -31,32 +32,61 @@ public class DefaultUserTaskConverter implements EntityInterceptor {
 
 
   @Override
-  public void execute(EntityConversionContext context) {
+  public void execute(EntityConversionContext<?, ?> context) {
     if (!(context.getC7Entity() instanceof HistoricTaskInstance task)) {
       return;
     }
 
     Long processInstanceKey = (Long) context.getMetadata("processInstanceKey");
     Long flowNodeInstanceKey = (Long) context.getMetadata("flowNodeInstanceKey");
+    Long processDefinitionKey = (Long) context.getMetadata("processDefinitionKey");
+    Integer processDefinitionVersion = (Integer) context.getMetadata("processDefinitionVersion");
 
-    context.setProperty("userTaskKey", getNextKey());
-    context.setProperty("elementId", task.getTaskDefinitionKey());
-    context.setProperty("processInstanceKey", processInstanceKey);
-    context.setProperty("flowNodeInstanceKey", flowNodeInstanceKey);
-    context.setProperty("creationDate", convertDate(task.getStartTime()));
-    context.setProperty("completionDate", convertDate(task.getEndTime()));
-    context.setProperty("assignee", task.getAssignee());
-    context.setProperty("state", task.getEndTime() != null ? "COMPLETED" : "CREATED");
-    context.setProperty("tenantId", ConverterUtil.getTenantId(task.getTenantId()));
-    context.setProperty("partitionId", C7_HISTORY_PARTITION_ID);
+    // Build the UserTaskDbModel
+    UserTaskDbModel.Builder builder = new UserTaskDbModel.Builder()
+        .userTaskKey(getNextKey())
+        .elementId(task.getTaskDefinitionKey())
+        .processInstanceKey(processInstanceKey)
+        .elementInstanceKey(flowNodeInstanceKey)
+        .creationDate(convertDate(task.getStartTime()))
+        .completionDate(convertDate(task.getEndTime()))
+        .assignee(task.getAssignee())
+        .state(convertState(task))
+        .tenantId(ConverterUtil.getTenantId(task.getTenantId()))
+        .partitionId(C7_HISTORY_PARTITION_ID)
+        .processDefinitionId(task.getProcessDefinitionKey())
+        .processDefinitionKey(processDefinitionKey)
+        .dueDate(convertDate(task.getDueDate()))
+        .followUpDate(convertDate(task.getFollowUpDate()))
+        .priority(task.getPriority())
+        .historyCleanupDate(convertDate(task.getRemovalTime()));
 
     // Optional properties
     if (task.getName() != null) {
-      context.setProperty("name", task.getName());
+      builder.name(task.getName());
     }
-    if (task.getPriority() > 0) {//TODO
-      context.setProperty("priority", task.getPriority());
+    if (processDefinitionVersion != null) {
+      builder.processDefinitionVersion(processDefinitionVersion);
     }
+
+    // Properties not yet migrated
+    builder.formKey(null)
+        .candidateGroups(null)
+        .candidateUsers(null)
+        .externalFormReference(null)
+        .customHeaders(null);
+
+    // Set the built model in the context
+    context.setC8DbModel(builder.build());
+  }
+
+  private UserTaskDbModel.UserTaskState convertState(HistoricTaskInstance task) {
+    if (task.getEndTime() != null) {
+      return task.getDeleteReason() != null
+          ? UserTaskDbModel.UserTaskState.CANCELED
+          : UserTaskDbModel.UserTaskState.COMPLETED;
+    }
+    return UserTaskDbModel.UserTaskState.CREATED;
   }
 }
 

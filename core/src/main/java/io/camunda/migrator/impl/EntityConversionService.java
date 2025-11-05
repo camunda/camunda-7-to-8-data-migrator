@@ -31,10 +31,11 @@ public class EntityConversionService {
    * Converts a C7 entity using a provided context by executing all applicable interceptors.
    *
    * @param context the conversion context with entity and metadata already set
-   * @param <T>     the entity type
-   * @return the conversion context with all properties set by interceptors
+   * @param <C7>    the C7 entity type
+   * @param <C8>    the C8 database model type
+   * @return the conversion context with C8 database model set by interceptors
    */
-  public <T> EntityConversionContext<T> convertWithContext(EntityConversionContext<T> context) {
+  public <C7, C8> EntityConversionContext<C7, C8> convertWithContext(EntityConversionContext<C7, C8> context) {
     if (hasInterceptors()) {
       // Filter interceptors by entity type
       List<EntityInterceptor> applicableInterceptors = configuredEntityInterceptors.stream()
@@ -51,15 +52,16 @@ public class EntityConversionService {
   }
 
   /**
-   * Converts a C7 entity to C8 properties by executing all applicable interceptors.
+   * Converts a C7 entity to C8 database model by executing all applicable interceptors.
    *
    * @param c7Entity   the C7 historic entity
    * @param entityType the entity type class
-   * @param <T>        the entity type
-   * @return the conversion context with all properties set
+   * @param <C7>       the C7 entity type
+   * @param <C8>       the C8 database model type
+   * @return the conversion context with C8 database model set
    */
-  public <T> EntityConversionContext<T> convert(T c7Entity, Class<?> entityType) {
-    EntityConversionContext<T> context = new EntityConversionContext<>(c7Entity, entityType);
+  public <C7, C8> EntityConversionContext<C7, C8> convert(C7 c7Entity, Class<?> entityType) {
+    EntityConversionContext<C7, C8> context = new EntityConversionContext<>(c7Entity, entityType);
     return convertWithContext(context);
   }
 

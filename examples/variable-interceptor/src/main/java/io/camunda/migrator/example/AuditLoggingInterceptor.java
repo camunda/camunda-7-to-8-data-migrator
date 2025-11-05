@@ -32,7 +32,7 @@ public class AuditLoggingInterceptor implements EntityInterceptor {
 
 
   @Override
-  public void execute(EntityConversionContext context) {
+  public void execute(EntityConversionContext<?, ?> context) {
     if (!enableAudit) {
       return;
     }
