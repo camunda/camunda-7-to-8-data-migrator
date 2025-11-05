@@ -56,24 +56,22 @@ import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
 import io.camunda.db.rdbms.write.domain.VariableDbModel;
 import io.camunda.migrator.config.C8DataSourceConfigured;
-import io.camunda.migrator.converter.DecisionDefinitionConverter;
-import io.camunda.migrator.converter.DecisionInstanceConverter;
-import io.camunda.migrator.converter.DecisionRequirementsDefinitionConverter;
-import io.camunda.migrator.converter.FlowNodeConverter;
-import io.camunda.migrator.converter.IncidentConverter;
-import io.camunda.migrator.converter.ProcessDefinitionConverter;
-import io.camunda.migrator.converter.ProcessInstanceConverter;
-import io.camunda.migrator.converter.UserTaskConverter;
-import io.camunda.migrator.converter.VariableConverter;
+import io.camunda.migrator.impl.EntityConversionService;
 import io.camunda.migrator.impl.clients.C7Client;
 import io.camunda.migrator.impl.clients.DbClient;
 import io.camunda.migrator.impl.logging.HistoryMigratorLogs;
 import io.camunda.migrator.impl.util.ExceptionUtils;
 import io.camunda.migrator.impl.util.PrintUtils;
+import io.camunda.migrator.interceptor.EntityConversionContext;
 import io.camunda.search.entities.DecisionDefinitionEntity;
 import io.camunda.search.entities.DecisionInstanceEntity;
+import io.camunda.search.entities.DecisionRequirementsEntity;
+import io.camunda.search.entities.FlowNodeInstanceEntity;
+import io.camunda.search.entities.IncidentEntity;
 import io.camunda.search.entities.ProcessDefinitionEntity;
 import io.camunda.search.entities.ProcessInstanceEntity;
+import io.camunda.search.entities.UserTaskEntity;
+import io.camunda.search.entities.VariableEntity;
 import io.camunda.search.filter.FlowNodeInstanceFilter;
 import java.util.Date;
 import java.util.List;
@@ -94,6 +92,9 @@ import org.springframework.stereotype.Component;
 @Component
 @Conditional(C8DataSourceConfigured.class)
 public class HistoryMigrator {
+
+  @Autowired
+  EntityConversionService entityConversionService;
 
   // Mappers
 
@@ -132,34 +133,6 @@ public class HistoryMigrator {
   @Autowired
   protected C7Client c7Client;
 
-  // Converters
-
-  @Autowired
-  private ProcessInstanceConverter processInstanceConverter;
-
-  @Autowired
-  private DecisionInstanceConverter decisionInstanceConverter;
-
-  @Autowired
-  private FlowNodeConverter flowNodeConverter;
-
-  @Autowired
-  private UserTaskConverter userTaskConverter;
-
-  @Autowired
-  private VariableConverter variableConverter;
-
-  @Autowired
-  private IncidentConverter incidentConverter;
-
-  @Autowired
-  private ProcessDefinitionConverter processDefinitionConverter;
-
-  @Autowired
-  private DecisionDefinitionConverter decisionDefinitionConverter;
-
-  @Autowired
-  private DecisionRequirementsDefinitionConverter decisionRequirementsConverter;
 
   protected MigratorMode mode = MIGRATE;
 
@@ -219,7 +192,9 @@ public class HistoryMigrator {
     String c7Id = c7ProcessDefinition.getId();
     if (shouldMigrate(c7Id, HISTORY_PROCESS_DEFINITION)) {
       HistoryMigratorLogs.migratingProcessDefinition(c7Id);
-      ProcessDefinitionDbModel dbModel = processDefinitionConverter.apply(c7ProcessDefinition);
+      EntityConversionContext<?, ?> context = new EntityConversionContext<>(c7ProcessDefinition, ProcessDefinitionEntity.class);
+      EntityConversionContext<?, ?> entityConversionContext = entityConversionService.convertWithContext(context);
+      ProcessDefinitionDbModel dbModel = (ProcessDefinitionDbModel) entityConversionContext.getC8DbModel();
       processDefinitionMapper.insert(dbModel);
       Date deploymentTime = c7Client.getDefinitionDeploymentTime(c7ProcessDefinition.getDeploymentId());
       markMigrated(c7Id, dbModel.processDefinitionKey(), deploymentTime, HISTORY_PROCESS_DEFINITION);
@@ -256,7 +231,11 @@ public class HistoryMigrator {
           }
         }
         if (parentProcessInstanceKey != null || c7SuperProcessInstanceId == null) {
-          ProcessInstanceDbModel dbModel = processInstanceConverter.apply(c7ProcessInstance, processDefinitionKey, parentProcessInstanceKey);
+          EntityConversionContext<?, ?> context = new EntityConversionContext<>(c7ProcessInstance, ProcessInstanceEntity.class);
+          context.setMetadata("processDefinitionKey", processDefinitionKey);
+          context.setMetadata("parentProcessInstanceKey", parentProcessInstanceKey);
+          EntityConversionContext<?, ?> entityConversionContext = entityConversionService.convertWithContext(context);
+          ProcessInstanceDbModel dbModel = (ProcessInstanceDbModel) entityConversionContext.getC8DbModel();
           processInstanceMapper.insert(dbModel);
           markMigrated(c7ProcessInstanceId, dbModel.processInstanceKey(), c7ProcessInstance.getStartTime(), HISTORY_PROCESS_INSTANCE);
           HistoryMigratorLogs.migratingProcessInstanceCompleted(c7ProcessInstanceId);
@@ -289,7 +268,9 @@ public class HistoryMigrator {
     String c7Id = c7DecisionRequirements.getId();
     if (shouldMigrate(c7Id, HISTORY_DECISION_REQUIREMENT)) {
       HistoryMigratorLogs.migratingDecisionRequirements(c7Id);
-      DecisionRequirementsDbModel dbModel = decisionRequirementsConverter.apply(c7DecisionRequirements);
+      EntityConversionContext<?, ?> context = new EntityConversionContext<>(c7DecisionRequirements, DecisionRequirementsEntity.class);
+      EntityConversionContext<?, ?> entityConversionContext = entityConversionService.convertWithContext(context);
+      DecisionRequirementsDbModel dbModel = (DecisionRequirementsDbModel) entityConversionContext.getC8DbModel();
       decisionRequirementsMapper.insert(dbModel);
       Date deploymentTime = c7Client.getDefinitionDeploymentTime(c7DecisionRequirements.getDeploymentId());
       markMigrated(c7Id, dbModel.decisionRequirementsKey(), deploymentTime, HISTORY_DECISION_REQUIREMENT);
@@ -329,8 +310,11 @@ public class HistoryMigrator {
           return;
         }
       }
+      EntityConversionContext<?, ?> context = new EntityConversionContext<>(c7DecisionDefinition, DecisionDefinitionEntity.class);
+      context.setMetadata("decisionRequirementsKey", decisionRequirementsKey);
+      EntityConversionContext<?, ?> entityConversionContext = entityConversionService.convertWithContext(context);
+      DecisionDefinitionDbModel dbModel= (DecisionDefinitionDbModel) entityConversionContext.getC8DbModel();
 
-      DecisionDefinitionDbModel dbModel = decisionDefinitionConverter.apply(c7DecisionDefinition, decisionRequirementsKey);
       decisionDefinitionMapper.insert(dbModel);
       markMigrated(c7Id, dbModel.decisionDefinitionKey(), deploymentTime, HISTORY_DECISION_DEFINITION);
       HistoryMigratorLogs.migratingDecisionDefinitionCompleted(c7Id);
@@ -403,10 +387,16 @@ public class HistoryMigrator {
           c7DecisionInstance.getProcessInstanceId()).processInstanceKey();
       FlowNodeInstanceDbModel flowNode = findFlowNodeInstance(c7DecisionInstance.getActivityInstanceId());
 
-      DecisionInstanceDbModel dbModel = decisionInstanceConverter.apply(c7DecisionInstance,
-          decisionDefinition.decisionDefinitionKey(), processDefinitionKey,
-          decisionDefinition.decisionRequirementsKey(), processInstanceKey, parentDecisionDefinitionKey,
-          flowNode.flowNodeInstanceKey(), flowNode.flowNodeId());
+      EntityConversionContext<?, ?> context = new EntityConversionContext<>(c7DecisionInstance, DecisionInstanceEntity.class);
+      context.setMetadata("decisionDefinitionKey", decisionDefinition.decisionDefinitionKey());
+      context.setMetadata("processDefinitionKey", processDefinitionKey);
+      context.setMetadata("decisionRequirementsKey", decisionDefinition.decisionRequirementsKey());
+      context.setMetadata("processInstanceKey", processInstanceKey);
+      context.setMetadata("parentDecisionDefinitionKey", parentDecisionDefinitionKey);
+      context.setMetadata("flowNodeInstanceKey", flowNode.flowNodeInstanceKey());
+      context.setMetadata("flowNodeId", flowNode.flowNodeId());
+      EntityConversionContext<?, ?> entityConversionContext = entityConversionService.convertWithContext(context);
+      DecisionInstanceDbModel dbModel = (DecisionInstanceDbModel) entityConversionContext.getC8DbModel();
       decisionInstanceMapper.insert(dbModel);
       markMigrated(c7DecisionInstanceId, dbModel.decisionInstanceKey(), c7DecisionInstance.getEvaluationTime(), HISTORY_DECISION_INSTANCE);
       HistoryMigratorLogs.migratingDecisionInstanceCompleted(c7DecisionInstanceId);
@@ -436,7 +426,13 @@ public class HistoryMigrator {
           Long flowNodeInstanceKey = findFlowNodeInstanceKey(c7Incident.getActivityId(), c7Incident.getProcessInstanceId());
           Long processDefinitionKey = findProcessDefinitionKey(c7Incident.getProcessDefinitionId());
           Long jobDefinitionKey = null; // TODO Job table doesn't exist yet.
-          IncidentDbModel dbModel = incidentConverter.apply(c7Incident, processDefinitionKey, processInstanceKey, jobDefinitionKey, flowNodeInstanceKey);
+          EntityConversionContext<?, ?> context = new EntityConversionContext<>(c7Incident, IncidentEntity.class);
+          context.setMetadata("processDefinitionKey", processDefinitionKey);
+          context.setMetadata("processInstanceKey", processInstanceKey);
+          context.setMetadata("jobDefinitionKey", jobDefinitionKey);
+          context.setMetadata("flowNodeInstanceKey", flowNodeInstanceKey);
+          EntityConversionContext<?, ?> entityConversionContext = entityConversionService.convertWithContext(context);
+          IncidentDbModel dbModel = (IncidentDbModel) entityConversionContext.getC8DbModel();
           incidentMapper.insert(dbModel);
           markMigrated(c7IncidentId, dbModel.incidentKey(), c7Incident.getCreateTime(), HISTORY_INCIDENT);
           HistoryMigratorLogs.migratingHistoricIncidentCompleted(c7IncidentId);
@@ -485,7 +481,11 @@ public class HistoryMigrator {
           Long processInstanceKey = processInstance.processInstanceKey();
           Long scopeKey = findScopeKey(c7Variable.getActivityInstanceId());
           if (scopeKey != null) {
-            VariableDbModel dbModel = variableConverter.apply(c7Variable, processInstanceKey, scopeKey);
+            EntityConversionContext<?, ?> context = new EntityConversionContext<>(c7Variable, VariableEntity.class);
+            context.setMetadata("processInstanceKey", processInstanceKey);
+            context.setMetadata("scopeKey", scopeKey);
+            EntityConversionContext<?, ?> entityConversionContext = entityConversionService.convertWithContext(context);
+            VariableDbModel dbModel = (VariableDbModel) entityConversionContext.getC8DbModel();
             variableMapper.insert(dbModel);
             markMigrated(c7VariableId, dbModel.variableKey(), c7Variable.getCreateTime(), HISTORY_VARIABLE);
             HistoryMigratorLogs.migratingHistoricVariableCompleted(c7VariableId);
@@ -526,7 +526,12 @@ public class HistoryMigrator {
         if (isMigrated(c7UserTask.getActivityInstanceId(), HISTORY_FLOW_NODE)) {
           Long elementInstanceKey = findFlowNodeInstanceKey(c7UserTask.getActivityInstanceId());
           Long processDefinitionKey = findProcessDefinitionKey(c7UserTask.getProcessDefinitionId());
-          UserTaskDbModel dbModel = userTaskConverter.apply(c7UserTask, processDefinitionKey, processInstance, elementInstanceKey);
+          EntityConversionContext<?, ?> context = new EntityConversionContext<>(c7UserTask, UserTaskEntity.class);
+          context.setMetadata("processDefinitionKey", processDefinitionKey);
+          context.setMetadata("processInstance", processInstance);
+          context.setMetadata("elementInstanceKey", elementInstanceKey);
+          EntityConversionContext<?, ?> entityConversionContext = entityConversionService.convertWithContext(context);
+          UserTaskDbModel dbModel = (UserTaskDbModel) entityConversionContext.getC8DbModel();
           userTaskMapper.insert(dbModel);
           markMigrated(c7UserTaskId, dbModel.userTaskKey(), c7UserTask.getStartTime(), HISTORY_USER_TASK);
           HistoryMigratorLogs.migratingHistoricUserTaskCompleted(c7UserTaskId);
@@ -562,7 +567,11 @@ public class HistoryMigrator {
       if (processInstance != null) {
         Long processInstanceKey = processInstance.processInstanceKey();
         Long processDefinitionKey = findProcessDefinitionKey(c7FlowNode.getProcessDefinitionId());
-        FlowNodeInstanceDbModel dbModel = flowNodeConverter.apply(c7FlowNode, processDefinitionKey, processInstanceKey);
+        EntityConversionContext<?, ?> context = new EntityConversionContext<>(c7FlowNode, FlowNodeInstanceEntity.class);
+        context.setMetadata("processDefinitionKey", processDefinitionKey);
+        context.setMetadata("processInstanceKey", processInstanceKey);
+        EntityConversionContext<?, ?> entityConversionContext = entityConversionService.convertWithContext(context);
+        FlowNodeInstanceDbModel dbModel = (FlowNodeInstanceDbModel) entityConversionContext.getC8DbModel();
         flowNodeMapper.insert(dbModel);
         markMigrated(c7FlowNodeId, dbModel.flowNodeInstanceKey(), c7FlowNode.getStartTime(), HISTORY_FLOW_NODE);
         HistoryMigratorLogs.migratingHistoricFlowNodeCompleted(c7FlowNodeId);
