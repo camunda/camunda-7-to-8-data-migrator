@@ -9,7 +9,7 @@ on:
     - cron: "0 5 * * 1-5"
 
 jobs:
-  build:
+  distro-h2:
     runs-on: ubuntu-latest
     timeout-minutes: 70
     steps:
@@ -113,7 +113,7 @@ jobs:
       - name: Run tests with Oracle
         run: mvn verify -Poracle
 
-  windows:
+  windows-h2:
     runs-on: windows-latest
     timeout-minutes: 70
     steps:
@@ -145,10 +145,10 @@ jobs:
   # Rerun failed jobs running on self-hosted runners in case of network issues or node preemption
   rerun-failed-jobs:
     needs:
-      - build
+      - distro-h2
       - postgresql
       - oracle
-      - windows
+      - windows-h2
     if: failure() && fromJSON(github.run_attempt) < 3
     runs-on: ubuntu-latest
     timeout-minutes: 15
