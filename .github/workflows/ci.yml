@@ -48,7 +48,7 @@ jobs:
           echo "dir=${ARTIFACT_DIR}" >> $GITHUB_OUTPUT
 
       - name: Upload distro
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: github.ref == 'refs/heads/main'
         with:
           name: distro

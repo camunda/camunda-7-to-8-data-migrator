@@ -9,6 +9,11 @@
       "enabled": true
     },
     {
+      "description": "Pin internal modules to current version",
+      "matchPackagePrefixes": ["io.camunda:camunda-7-to-8-data-migrator"],
+      "enabled": false
+    },
+    {
       "description": "Automerge all updates with green CI.",
       "matchPackageNames": [
         "*"
