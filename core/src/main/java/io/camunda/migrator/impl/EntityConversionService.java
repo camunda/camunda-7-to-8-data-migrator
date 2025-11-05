@@ -12,7 +12,6 @@ import io.camunda.migrator.interceptor.EntityConversionContext;
 import io.camunda.migrator.interceptor.EntityInterceptor;
 import io.camunda.migrator.interceptor.EntityTypeDetector;
 import io.camunda.migrator.impl.logging.EntityConversionServiceLogs;
-import java.util.Comparator;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,14 +36,13 @@ public class EntityConversionService {
    */
   public <T> EntityConversionContext<T> convertWithContext(EntityConversionContext<T> context) {
     if (hasInterceptors()) {
-      // Sort interceptors by order
-      List<EntityInterceptor> sortedInterceptors = configuredEntityInterceptors.stream()
+      // Filter interceptors by entity type
+      List<EntityInterceptor> applicableInterceptors = configuredEntityInterceptors.stream()
           .filter(interceptor -> EntityTypeDetector.supportsEntityType(interceptor, context.getEntityType()))
-          .sorted(Comparator.comparingInt(EntityInterceptor::getOrder))
           .toList();
 
       // Execute each interceptor
-      for (EntityInterceptor interceptor : sortedInterceptors) {
+      for (EntityInterceptor interceptor : applicableInterceptors) {
         executeInterceptor(interceptor, context);
       }
     }

@@ -39,10 +39,6 @@ public class DefaultProcessInstanceConverter implements EntityInterceptor {
     return Set.of(HistoricProcessInstance.class);
   }
 
-  @Override
-  public int getOrder() {
-    return 100;
-  }
 
   @Override
   public void execute(EntityConversionContext context) {

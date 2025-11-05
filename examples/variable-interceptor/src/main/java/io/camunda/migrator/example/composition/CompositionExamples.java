@@ -7,12 +7,13 @@
  */
 package io.camunda.migrator.example.composition;
 
+import io.camunda.migrator.interceptor.EntityConversionContext;
 import io.camunda.migrator.interceptor.EntityInterceptor;
 import io.camunda.migrator.interceptor.composition.InterceptorCompositionUtilities;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
-import org.camunda.bpm.engine.history.HistoricActivityInstance;
-import org.camunda.bpm.engine.history.HistoricTaskInstance;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,10 +36,6 @@ public class CompositionExamples {
       return Set.of(HistoricProcessInstance.class);
     }
 
-    @Override
-    public int getOrder() {
-      return 1000;
-    }
 
     @Override
     public void execute(EntityConversionContext context) {
@@ -66,7 +63,6 @@ public class CompositionExamples {
   public static EntityInterceptor createProcessInstanceTreePathCalculator() {
     return InterceptorCompositionUtilities.typeSafe(
         HistoricProcessInstance.class,
-        1000,
         context -> {
           HistoricProcessInstance pi = context.getEntity(); // Type-safe!
 
@@ -84,7 +80,6 @@ public class CompositionExamples {
   public static EntityInterceptor createProcessInstancePropertyMapper() {
     return InterceptorCompositionUtilities.propertyMapper(
         HistoricProcessInstance.class,
-        500,
         Map.of(
             "businessKey", HistoricProcessInstance::getBusinessKey,
             "startUserId", HistoricProcessInstance::getStartUserId,
@@ -134,7 +129,7 @@ public class CompositionExamples {
    * Easily add logging at any point in the interceptor chain
    */
   public static EntityInterceptor createDebugLogger() {
-    return InterceptorCompositionUtilities.logger("[DEBUG]", 50);
+    return InterceptorCompositionUtilities.logger("[DEBUG]");
   }
 
   // ========================================
@@ -164,7 +159,7 @@ public class CompositionExamples {
   public static List<EntityInterceptor> createProcessInstanceChain() {
     return List.of(
         // 1. Log start of processing
-        InterceptorCompositionUtilities.logger("[PI-START]", 100),
+        InterceptorCompositionUtilities.logger("[PI-START]"),
 
         // 2. Set default properties
         createProcessInstancePropertyMapper(),
@@ -176,7 +171,7 @@ public class CompositionExamples {
         createConditionalEnhancer(),
 
         // 5. Log completion
-        InterceptorCompositionUtilities.logger("[PI-END]", 9000)
+        InterceptorCompositionUtilities.logger("[PI-END]")
     );
   }
 
@@ -185,7 +180,7 @@ public class CompositionExamples {
    * Handle related entity types with shared logic
    */
   public static EntityInterceptor createTenantNormalizer() {
-    return InterceptorCompositionUtilities.universal(200, context -> {
+    return InterceptorCompositionUtilities.universal(context -> {
       String tenantId = extractTenantId(context.getC7Entity());
       String normalizedTenantId = normalizeTenantId(tenantId);
       context.setProperty("tenantId", normalizedTenantId);

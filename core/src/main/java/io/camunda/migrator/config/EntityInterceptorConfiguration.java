@@ -26,7 +26,6 @@ import org.springframework.boot.context.properties.source.MapConfigurationProper
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
 /**
  * Configuration class for managing entity interceptors.
@@ -56,8 +55,6 @@ public class EntityInterceptorConfiguration {
     // Handle unified interceptor configuration
     processUnifiedEntityInterceptorConfiguration(contextInterceptors, migratorProperties.getEntityInterceptors());
 
-    // Sort by order
-    contextInterceptors.sort((a, b) -> Integer.compare(a.getOrder(), b.getOrder()));
 
     ConfigurationLogs.logTotalEntityInterceptorsConfigured(contextInterceptors.size());
     return contextInterceptors;

@@ -34,12 +34,11 @@ public final class InterceptorCompositionUtilities {
    * Eliminates the need for manual instanceof checks.
    *
    * @param entityType the target entity type
-   * @param order execution order
    * @param logic the conversion logic to execute
    * @param <T> the entity type
    * @return a type-safe interceptor
    */
-  public static <T> EntityInterceptor typeSafe(Class<T> entityType, int order,
+  public static <T> EntityInterceptor typeSafe(Class<T> entityType,
                                                Consumer<TypeSafeContext<T>> logic) {
     return new EntityInterceptor() {
       @Override
@@ -47,10 +46,6 @@ public final class InterceptorCompositionUtilities {
         return Set.of(entityType);
       }
 
-      @Override
-      public int getOrder() {
-        return order;
-      }
 
       @Override
       public void execute(EntityConversionContext context) {
@@ -67,21 +62,16 @@ public final class InterceptorCompositionUtilities {
    * Creates a universal interceptor that executes for all entity types.
    * Commonly used for cross-cutting concerns like logging, auditing, metrics.
    *
-   * @param order execution order
    * @param logic the logic to execute
    * @return a universal interceptor
    */
-  public static EntityInterceptor universal(int order, Consumer<EntityConversionContext> logic) {
+  public static EntityInterceptor universal(Consumer<EntityConversionContext> logic) {
     return new EntityInterceptor() {
       @Override
       public Set<Class<?>> getEntityTypes() {
         return Set.of(); // Empty = handle all types
       }
 
-      @Override
-      public int getOrder() {
-        return order;
-      }
 
       @Override
       public void execute(EntityConversionContext context) {
@@ -106,10 +96,6 @@ public final class InterceptorCompositionUtilities {
         return baseInterceptor.getEntityTypes();
       }
 
-      @Override
-      public int getOrder() {
-        return baseInterceptor.getOrder();
-      }
 
       @Override
       public void execute(EntityConversionContext context) {
@@ -125,14 +111,13 @@ public final class InterceptorCompositionUtilities {
    * Reduces boilerplate for simple property mappings.
    *
    * @param entityType the target entity type
-   * @param order execution order
    * @param propertyMappings map of property names to extraction functions
    * @param <T> the entity type
    * @return a property mapping interceptor
    */
-  public static <T> EntityInterceptor propertyMapper(Class<T> entityType, int order,
+  public static <T> EntityInterceptor propertyMapper(Class<T> entityType,
                                                      Map<String, Function<T, Object>> propertyMappings) {
-    return typeSafe(entityType, order, context -> {
+    return typeSafe(entityType, context -> {
       T entity = context.getEntity();
       propertyMappings.forEach((propertyName, extractor) -> {
         try {
@@ -150,11 +135,10 @@ public final class InterceptorCompositionUtilities {
    * Creates a logging interceptor for debugging conversion chains.
    *
    * @param prefix log message prefix
-   * @param order execution order
    * @return a logging interceptor
    */
-  public static EntityInterceptor logger(String prefix, int order) {
-    return universal(order, context -> {
+  public static EntityInterceptor logger(String prefix) {
+    return universal(context -> {
       String entityType = context.getEntityType().getSimpleName();
       LOGGER.info("{} Processing {} conversion", prefix, entityType);
 

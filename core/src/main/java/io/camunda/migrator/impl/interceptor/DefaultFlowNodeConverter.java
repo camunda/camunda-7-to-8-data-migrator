@@ -33,10 +33,6 @@ public class DefaultFlowNodeConverter implements EntityInterceptor {
     return Set.of(HistoricActivityInstance.class);
   }
 
-  @Override
-  public int getOrder() {
-    return 100; // High priority - runs first
-  }
 
   @Override
   public void execute(EntityConversionContext context) {

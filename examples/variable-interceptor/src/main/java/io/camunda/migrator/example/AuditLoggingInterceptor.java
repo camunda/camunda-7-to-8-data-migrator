@@ -30,10 +30,6 @@ public class AuditLoggingInterceptor implements EntityInterceptor {
     return Set.of(); // Empty = handle all entity types
   }
 
-  @Override
-  public int getOrder() {
-    return 9000; // Low priority - runs after all converters
-  }
 
   @Override
   public void execute(EntityConversionContext context) {

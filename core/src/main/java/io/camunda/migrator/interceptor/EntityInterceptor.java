@@ -97,19 +97,4 @@ public interface EntityInterceptor {
   default Set<Class<?>> getEntityTypes() {
     return Set.of(); // Empty set = handle all types for backward compatibility
   }
-
-  /**
-   * Returns the execution order for this interceptor.
-   * Lower values execute first. Default is 1000 (medium priority).
-   * <p>
-   * Built-in converters use order 100 (high priority).
-   * Custom interceptors typically use order 1000-5000.
-   * Post-processing interceptors use order 9000+ (low priority).
-   * </p>
-   *
-   * @return the order value
-   */
-  default int getOrder() {
-    return 1000;
-  }
 }

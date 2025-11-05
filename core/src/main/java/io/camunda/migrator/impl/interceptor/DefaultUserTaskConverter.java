@@ -29,10 +29,6 @@ public class DefaultUserTaskConverter implements EntityInterceptor {
     return Set.of(HistoricTaskInstance.class);
   }
 
-  @Override
-  public int getOrder() {
-    return 100;
-  }
 
   @Override
   public void execute(EntityConversionContext context) {
