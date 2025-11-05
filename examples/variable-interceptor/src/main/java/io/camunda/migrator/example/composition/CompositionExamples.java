@@ -145,7 +145,7 @@ public class CompositionExamples {
         InterceptorCompositionUtilities.logger("[PI-START]"),
 
         // 2. Set default properties
-        createProcessInstancePropertyMapper(),
+//        createProcessInstancePropertyMapper(),
 
         // 3. Calculate derived properties
         createProcessInstanceTreePathCalculator(),
@@ -166,7 +166,7 @@ public class CompositionExamples {
     return InterceptorCompositionUtilities.universal(context -> {
       String tenantId = extractTenantId(context.getC7Entity());
       String normalizedTenantId = normalizeTenantId(tenantId);
-      context.setProperty("tenantId", normalizedTenantId);
+//      context.setProperty("tenantId", normalizedTenantId);
     });
   }
 
