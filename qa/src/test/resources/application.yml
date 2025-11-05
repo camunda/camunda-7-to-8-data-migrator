@@ -1,5 +1,7 @@
 camunda:
   migrator:
+    async:
+      enabled: true
     auto-ddl: true
     c7:
       data-source:
