@@ -1,3 +1,10 @@
+/*
+ * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH under
+ * one or more contributor license agreements. See the NOTICE file distributed
+ * with this work for additional information regarding copyright ownership.
+ * Licensed under the Camunda License 1.0. You may not use this file
+ * except in compliance with the Camunda License 1.0.
+ */
 package io.camunda.migrator;
 
 import io.camunda.client.CamundaClient;
@@ -32,6 +39,7 @@ public class IdentityMigrator {
     var c7Authorizations = getC7Authorizations();
 
     // validate permissions
+    // TODO validate that owners exist
 
     // map permissions to C8
     var c8Permissions = mapC8Authorizations(c7Authorizations);
@@ -41,7 +49,7 @@ public class IdentityMigrator {
   }
 
   private void migratePermissions(List<C8Auth> c8Permissions) {
-    c8Permissions.forEach(c8Auth -> {
+    c8Permissions.forEach(c8Auth -> {  // TODO improvement: group permissions by {owner, resourceType, resourceId} with a list of permissions instead of creating individual permissions
       if (!identityManager.ownerExists(c8Auth.owner())){
         System.out.println(String.format("Cannot migrate, owner does not exist in C8: %s", c8Auth.owner()));
       } else if (authorizationManager.permissionExistsInC8(c8Auth)) {
