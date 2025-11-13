@@ -57,6 +57,7 @@
       <modules>
         <module>core</module>
         <module>plugins/cockpit</module>
+        <module>camunda-7-to-8-code-conversion</module>
         <module>examples</module>
         <module>qa</module>
         <module>distro</module>
@@ -71,6 +72,7 @@
       <modules>
         <module>core</module>
         <module>plugins/cockpit</module>
+        <module>camunda-7-to-8-code-conversion</module>
       </modules>
     </profile>
   </profiles>
