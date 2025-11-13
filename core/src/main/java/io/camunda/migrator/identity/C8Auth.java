@@ -9,9 +9,10 @@ package io.camunda.migrator.identity;
 
 import io.camunda.client.api.search.enums.PermissionType;
 import io.camunda.client.api.search.enums.ResourceType;
+import java.util.Set;
 
 public record C8Auth(ResourceType resourceType,
                      String resourceId,
                      Owner owner,
-                     PermissionType permission) {
+                     Set<PermissionType> permissions) {
 }

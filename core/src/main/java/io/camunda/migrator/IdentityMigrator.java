@@ -49,7 +49,7 @@ public class IdentityMigrator {
   }
 
   private void migratePermissions(List<C8Auth> c8Permissions) {
-    c8Permissions.forEach(c8Auth -> {  // TODO improvement: group permissions by {owner, resourceType, resourceId} with a list of permissions instead of creating individual permissions
+    c8Permissions.forEach(c8Auth -> {
       if (!identityManager.ownerExists(c8Auth.owner())){
         System.out.println(String.format("Cannot migrate, owner does not exist in C8: %s", c8Auth.owner()));
       } else if (authorizationManager.permissionExistsInC8(c8Auth)) {
@@ -60,7 +60,7 @@ public class IdentityMigrator {
           .ownerType(c8Auth.owner().ownerType())
           .resourceId(c8Auth.resourceId())
           .resourceType(c8Auth.resourceType())
-          .permissionTypes(c8Auth.permission())
+          .permissionTypes(c8Auth.permissions().toArray(new PermissionType[0]))
           .execute();
         System.out.println(String.format("Permission successfully migrated: %s", c8Auth));
       }
@@ -69,13 +69,9 @@ public class IdentityMigrator {
 
   private static List<C8Auth> mapC8Authorizations(List<C7Auth> c7Authorizations) {
     return c7Authorizations.stream()
-        .flatMap( c7Auth -> {
+        .map( c7Auth -> {
           Pair<ResourceType, Set<PermissionType>> c8PermMapping = AuthMapper.mapAuthorization(c7Auth.resourceType(), c7Auth.permission());
-          return c8PermMapping.getValue().stream().map(perm -> new C8Auth(
-              c8PermMapping.getKey(),
-              c7Auth.resourceId(), // TODO: This also need to be mapped depending on the resource type, see https://docs.camunda.io/docs/next/components/concepts/access-control/authorizations/#available-resources
-              c7Auth.owner(),
-              perm));
+          return new C8Auth(c8PermMapping.getKey(), c7Auth.resourceId(), c7Auth.owner(), c8PermMapping.getValue()); // TODO: Resource ID also need to be mapped depending on the resource type, see https://docs.camunda.io/docs/next/components/concepts/access-control/authorizations/#available-resources
         })
         .distinct()
         .toList();

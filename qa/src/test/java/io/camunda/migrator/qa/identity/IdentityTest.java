@@ -7,11 +7,14 @@
  */
 package io.camunda.migrator.qa.identity;
 
+import static io.camunda.client.api.search.enums.PermissionType.CREATE;
+import static io.camunda.client.api.search.enums.PermissionType.DELETE;
+import static io.camunda.client.api.search.enums.PermissionType.READ;
+import static io.camunda.client.api.search.enums.PermissionType.UPDATE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.search.enums.OwnerType;
-import io.camunda.client.api.search.enums.PermissionType;
 import io.camunda.client.api.search.enums.ResourceType;
 import io.camunda.client.impl.search.response.AuthorizationImpl;
 import io.camunda.migrator.IdentityMigrator;
@@ -42,7 +45,7 @@ public class IdentityTest extends RuntimeMigrationAbstractTest {
   private CamundaClient camundaClient;
 
   @Test
-  public void test() throws InterruptedException {
+  public void shouldMigrateAuthorizations() throws InterruptedException {
     // Create identities in C7
     identityService.saveUser(identityService.newUser("tom"));
     identityService.saveGroup(identityService.newGroup("group"));
@@ -69,11 +72,8 @@ public class IdentityTest extends RuntimeMigrationAbstractTest {
         .execute()
         .items();
 
-    assertThat(migratedAuths).usingElementComparator(getAuthComparator()).contains(new AuthorizationImpl(null, "tom", "tenantId", OwnerType.USER, ResourceType.TENANT, List.of(PermissionType.CREATE)));
-    assertThat(migratedAuths).usingElementComparator(getAuthComparator()).contains(new AuthorizationImpl(null, "tom", "tenantId", OwnerType.USER, ResourceType.TENANT, List.of(PermissionType.READ)));
-    assertThat(migratedAuths).usingElementComparator(getAuthComparator()).contains(new AuthorizationImpl(null, "tom", "tenantId", OwnerType.USER, ResourceType.TENANT, List.of(PermissionType.DELETE)));
-    assertThat(migratedAuths).usingElementComparator(getAuthComparator()).contains(new AuthorizationImpl(null, "tom", "tenantId", OwnerType.USER, ResourceType.TENANT, List.of(PermissionType.UPDATE)));
-    assertThat(migratedAuths).usingElementComparator(getAuthComparator()).contains(new AuthorizationImpl(null, "group", "*", OwnerType.GROUP, ResourceType.TENANT, List.of(PermissionType.UPDATE)));
+    assertThat(migratedAuths).usingElementComparator(getAuthComparator()).contains(new AuthorizationImpl(null, "tom", "tenantId", OwnerType.USER, ResourceType.TENANT, List.of(CREATE, READ, DELETE, UPDATE)));
+    assertThat(migratedAuths).usingElementComparator(getAuthComparator()).contains(new AuthorizationImpl(null, "group", "*", OwnerType.GROUP, ResourceType.TENANT, List.of(UPDATE)));
   }
 
   private void createGrantAuthorization(OwnerType ownerType, String ownerId, Resources resourceType, String resourceId, Permissions permissions) {
@@ -95,8 +95,8 @@ public class IdentityTest extends RuntimeMigrationAbstractTest {
         .thenComparing(io.camunda.client.api.search.response.Authorization::getOwnerId)
         .thenComparing(io.camunda.client.api.search.response.Authorization::getResourceType)
         .thenComparing(io.camunda.client.api.search.response.Authorization::getResourceId)
-        .thenComparing((o1, o2) -> {
-          if (!o1.getPermissionTypes().equals(o2.getPermissionTypes()) || !o2.getPermissionTypes().equals(o1.getPermissionTypes())) { // Permissions are the same
+        .thenComparing((auth1, auth2) -> {
+          if (!auth1.getPermissionTypes().containsAll(auth2.getPermissionTypes()) || !auth2.getPermissionTypes().containsAll(auth1.getPermissionTypes())) { // Permissions are the same
             return -1;
           }
           return 0;

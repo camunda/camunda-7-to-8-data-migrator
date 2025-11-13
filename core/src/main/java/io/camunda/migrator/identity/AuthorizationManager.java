@@ -77,8 +77,8 @@ public class AuthorizationManager {
     } else {
       return response.items()
           .stream()
-          .flatMap(o -> ((AuthorizationImpl) o).getPermissionTypes().stream())
-          .anyMatch(permissionType -> permissionType.equals(c8Auth.permission()));
+          .map(o -> ((AuthorizationImpl) o).getPermissionTypes())
+          .anyMatch(permissionTypes -> permissionTypes.containsAll(c8Auth.permissions()));
     }
   }
 
