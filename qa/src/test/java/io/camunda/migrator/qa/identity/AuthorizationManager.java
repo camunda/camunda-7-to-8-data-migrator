@@ -80,7 +80,7 @@ public class AuthorizationManager {
   private List<Authorization> getAuthorizations() {
     return authorizationService
         .createAuthorizationQuery()
-        .authorizationType(Authorization.AUTH_TYPE_GRANT)
+        .authorizationType(Authorization.AUTH_TYPE_GRANT) // C8 only supports GRANT, consider iterating over other types and log a warning so that the user knows they won't be migrated
         .list();
   }
 
