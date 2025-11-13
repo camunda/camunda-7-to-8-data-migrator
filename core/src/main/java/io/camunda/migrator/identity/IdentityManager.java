@@ -1,4 +1,4 @@
-package io.camunda.migrator.qa.identity;
+package io.camunda.migrator.identity;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ProblemException;

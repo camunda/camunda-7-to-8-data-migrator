@@ -1,8 +1,13 @@
-package io.camunda.migrator.qa.identity;
+package io.camunda.migrator;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.search.enums.PermissionType;
 import io.camunda.client.api.search.enums.ResourceType;
+import io.camunda.migrator.identity.AuthMapper;
+import io.camunda.migrator.identity.AuthorizationManager;
+import io.camunda.migrator.identity.C7Auth;
+import io.camunda.migrator.identity.C8Auth;
+import io.camunda.migrator.identity.IdentityManager;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;

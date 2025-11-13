@@ -1,11 +1,10 @@
-package io.camunda.migrator.qa.identity;
+package io.camunda.migrator.identity;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ProblemException;
 import io.camunda.client.api.search.enums.OwnerType;
-import io.camunda.client.api.search.enums.PermissionType;
 import io.camunda.client.api.search.response.SearchResponse;
 import io.camunda.client.impl.search.filter.AuthorizationFilterImpl;
 import io.camunda.client.impl.search.response.AuthorizationImpl;
@@ -13,7 +12,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.camunda.bpm.engine.AuthorizationService;
 import org.camunda.bpm.engine.authorization.Authorization;
 import org.camunda.bpm.engine.authorization.Permission;

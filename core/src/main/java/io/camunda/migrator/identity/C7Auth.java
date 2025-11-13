@@ -1,4 +1,4 @@
-package io.camunda.migrator.qa.identity;
+package io.camunda.migrator.identity;
 
 import org.camunda.bpm.engine.authorization.Permission;
 import org.camunda.bpm.engine.authorization.Resource;
