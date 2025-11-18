@@ -16,9 +16,11 @@ import static io.camunda.migrator.impl.persistence.IdKeyMapper.TYPE.HISTORY_VARI
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.migrator.MigratorMode;
+import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.impl.persistence.IdKeyMapper;
 import io.camunda.search.entities.ProcessInstanceEntity;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -26,6 +28,14 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
 
   @Autowired
   private IdKeyMapper idKeyMapper;
+
+  @Autowired
+  private MigratorProperties migratorProperties;
+
+  @AfterEach
+  void resetMigratorProperties() {
+    migratorProperties.setSaveSkipReason(false);
+  }
 
   @Test
   public void shouldMigratePreviouslySkippedProcessDefinition() {
@@ -177,6 +187,9 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
 
   @Test
   public void shouldUpdateSkipReasonOnRetry() {
+    // given: enable skip reason saving
+    migratorProperties.setSaveSkipReason(true);
+
     // given state in c7
     deployer.deployCamunda7Process("userTaskProcess.bpmn");
     for (int i = 0; i < 3; i++) {
