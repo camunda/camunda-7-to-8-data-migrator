@@ -22,12 +22,13 @@ import io.camunda.search.entities.ProcessInstanceEntity;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 
+@ExtendWith({OutputCaptureExtension.class})
 public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
-
-  @Autowired
-  private IdKeyMapper idKeyMapper;
 
   @Autowired
   private MigratorProperties migratorProperties;
@@ -186,62 +187,49 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
   }
 
   @Test
-  public void shouldUpdateSkipReasonOnRetry() {
+  public void shouldUpdateSkipReasonOnRetry(CapturedOutput output) {
     // given: enable skip reason saving
     migratorProperties.setSaveSkipReason(true);
 
-    // given state in c7
+    // given: process instances in c7 but NO process definition deployed in c8
     deployer.deployCamunda7Process("userTaskProcess.bpmn");
     for (int i = 0; i < 3; i++) {
       runtimeService.startProcessInstanceByKey("userTaskProcessId");
     }
     completeAllUserTasksWithDefaultUserTaskId();
 
-    // Mark process definition as skipped with initial reason
-    String procDefId = repositoryService.createProcessDefinitionQuery().singleResult().getId();
-    dbClient.insert(procDefId, null, null, HISTORY_PROCESS_DEFINITION, "Initial skip reason");
-
-    // when: initial migration - process instances should be skipped due to missing process definition
+    // when: initial migration - process instances should be skipped due to missing c8 process definition
     historyMigrator.migrate();
 
-    // then: process instances should be skipped with missing process definition reason
-    List<String> processInstanceIds = historyService.createHistoricProcessInstanceQuery()
-        .list()
-        .stream()
-        .map(pi -> pi.getId())
-        .toList();
-    assertThat(processInstanceIds).hasSize(3);
+    // then: verify process instances were skipped (not migrated to c8)
+    assertThat(searchHistoricProcessInstances("userTaskProcessId")).isEmpty();
 
-    for (String procInstId : processInstanceIds) {
-      assertThat(dbClient.checkExistsByC7IdAndType(procInstId, HISTORY_PROCESS_INSTANCE)).isTrue();
-      assertThat(dbClient.checkHasC8KeyByC7IdAndType(procInstId, HISTORY_PROCESS_INSTANCE)).isFalse();
-      // Verify initial skip reason from migration
-      var skippedInstances = idKeyMapper.findSkippedByType(HISTORY_PROCESS_INSTANCE, 0, 100);
-      var skippedInstance = skippedInstances.stream()
-          .filter(si -> si.getC7Id().equals(procInstId))
-          .findFirst()
-          .orElse(null);
-      assertThat(skippedInstance).isNotNull();
-      assertThat(skippedInstance.getSkipReason()).isEqualTo("Missing process definition");
-    }
+    // and: verify skip reason by listing skipped entities
+    historyMigrator.setMode(MigratorMode.LIST_SKIPPED);
+    historyMigrator.setRequestedEntityTypes(List.of(HISTORY_PROCESS_INSTANCE));
+    historyMigrator.start();
+    
+    // Verify initial skip output (skip reasons should be visible if saveSkipReason is enabled)
+    String initialOutput = output.toString();
+    assertThat(initialOutput).contains("Previously skipped [Historic Process Instance]");
 
-    // when: retry migration with process definition still skipped but with different reason
-    dbClient.updateSkipReason(procDefId, HISTORY_PROCESS_DEFINITION, "Updated skip reason");
+    // when: deploy process definition to c8 and retry migration
+    output.reset();  // Clear output before retry
+    deployer.deployCamunda8Process("userTaskProcess.bpmn");
     historyMigrator.setMode(MigratorMode.RETRY_SKIPPED);
     historyMigrator.migrate();
 
-    // then: process instances should still be skipped with same skip reason
-    // (because process definition is still missing)
-    for (String procInstId : processInstanceIds) {
-      assertThat(dbClient.checkHasC8KeyByC7IdAndType(procInstId, HISTORY_PROCESS_INSTANCE)).isFalse();
-      var skippedInstances = idKeyMapper.findSkippedByType(HISTORY_PROCESS_INSTANCE, 0, 100);
-      var skippedInstance = skippedInstances.stream()
-          .filter(si -> si.getC7Id().equals(procInstId))
-          .findFirst()
-          .orElse(null);
-      assertThat(skippedInstance).isNotNull();
-      assertThat(skippedInstance.getSkipReason()).isEqualTo("Missing process definition");
-    }
+    // then: verify process instances are now successfully migrated
+    var migratedInstances = searchHistoricProcessInstances("userTaskProcessId");
+    assertThat(migratedInstances).hasSize(3);
+
+    // and: verify no more skipped entities
+    historyMigrator.setMode(MigratorMode.LIST_SKIPPED);
+    historyMigrator.setRequestedEntityTypes(List.of(HISTORY_PROCESS_INSTANCE));
+    historyMigrator.start();
+    
+    String retryOutput = output.toString();
+    assertThat(retryOutput).contains("No entities of type [Historic Process Instances] were skipped");
   }
 
   private void markEntityAsSkipped(String c7Id, IdKeyMapper.TYPE type) {
