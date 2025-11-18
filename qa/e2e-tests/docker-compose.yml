@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  camunda:
+    image: camunda/camunda-bpm-platform:7.22.0
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_DRIVER=org.h2.Driver
+      - DB_URL=jdbc:h2:mem:camunda;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+      - DB_USERNAME=sa
+      - DB_PASSWORD=sa
+      - WAIT_FOR=
+    volumes:
+      # Mount the plugin JAR to Camunda's plugin directory
+      - ../../plugins/cockpit/target/camunda-7-to-8-data-migrator-cockpit-plugin-0.2.0-SNAPSHOT.jar:/camunda/webapps/camunda/WEB-INF/lib/camunda-7-to-8-data-migrator-cockpit-plugin.jar:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/camunda/app/cockpit/default/"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s

@@ -1,0 +1,109 @@
+# E2E Tests for Cockpit Plugin
+
+This directory contains end-to-end tests for the Camunda 7 to 8 Data Migrator Cockpit Plugin using Playwright.
+
+## Overview
+
+These tests validate that:
+- Camunda 7 starts successfully with the plugin deployed
+- The Cockpit UI is accessible
+- The plugin UI is visible on the processes dashboard
+- The plugin can interact with the UI to display migrated/skipped entities
+
+## Prerequisites
+
+- Node.js 18+ and npm
+- Docker and Docker Compose
+- Built Cockpit plugin JAR (`plugins/cockpit/target/camunda-7-to-8-data-migrator-cockpit-plugin-0.2.0-SNAPSHOT.jar`)
+
+## Setup
+
+1. **Build the Cockpit plugin first:**
+   ```bash
+   cd ../../plugins/cockpit
+   mvn clean install
+   cd ../../qa/e2e-tests
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   npx playwright install chromium
+   ```
+
+## Running Tests
+
+### Run all tests
+```bash
+npm test
+```
+
+### Run tests with UI mode (interactive)
+```bash
+npm run test:ui
+```
+
+### Run tests in headed mode (see the browser)
+```bash
+npm run test:headed
+```
+
+### Run tests in debug mode
+```bash
+npm run test:debug
+```
+
+## How It Works
+
+1. **Docker Compose** starts a Camunda 7 instance with the plugin JAR mounted
+2. **Playwright** waits for Camunda to be ready (health check)
+3. **Tests** navigate to the Cockpit, login, and interact with the plugin UI
+4. **Screenshots** are captured for verification and debugging
+
+## Test Structure
+
+- `docker-compose.yml` - Defines Camunda 7 instance with plugin mounted
+- `playwright.config.ts` - Playwright configuration with webServer setup
+- `tests/cockpit-plugin.spec.ts` - Main E2E test suite
+
+## Test Coverage
+
+The test suite includes:
+- ✅ Camunda Cockpit loads successfully
+- ✅ Plugin UI appears on the processes page
+- ✅ Migrated and skipped entity tabs are visible
+- ✅ Entity type selector works
+- ✅ Empty state is displayed correctly
+- ✅ No JavaScript/React errors in console
+
+## Troubleshooting
+
+### Tests fail with "Connection refused"
+- Ensure Docker is running
+- Check that port 8080 is not already in use
+- Increase the timeout in `playwright.config.ts`
+
+### Plugin not found error
+- Verify the plugin JAR exists at `../../plugins/cockpit/target/`
+- Build the plugin with `mvn clean install -pl plugins/cockpit`
+
+### Camunda takes too long to start
+- Increase `webServer.timeout` in `playwright.config.ts`
+- Check Docker logs: `docker-compose logs -f`
+
+## CI/CD Integration
+
+To run in CI:
+```bash
+# Set CI environment variable
+CI=true npm test
+```
+
+This enables:
+- Retries on failure
+- Parallel execution disabled
+- Better error reporting
+
+## Screenshots
+
+Test screenshots are saved to `test-results/` directory for debugging.
