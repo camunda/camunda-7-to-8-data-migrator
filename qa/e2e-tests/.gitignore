@@ -4,4 +4,3 @@ playwright-report/
 playwright/.cache/
 .npm
 *.log
-package-lock.json

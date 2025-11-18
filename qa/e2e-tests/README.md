@@ -93,6 +93,16 @@ The test suite includes:
 
 ## CI/CD Integration
 
+The E2E tests run automatically in CI on every pull request and push to main.
+
+The CI job:
+1. Builds the Cockpit plugin JAR
+2. Installs Node.js and npm dependencies
+3. Installs Playwright browsers
+4. Starts Camunda 7 with Docker Compose
+5. Runs the E2E test suite
+6. Uploads test reports and screenshots as artifacts
+
 To run in CI:
 ```bash
 # Set CI environment variable
@@ -102,6 +112,7 @@ CI=true npm test
 This enables:
 - Retries on failure
 - Parallel execution disabled
+- GitHub Actions annotations for test results
 - Better error reporting
 
 ## Screenshots
