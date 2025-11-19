@@ -75,32 +75,31 @@ public class DbClient {
   protected IdKeyMapper idKeyMapper;
 
   // MyBatis mappers for history migration
-  // These are optional because they're only available when C8 data source is configured
-  @Autowired(required = false)
+  @Autowired
   protected ProcessInstanceMapper processInstanceMapper;
 
-  @Autowired(required = false)
+  @Autowired
   protected DecisionInstanceMapper decisionInstanceMapper;
 
-  @Autowired(required = false)
+  @Autowired
   protected UserTaskMapper userTaskMapper;
 
-  @Autowired(required = false)
+  @Autowired
   protected VariableMapper variableMapper;
 
-  @Autowired(required = false)
+  @Autowired
   protected IncidentMapper incidentMapper;
 
-  @Autowired(required = false)
+  @Autowired
   protected ProcessDefinitionMapper processDefinitionMapper;
 
-  @Autowired(required = false)
+  @Autowired
   protected DecisionDefinitionMapper decisionDefinitionMapper;
 
-  @Autowired(required = false)
+  @Autowired
   protected FlowNodeInstanceMapper flowNodeInstanceMapper;
 
-  @Autowired(required = false)
+  @Autowired
   protected DecisionRequirementsMapper decisionRequirementsMapper;
 
   /**
