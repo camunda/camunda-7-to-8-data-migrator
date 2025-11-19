@@ -56,6 +56,7 @@ import io.camunda.db.rdbms.write.domain.ProcessInstanceDbModel;
 import io.camunda.db.rdbms.write.domain.UserTaskDbModel;
 import io.camunda.db.rdbms.write.domain.VariableDbModel;
 import io.camunda.migrator.config.C8DataSourceConfigured;
+import io.camunda.migrator.config.property.MigratorProperties;
 import io.camunda.migrator.converter.DecisionDefinitionConverter;
 import io.camunda.migrator.converter.DecisionInstanceConverter;
 import io.camunda.migrator.converter.DecisionRequirementsDefinitionConverter;
@@ -165,6 +166,9 @@ public class HistoryMigrator {
   @Autowired
   private DecisionRequirementsDefinitionConverter decisionRequirementsConverter;
 
+  @Autowired
+  private MigratorProperties properties;
+
   protected MigratorMode mode = MIGRATE;
 
   private List<TYPE> requestedEntityTypes;
@@ -205,9 +209,10 @@ public class HistoryMigrator {
     final int numberOfThreads = 9; // One for each entity type
     ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
     
-    final int maxSuspensions = 3; // Number of times a thread must be suspended before stopping
-    final long initialBackoffMs = 100; // Initial backoff duration
-    final double backoffMultiplier = 2.0; // Exponential backoff multiplier
+    // Get configurable values from properties
+    final int maxSuspensions = properties.getMaxSuspensions();
+    final long initialBackoffMs = properties.getInitialBackoffMs();
+    final double backoffMultiplier = properties.getBackoffMultiplier();
     
     CountDownLatch latch = new CountDownLatch(numberOfThreads);
     
