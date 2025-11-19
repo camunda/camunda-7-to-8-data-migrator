@@ -210,11 +210,9 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
     historyMigrator.start();
     
     // Verify initial skip output (skip reasons should be visible if saveSkipReason is enabled)
-    String initialOutput = output.toString();
-    assertThat(initialOutput).contains("Previously skipped [Historic Process Instance]");
+    assertThat(output.getOut()).contains("Previously skipped [Historic Process Instance]");
 
     // when: deploy process definition to c8 and retry migration
-    output.reset();  // Clear output before retry
     deployer.deployCamunda8Process("userTaskProcess.bpmn");
     historyMigrator.setMode(MigratorMode.RETRY_SKIPPED);
     historyMigrator.migrate();
@@ -223,13 +221,12 @@ public class HistoryMigrationRetryTest extends HistoryMigrationAbstractTest {
     var migratedInstances = searchHistoricProcessInstances("userTaskProcessId");
     assertThat(migratedInstances).hasSize(3);
 
-    // and: verify no more skipped entities
+    // and: verify no more skipped entities after successful migration
     historyMigrator.setMode(MigratorMode.LIST_SKIPPED);
     historyMigrator.setRequestedEntityTypes(List.of(HISTORY_PROCESS_INSTANCE));
     historyMigrator.start();
     
-    String retryOutput = output.toString();
-    assertThat(retryOutput).contains("No entities of type [Historic Process Instances] were skipped");
+    assertThat(output.getOut()).contains("No entities of type [Historic Process Instances] were skipped");
   }
 
   private void markEntityAsSkipped(String c7Id, IdKeyMapper.TYPE type) {
