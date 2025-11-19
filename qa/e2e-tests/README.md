@@ -89,7 +89,11 @@ The test suite includes:
 
 ### Camunda takes too long to start
 - Increase `webServer.timeout` in `playwright.config.ts`
-- Check Docker logs: `docker-compose logs -f`
+- Check Docker logs: `docker compose logs -f`
+
+### docker-compose command not found
+- The tests use Docker Compose V2 (`docker compose` with a space)
+- If you have the older standalone `docker-compose`, update `playwright.config.ts` to use `docker-compose up`
 
 ## CI/CD Integration
 
