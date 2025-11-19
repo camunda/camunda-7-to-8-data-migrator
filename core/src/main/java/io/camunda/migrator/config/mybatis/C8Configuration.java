@@ -510,6 +510,7 @@ public class C8Configuration extends AbstractConfiguration {
         processDefinitionReader,
         processInstanceReader,
         variableReader,
+        clusterVariableReader,
         roleReader,
         roleMemberReader,
         tenantReader,
@@ -525,8 +526,7 @@ public class C8Configuration extends AbstractConfiguration {
         usageMetricsReader,
         usageMetricTUDbReader,
         messageSubscriptionDbReader,
-        correlatedMessageDbReader,
-        clusterVariableReader);
+        correlatedMessageDbReader);
   }
 
 }
