@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   camunda:
-    image: camunda/camunda-bpm-platform:7.22.0
+    image: camunda/camunda-bpm-platform:7.24.0
     ports:
       - "8080:8080"
     environment:
