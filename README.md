@@ -102,7 +102,7 @@ start.bat --help
 
 ### Running Tests
 
-The test suite has been optimized for performance with reduced logging overhead and multi-threaded builds.
+The test suite has been optimized for performance with parallel execution and reduced logging overhead.
 
 Execute the full test suite:
 ```bash
@@ -122,11 +122,12 @@ mvn integration-test
 
 The test suite includes several performance optimizations:
 
+- **Parallel test execution**: Test classes run in parallel (2 threads) to reduce execution time
 - **Optimized logging**: Async appenders and reduced log levels minimize I/O overhead
 - **Container reuse**: Database containers (PostgreSQL, Oracle) are reused across tests
 - **Multi-threaded builds**: Maven builds modules in parallel when using `-T 1C` flag
 
-To run tests with multi-threaded module building:
+To run tests with maximum parallelism:
 ```bash
 # Use all available CPU cores for module building
 mvn verify -T 1C
