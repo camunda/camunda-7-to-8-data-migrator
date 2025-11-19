@@ -161,7 +161,7 @@ public class MigratorProperties {
   }
 
   public int getMaxSuspensions() {
-    return maxSuspensions;
+    return maxSuspensions != null ? maxSuspensions : DEFAULT_MAX_SUSPENSIONS;
   }
 
   public void setMaxSuspensions(int maxSuspensions) {
@@ -169,7 +169,7 @@ public class MigratorProperties {
   }
 
   public long getInitialBackoffMs() {
-    return initialBackoffMs;
+    return initialBackoffMs != null ? initialBackoffMs : DEFAULT_INITIAL_BACKOFF_MS;
   }
 
   public void setInitialBackoffMs(long initialBackoffMs) {
@@ -177,7 +177,7 @@ public class MigratorProperties {
   }
 
   public double getBackoffMultiplier() {
-    return backoffMultiplier;
+    return backoffMultiplier != null ? backoffMultiplier : DEFAULT_BACKOFF_MULTIPLIER;
   }
 
   public void setBackoffMultiplier(double backoffMultiplier) {
