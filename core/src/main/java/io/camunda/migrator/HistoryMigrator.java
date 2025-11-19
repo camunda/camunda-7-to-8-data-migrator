@@ -78,6 +78,10 @@ import io.camunda.search.filter.FlowNodeInstanceFilter;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.history.HistoricDecisionInstance;
 import org.camunda.bpm.engine.history.HistoricIncident;
@@ -192,15 +196,116 @@ public class HistoryMigrator {
   }
 
   public void migrate() {
-    migrateProcessDefinitions();
-    migrateProcessInstances();
-    migrateFlowNodes();
-    migrateUserTasks();
-    migrateVariables();
-    migrateIncidents();
-    migrateDecisionRequirementsDefinitions();
-    migrateDecisionDefinitions();
-    migrateDecisionInstances();
+    // Run migration in MIGRATE mode first, then RETRY_SKIPPED mode
+    runParallelMigration(MIGRATE);
+    runParallelMigration(RETRY_SKIPPED);
+  }
+
+  private void runParallelMigration(MigratorMode migrationMode) {
+    final int numberOfThreads = 9; // One for each entity type
+    ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
+    
+    final int maxSuspensions = 3; // Number of times a thread must be suspended before stopping
+    final long initialBackoffMs = 100; // Initial backoff duration
+    final double backoffMultiplier = 2.0; // Exponential backoff multiplier
+    
+    CountDownLatch latch = new CountDownLatch(numberOfThreads);
+    
+    // Store original mode and set to migration mode
+    MigratorMode originalMode = this.mode;
+    this.mode = migrationMode;
+    
+    try {
+      // Submit migration tasks for each entity type
+      executor.submit(createMigrationTask(HISTORY_PROCESS_DEFINITION, maxSuspensions, initialBackoffMs, backoffMultiplier, 
+          this::migrateProcessDefinitions, latch));
+      executor.submit(createMigrationTask(HISTORY_PROCESS_INSTANCE, maxSuspensions, initialBackoffMs, backoffMultiplier, 
+          this::migrateProcessInstances, latch));
+      executor.submit(createMigrationTask(HISTORY_FLOW_NODE, maxSuspensions, initialBackoffMs, backoffMultiplier, 
+          this::migrateFlowNodes, latch));
+      executor.submit(createMigrationTask(HISTORY_USER_TASK, maxSuspensions, initialBackoffMs, backoffMultiplier, 
+          this::migrateUserTasks, latch));
+      executor.submit(createMigrationTask(HISTORY_VARIABLE, maxSuspensions, initialBackoffMs, backoffMultiplier, 
+          this::migrateVariables, latch));
+      executor.submit(createMigrationTask(HISTORY_INCIDENT, maxSuspensions, initialBackoffMs, backoffMultiplier, 
+          this::migrateIncidents, latch));
+      executor.submit(createMigrationTask(HISTORY_DECISION_REQUIREMENT, maxSuspensions, initialBackoffMs, backoffMultiplier, 
+          this::migrateDecisionRequirementsDefinitions, latch));
+      executor.submit(createMigrationTask(HISTORY_DECISION_DEFINITION, maxSuspensions, initialBackoffMs, backoffMultiplier, 
+          this::migrateDecisionDefinitions, latch));
+      executor.submit(createMigrationTask(HISTORY_DECISION_INSTANCE, maxSuspensions, initialBackoffMs, backoffMultiplier, 
+          this::migrateDecisionInstances, latch));
+      
+      // Wait for all threads to complete
+      latch.await();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Migration interrupted", e);
+    } finally {
+      // Restore original mode and shutdown executor
+      this.mode = originalMode;
+      executor.shutdown();
+      try {
+        if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+          executor.shutdownNow();
+        }
+      } catch (InterruptedException e) {
+        executor.shutdownNow();
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
+
+  private Runnable createMigrationTask(
+      TYPE entityType,
+      int maxSuspensions,
+      long initialBackoffMs,
+      double backoffMultiplier,
+      Runnable migrationMethod,
+      CountDownLatch latch) {
+    
+    return () -> {
+      try {
+        int noWorkCounter = 0;
+        
+        while (noWorkCounter < maxSuspensions) {
+          // Track the latest create time before migration
+          Date beforeTime = dbClient.findLatestCreateTimeByType(entityType);
+          
+          // Execute the migration method
+          migrationMethod.run();
+          
+          // Track the latest create time after migration
+          Date afterTime = dbClient.findLatestCreateTimeByType(entityType);
+          
+          // Check if work was done by comparing create times
+          boolean workDone = (beforeTime == null && afterTime != null) || 
+                           (beforeTime != null && afterTime != null && afterTime.after(beforeTime));
+          
+          if (workDone) {
+            // Work was done, reset suspension counter
+            noWorkCounter = 0;
+          } else {
+            // No work was done, increment suspension counter
+            noWorkCounter++;
+            
+            if (noWorkCounter < maxSuspensions) {
+              // Calculate exponential backoff
+              long backoffMs = (long) (initialBackoffMs * Math.pow(backoffMultiplier, noWorkCounter - 1));
+              
+              try {
+                Thread.sleep(backoffMs);
+              } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+              }
+            }
+          }
+        }
+      } finally {
+        latch.countDown();
+      }
+    };
   }
 
   public void migrateProcessDefinitions() {
