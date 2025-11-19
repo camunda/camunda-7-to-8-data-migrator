@@ -271,6 +271,9 @@ public class HistoryMigrator {
     
     return () -> {
       try {
+        // Set exception context for this thread
+        ExceptionUtils.setContext(ExceptionUtils.ExceptionContext.HISTORY);
+        
         int noWorkCounter = 0;
         
         while (noWorkCounter < maxSuspensions) {
@@ -308,6 +311,8 @@ public class HistoryMigrator {
           }
         }
       } finally {
+        // Clear exception context for this thread
+        ExceptionUtils.clearContext();
         latch.countDown();
       }
     };
