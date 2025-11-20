@@ -44,6 +44,13 @@ public class ConfigurationLogs {
   }
 
   /**
+   * Logs the enabling of asynchronous processing.
+   */
+  public static void logAsyncEnabled() {
+    LOGGER.info("Asynchronous processing is enabled");
+  }
+
+  /**
    * Logs the total number of configured interceptors.
    *
    * @param count the number of configured interceptors
