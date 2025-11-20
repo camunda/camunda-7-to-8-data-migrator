@@ -77,6 +77,14 @@ jobs:
           path: qa/e2e-tests/test-results/
           retention-days: 7
 
+      - name: Upload Cockpit Plugin JAR
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: e2e-screenshots
+          path: plugins/cockpit/target/camunda-7-to-8-data-migrator-cockpit-plugin-0.2.0-SNAPSHOT.jar
+          retention-days: 7
+
   # Rerun failed jobs running on self-hosted runners in case of network issues or node preemption
   rerun-failed-jobs:
     needs:
