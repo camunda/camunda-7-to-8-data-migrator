@@ -5,7 +5,7 @@ services:
   camunda7:
     image: camunda/camunda-bpm-platform:7.24.0
     ports:
-      - "8080:8080"
+      - "8090:8080"
     environment:
       - DB_DRIVER=org.postgresql.Driver
       - DB_URL=jdbc:postgresql://postgres:5432/camunda7
@@ -44,35 +44,18 @@ services:
     networks:
       - e2e-network
 
-  # Zeebe (C8 process engine)
-  zeebe:
-    image: camunda/zeebe:8.8.0
+  # Camunda 8 Run (includes Zeebe, Operate, Tasklist, etc.)
+  camunda8:
+    image: camunda/camunda:8.8.0
     ports:
-      - "26500:26500"
-      - "9600:9600"
-      - "8080:8080"
+      - "26500:26500"  # Zeebe gRPC
+      - "8080:8080"    # Zeebe REST API
+      - "8081:8081"    # Operate
+      - "9600:9600"    # Zeebe monitoring
     environment:
       - ZEEBE_LOG_LEVEL=info
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9600/ready"]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 60s
-    networks:
-      - e2e-network
-
-  # Elasticsearch for Zeebe
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 30
@@ -93,8 +76,8 @@ services:
       - CAMUNDA_MIGRATOR_C7_DATA_SOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
       - CAMUNDA_MIGRATOR_C7_DATA_SOURCE_AUTO_DDL=true
       - CAMUNDA_CLIENT_MODE=self-managed
-      - CAMUNDA_CLIENT_GRPC_ADDRESS=http://zeebe:26500
-      - CAMUNDA_CLIENT_REST_ADDRESS=http://zeebe:8080
+      - CAMUNDA_CLIENT_GRPC_ADDRESS=http://camunda8:26500
+      - CAMUNDA_CLIENT_REST_ADDRESS=http://camunda8:8080
     command:
       - /bin/bash
       - -c
@@ -105,7 +88,7 @@ services:
         unzip -q /tmp/migrator.zip -d /app
         echo 'Downloading PostgreSQL driver...'
         wget -q https://jdbc.postgresql.org/download/postgresql-42.7.3.jar -O /app/configuration/userlib/postgresql.jar
-        echo 'Waiting for Camunda 7 and Zeebe to be ready...'
+        echo 'Waiting for Camunda 7 and Camunda 8 to be ready...'
         sleep 30
         echo 'Starting data migration...'
         cd /app
@@ -114,7 +97,7 @@ services:
     depends_on:
       camunda7:
         condition: service_healthy
-      zeebe:
+      camunda8:
         condition: service_healthy
     networks:
       - e2e-network
