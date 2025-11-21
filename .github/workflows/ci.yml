@@ -9,6 +9,139 @@ on:
     - cron: "0 5 * * 1-5"
 
 jobs:
+  distro-h2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+
+      - name: Import secrets
+        id: secrets
+        uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b # v3.4.0
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          method: approle
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          secrets: |
+            secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_USR;
+            secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
+
+      - name: Setup Maven
+        uses: ./.github/actions/setup-maven
+        with:
+          vault-address: ${{ secrets.VAULT_ADDR }}
+          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
+          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+
+      - name: Build and run default tests
+        run: mvn clean install --batch-mode
+
+      - name: Collect distro
+        id: distro
+        if: github.ref == 'refs/heads/main'
+        run: |
+          ARTIFACT_DIR=$(mktemp -d)
+          cp assembly/target/camunda-7-to-8-data-migrator-*.tar.gz "${ARTIFACT_DIR}/"
+          cp assembly/target/camunda-7-to-8-data-migrator-*.zip "${ARTIFACT_DIR}/"
+          echo "dir=${ARTIFACT_DIR}" >> $GITHUB_OUTPUT
+
+      - name: Upload distro
+        uses: actions/upload-artifact@v5
+        if: github.ref == 'refs/heads/main'
+        with:
+          name: distro
+          path: ${{ steps.distro.outputs.dir }}
+          retention-days: 7
+
+  postgresql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+
+      - name: Import secrets
+        id: secrets
+        uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b # v3.4.0
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          method: approle
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          secrets: |
+            secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_USR;
+            secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
+
+      - name: Setup Maven
+        uses: ./.github/actions/setup-maven
+        with:
+          vault-address: ${{ secrets.VAULT_ADDR }}
+          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
+          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+
+      - name: Run tests with PostgreSQL
+        run: mvn verify -Ppostgresql
+
+  oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+
+      - name: Import secrets
+        id: secrets
+        uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b # v3.4.0
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          method: approle
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          secrets: |
+            secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_USR;
+            secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
+
+      - name: Setup Maven
+        uses: ./.github/actions/setup-maven
+        with:
+          vault-address: ${{ secrets.VAULT_ADDR }}
+          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
+          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+
+      - name: Run tests with Oracle
+        run: mvn verify -Poracle
+
+  windows-h2:
+    runs-on: windows-latest
+    timeout-minutes: 70
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+
+      - name: Import secrets
+        id: secrets
+        uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b # v3.4.0
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          method: approle
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          secrets: |
+            secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_USR;
+            secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
+
+      - name: Setup Maven
+        uses: ./.github/actions/setup-maven
+        with:
+          vault-address: ${{ secrets.VAULT_ADDR }}
+          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
+          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+
+      - name: Build and run default tests
+        run: mvn clean install -Pwindows --batch-mode
+
   e2e-cockpit-plugin:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -38,7 +171,7 @@ jobs:
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
 
       - name: Build Cockpit Plugin
-        run: mvn clean install -DskipTests --batch-mode
+        run: mvn clean install -DskipTests -pl plugins/cockpit -am --batch-mode
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -88,6 +221,10 @@ jobs:
   # Rerun failed jobs running on self-hosted runners in case of network issues or node preemption
   rerun-failed-jobs:
     needs:
+      - distro-h2
+      - postgresql
+      - oracle
+      - windows-h2
       - e2e-cockpit-plugin
     if: failure() && fromJSON(github.run_attempt) < 3
     runs-on: ubuntu-latest
