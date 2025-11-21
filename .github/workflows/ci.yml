@@ -81,9 +81,8 @@ jobs:
         uses: actions/upload-artifact@v5
         if: always()
         with:
-          name: e2e-screenshots
+          name: data-migrator-cockpit-plugin
           path: plugins/cockpit/target/camunda-7-to-8-data-migrator-cockpit-plugin-0.2.0-SNAPSHOT.jar
-          overwrite: true
           retention-days: 7
 
   # Rerun failed jobs running on self-hosted runners in case of network issues or node preemption
