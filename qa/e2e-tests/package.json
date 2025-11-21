@@ -6,7 +6,9 @@
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
-    "test:headed": "playwright test --headed"
+    "test:headed": "playwright test --headed",
+    "test:with-data": "COMPOSE_FILE=docker-compose-with-data.yml playwright test",
+    "test:basic": "COMPOSE_FILE=docker-compose.yml playwright test"
   },
   "keywords": [],
   "author": "",

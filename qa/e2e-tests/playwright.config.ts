@@ -35,11 +35,12 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'docker compose -f docker-compose-with-data.yml up',
+    command: 'bash start-services.sh',
     url: 'http://localhost:8080/camunda',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000, // 2 minutes for Camunda to start
+    timeout: 360 * 1000, // 6 minutes for Camunda to start and migration to complete
     stdout: 'pipe',
     stderr: 'pipe',
+    cwd: './qa/e2e-tests',
   },
 });
