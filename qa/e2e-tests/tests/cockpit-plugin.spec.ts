@@ -28,12 +28,12 @@ test.describe('Cockpit Plugin E2E', () => {
     await page.waitForLoadState('networkidle');
     
     // Check if we're on a login page (some Camunda instances might auto-login)
-    const isLoginPage = await page.locator('input[name="username"]').isVisible().catch(() => false);
+    const isLoginPage = await page.locator('input[ng-model="username"]').isVisible().catch(() => false);
     
     if (isLoginPage) {
       // Fill in login credentials - Camunda 7 default demo user
-      const usernameInput = page.locator('input[name="username"]');
-      const passwordInput = page.locator('input[name="password"]');
+      const usernameInput = page.locator('input[ng-model="username"]');
+      const passwordInput = page.locator('input[ng-model="password"]');
       const submitButton = page.locator('button[type="submit"]');
       
       // Wait for inputs to be visible
@@ -73,7 +73,7 @@ test.describe('Cockpit Plugin E2E', () => {
   test('should display the migrator plugin on processes page', async ({ page }) => {
     // Navigate to processes page
     await page.click('a[href="#/processes"]');
-    await page.waitForURL('**/processes');
+    await page.waitForURL('**/#/processes?pdSearchQuery=%5B%5D');
     
     // Wait for the plugin to load - look for the plugin title
     const pluginTitle = page.locator('h1.section-title:has-text("Camunda 7 to 8 Data Migrator")');
@@ -89,7 +89,7 @@ test.describe('Cockpit Plugin E2E', () => {
   test('should display migrated and skipped entity tabs', async ({ page }) => {
     // Navigate to processes page
     await page.click('a[href="#/processes"]');
-    await page.waitForURL('**/processes');
+    await page.waitForURL('**/#/processes?pdSearchQuery=%5B%5D');
     
     // Wait for the plugin to render
     await page.waitForTimeout(2000); // Give React time to render
@@ -113,7 +113,7 @@ test.describe('Cockpit Plugin E2E', () => {
   test('should be able to switch between entity types', async ({ page }) => {
     // Navigate to processes page
     await page.click('a[href="#/processes"]');
-    await page.waitForURL('**/processes');
+    await page.waitForURL('**/#/processes?pdSearchQuery=%5B%5D');
     
     // Wait for plugin to load
     await page.waitForTimeout(2000);
@@ -144,7 +144,7 @@ test.describe('Cockpit Plugin E2E', () => {
   test('should display empty state when no entities exist', async ({ page }) => {
     // Navigate to processes page
     await page.click('a[href="#/processes"]');
-    await page.waitForURL('**/processes');
+    await page.waitForURL('**/#/processes?pdSearchQuery=%5B%5D');
     
     // Wait for plugin to load
     await page.waitForTimeout(2000);
@@ -179,7 +179,7 @@ test.describe('Cockpit Plugin E2E', () => {
     
     // Navigate to processes page  
     await page.click('a[href="#/processes"]');
-    await page.waitForURL('**/processes');
+    await page.waitForURL('**/#/processes?pdSearchQuery=%5B%5D');
     
     // Wait for plugin to fully render
     await page.locator('h1:has-text("Camunda 7 to 8 Data Migrator")').waitFor({ timeout: 10000 });
