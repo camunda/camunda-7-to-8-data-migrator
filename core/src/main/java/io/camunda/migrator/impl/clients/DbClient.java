@@ -64,6 +64,7 @@ import org.springframework.stereotype.Component;
 /**
  * Wrapper class for IdKeyMapper database operations with exception handling.
  * Maintains the same exception wrapping behavior as ExceptionUtils.callApi.
+ * Supports batch insert operations to reduce database interactions.
  */
 @Component
 public class DbClient {
@@ -102,6 +103,23 @@ public class DbClient {
 
   @Autowired(required = false)
   protected DecisionRequirementsMapper decisionRequirementsMapper;
+
+  /**
+   * Buffer for collecting INSERT operations to be batched.
+   */
+  protected final List<IdKeyDbModel> insertBuffer = new java.util.ArrayList<>();
+
+  /**
+   * Tracks C8 process instance keys created in the current batch.
+   * Used for rollback if batch insert fails.
+   */
+  protected final List<Long> currentBatchC8Keys = new java.util.ArrayList<>();
+
+  /**
+   * Stores C8 keys that failed to persist in the last batch operation.
+   * This allows retrieving them after an exception for rollback purposes.
+   */
+  protected final ThreadLocal<List<Long>> failedBatchKeys = ThreadLocal.withInitial(java.util.ArrayList::new);
 
   /**
    * Checks if an entity exists in the mapping table by type and id.
@@ -181,7 +199,101 @@ public class DbClient {
     String finalSkipReason = properties.getSaveSkipReason() ? skipReason : null;
     DbClientLogs.insertingRecord(c7Id, createTime, null, finalSkipReason);
     var model = createIdKeyDbModel(c7Id, createTime, c8Key, type, finalSkipReason);
-    callApi(() -> idKeyMapper.insert(model), FAILED_TO_INSERT_RECORD + c7Id);
+    
+    // Add to batch buffer
+    boolean shouldFlush = false;
+    synchronized (insertBuffer) {
+      insertBuffer.add(model);
+      
+      // Track C8 keys for potential rollback
+      if (c8Key != null && TYPE.RUNTIME_PROCESS_INSTANCE.equals(type)) {
+        currentBatchC8Keys.add(c8Key);
+      }
+      
+      // Check if batch size is reached
+      if (insertBuffer.size() >= properties.getBatchSize()) {
+        shouldFlush = true;
+      }
+    }
+    
+    // Flush outside the synchronized block to avoid nested locking
+    if (shouldFlush) {
+      flushBatch();
+    }
+  }
+
+  /**
+   * Flushes all pending INSERT operations in the batch buffer.
+   * Should be called at the end of a migration process or when batch size is reached.
+   * If the batch insert fails, stores the C8 keys in ThreadLocal for rollback handling.
+   * 
+   * @throws RuntimeException if the batch insert fails
+   */
+  public void flushBatch() {
+    synchronized (insertBuffer) {
+      if (insertBuffer.isEmpty()) {
+        return;
+      }
+      
+      DbClientLogs.flushingBatch(insertBuffer.size());
+      List<IdKeyDbModel> toFlush = new java.util.ArrayList<>(insertBuffer);
+      List<Long> keysToRollback = new java.util.ArrayList<>(currentBatchC8Keys);
+      
+      // Clear buffers before attempting flush
+      insertBuffer.clear();
+      currentBatchC8Keys.clear();
+      
+      try {
+        callApi(() -> idKeyMapper.insertBatch(toFlush), FAILED_TO_INSERT_RECORD + "batch");
+        // Success - clear any previous failed keys
+        failedBatchKeys.get().clear();
+      } catch (RuntimeException e) {
+        // Failed - store keys for rollback and log error
+        failedBatchKeys.get().clear();
+        failedBatchKeys.get().addAll(keysToRollback);
+        DbClientLogs.batchInsertFailed(keysToRollback.size());
+        // Rethrow the exception
+        throw e;
+      }
+    }
+  }
+
+  /**
+   * Gets the C8 process instance keys from the last failed batch operation.
+   * This should be called after catching an exception from flushBatch().
+   * 
+   * @return List of C8 process instance keys that need to be rolled back
+   */
+  public List<Long> getFailedBatchKeys() {
+    return new java.util.ArrayList<>(failedBatchKeys.get());
+  }
+
+  /**
+   * Clears the failed batch keys from ThreadLocal.
+   */
+  public void clearFailedBatchKeys() {
+    failedBatchKeys.get().clear();
+  }
+
+  /**
+   * Clears all buffers without flushing.
+   * This is useful for testing or resetting state between operations.
+   */
+  public void clearBuffers() {
+    synchronized (insertBuffer) {
+      insertBuffer.clear();
+      currentBatchC8Keys.clear();
+    }
+    clearFailedBatchKeys();
+  }
+
+  /**
+   * Returns the current size of the batch buffer.
+   */
+  public int getBatchBufferSize() {
+    synchronized (insertBuffer) {
+      return insertBuffer.size();
+    }
   }
 
   /**

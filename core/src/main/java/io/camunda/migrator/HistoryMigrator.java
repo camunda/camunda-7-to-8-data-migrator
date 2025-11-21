@@ -154,15 +154,33 @@ public class HistoryMigrator {
   }
 
   public void migrate() {
-    migrateProcessDefinitions();
-    migrateProcessInstances();
-    migrateFlowNodes();
-    migrateUserTasks();
-    migrateVariables();
-    migrateIncidents();
-    migrateDecisionRequirementsDefinitions();
-    migrateDecisionDefinitions();
-    migrateDecisionInstances();
+    try {
+      migrateProcessDefinitions();
+      migrateProcessInstances();
+      migrateFlowNodes();
+      migrateUserTasks();
+      migrateVariables();
+      migrateIncidents();
+      migrateDecisionRequirementsDefinitions();
+      migrateDecisionDefinitions();
+      migrateDecisionInstances();
+    } finally {
+      // Flush any remaining records at the end
+      safeFlushBatch();
+    }
+  }
+
+  /**
+   * Safely flushes the batch, catching and logging any exceptions.
+   * For history migration, we log errors but continue processing.
+   */
+  protected void safeFlushBatch() {
+    try {
+      dbClient.flushBatch();
+    } catch (Exception e) {
+      HistoryMigratorLogs.batchFlushFailed(e.getMessage());
+      dbClient.clearFailedBatchKeys();
+    }
   }
 
   public void migrateProcessDefinitions() {
