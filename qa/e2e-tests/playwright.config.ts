@@ -35,7 +35,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'docker compose up',
+    command: 'docker compose -f docker-compose-with-data.yml up',
     url: 'http://localhost:8080/camunda',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000, // 2 minutes for Camunda to start
