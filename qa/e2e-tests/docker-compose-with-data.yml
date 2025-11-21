@@ -1,0 +1,117 @@
+version: '3.8'
+
+services:
+  # Camunda 7 with Cockpit plugin
+  camunda7:
+    image: camunda/camunda-bpm-platform:7.24.0
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_DRIVER=org.postgresql.Driver
+      - DB_URL=jdbc:postgresql://postgres:5432/camunda7
+      - DB_USERNAME=camunda
+      - DB_PASSWORD=camunda
+      - WAIT_FOR=postgres:5432
+    volumes:
+      # Mount the plugin JAR to Camunda's plugin directory
+      - ../../plugins/cockpit/target/camunda-7-to-8-data-migrator-cockpit-plugin-0.2.0-SNAPSHOT.jar:/camunda/webapps/camunda/WEB-INF/lib/camunda-7-to-8-data-migrator-cockpit-plugin.jar:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/camunda/app/cockpit/default/"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    networks:
+      - e2e-network
+
+  # PostgreSQL for Camunda 7
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=camunda7
+      - POSTGRES_USER=camunda
+      - POSTGRES_PASSWORD=camunda
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U camunda"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - e2e-network
+
+  # Zeebe (C8 process engine)
+  zeebe:
+    image: camunda/zeebe:8.6.0
+    ports:
+      - "26500:26500"
+      - "9600:9600"
+    environment:
+      - ZEEBE_LOG_LEVEL=info
+      - ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_CLASSNAME=io.camunda.zeebe.exporter.ElasticsearchExporter
+      - ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_ARGS_URL=http://elasticsearch:9200
+      - ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_ARGS_BULK_SIZE=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9600/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - e2e-network
+
+  # Elasticsearch for Zeebe
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    networks:
+      - e2e-network
+
+  # Data Migrator - runs migration to generate test data
+  data-migrator:
+    image: eclipse-temurin:17-jre-alpine
+    volumes:
+      - ../../distro/target/camunda-7-to-8-data-migrator-0.2.0-SNAPSHOT:/app
+    working_dir: /app
+    command: >
+      sh -c "
+        echo 'Waiting for Camunda 7 and Zeebe to be ready...' &&
+        sleep 30 &&
+        echo 'Starting data migration...' &&
+        ./bin/camunda-7-to-8-data-migrator migrate-runtime \
+          --c7-jdbc-url=jdbc:postgresql://postgres:5432/camunda7 \
+          --c7-jdbc-username=camunda \
+          --c7-jdbc-password=camunda \
+          --c8-zeebe-address=zeebe:26500 \
+          --c8-zeebe-plaintext=true &&
+        echo 'Migration completed - test data ready'
+      "
+    depends_on:
+      camunda7:
+        condition: service_healthy
+      zeebe:
+        condition: service_healthy
+    networks:
+      - e2e-network
+
+networks:
+  e2e-network:
+    driver: bridge

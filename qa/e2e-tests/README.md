@@ -55,14 +55,41 @@ npm run test:debug
 
 ## How It Works
 
+### Basic Mode (Default)
 1. **Docker Compose** starts a Camunda 7 instance with the plugin JAR mounted
 2. **Playwright** waits for Camunda to be ready (health check)
 3. **Tests** navigate to the Cockpit, login, and interact with the plugin UI
 4. **Screenshots** are captured for verification and debugging
 
+### With Real Demo Data
+To test with real migrated data, use the enhanced docker-compose setup:
+
+```bash
+# Use the full stack with Camunda 7, Zeebe, and Data Migrator
+docker compose -f docker-compose-with-data.yml up -d
+
+# Wait for migration to complete (check logs)
+docker compose -f docker-compose-with-data.yml logs -f data-migrator
+
+# Run tests (configure playwright to use port 8080 which is already exposed)
+npm test
+
+# Cleanup
+docker compose -f docker-compose-with-data.yml down -v
+```
+
+The `docker-compose-with-data.yml` setup includes:
+- **Camunda 7** (with PostgreSQL) - source system
+- **Zeebe/C8** (with Elasticsearch) - target system
+- **Data Migrator** - runs migration to populate test data
+- **Cockpit Plugin** - mounted with real migration_mapping table data
+
+This allows testing with actual migrated process instances instead of empty tables.
+
 ## Test Structure
 
-- `docker-compose.yml` - Defines Camunda 7 instance with plugin mounted
+- `docker-compose.yml` - Simple Camunda 7 instance with plugin (default, fast)
+- `docker-compose-with-data.yml` - Full stack with real migration data (comprehensive testing)
 - `playwright.config.ts` - Playwright configuration with webServer setup
 - `tests/cockpit-plugin.spec.ts` - Main E2E test suite
 
