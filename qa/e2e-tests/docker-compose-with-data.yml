@@ -50,20 +50,15 @@ services:
     ports:
       - "26500:26500"
       - "9600:9600"
+      - "8080:8080"
     environment:
       - ZEEBE_LOG_LEVEL=info
-      - ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_CLASSNAME=io.camunda.zeebe.exporter.ElasticsearchExporter
-      - ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_ARGS_URL=http://elasticsearch:9200
-      - ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_ARGS_BULK_SIZE=1
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9600/ready"]
       interval: 10s
       timeout: 5s
       retries: 30
       start_period: 60s
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
     networks:
       - e2e-network
 
@@ -87,23 +82,35 @@ services:
 
   # Data Migrator - runs migration to generate test data
   data-migrator:
-    image: eclipse-temurin:17-jre-alpine
+    image: eclipse-temurin:21-jdk
     volumes:
-      - ../../distro/target/camunda-7-to-8-data-migrator-0.2.0-SNAPSHOT:/app
+      - ../../assembly/target/camunda-7-to-8-data-migrator-0.2.0-SNAPSHOT.zip:/tmp/migrator.zip:ro
     working_dir: /app
-    command: >
-      sh -c "
-        echo 'Waiting for Camunda 7 and Zeebe to be ready...' &&
-        sleep 30 &&
-        echo 'Starting data migration...' &&
-        ./bin/camunda-7-to-8-data-migrator migrate-runtime \
-          --c7-jdbc-url=jdbc:postgresql://postgres:5432/camunda7 \
-          --c7-jdbc-username=camunda \
-          --c7-jdbc-password=camunda \
-          --c8-zeebe-address=zeebe:26500 \
-          --c8-zeebe-plaintext=true &&
+    environment:
+      - CAMUNDA_MIGRATOR_C7_DATA_SOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/camunda7
+      - CAMUNDA_MIGRATOR_C7_DATA_SOURCE_USERNAME=camunda
+      - CAMUNDA_MIGRATOR_C7_DATA_SOURCE_PASSWORD=camunda
+      - CAMUNDA_MIGRATOR_C7_DATA_SOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+      - CAMUNDA_MIGRATOR_C7_DATA_SOURCE_AUTO_DDL=true
+      - CAMUNDA_CLIENT_MODE=self-managed
+      - CAMUNDA_CLIENT_GRPC_ADDRESS=http://zeebe:26500
+      - CAMUNDA_CLIENT_REST_ADDRESS=http://zeebe:8080
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        echo 'Extracting migrator distribution...'
+        apt-get update -qq && apt-get install -y -qq unzip wget > /dev/null
+        unzip -q /tmp/migrator.zip -d /app
+        echo 'Downloading PostgreSQL driver...'
+        wget -q https://jdbc.postgresql.org/download/postgresql-42.7.3.jar -O /app/configuration/userlib/postgresql.jar
+        echo 'Waiting for Camunda 7 and Zeebe to be ready...'
+        sleep 30
+        echo 'Starting data migration...'
+        cd /app
+        ./start.sh --runtime
         echo 'Migration completed - test data ready'
-      "
     depends_on:
       camunda7:
         condition: service_healthy
