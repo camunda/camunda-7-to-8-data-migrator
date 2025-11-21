@@ -15,9 +15,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for relevant changes
+        id: changes
+        uses: ./.github/actions/check-path-changes
+        with:
+          path-pattern: '^qa/e2e-tests/'
+          invert: 'true'
 
       - name: Import secrets
         id: secrets
+        if: steps.changes.outputs.should_run == 'true'
         uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b # v3.4.0
         with:
           url: ${{ secrets.VAULT_ADDR }}
@@ -29,6 +39,7 @@ jobs:
             secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
 
       - name: Setup Maven
+        if: steps.changes.outputs.should_run == 'true'
         uses: ./.github/actions/setup-maven
         with:
           vault-address: ${{ secrets.VAULT_ADDR }}
@@ -36,11 +47,12 @@ jobs:
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
 
       - name: Build and run default tests
+        if: steps.changes.outputs.should_run == 'true'
         run: mvn clean install --batch-mode
 
       - name: Collect distro
         id: distro
-        if: github.ref == 'refs/heads/main'
+        if: steps.changes.outputs.should_run == 'true' && github.ref == 'refs/heads/main'
         run: |
           ARTIFACT_DIR=$(mktemp -d)
           cp assembly/target/camunda-7-to-8-data-migrator-*.tar.gz "${ARTIFACT_DIR}/"
@@ -49,7 +61,7 @@ jobs:
 
       - name: Upload distro
         uses: actions/upload-artifact@v5
-        if: github.ref == 'refs/heads/main'
+        if: steps.changes.outputs.should_run == 'true' && github.ref == 'refs/heads/main'
         with:
           name: distro
           path: ${{ steps.distro.outputs.dir }}
@@ -61,9 +73,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for relevant changes
+        id: changes
+        uses: ./.github/actions/check-path-changes
+        with:
+          path-pattern: '^qa/e2e-tests/'
+          invert: 'true'
 
       - name: Import secrets
         id: secrets
+        if: steps.changes.outputs.should_run == 'true'
         uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b # v3.4.0
         with:
           url: ${{ secrets.VAULT_ADDR }}
@@ -75,6 +97,7 @@ jobs:
             secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
 
       - name: Setup Maven
+        if: steps.changes.outputs.should_run == 'true'
         uses: ./.github/actions/setup-maven
         with:
           vault-address: ${{ secrets.VAULT_ADDR }}
@@ -82,6 +105,7 @@ jobs:
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
 
       - name: Run tests with PostgreSQL
+        if: steps.changes.outputs.should_run == 'true'
         run: mvn verify -Ppostgresql
 
   oracle:
@@ -90,9 +114,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for relevant changes
+        id: changes
+        uses: ./.github/actions/check-path-changes
+        with:
+          path-pattern: '^qa/e2e-tests/'
+          invert: 'true'
 
       - name: Import secrets
         id: secrets
+        if: steps.changes.outputs.should_run == 'true'
         uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b # v3.4.0
         with:
           url: ${{ secrets.VAULT_ADDR }}
@@ -104,6 +138,7 @@ jobs:
             secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
 
       - name: Setup Maven
+        if: steps.changes.outputs.should_run == 'true'
         uses: ./.github/actions/setup-maven
         with:
           vault-address: ${{ secrets.VAULT_ADDR }}
@@ -111,6 +146,7 @@ jobs:
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
 
       - name: Run tests with Oracle
+        if: steps.changes.outputs.should_run == 'true'
         run: mvn verify -Poracle
 
   windows-h2:
@@ -119,9 +155,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for relevant changes
+        id: changes
+        uses: ./.github/actions/check-path-changes
+        with:
+          path-pattern: '^qa/e2e-tests/'
+          invert: 'true'
 
       - name: Import secrets
         id: secrets
+        if: steps.changes.outputs.should_run == 'true'
         uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b # v3.4.0
         with:
           url: ${{ secrets.VAULT_ADDR }}
@@ -133,6 +179,7 @@ jobs:
             secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
 
       - name: Setup Maven
+        if: steps.changes.outputs.should_run == 'true'
         uses: ./.github/actions/setup-maven
         with:
           vault-address: ${{ secrets.VAULT_ADDR }}
@@ -140,7 +187,91 @@ jobs:
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
 
       - name: Build and run default tests
+        if: steps.changes.outputs.should_run == 'true'
         run: mvn clean install -Pwindows --batch-mode
+
+  e2e-cockpit-plugin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+        with:
+          fetch-depth: 0
+      
+      - name: Check for relevant changes
+        id: changes
+        uses: ./.github/actions/check-path-changes
+        with:
+          path-pattern: '^(plugins/cockpit|qa/e2e-tests)/'
+
+      - name: Import secrets
+        id: secrets
+        if: steps.changes.outputs.should_run == 'true'
+        uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b # v3.4.0
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          method: approle
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          secrets: |
+            secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_USR;
+            secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
+
+      - name: Setup Maven
+        if: steps.changes.outputs.should_run == 'true'
+        uses: ./.github/actions/setup-maven
+        with:
+          vault-address: ${{ secrets.VAULT_ADDR }}
+          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
+          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+
+      - name: Build Cockpit Plugin
+        if: steps.changes.outputs.should_run == 'true'
+        run: mvn clean install -DskipTests --batch-mode
+
+      - name: Setup Node.js
+        if: steps.changes.outputs.should_run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: qa/e2e-tests/package-lock.json
+
+      - name: Install E2E test dependencies
+        if: steps.changes.outputs.should_run == 'true'
+        working-directory: qa/e2e-tests
+        run: npm ci
+
+      - name: Install Playwright browsers
+        if: steps.changes.outputs.should_run == 'true'
+        working-directory: qa/e2e-tests
+        run: npx playwright install --with-deps chromium firefox msedge
+
+      - name: Run E2E tests
+        if: steps.changes.outputs.should_run == 'true'
+        working-directory: qa/e2e-tests
+        run: npm test
+        env:
+          CI: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v5
+        if: steps.changes.outputs.should_run == 'true' && always()
+        with:
+          name: playwright-report
+          path: qa/e2e-tests/playwright-report/
+          retention-days: 7
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v5
+        if: steps.changes.outputs.should_run == 'true' && always()
+        with:
+          name: e2e-screenshots
+          path: qa/e2e-tests/test-results/
+          retention-days: 7
 
   # Rerun failed jobs running on self-hosted runners in case of network issues or node preemption
   rerun-failed-jobs:
@@ -149,6 +280,7 @@ jobs:
       - postgresql
       - oracle
       - windows-h2
+      - e2e-cockpit-plugin
     if: failure() && fromJSON(github.run_attempt) < 3
     runs-on: ubuntu-latest
     timeout-minutes: 15

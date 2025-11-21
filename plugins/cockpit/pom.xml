@@ -32,7 +32,6 @@
     <frontend.build.path>${frontend.working.directory}dist/</frontend.build.path>
     <frontend.target.path>plugin-webapp/migrator-plugin/app</frontend.target.path>
 
-    <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 

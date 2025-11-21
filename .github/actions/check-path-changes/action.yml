@@ -1,0 +1,76 @@
+name: 'Check Path Changes'
+description: 'Determines if changes match a given path pattern'
+inputs:
+  path-pattern:
+    description: 'Regex pattern to match changed files against'
+    required: true
+  invert:
+    description: 'Invert the match (skip if pattern matches instead of running)'
+    required: false
+    default: 'false'
+outputs:
+  should_run:
+    description: 'Whether the job should run (true/false)'
+    value: ${{ steps.check.outputs.should_run }}
+runs:
+  using: composite
+  steps:
+    - name: Check for relevant changes
+      id: check
+      shell: bash
+      run: |
+        # Check if we should run this job
+        # Always run on main branch, schedule, or workflow_dispatch
+        if [[ "${{ github.ref }}" == "refs/heads/main" ]] || \
+           [[ "${{ github.event_name }}" == "schedule" ]] || \
+           [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          echo "should_run=true" >> $GITHUB_OUTPUT
+          echo "Running on main/schedule/manual trigger"
+          exit 0
+        fi
+        
+        # For PRs, check if relevant files changed
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          changed_files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+        else
+          # For push events, compare with previous commit
+          changed_files=$(git diff --name-only HEAD~1 HEAD)
+        fi
+        
+        echo "Changed files:"
+        echo "$changed_files"
+        
+        # Check if any files match the pattern
+        if echo "$changed_files" | grep -qE '${{ inputs.path-pattern }}'; then
+          pattern_matches=true
+        else
+          pattern_matches=false
+        fi
+        
+        # Determine should_run based on invert flag
+        if [[ "${{ inputs.invert }}" == "true" ]]; then
+          # Inverted: run if pattern does NOT match (skip if ONLY matched files changed)
+          if [[ "$pattern_matches" == "false" ]]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "No files matching pattern '${{ inputs.path-pattern }}' - running job"
+          else
+            # Check if ALL files match the pattern (should skip)
+            if echo "$changed_files" | grep -qvE '${{ inputs.path-pattern }}'; then
+              echo "should_run=true" >> $GITHUB_OUTPUT
+              echo "Some files outside pattern '${{ inputs.path-pattern }}' - running job"
+            else
+              echo "should_run=false" >> $GITHUB_OUTPUT
+              echo "Only files matching pattern '${{ inputs.path-pattern }}' changed - skipping job"
+            fi
+          fi
+        else
+          # Normal: run if pattern matches
+          if [[ "$pattern_matches" == "true" ]]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "Files matching pattern '${{ inputs.path-pattern }}' detected - running job"
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "No files matching pattern '${{ inputs.path-pattern }}' - skipping job"
+          fi
+        fi
+
