@@ -145,6 +145,7 @@ public class DbClient {
     var model = createIdKeyDbModel(c7Id, createTime, c8Key, type, finalSkipReason);
     
     // Add to batch buffer
+    boolean shouldFlush = false;
     synchronized (insertBuffer) {
       insertBuffer.add(model);
       
@@ -153,10 +154,15 @@ public class DbClient {
         currentBatchC8Keys.add(c8Key);
       }
       
-      // Flush if batch size is reached
+      // Check if batch size is reached
       if (insertBuffer.size() >= properties.getBatchSize()) {
-        flushBatch();
+        shouldFlush = true;
       }
+    }
+    
+    // Flush outside the synchronized block to avoid nested locking
+    if (shouldFlush) {
+      flushBatch();
     }
   }
 
