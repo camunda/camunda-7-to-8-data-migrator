@@ -28,7 +28,7 @@ These tests validate that:
 2. **Install dependencies:**
    ```bash
    npm install
-   npx playwright install chromium
+   npx playwright install chromium firefox msedge
    ```
 
 ## Running Tests
@@ -36,6 +36,23 @@ These tests validate that:
 ### Run all tests
 ```bash
 npm test
+```
+
+This will run all tests across three browsers:
+- **Chromium** (Chrome-based)
+- **Firefox**
+- **Microsoft Edge**
+
+### Run tests on a specific browser
+```bash
+# Run only on Chromium
+npx playwright test --project=chromium
+
+# Run only on Firefox
+npx playwright test --project=firefox
+
+# Run only on Edge
+npx playwright test --project=edge
 ```
 
 ### Run tests with UI mode (interactive)
@@ -46,6 +63,9 @@ npm run test:ui
 ### Run tests in headed mode (see the browser)
 ```bash
 npm run test:headed
+
+# Or for a specific browser
+npx playwright test --project=firefox --headed
 ```
 
 ### Run tests in debug mode
@@ -63,15 +83,20 @@ npm run test:debug
    - **Data Migrator** - runs migration to populate test data
    - **Cockpit Plugin** - mounted with real migration_mapping table data
 
-2. **Migration Process:**
-   - The `start-services.sh` script monitors the migration progress
-   - It waits for "Migration completed - test data ready" in the logs
-   - This ensures the database is populated before tests run
+2. **Migration Wait Process:**
+   - **`start-services.sh`** starts all Docker containers
+   - **`global-setup.ts`** (Playwright global setup hook) waits for migration completion
+   - Checks Docker logs for "Migration completed - test data ready" message
+   - Only after migration completes, tests are allowed to start
+   - This ensures the database is fully populated before any test runs
 
 3. **Playwright Tests:**
    - Tests navigate to the Cockpit, login, and interact with the plugin UI
    - Validates plugin behavior with actual migrated/skipped entities
    - Screenshots are captured for verification and debugging
+
+**Why the wait is important:**
+The migration process can take 30-60 seconds to complete. Without waiting, tests would run against an empty database and fail. The global setup ensures tests always have the required test data.
 
 **Manual approach:**
 ```bash
@@ -89,7 +114,8 @@ docker compose down -v
 
 - `docker-compose.yml` - Complete test stack with Camunda 7, Camunda 8 Run, and Data Migrator
 - `start-services.sh` - Helper script to start services and wait for migration completion
-- `playwright.config.ts` - Playwright configuration with webServer setup
+- `global-setup.ts` - Playwright global setup that waits for migration before tests start
+- `playwright.config.ts` - Playwright configuration with webServer and globalSetup
 - `tests/cockpit-plugin.spec.ts` - Main E2E test suite
 
 ## Test Coverage
