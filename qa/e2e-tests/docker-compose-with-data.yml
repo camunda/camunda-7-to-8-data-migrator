@@ -29,7 +29,7 @@ services:
 
   # PostgreSQL for Camunda 7
   postgres:
-    image: postgres:15-alpine
+    image: postgres:18
     environment:
       - POSTGRES_DB=camunda7
       - POSTGRES_USER=camunda
@@ -46,7 +46,7 @@ services:
 
   # Zeebe (C8 process engine)
   zeebe:
-    image: camunda/zeebe:8.6.0
+    image: camunda/zeebe:8.8.0
     ports:
       - "26500:26500"
       - "9600:9600"
