@@ -24,16 +24,45 @@ test.describe('Cockpit Plugin E2E', () => {
     // Navigate to Camunda Cockpit and login
     await page.goto('/camunda/app/cockpit/default/');
     
-    // Login with default credentials
-    await page.fill('input[name="username"]', 'demo');
-    await page.fill('input[name="password"]', 'demo');
-    await page.click('button[type="submit"]');
+    // Wait for the login page to load
+    await page.waitForLoadState('networkidle');
     
-    // Wait for the dashboard to load
-    await page.waitForURL('**/cockpit/default/#/dashboard');
+    // Check if we're on a login page (some Camunda instances might auto-login)
+    const isLoginPage = await page.locator('input[name="username"]').isVisible().catch(() => false);
+    
+    if (isLoginPage) {
+      // Fill in login credentials - Camunda 7 default demo user
+      const usernameInput = page.locator('input[name="username"]');
+      const passwordInput = page.locator('input[name="password"]');
+      const submitButton = page.locator('button[type="submit"]');
+      
+      // Wait for inputs to be visible
+      await usernameInput.waitFor({ state: 'visible', timeout: 10000 });
+      
+      await usernameInput.fill('demo');
+      await passwordInput.fill('demo');
+      
+      // Take screenshot before login
+      await page.screenshot({ path: 'test-results/before-login.png', fullPage: true });
+      
+      await submitButton.click();
+      
+      // Wait a bit for the login to process
+      await page.waitForTimeout(2000);
+      
+      // Take screenshot after clicking login
+      await page.screenshot({ path: 'test-results/after-login-click.png', fullPage: true });
+      
+      // Wait for the dashboard to load with a longer timeout
+      // The URL might redirect through several pages
+      await page.waitForURL('**/cockpit/default/#/dashboard', { timeout: 30000 });
+    }
   });
 
   test('should load Camunda Cockpit successfully', async ({ page }) => {
+    // Take a screenshot after login for debugging
+    await page.screenshot({ path: 'test-results/after-login.png', fullPage: true });
+    
     // Verify we're on the Cockpit dashboard
     await expect(page).toHaveURL(/.*cockpit.*dashboard/);
     
