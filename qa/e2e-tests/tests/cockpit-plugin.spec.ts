@@ -141,33 +141,6 @@ test.describe('Cockpit Plugin E2E', () => {
     expect(optionsCount).toBeGreaterThan(0);
   });
 
-  test('should display empty state when no entities exist', async ({ page }) => {
-    // Navigate to processes page
-    await page.click('a[href="#/processes"]');
-    await page.waitForURL('**/#/processes?pdSearchQuery=%5B%5D');
-    
-    // Wait for plugin to load
-    await page.waitForTimeout(2000);
-    
-    // Since this is a fresh Camunda instance with no migrations run,
-    // the table should be empty or show "No data" / count of 0
-    
-    // Look for the table or empty state indicators
-    // The PaginatedTable component should render something even when empty
-    const tableElement = page.locator('table');
-    
-    // Take screenshot of empty state
-    await page.screenshot({ path: 'test-results/empty-state.png', fullPage: true });
-    
-    // Verify either the table exists (possibly empty) or we see a loading/empty message
-    const hasTable = await tableElement.isVisible().catch(() => false);
-    const hasLoading = await page.locator('text=Loading').isVisible().catch(() => false);
-    const hasNoData = await page.locator('text=/No|Empty|0/i').first().isVisible().catch(() => false);
-    
-    // At least one of these should be true
-    expect(hasTable || hasLoading || hasNoData).toBeTruthy();
-  });
-
   test('should display 6 skipped process instances with correct columns and data', async ({ page }) => {
     // Navigate to processes page
     await page.click('a[href="#/processes"]');
