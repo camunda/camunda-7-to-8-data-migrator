@@ -15,9 +15,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for relevant changes
+        id: changes
+        uses: ./.github/actions/check-path-changes
+        with:
+          path-pattern: '^qa/e2e-tests/'
+          invert: 'true'
 
       - name: Import secrets
         id: secrets
+        if: steps.changes.outputs.should_run == 'true'
         uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b # v3.4.0
         with:
           url: ${{ secrets.VAULT_ADDR }}
@@ -29,6 +39,7 @@ jobs:
             secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
 
       - name: Setup Maven
+        if: steps.changes.outputs.should_run == 'true'
         uses: ./.github/actions/setup-maven
         with:
           vault-address: ${{ secrets.VAULT_ADDR }}
@@ -36,11 +47,12 @@ jobs:
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
 
       - name: Build and run default tests
+        if: steps.changes.outputs.should_run == 'true'
         run: mvn clean install --batch-mode
 
       - name: Collect distro
         id: distro
-        if: github.ref == 'refs/heads/main'
+        if: steps.changes.outputs.should_run == 'true' && github.ref == 'refs/heads/main'
         run: |
           ARTIFACT_DIR=$(mktemp -d)
           cp assembly/target/camunda-7-to-8-data-migrator-*.tar.gz "${ARTIFACT_DIR}/"
@@ -49,7 +61,7 @@ jobs:
 
       - name: Upload distro
         uses: actions/upload-artifact@v5
-        if: github.ref == 'refs/heads/main'
+        if: steps.changes.outputs.should_run == 'true' && github.ref == 'refs/heads/main'
         with:
           name: distro
           path: ${{ steps.distro.outputs.dir }}
@@ -61,9 +73,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for relevant changes
+        id: changes
+        uses: ./.github/actions/check-path-changes
+        with:
+          path-pattern: '^qa/e2e-tests/'
+          invert: 'true'
 
       - name: Import secrets
         id: secrets
+        if: steps.changes.outputs.should_run == 'true'
         uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b # v3.4.0
         with:
           url: ${{ secrets.VAULT_ADDR }}
@@ -75,6 +97,7 @@ jobs:
             secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
 
       - name: Setup Maven
+        if: steps.changes.outputs.should_run == 'true'
         uses: ./.github/actions/setup-maven
         with:
           vault-address: ${{ secrets.VAULT_ADDR }}
@@ -82,6 +105,7 @@ jobs:
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
 
       - name: Run tests with PostgreSQL
+        if: steps.changes.outputs.should_run == 'true'
         run: mvn verify -Ppostgresql
 
   oracle:
@@ -90,9 +114,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for relevant changes
+        id: changes
+        uses: ./.github/actions/check-path-changes
+        with:
+          path-pattern: '^qa/e2e-tests/'
+          invert: 'true'
 
       - name: Import secrets
         id: secrets
+        if: steps.changes.outputs.should_run == 'true'
         uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b # v3.4.0
         with:
           url: ${{ secrets.VAULT_ADDR }}
@@ -104,6 +138,7 @@ jobs:
             secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
 
       - name: Setup Maven
+        if: steps.changes.outputs.should_run == 'true'
         uses: ./.github/actions/setup-maven
         with:
           vault-address: ${{ secrets.VAULT_ADDR }}
@@ -111,6 +146,7 @@ jobs:
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
 
       - name: Run tests with Oracle
+        if: steps.changes.outputs.should_run == 'true'
         run: mvn verify -Poracle
 
   windows-h2:
@@ -119,9 +155,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for relevant changes
+        id: changes
+        uses: ./.github/actions/check-path-changes
+        with:
+          path-pattern: '^qa/e2e-tests/'
+          invert: 'true'
 
       - name: Import secrets
         id: secrets
+        if: steps.changes.outputs.should_run == 'true'
         uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b # v3.4.0
         with:
           url: ${{ secrets.VAULT_ADDR }}
@@ -133,6 +179,7 @@ jobs:
             secret/data/products/cambpm/ci/nexus NEXUS_APP_CAMUNDA_COM_PSW;
 
       - name: Setup Maven
+        if: steps.changes.outputs.should_run == 'true'
         uses: ./.github/actions/setup-maven
         with:
           vault-address: ${{ secrets.VAULT_ADDR }}
@@ -140,6 +187,7 @@ jobs:
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
 
       - name: Build and run default tests
+        if: steps.changes.outputs.should_run == 'true'
         run: mvn clean install -Pwindows --batch-mode
 
   e2e-cockpit-plugin:
@@ -155,36 +203,9 @@ jobs:
       
       - name: Check for relevant changes
         id: changes
-        run: |
-          # Check if we should run this job
-          # Always run on main branch, schedule, or workflow_dispatch
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]] || \
-             [[ "${{ github.event_name }}" == "schedule" ]] || \
-             [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "Running on main/schedule/manual trigger"
-            exit 0
-          fi
-          
-          # For PRs, check if relevant files changed
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            changed_files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
-          else
-            # For push events, compare with previous commit
-            changed_files=$(git diff --name-only HEAD~1 HEAD)
-          fi
-          
-          echo "Changed files:"
-          echo "$changed_files"
-          
-          # Check if changes are in cockpit plugin or e2e tests
-          if echo "$changed_files" | grep -qE '^(plugins/cockpit|qa/e2e-tests)/'; then
-            echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "Relevant changes detected"
-          else
-            echo "should_run=false" >> $GITHUB_OUTPUT
-            echo "No relevant changes - skipping E2E tests"
-          fi
+        uses: ./.github/actions/check-path-changes
+        with:
+          path-pattern: '^(plugins/cockpit|qa/e2e-tests)/'
 
       - name: Import secrets
         id: secrets
@@ -227,7 +248,7 @@ jobs:
       - name: Install Playwright browsers
         if: steps.changes.outputs.should_run == 'true'
         working-directory: qa/e2e-tests
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium firefox msedge
 
       - name: Run E2E tests
         if: steps.changes.outputs.should_run == 'true'
