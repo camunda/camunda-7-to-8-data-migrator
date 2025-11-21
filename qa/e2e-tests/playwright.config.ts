@@ -41,6 +41,5 @@ export default defineConfig({
     timeout: 360 * 1000, // 6 minutes for Camunda to start and migration to complete
     stdout: 'pipe',
     stderr: 'pipe',
-    cwd: './qa/e2e-tests',
   },
 });
