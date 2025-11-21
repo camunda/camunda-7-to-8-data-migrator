@@ -168,6 +168,62 @@ test.describe('Cockpit Plugin E2E', () => {
     expect(hasTable || hasLoading || hasNoData).toBeTruthy();
   });
 
+  test('should display 6 skipped process instances with correct columns and data', async ({ page }) => {
+    // Navigate to processes page
+    await page.click('a[href="#/processes"]');
+    await page.waitForURL('**/#/processes?pdSearchQuery=%5B%5D');
+
+    // Wait for plugin to load
+    await page.waitForTimeout(2000);
+
+    // Select "Skipped" radio button (should be selected by default, but ensure it)
+    const skippedRadio = page.locator('input[type="radio"][value="skipped"]');
+    await skippedRadio.click();
+
+    // Wait for data to load
+    await page.waitForTimeout(2000);
+
+    // Find the table
+    const table = page.locator('view[data-plugin-id="camunda-7-to-8-data-migrator"] table');
+    await expect(table).toBeVisible();
+
+    // Verify table headers contain the expected columns
+    const headerRow = table.locator('thead tr');
+    await expect(headerRow.locator('th:has-text("Process Instance ID")')).toBeVisible();
+    await expect(headerRow.locator('th:has-text("Process Definition Key")')).toBeVisible();
+    await expect(headerRow.locator('th:has-text("Skip Reason")')).toBeVisible();
+
+    // Get all data rows (excluding header)
+    const dataRows = table.locator('tbody tr');
+    const rowCount = await dataRows.count();
+
+    // Verify we have exactly 6 rows
+    expect(rowCount).toBe(6);
+
+    // Verify each row has the expected data
+    for (let i = 0; i < rowCount; i++) {
+      const row = dataRows.nth(i);
+
+      // Get cells in the row
+      const cells = row.locator('td');
+
+      // Process Instance ID should be a UUID (format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+      const processInstanceId = await cells.nth(0).textContent();
+      expect(processInstanceId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+
+      // Process Definition Key should be "invoice"
+      const processDefinitionKey = await cells.nth(1).textContent();
+      expect(processDefinitionKey?.trim()).toBe('invoice');
+
+      // Skip Reason should contain the expected error message
+      const skipReason = await cells.nth(2).textContent();
+      expect(skipReason).toContain('No C8 deployment found for process ID [invoice] required for instance with C7 ID');
+    }
+
+    // Take a screenshot for verification
+    await page.screenshot({ path: 'test-results/skipped-instances-table.png', fullPage: true });
+  });
+
   test('should render plugin UI elements without errors', async ({ page }) => {
     // Listen for console errors before navigation
     const errors: string[] = [];
