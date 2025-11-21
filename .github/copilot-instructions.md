@@ -63,6 +63,14 @@ The project is organized as a multi-module Maven project:
 
 ## Build and Test Commands
 
+### Maven Configuration
+
+The project uses Camunda dependencies from private repositories. The repository configuration is already included in the `pom.xml`. Maven will automatically use these repositories when building:
+- `https://artifacts.camunda.com/artifactory/zeebe-io-snapshots/` for snapshots
+- `https://artifacts.camunda.com/artifactory/camunda-bpm-snapshots/` for Camunda BPM snapshots
+
+No additional settings.xml configuration is required.
+
 ### Building the Project
 
 ```bash
@@ -128,7 +136,11 @@ npm run build
 
 - Make minimal, focused changes that address the specific issue
 - Don't modify working code unnecessarily
-- Update documentation when adding or changing features
+- Update documentation when adding or changing features:
+  - For complex changes, add comments in the code explaining the approach
+  - Update JavaDoc for all public API changes
+  - Update README.md if the changes affect installation, usage, or features
+  - If changes require updates to the official documentation at docs.camunda.io, note this in the PR description
 - Ensure changes are backward compatible unless explicitly intended otherwise
 - Be mindful of production readiness status (runtime vs. history migrator)
 
@@ -156,21 +168,52 @@ When adding database-specific code:
 
 ## Pull Request Quality
 
-- PRs must pass all CI checks (H2, PostgreSQL, Oracle, Windows builds)
-- Include clear, descriptive titles and descriptions
-- Reference related issues using GitHub issue numbers
+### Commit Messages
+
+Follow conventional commits format:
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `refactor`: Code refactoring
+- `chore`: Maintenance tasks (dependencies, build, etc.)
+- `docs`: Documentation changes
+- `test`: Test additions or modifications
+- `perf`: Performance improvements
+
+**Scope:** Module or component affected (e.g., `core`, `history`, `distro`, `deps`)
+
+**Examples:**
+- `feat(runtime): add support for message correlation`
+- `fix(core): resolve variable serialization issue`
+- `chore(deps): update Spring Boot to 3.5.8`
+- `refactor(history): move MyBatis mappers into DbClient`
+
+### Pull Request Guidelines
+
+- Include clear, descriptive titles using conventional commits format
+- Provide detailed description explaining the changes and their purpose
+- Reference related issues using `related to #<issue-number>` (not `closes #<issue-number>`)
 - Keep PRs focused on a single feature or fix
 - Ensure all tests pass locally before submitting
+- Wait for CI checks to complete (H2, PostgreSQL, Oracle, Windows builds)
 
 ## CI/CD
 
-The project uses GitHub Actions for CI:
+The project uses GitHub Actions for CI with multiple database environments:
 - `distro-h2`: Default build with H2 database
 - `postgresql`: Tests with PostgreSQL
 - `oracle`: Tests with Oracle
 - `windows-h2`: Windows-specific builds
 
-All jobs must pass before merging.
+**Note:** You cannot merge pull requests. Wait for CI checks to complete and address any failures. A human reviewer will merge the PR after approval.
 
 ## Additional Resources
 
