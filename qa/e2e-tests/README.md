@@ -33,16 +33,9 @@ These tests validate that:
 
 ## Running Tests
 
-### Run all tests (basic mode - fast)
+### Run all tests
 ```bash
 npm test
-# or explicitly
-npm run test:basic
-```
-
-### Run tests with real migration data
-```bash
-npm run test:with-data
 ```
 
 ### Run tests with UI mode (interactive)
@@ -62,55 +55,40 @@ npm run test:debug
 
 ## How It Works
 
-### Basic Mode (Default)
-1. **Docker Compose** starts a Camunda 7 instance with the plugin JAR mounted
-2. **Playwright** waits for Camunda to be ready (health check)
-3. **Tests** navigate to the Cockpit, login, and interact with the plugin UI
-4. **Screenshots** are captured for verification and debugging
+### Test Setup with Real Migration Data
 
-**Usage:** `npm test` or `npm run test:basic`
-
-### With Real Demo Data
-To test with real migrated data, use the enhanced setup:
-
-```bash
-npm run test:with-data
-```
-
-**What happens:**
-1. The `start-services.sh` script starts the full Docker Compose stack:
+1. **Docker Compose** starts the complete stack:
    - **Camunda 7** (with PostgreSQL) - source system
-   - **Zeebe/C8** (with Elasticsearch) - target system
+   - **Camunda 8 Run** - target system (includes Zeebe, Operate, Tasklist)
    - **Data Migrator** - runs migration to populate test data
    - **Cockpit Plugin** - mounted with real migration_mapping table data
-2. Script **waits for the migration to complete** by monitoring logs for "Migration completed - test data ready"
-3. Once ready, Playwright tests run against the populated database
-4. Tests validate plugin behavior with actual migrated/skipped entities
+
+2. **Migration Process:**
+   - The `start-services.sh` script monitors the migration progress
+   - It waits for "Migration completed - test data ready" in the logs
+   - This ensures the database is populated before tests run
+
+3. **Playwright Tests:**
+   - Tests navigate to the Cockpit, login, and interact with the plugin UI
+   - Validates plugin behavior with actual migrated/skipped entities
+   - Screenshots are captured for verification and debugging
 
 **Manual approach:**
 ```bash
-# Use the full stack with Camunda 7, Zeebe, and Data Migrator
-COMPOSE_FILE=docker-compose-with-data.yml bash start-services.sh &
+# Start the services
+bash start-services.sh &
 
 # Wait for migration message in logs, then:
 npm test
 
 # Cleanup
-docker compose -f docker-compose-with-data.yml down -v
+docker compose down -v
 ```
-
-The `docker-compose-with-data.yml` setup includes:
-- **Camunda 7** (with PostgreSQL) - source system
-- **Zeebe/C8** (with Elasticsearch) - target system
-- **Data Migrator** - runs migration to populate test data
-- **Cockpit Plugin** - mounted with real migration_mapping table data
-
-This allows testing with actual migrated process instances instead of empty tables.
 
 ## Test Structure
 
-- `docker-compose.yml` - Simple Camunda 7 instance with plugin (default, fast)
-- `docker-compose-with-data.yml` - Full stack with real migration data (comprehensive testing)
+- `docker-compose.yml` - Complete test stack with Camunda 7, Camunda 8 Run, and Data Migrator
+- `start-services.sh` - Helper script to start services and wait for migration completion
 - `playwright.config.ts` - Playwright configuration with webServer setup
 - `tests/cockpit-plugin.spec.ts` - Main E2E test suite
 
