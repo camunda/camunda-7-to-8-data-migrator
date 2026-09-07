@@ -139,58 +139,16 @@ export const task_attachment = [
 			path: "/task/{id}/attachment/{attachmentId}",
 			operation: "get",
 		},
-		target: {
-			path: "/documents/{documentId}",
-			operation: "get",
-		},
-		direct: {
-			rowInfo: [
-				{
-					leftEntry: <pre>(string) attachmentId</pre>,
-					rightEntry: <pre>(string) documentId</pre>,
-				},
-			],
-			additionalInfo: (
-				<p>
-					For more information, take a look at{" "}
-					<a
-						href="https://docs.camunda.io/docs/8.10/guides/document-handling/"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						the docs
-					</a>
-					.
-				</p>
-			),
-		},
-		discontinued: {
-			rowInfo: [
-				{
-					leftEntry: <pre>(string) id</pre>,
-					rightEntry: (
-						<p>
-							In Camunda 8.10, documents are not directly relatable
-							to tasks. They are referenced by documentIds, which
-							are returned on upload.
-						</p>
-					),
-				},
-			],
-			additionalInfo: (
-				<p>
-					For more information, take a look at{" "}
-					<a
-						href="https://docs.camunda.io/docs/8.10/guides/document-handling/"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						the docs
-					</a>
-					.
-				</p>
-			),
-		},
+		target: {},
+		discontinuedExplanation: (
+			<p>
+				Camunda 7 returns attachment metadata from this endpoint. The
+				Camunda 8.10 <code>GET /documents/{"{documentId}"}</code>{" "}
+				endpoint downloads binary content, so it is not an equivalent
+				metadata operation. Manage attachment metadata in the
+				application when migrating.
+			</p>
+		),
 	},
 	{
 		origin: {

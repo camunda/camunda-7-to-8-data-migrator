@@ -108,6 +108,70 @@ export const job = [
 	},
 	{
 		origin: {
+			path: "/job/{id}/priority",
+			operation: "put",
+		},
+		target: {
+			path: "/jobs/{jobKey}",
+			operation: "patch",
+		},
+		direct: {
+			rowInfo: [
+				{
+					leftEntry: <pre>(string) id</pre>,
+					rightEntry: <pre>(string) jobKey</pre>,
+				},
+				{
+					leftEntry: <pre>(int32) priority</pre>,
+					rightEntry: <pre>(int32) changeset.priority</pre>,
+				},
+			],
+			additionalInfo: (
+				<p>
+					Job priority is supported by the Camunda 8.10 Update job
+					endpoint.
+				</p>
+			),
+		},
+	},
+	{
+		origin: {
+			path: "/job/{id}/retries",
+			operation: "put",
+		},
+		target: {
+			path: "/jobs/{jobKey}",
+			operation: "patch",
+		},
+		direct: {
+			rowInfo: [
+				{
+					leftEntry: <pre>(string) id</pre>,
+					rightEntry: <pre>(string) jobKey</pre>,
+				},
+				{
+					leftEntry: <pre>(int32) retries</pre>,
+					rightEntry: <pre>(int32) changeset.retries</pre>,
+				},
+			],
+			additionalInfo: (
+				<p>
+					The Camunda 8.10 Update job endpoint updates the retry count
+					synchronously.
+				</p>
+			),
+		},
+		discontinued: {
+			rowInfo: [
+				{
+					leftEntry: <pre>(dateTime) dueDate</pre>,
+					rightEntry: <p>Not applicable in Camunda 8.</p>,
+				},
+			],
+		},
+	},
+	{
+		origin: {
 			path: "/job/suspended",
 			operation: "put",
 		},

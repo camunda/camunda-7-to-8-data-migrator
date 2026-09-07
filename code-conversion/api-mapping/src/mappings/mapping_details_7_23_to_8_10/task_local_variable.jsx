@@ -156,7 +156,7 @@ export const task_local_variable = [
 			path: "/element-instances/{elementInstanceKey}/variables",
 			operation: "put",
 		},
-		discontinued: {
+		direct: {
 			rowInfo: [
 				{
 					leftEntry: <pre>(string) id</pre>,
@@ -165,16 +165,58 @@ export const task_local_variable = [
 							<pre>(string) elementInstanceKey</pre>
 							<p>
 								The <code>elementInstanceKey</code> is not the{" "}
-								<code>userTaskKey</code>. You can get the
+								<code>userTaskKey</code>. You can get the{" "}
 								<code>elementInstanceKey</code> of the user task
-								by retrieving the user task via the
+								by retrieving the user task via the{" "}
 								<code>GET Get user task</code> endpoint.
 							</p>
 						</>
 					),
 				},
+				{
+					leftEntry: <pre>(string) varName</pre>,
+					rightEntry: <pre>(string) variables[varName]</pre>,
+				},
+				{
+					leftEntry: <pre>(any) value</pre>,
+					rightEntry: <pre>(any) variables[varName]</pre>,
+				},
 			],
-			additionalInfo: null, // No additional info to include here, but can be added if needed
+			additionalInfo: (
+				<p>
+					Send the value as{" "}
+					<code>
+						{"{ variables: { [varName]: value }, local: true }"}
+					</code>{" "}
+					to keep the update in the task-local scope. Camunda 8
+					stores variables as JSON, so convert Camunda 7 serialized
+					values before sending them; the Camunda 7 <code>type</code>{" "}
+					and <code>valueInfo</code> metadata have no direct
+					equivalent.
+				</p>
+			),
+		},
+		discontinued: {
+			rowInfo: [
+				{
+					leftEntry: <pre>(string) type</pre>,
+					rightEntry: (
+						<p>
+							Camunda 8 infers the variable type from the JSON
+							value.
+						</p>
+					),
+				},
+				{
+					leftEntry: <pre>(object) valueInfo</pre>,
+					rightEntry: (
+						<p>
+							Camunda 8 does not accept Camunda 7 serialization
+							metadata in this request.
+						</p>
+					),
+				},
+			],
 		},
 	},
 	{
