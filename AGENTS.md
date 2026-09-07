@@ -33,8 +33,9 @@ Do not modify these paths without explicit human approval:
 
 Every implementation task must be linked to a GitHub issue or pull request before
 the first code or documentation change. Find an existing tracking item or create
-one; a commit message or an unlinked branch is not sufficient. Keep the link in
-the branch/PR description. For a tracking issue, use `Closes #N` only when the
+one; a commit message alone or an unlinked branch is not sufficient. Put the link
+in the pull request description; the branch name may also identify the work, but
+it does not replace the PR link. For a tracking issue, use `Closes #N` only when the
 PR delivers the issue's full scope, and use `Refs #N` for a partial
 implementation. For a tracking PR, use `Refs #N` or the PR URL; `Closes` does
 not auto-close pull requests.

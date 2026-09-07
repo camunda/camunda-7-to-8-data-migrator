@@ -7,7 +7,7 @@
 
 - **Tracking issue or PR:** For an issue, use `Closes #...` for full scope or `Refs #...` for partial; for a PR, use `Refs #...` or its URL.
 - **Owner:** `@github-handle` (must match the tracking item assignee)
-- **Project status:** `In Progress`
+- **Project status:** `In Progress` in project `182` owned by `camunda`
 - [ ] I linked this PR to a tracking issue or PR before implementation.
 - [ ] The tracking item is assigned to the owner and marked `In Progress`.
 - **Tracking exception (only when no issue or PR can be linked):** <!-- State the reason, scope, owner, and approver. Otherwise write N/A. -->
