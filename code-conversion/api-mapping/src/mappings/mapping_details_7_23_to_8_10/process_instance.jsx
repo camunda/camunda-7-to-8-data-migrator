@@ -721,10 +721,16 @@ export const process_instance = [
 			path: "/process-instance/suspended",
 			operation: "put",
 		},
-		target: {
-			path: "/process-instances/suspension",
-			operation: "post",
-		},
+		target: [
+			{
+				path: "/process-instances/suspension",
+				operation: "post",
+			},
+			{
+				path: "/process-instances/resumption",
+				operation: "post",
+			},
+		],
 		direct: {
 			rowInfo: [
 				{
@@ -856,10 +862,16 @@ export const process_instance = [
 			path: "/process-instance/suspended-async",
 			operation: "post",
 		},
-		target: {
-			path: "/process-instances/suspension",
-			operation: "post",
-		},
+		target: [
+			{
+				path: "/process-instances/suspension",
+				operation: "post",
+			},
+			{
+				path: "/process-instances/resumption",
+				operation: "post",
+			},
+		],
 		direct: {
 			rowInfo: [
 				{
@@ -1329,10 +1341,16 @@ export const process_instance = [
 			path: "/process-instance/{id}/suspended",
 			operation: "put",
 		},
-		target: {
-			path: "/process-instances/{processInstanceKey}/suspension",
-			operation: "post",
-		},
+		target: [
+			{
+				path: "/process-instances/{processInstanceKey}/suspension",
+				operation: "post",
+			},
+			{
+				path: "/process-instances/{processInstanceKey}/resumption",
+				operation: "post",
+			},
+		],
 		mappedExplanation: (
 			<p>
 				The Camunda 8.10 Suspend process instance endpoint suspends the

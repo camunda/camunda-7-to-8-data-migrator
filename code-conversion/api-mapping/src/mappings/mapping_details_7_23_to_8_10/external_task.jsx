@@ -898,15 +898,17 @@ export const external_task = [
 					leftEntry: <pre>(int64) newDuration</pre>,
 					rightEntry: <pre>(int64) changeset.timeout</pre>,
 				},
-			],
-			additionalInfo: "",
-		},
-		discontinued: {
-			rowInfo: [
 				{
 					leftEntry: <pre>(string) workerId</pre>,
 					rightEntry: (
-						<p>Not necessary to patch the timeout of a job.</p>
+						<>
+							<pre>(string) leaseToken</pre>
+							<p>
+								Use the token returned when activating the job
+								with <code>withLease: true</code> to preserve
+								worker-ownership fencing.
+							</p>
+						</>
 					),
 				},
 			],
