@@ -23,7 +23,7 @@ assignees: ''
 - **Implementation PR:** `#...` when available
 
 Before implementation, assign the issue to the owner and set its project status to
-`In Progress`. See the repository [work-tracking workflow](https://github.com/camunda/camunda-7-to-8-migration-tooling/blob/main/AGENTS.md#work-tracking-and-change-evidence).
+`In Progress`. See the repository [work-tracking workflow](../../AGENTS.md#work-tracking-and-change-evidence).
 
 ### Hints
 
