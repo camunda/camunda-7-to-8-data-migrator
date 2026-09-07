@@ -34,21 +34,24 @@ Do not modify these paths without explicit human approval:
 Every implementation task must be linked to a GitHub issue or pull request before
 the first code or documentation change. Find an existing tracking item or create
 one; a commit message or an unlinked branch is not sufficient. Keep the link in
-the branch/PR description and use `Closes #N` only when the PR delivers the
-tracking item's full scope. Use `Refs #N` for a partial implementation.
+the branch/PR description. For a tracking issue, use `Closes #N` only when the
+PR delivers the issue's full scope, and use `Refs #N` for a partial
+implementation. For a tracking PR, use `Refs #N` or the PR URL; `Closes` does
+not auto-close pull requests.
 
 ### Claim work before editing
 
 Before editing, the implementer must make ownership and active work visible:
 
-1. Assign the tracking issue to yourself and comment with the branch or PR that
-   will carry the work.
-2. Add the issue to the repository's GitHub project (project `182`, owned by
-   `camunda`) if it is not already present.
+1. Assign the tracking item (issue or PR) to yourself and comment with the
+   branch or PR that will carry the work.
+2. Add the tracking item (issue or PR) to the repository's GitHub project
+   (project `182`, owned by `camunda`) if it is not already present.
 3. Set the project's `Status` field to `In Progress`.
 
-The API-backed commands below are the canonical workflow. Replace the placeholders
-before running them:
+The API-backed commands below show the issue workflow. When the tracking item is
+a PR, replace `gh issue` with `gh pr`, `ISSUE` with the PR number, and
+`ISSUE_URL` with the PR URL.
 
 ```bash
 REPO=camunda/camunda-7-to-8-migration-tooling
@@ -82,9 +85,9 @@ printf '%s\n' "$ISSUE_STATE" | jq -e \
    any(.projectItems[]; .status.name == "In Progress")' >/dev/null
 ```
 
-An open implementation PR remains `In Progress` until it is merged. The issue
-owner, project status, and linked PR must identify who is actively responsible
-for the work; do not rely on an informal comment alone.
+An open implementation PR remains `In Progress` until it is merged. The tracking
+item owner, project status, and linked PR must identify who is actively
+responsible for the work; do not rely on an informal comment alone.
 
 ### Exceptions and bug evidence
 

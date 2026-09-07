@@ -5,11 +5,11 @@
 
 ## Work tracking (Required)
 
-- **Tracking issue or PR:** `Closes #...` / `Refs #...` / URL
-- **Owner:** `@github-handle` (must match the tracking issue assignee)
+- **Tracking issue or PR:** For an issue, use `Closes #...` for full scope or `Refs #...` for partial; for a PR, use `Refs #...` or its URL.
+- **Owner:** `@github-handle` (must match the tracking item assignee)
 - **Project status:** `In Progress`
 - [ ] I linked this PR to a tracking issue or PR before implementation.
-- [ ] The tracking issue is assigned to the owner and marked `In Progress`.
+- [ ] The tracking item is assigned to the owner and marked `In Progress`.
 - **Tracking exception (only when no issue or PR can be linked):** <!-- State the reason, scope, owner, and approver. Otherwise write N/A. -->
 
 ## Type of Change
@@ -65,4 +65,4 @@ If architecture tests fail, refactor your tests to use:
 - [ ] Dependent changes have been merged
 
 ## Related Issues
-<!-- Link every implementation change: use Closes #123 for full scope or Refs #123 for partial scope. -->
+<!-- Link every implementation change: for an issue, use Closes #123 for full scope or Refs #123 for partial scope; for a PR, use Refs #123 or its URL. -->
