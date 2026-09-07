@@ -557,14 +557,58 @@ export const process_instance = [
 			path: "/jobs/batch-update",
 			operation: "post",
 		},
-		mappedExplanation: (
-			<p>
-				The Camunda 8.10 Update jobs (batch) endpoint updates retries
-				for jobs matching a filter. The operation is asynchronous and
-				returns a batch operation key that can be used to track its
-				progress.
-			</p>
-		),
+		direct: {
+			rowInfo: [
+				{
+					leftEntry: <pre>(string[]) processInstances</pre>,
+					rightEntry: (
+						<>
+							<pre>(string[]) filter.processInstanceKey.$in</pre>
+							<p>
+								See{" "}
+								<a href="#key-to-id">
+									Camunda 7 key → Camunda 8 id
+								</a>
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: <pre>(object) processInstanceQuery</pre>,
+					rightEntry: (
+						<>
+							<pre>(object) filter</pre>
+							<p>
+								Translate supported query fields into the
+								nested <code>filter</code> object. Do not send
+								<code>processInstanceQuery</code> as a
+								top-level field.
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: <pre>(integer) retries</pre>,
+					rightEntry: <pre>(int32) changeset.retries</pre>,
+				},
+			],
+			additionalInfo: (
+				<p>
+					The Camunda 8.10 request body must be{" "}
+					<code>{"{ filter: ..., changeset: { retries: ... } }"}</code>
+					. The operation is asynchronous and returns a batch
+					operation key that can be used to track its progress.
+				</p>
+			),
+		},
+		discontinued: {
+			rowInfo: [
+				{
+					leftEntry: <pre>(dateTime) dueDate</pre>,
+					rightEntry: <p>Not applicable in Camunda 8.10.</p>,
+				},
+			],
+		},
 	},
 	{
 		origin: {
@@ -575,14 +619,58 @@ export const process_instance = [
 			path: "/jobs/batch-update",
 			operation: "post",
 		},
-		mappedExplanation: (
-			<p>
-				The Camunda 8.10 Update jobs (batch) endpoint provides the
-				closest equivalent by updating matching active jobs
-				asynchronously. Its filter replaces the Camunda 7 historic
-				process instance query.
-			</p>
-		),
+		direct: {
+			rowInfo: [
+				{
+					leftEntry: <pre>(string[]) processInstances</pre>,
+					rightEntry: (
+						<>
+							<pre>(string[]) filter.processInstanceKey.$in</pre>
+							<p>
+								See{" "}
+								<a href="#key-to-id">
+									Camunda 7 key → Camunda 8 id
+								</a>
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: <pre>(integer) retries</pre>,
+					rightEntry: <pre>(int32) changeset.retries</pre>,
+				},
+			],
+			additionalInfo: (
+				<p>
+					The Camunda 8.10 request body must be{" "}
+					<code>
+						{"{ filter: ..., changeset: { retries: ... } }"}
+					</code>
+					. Only explicitly translatable active-job criteria
+					can be represented by the Camunda 8 job filter; the
+					operation is asynchronous.
+				</p>
+			),
+		},
+		discontinued: {
+			rowInfo: [
+				{
+					leftEntry: (
+						<pre>(object) historicProcessInstanceQuery</pre>
+					),
+					rightEntry: (
+						<p>
+							Historic-only criteria have no equivalent in the
+							Camunda 8.10 job filter.
+						</p>
+					),
+				},
+				{
+					leftEntry: <pre>(dateTime) dueDate</pre>,
+					rightEntry: <p>Not applicable in Camunda 8.10.</p>,
+				},
+			],
+		},
 	},
 	{
 		origin: {
@@ -713,8 +801,11 @@ export const process_instance = [
 			additionalInfo: (
 				<p>
 					The Camunda 8.10 request body must be{" "}
-					<code>{"{ filter: ... }"}</code>. The batch operation
-					suspends only active process instances.
+					<code>{"{ filter: ... }"}</code>. With{" "}
+					<code>suspended: true</code>, the suspension endpoint
+					updates only active process instances. With{" "}
+					<code>suspended: false</code>, use the resumption endpoint
+					to update only suspended process instances.
 				</p>
 			),
 		},
@@ -845,8 +936,11 @@ export const process_instance = [
 			additionalInfo: (
 				<p>
 					The Camunda 8.10 request body must be{" "}
-					<code>{"{ filter: ... }"}</code>. The batch operation
-					suspends only active process instances.
+					<code>{"{ filter: ... }"}</code>. With{" "}
+					<code>suspended: true</code>, the suspension endpoint
+					updates only active process instances. With{" "}
+					<code>suspended: false</code>, use the resumption endpoint
+					to update only suspended process instances.
 				</p>
 			),
 		},
@@ -1110,12 +1204,17 @@ export const process_instance = [
 				{
 					leftEntry: <pre>(object) instructions[].variables</pre>,
 					rightEntry: (
-						<pre>
-							(object) activateInstructions[].variableInstructions
-							<br />
-							(object)
-							terminateInstructions[].variableInstructions
-						</pre>
+						<>
+							<pre>
+								(object) activateInstructions[].variableInstructions
+							</pre>
+							<p>
+								Variables are supported on activation
+								instructions only; termination instructions do
+								not accept{" "}
+								<code>variableInstructions</code>.
+							</p>
+						</>
 					),
 				},
 				{
