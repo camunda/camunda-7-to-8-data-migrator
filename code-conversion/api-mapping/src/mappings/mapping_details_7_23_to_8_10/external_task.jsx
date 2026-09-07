@@ -640,7 +640,7 @@ export const external_task = [
 					rightEntry: <pre>(string) jobKey</pre>,
 				},
 				{
-					leftEntry: <pre>(int64) newDuration</pre>,
+					leftEntry: <pre>(int64) lockDuration</pre>,
 					rightEntry: <pre>(int64) changeset.timeout</pre>,
 				},
 			],
@@ -726,23 +726,13 @@ export const external_task = [
 			path: "/external-task/{id}/unlock",
 			operation: "post",
 		},
-		target: {
-			path: "/jobs/{jobKey}/completion",
-			operation: "post",
-		},
-		direct: {
-			rowInfo: [
-				{
-					leftEntry: <pre>(string) id</pre>,
-					rightEntry: <pre>(string) jobKey</pre>,
-				},
-			],
-			additionalInfo: (
-				<p>
-					Set <code>result.denied</code> to true to reject the
-					completion and activate the job again.
-				</p>
-			),
-		},
+		target: {},
+		discontinuedExplanation: (
+			<p>
+				There is no Camunda 8.10 endpoint to unlock a job without
+				completing it. Completing a job advances the process and is not
+				equivalent to unlocking an external task.
+			</p>
+		),
 	},
 ];

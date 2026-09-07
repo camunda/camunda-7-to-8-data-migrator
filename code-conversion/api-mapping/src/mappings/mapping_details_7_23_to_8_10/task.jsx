@@ -955,8 +955,8 @@ export const task = [
 					),
 				},
 				{
-					leftEntry: <pre>(object[]) variables</pre>,
-					rightEntry: <pre>(object[]) variables</pre>,
+					leftEntry: <pre>(object) variables</pre>,
+					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
 		},
@@ -998,10 +998,6 @@ export const task = [
 							</p>
 						</>
 					),
-				},
-				{
-					leftEntry: <pre>(object[]) variables</pre>,
-					rightEntry: <pre>(object[]) variables</pre>,
 				},
 			],
 		},

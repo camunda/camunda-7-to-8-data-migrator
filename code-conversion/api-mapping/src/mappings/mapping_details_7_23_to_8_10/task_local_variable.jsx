@@ -53,8 +53,8 @@ export const task_local_variable = [
 		direct: {
 			rowInfo: [
 				{
-					leftEntry: <pre>(object[]) modifications</pre>,
-					rightEntry: <pre>(object[]) variables</pre>,
+					leftEntry: <pre>(object) modifications</pre>,
+					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
 			additionalInfo: (

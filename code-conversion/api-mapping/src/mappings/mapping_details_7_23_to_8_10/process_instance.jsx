@@ -953,7 +953,7 @@ export const process_instance = [
 					leftEntry: <pre>(string) annotation</pre>,
 					rightEntry: (
 						<p>
-							Not yet possible in Camunda 8.10. A integer{" "}
+							Not yet possible in Camunda 8.10. An integer{" "}
 							<code>operationReference</code> can be added to the
 							request.
 						</p>
@@ -1057,8 +1057,8 @@ export const process_instance = [
 					),
 				},
 				{
-					leftEntry: <pre>(object[]) modifications</pre>,
-					rightEntry: <pre>(object[]) variables</pre>,
+					leftEntry: <pre>(object) modifications</pre>,
+					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
 			additionalInfo: null,

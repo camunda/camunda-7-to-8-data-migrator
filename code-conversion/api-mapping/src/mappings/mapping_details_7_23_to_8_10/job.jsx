@@ -63,76 +63,48 @@ export const job = [
 			path: "/jobs/batch-update",
 			operation: "post",
 		},
-		direct: (
-			<>
-				<table>
-					<thead>
-						<tr>
-							<th>Camunda 7</th>
-							<th>Camunda 8</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td>
-								<pre>(string[]) jobIds</pre>
-							</td>
-							<td>
-								<pre>(string[]) filter.jobKey.$in</pre>
-								<p>
-									See{" "}
-									<a href="#key-to-id">
-										Camunda 7 key → Camunda 8 id
-									</a>
-								</p>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<pre>(object) jobQuery</pre>
-							</td>
-							<td>
-								<pre>(object) filter</pre>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<pre>(integer) retries</pre>
-							</td>
-							<td>
-								<pre>(int32) changeset.retries</pre>{" "}
-							</td>
-						</tr>
-					</tbody>
-				</table>
+		direct: {
+			rowInfo: [
+				{
+					leftEntry: <pre>(string[]) jobIds</pre>,
+					rightEntry: (
+						<>
+							<pre>(string[]) filter.jobKey.$in</pre>
+							<p>
+								See{" "}
+								<a href="#key-to-id">
+									Camunda 7 key → Camunda 8 id
+								</a>
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: <pre>(object) jobQuery</pre>,
+					rightEntry: <pre>(object) filter</pre>,
+				},
+				{
+					leftEntry: <pre>(integer) retries</pre>,
+					rightEntry: <pre>(int32) changeset.retries</pre>,
+				},
+			],
+			additionalInfo: (
 				<p>
-					The Camunda 8.10 Update jobs (batch) endpoint is asynchronous;
-					its batch operation key can be used to track progress.
+					The Camunda 8.10 Update jobs (batch) endpoint is
+					asynchronous; its batch operation key can be used to track
+					progress.
 				</p>
-			</>
-		),
-		discontinued: (
-			<>
-				<table>
-					<thead>
-						<tr>
-							<th>Camunda 7</th>
-							<th>Explanation</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td>
-								<pre>(dateTime) dueDate</pre>
-							</td>
-							<td>
-								<p>Not applicable in Camunda 8.</p>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</>
-		),
+			),
+		},
+		discontinued: {
+			rowInfo: [
+				{
+					leftEntry: <pre>(dateTime) dueDate</pre>,
+					rightEntry: <p>Not applicable in Camunda 8.</p>,
+				},
+			],
+			additionalInfo: "",
+		},
 	},
 	{
 		origin: {

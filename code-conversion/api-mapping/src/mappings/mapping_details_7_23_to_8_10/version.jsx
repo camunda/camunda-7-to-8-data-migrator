@@ -11,18 +11,13 @@ export const version = [
 			path: "/version",
 			operation: "get",
 		},
-		target: {
-			path: "/status",
-			operation: "get",
-		},
-		mappedExplanation: (
+		target: {},
+		discontinuedExplanation: (
 			<div>
-				In Camunda 8.10, the <code>GET Cluster status</code> endpoint can
-				be used to check the health and version of the cluster. Unlike
-				the Camunda 7 version endpoint which returns the REST API
-				version, the Camunda 8 status endpoint checks cluster health by
-				verifying partition leadership and returns cluster topology
-				information.
+				Camunda 8.10 has no endpoint equivalent to the Camunda 7 version
+				endpoint. The <code>GET /status</code> endpoint is only a health
+				probe for the default physical tenant and returns no version or
+				topology information.
 			</div>
 		),
 	},
