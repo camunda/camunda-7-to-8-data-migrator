@@ -15,6 +15,8 @@ import io.camunda.client.api.command.ClientException;
 import io.camunda.client.api.command.ClientStatusException;
 import io.camunda.client.api.command.ProblemException;
 import io.camunda.client.api.search.response.ProcessInstance;
+import io.camunda.client.api.search.response.Tenant;
+import io.camunda.client.api.search.response.TenantUser;
 import io.camunda.client.api.search.response.Variable;
 import io.camunda.migration.data.RuntimeMigrator;
 import io.camunda.migration.data.impl.clients.DbClient;
@@ -90,10 +92,26 @@ public abstract class RuntimeMigrationAbstractTest extends AbstractMigratorTest 
         // Ignore NOT_FOUND errors as the instance might have been deleted already
       }
     }
+    Awaitility.await().ignoreException(ClientException.class).untilAsserted(() ->
+        assertThat(camundaClient.newProcessInstanceSearchRequest().execute().items()).isEmpty());
 
     // Migrator
     dbClient.deleteAllMappings();
     runtimeMigrator.setMode(MIGRATE);
+  }
+
+  protected void awaitTenantVisible(String tenantId) {
+    Awaitility.await().ignoreException(ClientException.class).untilAsserted(() ->
+        assertThat(camundaClient.newTenantsSearchRequest().filter(filter -> filter.tenantId(tenantId)).execute().items())
+            .extracting(Tenant::getTenantId)
+            .contains(tenantId));
+  }
+
+  protected void awaitUserTenantMembership(String username, String tenantId) {
+    Awaitility.await().ignoreException(ClientException.class).untilAsserted(() ->
+        assertThat(camundaClient.newUsersByTenantSearchRequest(tenantId).execute().items())
+            .extracting(TenantUser::getUsername)
+            .contains(username));
   }
 
   protected Optional<Variable> getVariableByScope(Long processInstanceKey, Long scopeKey, String variableName) {
