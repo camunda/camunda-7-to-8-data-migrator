@@ -77,6 +77,9 @@ gh issue view "$ISSUE" --repo "$REPO" --json url,assignees,projectItems
 For a machine-checkable guard, fail when the current actor is not assigned or
 the issue is not active on the project board:
 
+The guard requires the GitHub CLI (`gh`) and `jq` to be installed and available
+on `PATH`.
+
 ```bash
 ISSUE_STATE=$(gh issue view "$ISSUE" --repo "$REPO" --json assignees,projectItems)
 ACTOR=$(gh api user --jq .login)

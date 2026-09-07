@@ -33,7 +33,7 @@ Before implementation, assign the issue to the owner and set its project status 
 
 - **Defect class:** Boundary or input validation / Mapping or conversion / Persistence or serialization / Lifecycle, state, or concurrency / Compatibility or external integration / Configuration or observability / Test, build, or CI infrastructure / Other
 - **Red reproducer or failing check:** <!-- Include the command, test, API check, or link to deterministic evidence before the fix -->
-- **Affected category surface:** <!-- Explain which related handlers, entities, flows, or environments are covered -->
+- **Category surface covered:** <!-- Explain which related handlers, entities, flows, or environments are covered -->
 
 ### Solution Ideas
 
