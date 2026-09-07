@@ -23,6 +23,7 @@ import io.camunda.migration.data.impl.clients.DbClient;
 import io.camunda.migration.data.qa.AbstractMigratorTest;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.awaitility.Awaitility;
@@ -81,7 +82,7 @@ public abstract class RuntimeMigrationAbstractTest extends AbstractMigratorTest 
     repositoryService.createDeploymentQuery().list().forEach(d -> repositoryService.deleteDeployment(d.getId(), true));
 
     // C8
-    List<ProcessInstance> items = camundaClient.newProcessInstanceSearchRequest().execute().items();
+    List<ProcessInstance> items = findAllProcessInstances();
     for (ProcessInstance i : items) {
       try {
         camundaClient.newDeleteResourceCommand(i.getProcessInstanceKey()).execute();
@@ -98,6 +99,28 @@ public abstract class RuntimeMigrationAbstractTest extends AbstractMigratorTest 
     // Migrator
     dbClient.deleteAllMappings();
     runtimeMigrator.setMode(MIGRATE);
+  }
+
+  protected List<ProcessInstance> findAllProcessInstances() {
+    final List<ProcessInstance> items = new ArrayList<>();
+    String cursor = null;
+
+    while (true) {
+      final var request = camundaClient.newProcessInstanceSearchRequest();
+      if (cursor != null) {
+        final String pageCursor = cursor;
+        request.page(page -> page.after(pageCursor));
+      }
+
+      final var response = request.execute();
+      items.addAll(response.items());
+
+      final String nextCursor = response.page().endCursor();
+      if (response.items().isEmpty() || nextCursor == null || nextCursor.equals(cursor)) {
+        return items;
+      }
+      cursor = nextCursor;
+    }
   }
 
   protected void awaitTenantVisible(String tenantId) {
