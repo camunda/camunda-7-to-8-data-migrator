@@ -75,11 +75,11 @@ export const process_instance = [
 					leftEntry: <pre>(boolean) rootProcessInstances</pre>,
 					rightEntry: (
 						<>
-							<pre>(string*) parentFlowNodeInstanceKey</pre>
+							<pre>(string*) parentElementInstanceKey</pre>
 							<p>
-								Check existence of parentFlowNodeInstanceKey to
-								infer the process being a root process instance
-								or not.
+								Check whether{" "}
+								<code>parentElementInstanceKey</code> is absent
+								to identify a root process instance.
 							</p>
 						</>
 					),

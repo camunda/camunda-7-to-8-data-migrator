@@ -15,6 +15,66 @@ export const condition = [
 			path: "/conditionals/evaluation",
 			operation: "post",
 		},
+		direct: {
+			rowInfo: [
+				{
+					leftEntry: <pre>(string) tenantId</pre>,
+					rightEntry: <pre>(string) tenantId</pre>,
+				},
+				{
+					leftEntry: <pre>(string) processDefinitionId</pre>,
+					rightEntry: (
+						<>
+							<pre>(string) processDefinitionKey</pre>
+							<p>
+								Resolve the Camunda 7 process definition id to
+								the assigned Camunda 8 process definition key.
+								See{" "}
+								<a href="#key-to-id">
+									Camunda 7 key → Camunda 8 id
+								</a>
+								.
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: <pre>(object) variables</pre>,
+					rightEntry: <pre>(object) variables</pre>,
+				},
+			],
+			additionalInfo: (
+				<p>
+					Camunda 8.10 requires <code>variables</code>. Send the
+					variables as raw JSON values; remove the Camunda 7{" "}
+					<code>value</code>, <code>type</code>, and{" "}
+					<code>valueInfo</code> wrappers before sending them.
+					Use an empty object when no variables are needed.
+				</p>
+			),
+		},
+		discontinued: {
+			rowInfo: [
+				{
+					leftEntry: <pre>(string) businessKey</pre>,
+					rightEntry: (
+						<p>
+							Camunda 8.10 does not accept a business key for
+							conditional evaluation.
+						</p>
+					),
+				},
+				{
+					leftEntry: <pre>(boolean) withoutTenantId</pre>,
+					rightEntry: (
+						<p>
+							Camunda 8.10 has no equivalent filter for evaluating
+							only process definitions without a tenant.
+						</p>
+					),
+				},
+			],
+		},
 		mappedExplanation: (
 			<div>
 				In Camunda 8.10, the{" "}

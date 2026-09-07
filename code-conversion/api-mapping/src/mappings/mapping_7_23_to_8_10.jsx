@@ -405,7 +405,7 @@ export const mapping_7_23_to_8_10 = {
 							<pre>POST /decision-definitions/search</pre>
 							<pre>
 								{
-									'{\n\t"filter": { "id": "dish-decision", "tenantId": "aTenantId" }\n}'
+									'{\n\t"filter": { "decisionDefinitionId": "dish-decision", "tenantId": "aTenantId" }\n}'
 								}
 							</pre>
 						</td>
