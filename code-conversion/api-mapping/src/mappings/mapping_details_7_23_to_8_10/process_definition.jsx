@@ -896,7 +896,7 @@ export const process_definition = [
 			operation: "put",
 		},
 		target: {},
-		mappedExplanation:
+		roadmapExplanation:
 			"Suspending a process definition is not yet possible in Camunda 8.10.",
 	},
 	{

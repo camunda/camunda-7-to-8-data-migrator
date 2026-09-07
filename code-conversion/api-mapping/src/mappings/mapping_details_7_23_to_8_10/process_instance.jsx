@@ -1162,16 +1162,47 @@ export const process_instance = [
 						</>
 					),
 				},
+				{
+					leftEntry: <pre>(string) varName</pre>,
+					rightEntry: <pre>(string) variables[varName]</pre>,
+				},
+				{
+					leftEntry: <pre>(any) value</pre>,
+					rightEntry: <pre>(any) variables[varName]</pre>,
+				},
 			],
+			additionalInfo: (
+				<p>
+					Send the value as{" "}
+					<code>
+						{"{ variables: { [varName]: value } }"}
+					</code>
+					. The default <code>local: false</code> behavior matches
+					Camunda 7's visible-variable update, which writes to the
+					outermost visible scope. Camunda 8 stores variables as JSON,
+					so convert Camunda 7 serialized values before sending them;
+					the Camunda 7 <code>type</code> and{" "}
+					<code>valueInfo</code> metadata have no direct equivalent.
+				</p>
+			),
 		},
 		discontinued: {
 			rowInfo: [
 				{
-					leftEntry: <pre>(string) varName</pre>,
+					leftEntry: <pre>(string) type</pre>,
 					rightEntry: (
 						<p>
-							Set the <code>varName</code> as one of the variables
-							to update.
+							Camunda 8 infers the variable type from the JSON
+							value.
+						</p>
+					),
+				},
+				{
+					leftEntry: <pre>(object) valueInfo</pre>,
+					rightEntry: (
+						<p>
+							Camunda 8 does not accept Camunda 7 serialization
+							metadata in this request.
 						</p>
 					),
 				},
@@ -1246,10 +1277,6 @@ export const process_instance = [
 					leftEntry: <pre>(binary) data</pre>,
 					rightEntry: <pre>(binary) file</pre>,
 				},
-				{
-					leftEntry: <pre>(string) valueType</pre>,
-					rightEntry: <pre>(string) metadata.contentType</pre>,
-				},
 			],
 		},
 		discontinued: {
@@ -1263,6 +1290,19 @@ export const process_instance = [
 							the future, there might be multiple potential stores
 							to upload a document to via the <code>storeId</code>
 							.
+						</p>
+					),
+				},
+				{
+					leftEntry: <pre>(string) valueType</pre>,
+					rightEntry: (
+						<p>
+							Camunda 7 accepts the <code>Bytes</code> and{" "}
+							<code>File</code> enum values, while Camunda 8{" "}
+							<code>metadata.contentType</code> expects a MIME
+							type such as <code>application/pdf</code>. Derive
+							the MIME type from the uploaded file;{" "}
+							<code>valueType</code> has no direct equivalent.
 						</p>
 					),
 				},

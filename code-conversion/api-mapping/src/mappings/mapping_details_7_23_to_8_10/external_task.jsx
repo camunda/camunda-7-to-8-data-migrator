@@ -629,34 +629,16 @@ export const external_task = [
 			path: "/external-task/{id}/lock",
 			operation: "post",
 		},
-		target: {
-			path: "/jobs/{jobKey}",
-			operation: "patch",
-		},
-		direct: {
-			rowInfo: [
-				{
-					leftEntry: <pre>(string) id</pre>,
-					rightEntry: <pre>(string) jobKey</pre>,
-				},
-				{
-					leftEntry: <pre>(int64) lockDuration</pre>,
-					rightEntry: <pre>(int64) changeset.timeout</pre>,
-				},
-			],
-			additionalInfo: "",
-		},
-		discontinued: {
-			rowInfo: [
-				{
-					leftEntry: <pre>(string) workerId</pre>,
-					rightEntry: (
-						<p>Not necessary to patch the timeout of a job.</p>
-					),
-				},
-			],
-			additionalInfo: "",
-		},
+		target: {},
+		discontinuedExplanation: (
+			<p>
+				Camunda 8.10 jobs are acquired through the{" "}
+				<code>POST /jobs/activation</code> endpoint by job type. The{" "}
+				<code>PATCH /jobs/&#123;jobKey&#125;</code> endpoint only updates
+				job fields such as the timeout; it does not activate or assign a
+				job, so explicit lock-by-ID is not available.
+			</p>
+		),
 	},
 	{
 		origin: {

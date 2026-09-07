@@ -102,8 +102,14 @@ export const task_local_variable = [
 			operation: "delete",
 		},
 		target: {},
-		mappedExplanation:
-			"In Camunda 8.10, there is no endpoint to delete a process variable. You can update it to null or an empty string.",
+		discontinuedExplanation: (
+			<p>
+				In Camunda 8.10, there is no endpoint to delete a process
+				variable. As a non-equivalent workaround, update it to{" "}
+				<code>null</code> or an empty string with{" "}
+				<code>local: true</code> to keep the update in the local scope.
+			</p>
+		),
 	},
 	{
 		origin: {
