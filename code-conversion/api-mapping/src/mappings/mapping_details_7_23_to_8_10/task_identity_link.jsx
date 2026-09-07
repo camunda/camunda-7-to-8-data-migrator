@@ -71,6 +71,10 @@ export const task_identity_link = [
 				<p>
 					This endpoint can be used to set{" "}
 					<code>candidateGroups</code> and <code>candidateUsers</code>.
+					Because the Camunda 8.10 PATCH replaces each candidate list,
+					first retrieve the current user task, append the new
+					identity to the relevant list, and submit the complete
+					list to preserve existing candidates.
 					To change the <code>assignee</code>, use the{" "}
 					<code>POST Assign user task</code> endpoint.
 				</p>
@@ -107,8 +111,11 @@ export const task_identity_link = [
 				<p>
 					This endpoint can be used to set{" "}
 					<code>candidateGroups</code> and <code>candidateUsers</code>.
-					A reset is achieved by providing an empty list. To
-					unassign the <code>assignee</code>, use the{" "}
+					Because the Camunda 8.10 PATCH replaces each candidate list,
+					first retrieve the current user task, remove only the
+					requested identity from the relevant list, and submit the
+					complete remaining list. To unassign the{" "}
+					<code>assignee</code>, use the{" "}
 					<code>Delete Unassign user task</code> endpoint.
 				</p>
 			),

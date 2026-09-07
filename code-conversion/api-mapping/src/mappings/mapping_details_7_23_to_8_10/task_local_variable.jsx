@@ -39,7 +39,7 @@ export const task_local_variable = [
 					<code>scopeKey</code>.{" "}
 					To match the Camunda 7 local-variable semantics, retrieve
 					the user task's <code>elementInstanceKey</code> and keep
-					only the variable whose <code>scopeKey</code> equals it.
+					only variables whose <code>scopeKey</code> equals it.
 				</p>
 			),
 		},
