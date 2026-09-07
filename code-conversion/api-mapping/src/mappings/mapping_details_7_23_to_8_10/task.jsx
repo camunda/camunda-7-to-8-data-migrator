@@ -29,6 +29,13 @@ export const task = [
 						<>
 							<pre>(string) userTaskKey</pre>
 							<p>
+								For <code>taskIdIn</code>, use the advanced{" "}
+								<code>$or</code> filter with one{" "}
+								<code>userTaskKey</code> clause per source ID, or
+								issue separate searches. A single{" "}
+								<code>userTaskKey</code> matches only one task.
+							</p>
+							<p>
 								See{" "}
 								<a href="#key-to-id">
 									Camunda 7 key → Camunda 8 id
@@ -288,6 +295,31 @@ export const task = [
 						</>
 					),
 				},
+				{
+					leftEntry: (
+						<pre>
+							(string) name
+							<br />
+							(string) nameNotEqual
+							<br />
+							(string) nameLike
+						</pre>
+					),
+					rightEntry: (
+						<>
+							<pre>(string*) filter.name</pre>
+							<p>
+								Set <code>filter.name</code> to the exact name for{" "}
+								<code>name</code>. Use the advanced{" "}
+								<code>$neq</code> and <code>$like</code> operators
+								for <code>nameNotEqual</code> and{" "}
+								<code>nameLike</code>. These filters only work for
+								data created with Camunda 8.8 and onwards; instances
+								from prior versions cannot be found.
+							</p>
+						</>
+					),
+				},
 			],
 			additionalInfo: (
 				<>
@@ -394,16 +426,15 @@ export const task = [
 				{
 					leftEntry: (
 						<pre>
-							(string) name
-							<br />
-							(string) nameNotEqual
-							<br />
-							(string) nameLike
-							<br />
 							(string) nameNotLike
 						</pre>
 					),
-					rightEntry: <p>Not possible in Camunda 8.10.</p>,
+					rightEntry: (
+						<p>
+							There is no direct filter operator for{" "}
+							<code>nameNotLike</code> in Camunda 8.10.
+						</p>
+					),
 				},
 				{
 					leftEntry: (
@@ -600,6 +631,34 @@ export const task = [
 								<a href="#key-to-id">
 									Camunda 7 key → Camunda 8 id
 								</a>
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: (
+						<pre>
+							(dateTime) due
+							<br />
+							(dateTime) followUp
+							<br />
+							(integer) priority
+						</pre>
+					),
+					rightEntry: (
+						<>
+							<pre>
+								(dateTime) changeset.dueDate
+								<br />
+								(dateTime) changeset.followUpDate
+								<br />
+								(integer) changeset.priority
+							</pre>
+							<p>
+								Wrap these fields in the request body's{" "}
+								<code>changeset</code> object. The{" "}
+								<code>priority</code> value must be between 0 and
+								100; do not send these fields at the top level.
 							</p>
 						</>
 					),

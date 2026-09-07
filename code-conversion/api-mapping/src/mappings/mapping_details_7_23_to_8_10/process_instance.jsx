@@ -1007,7 +1007,10 @@ export const process_instance = [
 								particular scope. This can be a process
 								instance. In this case the{" "}
 								<code>elementInstanceKey</code> is the
-								processInstanceKey.
+								processInstanceKey. For each ID in{" "}
+								<code>processInstanceIds</code>, issue a separate
+								request. This is synchronous and does not preserve
+								the source batch or asynchronous behavior.
 							</p>
 						</>
 					),
@@ -1195,9 +1198,13 @@ export const process_instance = [
 					leftEntry: <pre>(string) instructions[].type</pre>,
 					rightEntry: (
 						<p>
-							<code>cancel</code> and <code>start...</code> types
-							are mapped to <code>terminateInstructions</code> and{" "}
-							<code>activateInstructions</code>.
+							<code>cancel</code> maps to{" "}
+							<code>terminateInstructions</code>. Only{" "}
+							<code>startBeforeActivity</code> maps to{" "}
+							<code>activateInstructions</code>.{" "}
+							<code>startAfterActivity</code> and{" "}
+							<code>startTransition</code> have no direct equivalent
+							and are not supported by this mapping.
 						</p>
 					),
 				},
@@ -1206,13 +1213,16 @@ export const process_instance = [
 					rightEntry: (
 						<>
 							<pre>
-								(object) activateInstructions[].variableInstructions
+								(object[]) activateInstructions[].variableInstructions
+								<br />
+								(object) activateInstructions[].variableInstructions[].variables
 							</pre>
 							<p>
-								Variables are supported on activation
-								instructions only; termination instructions do
-								not accept{" "}
-								<code>variableInstructions</code>.
+								Variables are supported on activation instructions
+								only; termination instructions do not accept{" "}
+								<code>variableInstructions</code>. Convert Camunda 7
+								typed variable values to the corresponding Camunda 8
+								variable values before sending the request.
 							</p>
 						</>
 					),
@@ -1221,8 +1231,6 @@ export const process_instance = [
 					leftEntry: (
 						<pre>
 							(string) instructions[].activityId
-							<br />
-							(string) instructions[].transitionId
 						</pre>
 					),
 					rightEntry: (
@@ -1265,6 +1273,15 @@ export const process_instance = [
 						<p>
 							In Camunda 8.10, the element is targeted via the{" "}
 							<code>elementId</code>.
+						</p>
+					),
+				},
+				{
+					leftEntry: <pre>(string) instructions[].transitionId</pre>,
+					rightEntry: (
+						<p>
+							The <code>startTransition</code> instruction has no
+							direct equivalent in Camunda 8.10.
 						</p>
 					),
 				},

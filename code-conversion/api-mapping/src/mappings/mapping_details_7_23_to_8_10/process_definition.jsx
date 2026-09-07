@@ -234,7 +234,7 @@ export const process_definition = [
 					),
 					rightEntry: (
 						<p>
-							All processes a users is allowed to start, can be
+							All processes a user is allowed to start can be
 							started from Tasklist.
 						</p>
 					),
@@ -442,7 +442,21 @@ export const process_definition = [
 				},
 				{
 					leftEntry: <pre>(object[]) startInstructions</pre>,
-					rightEntry: <pre>(object[]) startInstructions</pre>,
+					rightEntry: (
+						<>
+							<pre>(object[]) startInstructions</pre>
+							<p>
+								Only <code>startBeforeActivity</code> maps directly
+								to an instruction with{" "}
+								<code>elementId: activityId</code>. The other
+								instruction types and fields, including{" "}
+								<code>startAfterActivity</code>,{" "}
+								<code>startTransition</code>, cancel behavior, and
+								instruction-local variables, are not supported by
+								the Camunda 8.10 request.
+							</p>
+						</>
+					),
 				},
 				{
 					leftEntry: <pre>(boolean) withVariablesInReturn</pre>,
