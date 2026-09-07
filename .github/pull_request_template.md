@@ -3,6 +3,15 @@
 ## Description
 <!-- Describe your changes in detail -->
 
+## Work tracking (Required)
+
+- **Tracking issue or PR:** `Closes #...` / `Refs #...` / URL
+- **Owner:** `@github-handle` (must match the tracking issue assignee)
+- **Project status:** `In Progress`
+- [ ] I linked this PR to a tracking issue or PR before implementation.
+- [ ] The tracking issue is assigned to the owner and marked `In Progress`.
+- **Tracking exception (only when no issue or PR can be linked):** <!-- State the reason, scope, owner, and approver. Otherwise write N/A. -->
+
 ## Type of Change
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
@@ -22,6 +31,13 @@
 - [ ] Added tests for new functionality
 - [ ] Updated tests for modified functionality
 - [ ] All tests pass locally
+
+## Defect evidence (Required for bug fixes; write N/A for other changes)
+
+- **Defect class:** <!-- Use the taxonomy in AGENTS.md -->
+- **Red reproducer or failing check before the fix:** <!-- Link the command, test, API check, or other deterministic evidence -->
+- **Green evidence after the fix:** <!-- Link the passing result -->
+- **Category surface covered:** <!-- Explain how the test/check covers the defect class, not only the reported instance -->
 
 ## Architecture Compliance
 
@@ -49,4 +65,4 @@ If architecture tests fail, refactor your tests to use:
 - [ ] Dependent changes have been merged
 
 ## Related Issues
-<!-- Link to related issues: Fixes #123, Related to #456 -->
+<!-- Link every implementation change: use Closes #123 for full scope or Refs #123 for partial scope. -->

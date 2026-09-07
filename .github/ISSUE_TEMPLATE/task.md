@@ -9,6 +9,16 @@ assignees: ''
 
 ### Acceptance Criteria (Required on creation)
 
+### Work tracking (Required before implementation)
+
+- **Tracking issue or parent issue/PR:** This issue, or `#...` when this is a child item
+- **Owner:** `@github-handle`
+- **Project status:** `Analysis` / `Ready` / `In Progress`
+- **Implementation PR:** `#...` when available
+
+Before implementation, assign the issue to the owner and set its project status to
+`In Progress`. See the repository [work-tracking workflow](../../AGENTS.md#work-tracking-and-change-evidence).
+
 ### Hints
 
 ### Links
