@@ -264,6 +264,30 @@ export const task = [
 					leftEntry: <pre>(object[]*) processVariables</pre>,
 					rightEntry: <pre>(object[]*) processInstanceVariables</pre>,
 				},
+				{
+					leftEntry: (
+						<pre>
+							(string) processInstanceBusinessKey
+							<br />
+							(string) processInstanceBusinessKeyExpression
+							<br />
+							(string[]) processInstanceBusinessKeyIn
+							<br />
+							(string) processInstanceBusinessKeyLike
+							<br />
+							(string) processInstanceBusinessKeyLikeExpression
+						</pre>
+					),
+					rightEntry: (
+						<>
+							<pre>(string*) filter.businessId</pre>
+							<p>
+								This filter only applies to user tasks created in
+								Camunda 8.10 or later.
+							</p>
+						</>
+					),
+				},
 			],
 			additionalInfo: (
 				<>
@@ -281,26 +305,6 @@ export const task = [
 		},
 		discontinued: {
 			rowInfo: [
-				{
-					leftEntry: (
-						<pre>
-							(string) processInstanceBusinessKey
-							<br />
-							(string) processInstanceBusinessKeyExpression
-							<br />
-							(string[]) processInstanceBusinessKeyIn
-							<br />
-							(string) processInstanceBusinessKeyLike
-							<br />
-							(string) processInstanceBusinessKeyLikeExpression
-						</pre>
-					),
-					rightEntry: (
-						<p>
-							No businessKey in Camunda 8.10. <a href="https://roadmap.camunda.com/c/296-business-key">Planned for a future release</a>.
-						</p>
-					),
-				},
 				{
 					leftEntry: (
 						<pre>
@@ -777,13 +781,6 @@ export const task = [
 					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
-			additionalInfo: (
-				<p>
-					The Camunda 7 endpoint checks if there is already an
-					assignee. To achieve the same behaviour in Camunda 8, set{" "}
-					<code>allowOverride</code> to false.
-				</p>
-			),
 		},
 		discontinued: {
 			rowInfo: [

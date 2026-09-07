@@ -202,14 +202,15 @@ export const mapping_7_23_to_8_10 = {
 									to return in one request.
 								</li>
 								<li>
-									(object[]) searchAfter: Items to search
-									after. Correlates to the lastSortValues
-									property of a previous search response.
+									(string) after: Cursor for the next page of
+									results. Use the <code>endCursor</code> from
+									a previous search response.
 								</li>
 								<li>
-									(object[]) searchBefore: Items to search
-									before. Correlates to the firstSortValues
-									property of a previous search response.
+									(string) before: Cursor for the previous page
+									of results. Use the{" "}
+									<code>startCursor</code> from a previous
+									search response.
 								</li>
 							</ul>
 						</td>
@@ -242,7 +243,7 @@ export const mapping_7_23_to_8_10 = {
 							<p>Response:</p>
 							<pre>
 								{
-									'{\n\t"items": [\n\t\t{\n\t\t\t"name": "Tenant One",\n\t\t\t"tenantId": "tenantOne",\n\t\t\t"description": "A tenant",\n\t\t\t"tenantKey": "aa883-agas4342-32fre"\n\t\t}\n\t],\n\t"page": {\n\t\t"totalItems": 1,\n\t\t"firstSortValues": [\n\t\t\t{\n\t\t\t\t"name": "Tenant One",\n\t\t\t\t"tenantId": "tenantOne",\n\t\t\t\t"description": "A tenant",\n\t\t\t\t"tenantKey": "aa883-agas4342-32fre"\n\t\t\t}\n\t\t],\n\t\t"lastSortValue": [\n\t\t\t{\n\t\t\t\t"name": "Tenant One",\n\t\t\t\t"tenantId": "tenantOne",\n\t\t\t\t"description": "A tenant",\n\t\t\t\t"tenantKey": "aa883-agas4342-32fre"\n\t\t\t}\n\t\t]\n\t}\n}'
+									'{\n\t"items": [\n\t\t{\n\t\t\t"name": "Tenant One",\n\t\t\t"tenantId": "tenantOne",\n\t\t\t"description": "A tenant",\n\t\t\t"tenantKey": "aa883-agas4342-32fre"\n\t\t}\n\t],\n\t"page": {\n\t\t"totalItems": 1,\n\t\t"hasMoreTotalItems": false,\n\t\t"startCursor": "opaque-start-cursor",\n\t\t"endCursor": "opaque-end-cursor"\n\t}\n}'
 								}
 							</pre>
 						</td>
@@ -372,14 +373,15 @@ export const mapping_7_23_to_8_10 = {
 									to return in one request.
 								</li>
 								<li>
-									(object[]) searchAfter: Items to search
-									after. Correlates to the lastSortValues
-									property of a previous search response.
+									(string) after: Cursor for the next page of
+									results. Use the <code>endCursor</code> from
+									a previous search response.
 								</li>
 								<li>
-									(object[]) searchBefore: Items to search
-									before. Correlates to the firstSortValues
-									property of a previous search response.
+									(string) before: Cursor for the previous page
+									of results. Use the{" "}
+									<code>startCursor</code> from a previous
+									search response.
 								</li>
 							</ul>
 						</td>

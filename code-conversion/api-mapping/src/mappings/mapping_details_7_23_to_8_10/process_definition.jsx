@@ -437,6 +437,10 @@ export const process_definition = [
 					rightEntry: <pre>(object) variables</pre>,
 				},
 				{
+					leftEntry: <pre>(string) businessKey</pre>,
+					rightEntry: <pre>(string) businessId</pre>,
+				},
+				{
 					leftEntry: <pre>(object[]) startInstructions</pre>,
 					rightEntry: <pre>(object[]) startInstructions</pre>,
 				},
@@ -466,14 +470,6 @@ export const process_definition = [
 		},
 		discontinued: {
 			rowInfo: [
-				{
-					leftEntry: <pre>(string) businessKey</pre>,
-					rightEntry: (
-						<p>
-							No businessKey in Camunda 8.10. <a href="https://roadmap.camunda.com/c/296-business-key">Planned for a future release</a>.
-						</p>
-					),
-				},
 				{
 					leftEntry: <pre>(string) caseInstanceId</pre>,
 					rightEntry: <p>No CMMN in Camunda 8.</p>,
@@ -610,20 +606,12 @@ export const process_definition = [
 					leftEntry: <pre>(object) variables</pre>,
 					rightEntry: <pre>(object) variables</pre>,
 				},
-			],
-			additionalInfo: "",
-		},
-		discontinued: {
-			rowInfo: [
 				{
 					leftEntry: <pre>(string) businessKey</pre>,
-					rightEntry: (
-						<p>
-							No businessKey in Camunda 8.10. <a href="https://roadmap.camunda.com/c/296-business-key">Planned for a future release</a>.
-						</p>
-					),
+					rightEntry: <pre>(string) businessId</pre>,
 				},
 			],
+			additionalInfo: "",
 		},
 	},
 	{

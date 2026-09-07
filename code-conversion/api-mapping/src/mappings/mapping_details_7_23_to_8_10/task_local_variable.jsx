@@ -36,7 +36,10 @@ export const task_local_variable = [
 				<p>
 					This endpoint returns all variables visible from the user
 					task. The scope of each variable is provided by the field{" "}
-					<code>scopeKey</code>.
+					<code>scopeKey</code>.{" "}
+					To match the Camunda 7 local-variable semantics, retrieve
+					the user task's <code>elementInstanceKey</code> and keep
+					only the variable whose <code>scopeKey</code> equals it.
 				</p>
 			),
 		},
@@ -136,7 +139,10 @@ export const task_local_variable = [
 				<p>
 					This endpoint returns all variables visible from the user
 					task. The scope of each variable is provided by the field{" "}
-					<code>scopeKey</code>.
+					<code>scopeKey</code>.{" "}
+					To match the Camunda 7 local-variable semantics, retrieve
+					the user task's <code>elementInstanceKey</code> and keep
+					only the variable whose <code>scopeKey</code> equals it.
 				</p>
 			),
 		},

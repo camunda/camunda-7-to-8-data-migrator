@@ -147,6 +147,22 @@ export const process_instance = [
 					),
 					rightEntry: <pre>(object[]*) variables</pre>,
 				},
+				{
+					leftEntry: (
+						<pre>
+							(string) businessKey
+							<br />
+							(string) businessKeyLike
+						</pre>
+					),
+					rightEntry: (
+						<pre>
+							(string*) filter.businessId
+							<br />
+							(string*) filter.businessId.$like
+						</pre>
+					),
+				},
 			],
 			additionalInfo: (
 				<p>
@@ -165,20 +181,6 @@ export const process_instance = [
 							While deployments are assigned a deploymentKey,
 							deployments do not represent resources that can be
 							searched for or otherwise used for filtering.
-						</p>
-					),
-				},
-				{
-					leftEntry: (
-						<pre>
-							(string) businessKey
-							<br />
-							(string) businessKeyLike
-						</pre>
-					),
-					rightEntry: (
-						<p>
-							No businessKey in Camunda 8.10. <a href="https://roadmap.camunda.com/c/296-business-key">Planned for a future release</a>.
 						</p>
 					),
 				},
@@ -308,7 +310,7 @@ export const process_instance = [
 					leftEntry: <pre>(string[]) processInstanceIds</pre>,
 					rightEntry: (
 						<>
-							<pre>(string*) processDefinitionKey</pre>
+							<pre>(string[]) filter.processInstanceKey.$in</pre>
 							<p>
 								See{" "}
 								<a href="#key-to-id">
@@ -1189,7 +1191,14 @@ export const process_instance = [
 			rowInfo: [
 				{
 					leftEntry: <pre>(string) varName</pre>,
-					rightEntry: <pre>(string) documentId</pre>,
+					rightEntry: (
+						<p>
+							Read the process variable named{" "}
+							<code>varName</code> first and use the{" "}
+							<code>documentId</code> from its stored{" "}
+							<code>DocumentReference</code>.
+						</p>
+					),
 				},
 			],
 		},
@@ -1223,7 +1232,15 @@ export const process_instance = [
 			rowInfo: [
 				{
 					leftEntry: <pre>(string) varName</pre>,
-					rightEntry: <pre>(string) documentId</pre>,
+					rightEntry: (
+						<p>
+							Store the returned <code>DocumentReference</code> in
+							the process variable named <code>varName</code>.
+							The optional <code>documentId</code> query parameter
+							is independent of the variable name; if omitted, a
+							new document ID is generated.
+						</p>
+					),
 				},
 				{
 					leftEntry: <pre>(binary) data</pre>,
