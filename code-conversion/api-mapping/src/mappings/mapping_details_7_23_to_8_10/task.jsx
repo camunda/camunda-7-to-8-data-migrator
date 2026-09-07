@@ -54,7 +54,17 @@ export const task = [
 					),
 					rightEntry: (
 						<>
-							<pre>(string) processInstanceKey</pre>
+							<pre>
+								(string) processInstanceKey
+								<br />
+								(string[]) processInstanceKey.$in
+							</pre>
+							<p>
+								Use <code>processInstanceKey</code> for the
+								single-value source and the advanced{" "}
+								<code>processInstanceKey.$in</code> filter for
+								<code>processInstanceIdIn</code>.
+							</p>
 							<p>
 								See{" "}
 								<a href="#key-to-id">
@@ -88,7 +98,17 @@ export const task = [
 					),
 					rightEntry: (
 						<>
-							<pre>(string) processDefinitionId</pre>
+							<pre>
+								(string) processDefinitionId
+								<br />
+								(string[]) processDefinitionId.$in
+							</pre>
+							<p>
+								Use <code>processDefinitionId</code> for the
+								single-value source and the advanced{" "}
+								<code>processDefinitionId.$in</code> filter for
+								<code>processDefinitionKeyIn</code>.
+							</p>
 							<p>
 								See{" "}
 								<a href="#key-to-id">
@@ -100,7 +120,18 @@ export const task = [
 				},
 				{
 					leftEntry: <pre>(string[]) activityInstanceIdIn</pre>,
-					rightEntry: <pre>(string) elementInstanceKey</pre>,
+					rightEntry: (
+						<>
+							<pre>(string) elementInstanceKey</pre>
+							<p>
+								<code>elementInstanceKey</code> is scalar-only.
+								For <code>activityInstanceIdIn</code>, use the
+								advanced <code>$or</code> filter with one{" "}
+								<code>elementInstanceKey</code> clause per source
+								ID, or issue separate searches.
+							</p>
+						</>
+					),
 				},
 				{
 					leftEntry: (
@@ -938,7 +969,7 @@ export const task = [
 			operation: "get",
 		},
 		target: {
-			path: "/user-tasks/{userTaskKey}/variables/search",
+			path: "/user-tasks/{userTaskKey}/effective-variables/search",
 			operation: "post",
 		},
 		direct: {
@@ -962,9 +993,30 @@ export const task = [
 				<p>
 					By not applying any filters, all variables of the user task
 					are returned as a list of objects, specifying various
-					details.
+					details. Form-field types, defaults, and other form metadata
+					are not applied by this variable search.
 				</p>
 			),
+		},
+		discontinued: {
+			rowInfo: [
+				{
+					leftEntry: (
+						<pre>
+							(object) form field types
+							<br />
+							(object) form field default values
+						</pre>
+					),
+					rightEntry: (
+						<p>
+							Camunda 8 returns raw effective variables rather than
+							applying Camunda 7 form-field conversion and default
+							value rules. Migrate that form behavior separately.
+						</p>
+					),
+				},
+			],
 		},
 	},
 	{

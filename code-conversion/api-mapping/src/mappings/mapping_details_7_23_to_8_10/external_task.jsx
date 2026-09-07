@@ -274,12 +274,130 @@ export const external_task = [
 					),
 				},
 				{
-					leftEntry: <pre>(object) externalTaskQuery</pre>,
-					rightEntry: <pre>(object) filter</pre>,
+					leftEntry: (
+						<pre>
+							(string) externalTaskQuery.externalTaskId
+							<br />
+							(string[]) externalTaskQuery.externalTaskIdIn
+							<br />
+							(string) externalTaskQuery.topicName
+							<br />
+							(string) externalTaskQuery.workerId
+							<br />
+							(string) externalTaskQuery.processInstanceId
+							<br />
+							(string[]) externalTaskQuery.processInstanceIdIn
+							<br />
+							(string) externalTaskQuery.activityId
+							<br />
+							(string[]) externalTaskQuery.activityIdIn
+							<br />
+							(string[]) externalTaskQuery.tenantIdIn
+						</pre>
+					),
+					rightEntry: (
+						<>
+							<pre>
+								(string) filter.jobKey
+								<br />
+								(string[]) filter.jobKey.$in
+								<br />
+								(string) filter.type
+								<br />
+								(string) filter.worker
+								<br />
+								(string) filter.processInstanceKey
+								<br />
+								(string[]) filter.processInstanceKey.$in
+								<br />
+								(string) filter.elementId
+								<br />
+								(string[]) filter.elementId.$in
+								<br />
+								(string[]) filter.tenantId.$in
+							</pre>
+							<p>
+								Use the advanced <code>$in</code> operator for
+								array-valued criteria and the corresponding
+								advanced string operators for C7{" "}
+								<code>...Like</code> criteria.
+							</p>
+						</>
+					),
 				},
 				{
-					leftEntry: <pre>(object) processInstanceQuery</pre>,
-					rightEntry: <pre>(object) filter</pre>,
+					leftEntry: (
+						<pre>
+							(dateTime) externalTaskQuery.lockExpirationAfter
+							<br />
+							(dateTime) externalTaskQuery.lockExpirationBefore
+							<br />
+							(boolean) externalTaskQuery.withRetriesLeft
+							<br />
+							(boolean) externalTaskQuery.noRetriesLeft
+							<br />
+							(int64) externalTaskQuery.priorityHigherThanOrEquals
+							<br />
+							(int64) externalTaskQuery.priorityLowerThanOrEquals
+						</pre>
+					),
+					rightEntry: (
+						<>
+							<pre>
+								(dateTime) filter.deadline.$gt
+								<br />
+								(dateTime) filter.deadline.$lt
+								<br />
+								(int32) filter.retries.$gt
+								<br />
+								(int32) filter.retries.$eq
+								<br />
+								(int32) filter.priority.$gte
+								<br />
+								(int32) filter.priority.$lte
+							</pre>
+							<p>
+								Use the advanced comparison operators shown
+								above; these criteria must not be copied as
+								top-level fields.
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: (
+						<pre>
+							(string[]) processInstanceQuery.processInstanceIds
+							<br />
+							(string) processInstanceQuery.processDefinitionKey
+							<br />
+							(string[]) processInstanceQuery.processDefinitionKeyIn
+							<br />
+							(string[]) processInstanceQuery.tenantIdIn
+						</pre>
+					),
+					rightEntry: (
+						<>
+							<pre>
+								(string) filter.processInstanceKey
+								<br />
+								(string[]) filter.processInstanceKey.$in
+								<br />
+								(string) filter.processDefinitionId
+								<br />
+								(string[]) filter.processDefinitionId.$in
+								<br />
+								(string[]) filter.tenantId.$in
+							</pre>
+							<p>
+								Translate each supported field into the nested{" "}
+								<code>filter</code> object. A C7 process
+								definition key maps to the C8 process definition
+								ID; a versioned C7 definition ID is not
+								interchangeable with it.
+							</p>
+						</>
+					),
 				},
 			],
 			additionalInfo: (
@@ -290,14 +408,65 @@ export const external_task = [
 						track progress.
 					</p>
 					<p>
-						Use the <code>filter</code> object for the equivalent
-						external task and process instance query fields.
+						Do not pass either Camunda 7 query object directly as a
+						Camunda 8 <code>filter</code>. Translate only the
+						supported fields listed above and omit unsupported
+						criteria.
 					</p>
 				</>
 			),
 		},
 		discontinued: {
 			rowInfo: [
+				{
+					leftEntry: (
+						<pre>
+							(string) externalTaskQuery.processDefinitionId
+							<br />
+							(boolean) externalTaskQuery.locked
+							<br />
+							(boolean) externalTaskQuery.notLocked
+							<br />
+							(boolean) externalTaskQuery.active
+							<br />
+							(boolean) externalTaskQuery.suspended
+							<br />
+							(string) externalTaskQuery.executionId
+							<br />
+							(object) externalTaskQuery.sorting
+							<br />
+							(string) processInstanceQuery.deploymentId
+							<br />
+							(string) processInstanceQuery.processDefinitionId
+							<br />
+							(string) processInstanceQuery.businessKey
+							<br />
+							(string) processInstanceQuery.businessKeyLike
+							<br />
+							(string) processInstanceQuery.caseInstanceId
+							<br />
+							(string) processInstanceQuery.superProcessInstance
+							<br />
+							(string) processInstanceQuery.subProcessInstance
+							<br />
+							(boolean) processInstanceQuery.active
+							<br />
+							(boolean) processInstanceQuery.suspended
+							<br />
+							(object) processInstanceQuery.variables
+							<br />
+							(boolean) processInstanceQuery.withIncident
+						</pre>
+					),
+					rightEntry: (
+						<p>
+							These Camunda 7 criteria have no equivalent in the
+							Camunda 8 active job filter. Do not include them in
+							the batch update request; apply any required
+							filtering in a separate migration step.
+						</p>
+					),
+				},
 				{
 					leftEntry: <pre>(object) historicProcessInstanceQuery</pre>,
 					rightEntry: (
@@ -356,12 +525,130 @@ export const external_task = [
 					),
 				},
 				{
-					leftEntry: <pre>(object) externalTaskQuery</pre>,
-					rightEntry: <pre>(object) filter</pre>,
+					leftEntry: (
+						<pre>
+							(string) externalTaskQuery.externalTaskId
+							<br />
+							(string[]) externalTaskQuery.externalTaskIdIn
+							<br />
+							(string) externalTaskQuery.topicName
+							<br />
+							(string) externalTaskQuery.workerId
+							<br />
+							(string) externalTaskQuery.processInstanceId
+							<br />
+							(string[]) externalTaskQuery.processInstanceIdIn
+							<br />
+							(string) externalTaskQuery.activityId
+							<br />
+							(string[]) externalTaskQuery.activityIdIn
+							<br />
+							(string[]) externalTaskQuery.tenantIdIn
+						</pre>
+					),
+					rightEntry: (
+						<>
+							<pre>
+								(string) filter.jobKey
+								<br />
+								(string[]) filter.jobKey.$in
+								<br />
+								(string) filter.type
+								<br />
+								(string) filter.worker
+								<br />
+								(string) filter.processInstanceKey
+								<br />
+								(string[]) filter.processInstanceKey.$in
+								<br />
+								(string) filter.elementId
+								<br />
+								(string[]) filter.elementId.$in
+								<br />
+								(string[]) filter.tenantId.$in
+							</pre>
+							<p>
+								Use the advanced <code>$in</code> operator for
+								array-valued criteria and the corresponding
+								advanced string operators for C7{" "}
+								<code>...Like</code> criteria.
+							</p>
+						</>
+					),
 				},
 				{
-					leftEntry: <pre>(object) processInstanceQuery</pre>,
-					rightEntry: <pre>(object) filter</pre>,
+					leftEntry: (
+						<pre>
+							(dateTime) externalTaskQuery.lockExpirationAfter
+							<br />
+							(dateTime) externalTaskQuery.lockExpirationBefore
+							<br />
+							(boolean) externalTaskQuery.withRetriesLeft
+							<br />
+							(boolean) externalTaskQuery.noRetriesLeft
+							<br />
+							(int64) externalTaskQuery.priorityHigherThanOrEquals
+							<br />
+							(int64) externalTaskQuery.priorityLowerThanOrEquals
+						</pre>
+					),
+					rightEntry: (
+						<>
+							<pre>
+								(dateTime) filter.deadline.$gt
+								<br />
+								(dateTime) filter.deadline.$lt
+								<br />
+								(int32) filter.retries.$gt
+								<br />
+								(int32) filter.retries.$eq
+								<br />
+								(int32) filter.priority.$gte
+								<br />
+								(int32) filter.priority.$lte
+							</pre>
+							<p>
+								Use the advanced comparison operators shown
+								above; these criteria must not be copied as
+								top-level fields.
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: (
+						<pre>
+							(string[]) processInstanceQuery.processInstanceIds
+							<br />
+							(string) processInstanceQuery.processDefinitionKey
+							<br />
+							(string[]) processInstanceQuery.processDefinitionKeyIn
+							<br />
+							(string[]) processInstanceQuery.tenantIdIn
+						</pre>
+					),
+					rightEntry: (
+						<>
+							<pre>
+								(string) filter.processInstanceKey
+								<br />
+								(string[]) filter.processInstanceKey.$in
+								<br />
+								(string) filter.processDefinitionId
+								<br />
+								(string[]) filter.processDefinitionId.$in
+								<br />
+								(string[]) filter.tenantId.$in
+							</pre>
+							<p>
+								Translate each supported field into the nested{" "}
+								<code>filter</code> object. A C7 process
+								definition key maps to the C8 process definition
+								ID; a versioned C7 definition ID is not
+								interchangeable with it.
+							</p>
+						</>
+					),
 				},
 			],
 			additionalInfo: (
@@ -372,14 +659,64 @@ export const external_task = [
 						track progress.
 					</p>
 					<p>
-						Use the <code>filter</code> object for the equivalent
-						external task and process instance query fields.
+						Do not pass either Camunda 7 query object directly as a
+						Camunda 8 <code>filter</code>. Translate only the
+						supported fields listed above and omit unsupported
+						criteria.
 					</p>
 				</>
 			),
 		},
 		discontinued: {
 			rowInfo: [
+				{
+					leftEntry: (
+						<pre>
+							(string) externalTaskQuery.processDefinitionId
+							<br />
+							(boolean) externalTaskQuery.locked
+							<br />
+							(boolean) externalTaskQuery.notLocked
+							<br />
+							(boolean) externalTaskQuery.active
+							<br />
+							(boolean) externalTaskQuery.suspended
+							<br />
+							(string) externalTaskQuery.executionId
+							<br />
+							(object) externalTaskQuery.sorting
+							<br />
+							(string) processInstanceQuery.deploymentId
+							<br />
+							(string) processInstanceQuery.processDefinitionId
+							<br />
+							(string) processInstanceQuery.businessKey
+							<br />
+							(string) processInstanceQuery.businessKeyLike
+							<br />
+							(string) processInstanceQuery.caseInstanceId
+							<br />
+							(string) processInstanceQuery.superProcessInstance
+							<br />
+							(string) processInstanceQuery.subProcessInstance
+							<br />
+							(boolean) processInstanceQuery.active
+							<br />
+							(boolean) processInstanceQuery.suspended
+							(object) processInstanceQuery.variables
+							<br />
+							(boolean) processInstanceQuery.withIncident
+						</pre>
+					),
+					rightEntry: (
+						<p>
+							These Camunda 7 criteria have no equivalent in the
+							Camunda 8 active job filter. Do not include them in
+							the batch update request; apply any required
+							filtering in a separate migration step.
+						</p>
+					),
+				},
 				{
 					leftEntry: <pre>(object) historicProcessInstanceQuery</pre>,
 					rightEntry: (

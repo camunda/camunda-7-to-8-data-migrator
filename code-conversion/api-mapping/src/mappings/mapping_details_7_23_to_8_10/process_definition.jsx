@@ -1297,9 +1297,36 @@ export const process_definition = [
 			path: "/process-definition/{id}/submit-form",
 			operation: "post",
 		},
-		target: {},
-		discontinuedExplanation:
-			"Redundant in Camunda 8: no Generated Task Form approach.",
+		target: {
+			path: "/process-instances",
+			operation: "post",
+		},
+		direct: {
+			rowInfo: [
+				{
+					leftEntry: <pre>(string) id</pre>,
+					rightEntry: (
+						<>
+							<pre>(string) processDefinitionKey</pre>
+							<p>
+								See{" "}
+								<a href="#key-to-id">
+									Camunda 7 key → Camunda 8 id
+								</a>
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: <pre>(object) variables</pre>,
+					rightEntry: <pre>(object) variables</pre>,
+				},
+				{
+					leftEntry: <pre>(string) businessKey</pre>,
+					rightEntry: <pre>(string) businessId</pre>,
+				},
+			],
+		},
 	},
 	{
 		origin: {

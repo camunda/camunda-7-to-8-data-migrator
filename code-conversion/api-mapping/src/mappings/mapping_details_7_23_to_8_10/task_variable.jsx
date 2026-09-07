@@ -12,7 +12,7 @@ export const task_variable = [
 			operation: "get",
 		},
 		target: {
-			path: "/user-tasks/{userTaskKey}/variables/search",
+			path: "/user-tasks/{userTaskKey}/effective-variables/search",
 			operation: "post",
 		},
 		direct: {
@@ -34,9 +34,10 @@ export const task_variable = [
 			],
 			additionalInfo: (
 				<p>
-					This endpoint returns all variables visible from the user
-					task. The scope of each variable is provided by the field{" "}
-					<code>scopeKey</code>.
+					This endpoint returns effective variables visible from the
+					user task. Each variable name appears at most once; when a
+					name is defined in multiple scopes, the innermost scope
+					takes precedence.
 				</p>
 			),
 		},
@@ -109,7 +110,7 @@ export const task_variable = [
 			operation: "get",
 		},
 		target: {
-			path: "/user-tasks/{userTaskKey}/variables/search",
+			path: "/user-tasks/{userTaskKey}/effective-variables/search",
 			operation: "post",
 		},
 		direct: {
@@ -135,9 +136,10 @@ export const task_variable = [
 			],
 			additionalInfo: (
 				<p>
-					This endpoint returns all variables visible from the user
-					task. The scope of each variable is provided by the field{" "}
-					<code>scopeKey</code>.
+					This endpoint returns effective variables visible from the
+					user task. Filter by <code>name</code> to retrieve the
+					effective value for <code>varName</code>; shadowed variables
+					are deduplicated with the innermost scope taking precedence.
 				</p>
 			),
 		},

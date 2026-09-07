@@ -61,17 +61,26 @@ export const task_attachment = [
 				},
 			],
 			additionalInfo: (
-				<p>
-					For more information, take a look at{" "}
-					<a
-						href="https://docs.camunda.io/docs/8.10/guides/document-handling/"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						the docs
-					</a>
-					.
-				</p>
+				<>
+					<p>
+						Upload the Camunda 7 attachment content to Camunda 8
+						first and persist the returned{" "}
+						<code>documentId</code>. The source{" "}
+						<code>attachmentId</code> cannot be sent directly as a
+						Camunda 8 document ID.
+					</p>
+					<p>
+						For more information, take a look at{" "}
+						<a
+							href="https://docs.camunda.io/docs/8.10/guides/document-handling/"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							the docs
+						</a>
+						.
+					</p>
+				</>
 			),
 		},
 	},
@@ -92,17 +101,26 @@ export const task_attachment = [
 				},
 			],
 			additionalInfo: (
-				<p>
-					For more information, take a look at{" "}
-					<a
-						href="https://docs.camunda.io/docs/8.10/guides/document-handling/"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						the docs
-					</a>
-					.
-				</p>
+				<>
+					<p>
+						Upload the Camunda 7 attachment content to Camunda 8
+						first and persist the returned{" "}
+						<code>documentId</code>. The source{" "}
+						<code>attachmentId</code> cannot be sent directly as a
+						Camunda 8 document ID.
+					</p>
+					<p>
+						For more information, take a look at{" "}
+						<a
+							href="https://docs.camunda.io/docs/8.10/guides/document-handling/"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							the docs
+						</a>
+						.
+					</p>
+				</>
 			),
 		},
 		discontinued: {
