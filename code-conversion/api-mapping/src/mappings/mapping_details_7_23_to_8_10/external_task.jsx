@@ -89,7 +89,19 @@ export const external_task = [
 			rowInfo: [
 				{
 					leftEntry: <pre>(string) workerId</pre>,
-					rightEntry: <pre>(string) worker</pre>,
+					rightEntry: (
+						<>
+							<pre>(string) worker</pre>
+							<p>
+								<code>worker</code> identifies the worker for
+								logging only. Set{" "}
+								<code>withLease: true</code> to preserve
+								fetch-and-lock fencing, then pass the returned{" "}
+								<code>leaseToken</code> to completion, failure,
+								and BPMN-error requests.
+							</p>
+						</>
+					),
 				},
 				{
 					leftEntry: <pre>(int32) maxTasks</pre>,
@@ -160,7 +172,11 @@ export const external_task = [
 					leftEntry: <pre>(string) topics[].businessKey</pre>,
 					rightEntry: (
 						<p>
-							No businessKey in Camunda 8.10. <a href="https://roadmap.camunda.com/c/296-business-key">Planned for a future release</a>, but unlikely to be required in this context.
+							Camunda 8.10 does not support activation-time
+							filtering by business ID. Jobs from process
+							instances created in Camunda 8.10 expose{" "}
+							<code>businessId</code> in the activation response,
+							so it can be used after activation.
 						</p>
 					),
 				},
@@ -442,7 +458,13 @@ export const external_task = [
 					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
-			additionalInfo: "",
+			additionalInfo: (
+				<p>
+					When jobs are activated with{" "}
+					<code>withLease: true</code>, pass the returned{" "}
+					<code>leaseToken</code> in this request.
+				</p>
+			),
 		},
 		discontinued: {
 			rowInfo: [
@@ -476,7 +498,13 @@ export const external_task = [
 					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
-			additionalInfo: "",
+			additionalInfo: (
+				<p>
+					When jobs are activated with{" "}
+					<code>withLease: true</code>, pass the returned{" "}
+					<code>leaseToken</code> in this request.
+				</p>
+			),
 		},
 		discontinued: {
 			rowInfo: [
@@ -588,7 +616,13 @@ export const external_task = [
 					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
-			additionalInfo: "",
+			additionalInfo: (
+				<p>
+					When jobs are activated with{" "}
+					<code>withLease: true</code>, pass the returned{" "}
+					<code>leaseToken</code> in this request.
+				</p>
+			),
 		},
 		discontinued: {
 			rowInfo: [

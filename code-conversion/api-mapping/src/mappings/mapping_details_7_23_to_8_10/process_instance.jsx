@@ -637,14 +637,128 @@ export const process_instance = [
 			path: "/process-instances/suspension",
 			operation: "post",
 		},
-		mappedExplanation: (
-			<p>
-				The Camunda 8.10 Suspend process instances (batch) endpoint
-				suspends matching active process instances asynchronously. Use
-				the Resume process instances (batch) endpoint when the Camunda
-				7 <code>suspended</code> value is <code>false</code>.
-			</p>
-		),
+		direct: {
+			rowInfo: [
+				{
+					leftEntry: <pre>(string) processDefinitionId</pre>,
+					rightEntry: (
+						<>
+							<pre>(string) filter.processDefinitionKey</pre>
+							<p>
+								See{" "}
+								<a href="#key-to-id">
+									Camunda 7 key → Camunda 8 id
+								</a>
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: (
+						<pre>
+							(string) processDefinitionKey
+							<br />
+							(string) processDefinitionTenantId
+						</pre>
+					),
+					rightEntry: (
+						<pre>
+							(string) filter.processDefinitionId
+							<br />
+							(string) filter.tenantId
+						</pre>
+					),
+				},
+				{
+					leftEntry: <pre>(string[]) processInstanceIds</pre>,
+					rightEntry: (
+						<>
+							<pre>(string[]) filter.processInstanceKey.$in</pre>
+							<p>
+								See{" "}
+								<a href="#key-to-id">
+									Camunda 7 key → Camunda 8 id
+								</a>
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: <pre>(object) processInstanceQuery</pre>,
+					rightEntry: (
+						<>
+							<pre>(object) filter</pre>
+							<p>
+								Translate supported query fields into the
+								nested <code>filter</code> object. Do not send
+								<code>processInstanceQuery</code> as a
+								top-level field.
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: <pre>(boolean) suspended</pre>,
+					rightEntry: (
+						<p>
+							Use{" "}
+							<code>/process-instances/suspension</code> for{" "}
+							<code>true</code> and{" "}
+							<code>/process-instances/resumption</code> for{" "}
+							<code>false</code>.
+						</p>
+					),
+				},
+			],
+			additionalInfo: (
+				<p>
+					The Camunda 8.10 request body must be{" "}
+					<code>{"{ filter: ... }"}</code>. The batch operation
+					suspends only active process instances.
+				</p>
+			),
+		},
+		discontinued: {
+			rowInfo: [
+				{
+					leftEntry: (
+						<pre>
+							(string) deploymentId
+							<br />
+							(boolean) processDefinitionWithoutTenantId
+							<br />
+							(object) historicProcessInstanceQuery
+						</pre>
+					),
+					rightEntry: (
+						<p>
+							These selectors have no equivalent in the Camunda
+							8.10 process instance filter.
+						</p>
+					),
+				},
+				{
+					leftEntry: (
+						<pre>
+							(string) incidentId
+							<br />
+							(string) incidentType
+							<br />
+							(string[]) activityIdIn
+							<br />
+							(boolean) leafProcessInstances
+						</pre>
+					),
+					rightEntry: (
+						<p>
+							These process-instance query fields are not
+							supported by the Camunda 8.10 batch filter.
+						</p>
+					),
+				},
+			],
+			additionalInfo: "",
+		},
 	},
 	{
 		origin: {
@@ -655,14 +769,128 @@ export const process_instance = [
 			path: "/process-instances/suspension",
 			operation: "post",
 		},
-		mappedExplanation: (
-			<p>
-				The Camunda 8.10 Suspend process instances (batch) endpoint
-				provides the asynchronous equivalent for matching active
-				process instances. Use the Resume process instances (batch)
-				endpoint to activate suspended instances.
-			</p>
-		),
+		direct: {
+			rowInfo: [
+				{
+					leftEntry: <pre>(string) processDefinitionId</pre>,
+					rightEntry: (
+						<>
+							<pre>(string) filter.processDefinitionKey</pre>
+							<p>
+								See{" "}
+								<a href="#key-to-id">
+									Camunda 7 key → Camunda 8 id
+								</a>
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: (
+						<pre>
+							(string) processDefinitionKey
+							<br />
+							(string) processDefinitionTenantId
+						</pre>
+					),
+					rightEntry: (
+						<pre>
+							(string) filter.processDefinitionId
+							<br />
+							(string) filter.tenantId
+						</pre>
+					),
+				},
+				{
+					leftEntry: <pre>(string[]) processInstanceIds</pre>,
+					rightEntry: (
+						<>
+							<pre>(string[]) filter.processInstanceKey.$in</pre>
+							<p>
+								See{" "}
+								<a href="#key-to-id">
+									Camunda 7 key → Camunda 8 id
+								</a>
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: <pre>(object) processInstanceQuery</pre>,
+					rightEntry: (
+						<>
+							<pre>(object) filter</pre>
+							<p>
+								Translate supported query fields into the
+								nested <code>filter</code> object. Do not send
+								<code>processInstanceQuery</code> as a
+								top-level field.
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: <pre>(boolean) suspended</pre>,
+					rightEntry: (
+						<p>
+							Use{" "}
+							<code>/process-instances/suspension</code> for{" "}
+							<code>true</code> and{" "}
+							<code>/process-instances/resumption</code> for{" "}
+							<code>false</code>.
+						</p>
+					),
+				},
+			],
+			additionalInfo: (
+				<p>
+					The Camunda 8.10 request body must be{" "}
+					<code>{"{ filter: ... }"}</code>. The batch operation
+					suspends only active process instances.
+				</p>
+			),
+		},
+		discontinued: {
+			rowInfo: [
+				{
+					leftEntry: (
+						<pre>
+							(string) deploymentId
+							<br />
+							(boolean) processDefinitionWithoutTenantId
+							<br />
+							(object) historicProcessInstanceQuery
+						</pre>
+					),
+					rightEntry: (
+						<p>
+							These selectors have no equivalent in the Camunda
+							8.10 process instance filter.
+						</p>
+					),
+				},
+				{
+					leftEntry: (
+						<pre>
+							(string) incidentId
+							<br />
+							(string) incidentType
+							<br />
+							(string[]) activityIdIn
+							<br />
+							(boolean) leafProcessInstances
+						</pre>
+					),
+					rightEntry: (
+						<p>
+							These process-instance query fields are not
+							supported by the Camunda 8.10 batch filter.
+						</p>
+					),
+				},
+			],
+			additionalInfo: "",
+		},
 	},
 	{
 		origin: {
