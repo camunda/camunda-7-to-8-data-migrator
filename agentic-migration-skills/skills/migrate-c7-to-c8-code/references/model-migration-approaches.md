@@ -231,6 +231,23 @@ Use when Java 21 is unavailable, the user wants to review every change, or the C
 Fetch the current diagram-conversion guidance:
 `https://raw.githubusercontent.com/camunda/camunda-docs/main/docs/guides/migrating-from-camunda-7/migration-tooling/diagram-converter.md`
 
+### Job type naming
+
+Use the Diagram Converter naming rules as the binding convention for M2. Apply the rule that matches
+the original Camunda 7 implementation attribute.
+
+| Camunda 7 source | Job type rule | Example |
+|---|---|---|
+| `camunda:delegateExpression` or `camunda:expression` with a bean reference | Remove the `${...}` or `#{...}` wrapper. Keep the first path segment unchanged. Capitalize the first character of each later path segment. | `${sampleBean}` becomes `sampleBean`. |
+| `camunda:delegateExpression` or `camunda:expression` with a method invocation (expression method) | Unwrap the expression. Replace each `.` with an uppercase first character of the following segment. Remove the `(...)` argument list after the camel-case transformation. | `${sampleBean.someMethod(x)}` becomes `sampleBeanSomeMethod`. |
+| `camunda:class` | Take the class name after the final dot. Decapitalize its first character. | `com.example.SampleDelegate` becomes `sampleDelegate`. |
+| `camunda:topic` on an external task | Copy the topic value without changing it. | `invoice-processing` remains `invoice-processing`. |
+
+Treat a job type that differs from this table as an intentional deviation only when
+`MIGRATION_REPORT.md` records the source file and element, the original implementation, the emitted
+job type, and the confirmed rationale. Record the same decision for a custom or shared job type that
+has no source binding in the table. Do not replace a method-specific type with the bean-only type.
+
 For each in-scope diagram, produce a new `converted-c8-<name>.bpmn`/`.dmn` (never edit the original), applying:
 
 - `camunda:` namespace/extension elements to `zeebe:` equivalents (task definitions/job types, IO mappings, headers)

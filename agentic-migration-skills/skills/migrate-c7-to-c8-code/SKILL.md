@@ -273,6 +273,13 @@ target version. See the linting section in `references/model-migration-approache
 14. Once the verdict table is complete, the converted copies hold no `conversion:*` node, no
    `conversion:*` attribute, no unused Camunda 7 namespace declaration, and no leftover BPMN
    definitions-level XPath `expressionLanguage` attribute.
+15. When the model uses M2, inspect every `zeebe:taskDefinition/@type`. Derive the expected type
+    from the original `camunda:delegateExpression`, `camunda:expression`, `camunda:class`, or
+    `camunda:topic` attribute using the binding rules in
+    `references/model-migration-approaches.md`. If the emitted type differs, require a confirmed
+    decision-log entry in `MIGRATION_REPORT.md` with the source file and element, original
+    implementation, emitted type, and rationale. Treat a mismatch without that entry as a
+    validation failure.
 
 #### Summary
 

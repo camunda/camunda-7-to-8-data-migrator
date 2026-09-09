@@ -14,13 +14,23 @@ Follow the user's preference.
 
 Cross-reference the grouped Diagram Converter findings (see `model-migration-approaches.md` step 5) against the code migration output. First detect the mapping shape, then apply the matching check.
 
+When M2 is in scope without a Diagram Converter report, scan every `zeebe:taskDefinition/@type` in
+each converted BPMN file. Read the corresponding original Camunda 7 implementation attribute and
+derive the expected type from the M2 binding rules in `model-migration-approaches.md`. Create one
+normalized input row with the columns `original` and `jobType` for each
+original-implementation-to-emitted-type pair. Apply the same 1:1 or many-to-one check. Do not wait
+for `delegate-expression-as-job-type` findings, because M2-only runs do not produce them.
+
 ### 1. Detect many-to-one job-type collapse
 
-Take all rows in the `delegate-expression-as-job-type` category. Each message has the shape:
+Build the normalized input rows from the `delegate-expression-as-job-type` findings and the M2 scan.
+For a converter finding, parse the original expression and job type from its `message`. For an M2
+row, use the `original` and `jobType` columns created above. Each normalized row has the shape:
 
-> Delegate class or expression '\<original\>' has been transformed to job type '\<jobType\>'.
+> `original`: Delegate class or expression '\<original\>'
+> `jobType`: '\<jobType\>'
 
-Extract the original expression and the job type from each row's `message` and group by job type:
+Group the normalized rows by `jobType`:
 
 - **1:1**: every job type maps to exactly one original expression. Apply the simple check in 2a.
 - **Many-to-one**: one job type maps to multiple distinct original expressions, so the converter collapsed several delegates onto a shared job type. Apply the dispatcher check in 2b. This shape is common at scale: one generic job type can cover thousands of expression-based service tasks in a real project.
@@ -29,7 +39,9 @@ Also treat the `delegate-implementation` category (emitted when the converter ra
 
 ### 2a. 1:1 mapping - simple job-type match
 
-Job types emitted by the Diagram Converter should match the `@JobWorker(type = ...)` values produced by the code migration. Flag mismatches for the user.
+Job types in the converted model should match the `@JobWorker(type = ...)` values produced by the
+code migration. Use the Diagram Converter output for M1 and the binding rules in
+`model-migration-approaches.md` for M2. Flag mismatches for the user.
 
 ### 2b. Many-to-one mapping - dispatcher/adapter worker needed
 

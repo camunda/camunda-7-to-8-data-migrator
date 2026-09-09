@@ -133,6 +133,10 @@ See the module-specific instructions for implementation and testing details:
 - [code-conversion/AGENTS.md](code-conversion/AGENTS.md)
 - [agentic-migration-skills/AGENTS.md](agentic-migration-skills/AGENTS.md) - writing conventions for skill text
 
+When you change any file under `agentic-migration-skills/`, read and apply
+[agentic-migration-skills/AGENTS.md](agentic-migration-skills/AGENTS.md) before editing. Open the pull
+request against `main`.
+
 ## Build pipeline
 
 ### Prerequisites
@@ -180,7 +184,7 @@ Use this release-line mapping for backports:
 | `maintenance/0.2` | Camunda 8.8 |
 | `maintenance/0.3` | Camunda 8.9 |
 
-For diagram-converter, the target version is an input independent of the libraries used to build a release line. Camunda 8.9 is the current stable/default target; keep the webapp selector, backend default, and regression tests aligned when changing that policy.
+For diagram-converter, the target version is an input independent of the libraries used to build a release line. Camunda 8.10 is the current stable/default target; keep the webapp selector, backend default, and regression tests aligned when changing that policy.
 
 ## Documentation
 
