@@ -220,7 +220,20 @@ export const task = [
 							(string) taskDefinitionKeyLike
 						</pre>
 					),
-					rightEntry: <pre>(string) filter.elementId</pre>,
+					rightEntry: (
+						<>
+							<pre>(string) filter.elementId</pre>
+							<p>
+								Map <code>taskDefinitionKey</code> to
+								<code> filter.elementId</code>. For{" "}
+								<code>taskDefinitionKeyIn</code>, use one
+								<code> $or</code> clause per exact element ID.
+								<code> taskDefinitionKeyLike</code> has no
+								direct server-side equivalent; filter it
+								client-side.
+							</p>
+						</>
+					),
 				},
 				{
 					leftEntry: (
@@ -371,6 +384,7 @@ export const task = [
 						<code>filter.state.$in</code> to{" "}
 						<code>
 							["CREATING", "CREATED", "ASSIGNING", "UPDATING",
+							"FAILED",
 							"COMPLETING", "CANCELING"]
 						</code>{" "}
 						to preserve the runtime-only result set.
