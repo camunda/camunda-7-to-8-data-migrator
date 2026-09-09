@@ -849,7 +849,7 @@ export const process_definition = [
 			rowInfo: [
 				{
 					leftEntry: <pre>(string) tenant-id</pre>,
-					rightEntry: <pre>(string) filter.tenantId</pre>,
+					rightEntry: <pre>(string) tenantId</pre>,
 				},
 			],
 			additionalInfo: (
@@ -929,7 +929,7 @@ export const process_definition = [
 			rowInfo: [
 				{
 					leftEntry: <pre>(string) tenant-id</pre>,
-					rightEntry: <pre>(string) tenantId</pre>,
+					rightEntry: <pre>(string) filter.tenantId</pre>,
 				},
 			],
 			additionalInfo: (
