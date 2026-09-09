@@ -399,6 +399,26 @@ export const external_task = [
 						</>
 					),
 				},
+				{
+					leftEntry: (
+						<pre>
+							(string) externalTaskQuery.processDefinitionId
+							<br />
+							(string) processInstanceQuery.processDefinitionId
+						</pre>
+					),
+					rightEntry: (
+						<>
+							<pre>(string) filter.processDefinitionKey</pre>
+							<p>
+								Translate each version-specific Camunda 7
+								process definition ID to the corresponding
+								Camunda 8 process definition key before
+								applying this filter.
+							</p>
+						</>
+					),
+				},
 			],
 			additionalInfo: (
 				<>
@@ -430,8 +450,6 @@ export const external_task = [
 				{
 					leftEntry: (
 						<pre>
-							(string) externalTaskQuery.processDefinitionId
-							<br />
 							(boolean) externalTaskQuery.locked
 							<br />
 							(boolean) externalTaskQuery.notLocked
@@ -445,8 +463,6 @@ export const external_task = [
 							(object) externalTaskQuery.sorting
 							<br />
 							(string) processInstanceQuery.deploymentId
-							<br />
-							(string) processInstanceQuery.processDefinitionId
 							<br />
 							(string) processInstanceQuery.businessKey
 							<br />
@@ -659,6 +675,26 @@ export const external_task = [
 						</>
 					),
 				},
+				{
+					leftEntry: (
+						<pre>
+							(string) externalTaskQuery.processDefinitionId
+							<br />
+							(string) processInstanceQuery.processDefinitionId
+						</pre>
+					),
+					rightEntry: (
+						<>
+							<pre>(string) filter.processDefinitionKey</pre>
+							<p>
+								Translate each version-specific Camunda 7
+								process definition ID to the corresponding
+								Camunda 8 process definition key before
+								applying this filter.
+							</p>
+						</>
+					),
+				},
 			],
 			additionalInfo: (
 				<>
@@ -690,8 +726,6 @@ export const external_task = [
 				{
 					leftEntry: (
 						<pre>
-							(string) externalTaskQuery.processDefinitionId
-							<br />
 							(boolean) externalTaskQuery.locked
 							<br />
 							(boolean) externalTaskQuery.notLocked
@@ -705,8 +739,6 @@ export const external_task = [
 							(object) externalTaskQuery.sorting
 							<br />
 							(string) processInstanceQuery.deploymentId
-							<br />
-							(string) processInstanceQuery.processDefinitionId
 							<br />
 							(string) processInstanceQuery.businessKey
 							<br />

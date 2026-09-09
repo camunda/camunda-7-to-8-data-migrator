@@ -329,12 +329,20 @@ export const process_definition = [
 					leftEntry: <pre>(string) key</pre>,
 					rightEntry: (
 						<>
-							<pre>(string) processDefinitionId</pre>
+							<pre>
+								(string) filter.processDefinitionId
+								<br />
+								(boolean) filter.isLatestVersion
+							</pre>
 							<p>
 								See{" "}
 								<a href="#key-to-id">
 									Camunda 7 key → Camunda 8 id
 								</a>
+								. Set{" "}
+								<code>filter.isLatestVersion</code> to{" "}
+								<code>true</code> to match Camunda 7's
+								latest-version response.
 							</p>
 						</>
 					),
@@ -666,19 +674,27 @@ export const process_definition = [
 					leftEntry: <pre>(string) key</pre>,
 					rightEntry: (
 						<>
-							<pre>(string) processDefinitionId</pre>
+							<pre>
+								(string) filter.processDefinitionId
+								<br />
+								(boolean) filter.isLatestVersion
+							</pre>
 							<p>
 								See{" "}
 								<a href="#key-to-id">
 									Camunda 7 key → Camunda 8 id
 								</a>
+								. Set{" "}
+								<code>filter.isLatestVersion</code> to{" "}
+								<code>true</code> to match Camunda 7's
+								latest-version response.
 							</p>
 						</>
 					),
 				},
 				{
 					leftEntry: <pre>(string) tenant-id</pre>,
-					rightEntry: <pre>(string) tenantId</pre>,
+					rightEntry: <pre>(string) filter.tenantId</pre>,
 				},
 			],
 		},
@@ -771,7 +787,7 @@ export const process_definition = [
 			rowInfo: [
 				{
 					leftEntry: <pre>(string) tenant-id</pre>,
-					rightEntry: <pre>(string) tenantId</pre>,
+					rightEntry: <pre>(string) filter.tenantId</pre>,
 				},
 			],
 			additionalInfo: (
