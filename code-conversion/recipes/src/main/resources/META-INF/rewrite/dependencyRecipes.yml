@@ -53,10 +53,6 @@ type: specs.openrewrite.org/v1beta/recipe
 name: io.camunda.migration.code.recipes.sharedRecipes.MigrateLegacyJavaClientDependencyGradle
 displayName: Migrate the legacy Zeebe Java client Gradle dependency
 description: Replaces the legacy Zeebe Java client Gradle dependency.
-preconditions:
-  - io.camunda.migration.code.recipes.sharedRecipes.DoesNotDeclareGradleDependencyRecipe:
-      groupId: io.camunda
-      artifactId: camunda-client-java
 recipeList:
   - io.camunda.migration.code.recipes.sharedRecipes.ChangeGradleDependencyRecipe:
       oldGroupId: io.camunda
@@ -106,10 +102,6 @@ type: specs.openrewrite.org/v1beta/recipe
 name: io.camunda.migration.code.recipes.sharedRecipes.MigrateLegacySpringProcessTestDependencyGradle
 displayName: Migrate the legacy Spring Zeebe Process Test Gradle dependency
 description: Replaces the legacy Spring process-test Gradle dependency.
-preconditions:
-  - io.camunda.migration.code.recipes.sharedRecipes.DoesNotDeclareGradleDependencyRecipe:
-      groupId: io.camunda
-      artifactId: camunda-process-test-spring-boot-3
 recipeList:
   - io.camunda.migration.code.recipes.sharedRecipes.ChangeGradleDependencyRecipe:
       oldGroupId: io.camunda
@@ -142,10 +134,6 @@ type: specs.openrewrite.org/v1beta/recipe
 name: io.camunda.migration.code.recipes.sharedRecipes.MigrateLegacySpringProcessTestContainerDependencyGradle
 displayName: Migrate the legacy Spring Zeebe Process Test Testcontainers Gradle dependency
 description: Replaces the legacy Spring Testcontainers Gradle dependency.
-preconditions:
-  - io.camunda.migration.code.recipes.sharedRecipes.DoesNotDeclareGradleDependencyRecipe:
-      groupId: io.camunda
-      artifactId: camunda-process-test-spring-boot-3
 recipeList:
   - io.camunda.migration.code.recipes.sharedRecipes.ChangeGradleDependencyRecipe:
       oldGroupId: io.camunda
@@ -192,10 +180,6 @@ type: specs.openrewrite.org/v1beta/recipe
 name: io.camunda.migration.code.recipes.sharedRecipes.MigrateLegacySpringBoot4ProcessTest4DependencyGradle
 displayName: Migrate the legacy Spring Boot 4 process-test Gradle artifact
 description: Replaces camunda-process-test-spring-4 in a Gradle build.
-preconditions:
-  - io.camunda.migration.code.recipes.sharedRecipes.DoesNotDeclareGradleDependencyRecipe:
-      groupId: io.camunda
-      artifactId: camunda-process-test-spring
 recipeList:
   - io.camunda.migration.code.recipes.sharedRecipes.ChangeGradleDependencyRecipe:
       oldGroupId: io.camunda
@@ -208,10 +192,6 @@ type: specs.openrewrite.org/v1beta/recipe
 name: io.camunda.migration.code.recipes.sharedRecipes.MigrateLegacySpringBoot4ProcessTestBoot4DependencyGradle
 displayName: Migrate the legacy Spring Boot 4 process-test Gradle artifact
 description: Replaces camunda-process-test-spring-boot-4 in a Gradle build.
-preconditions:
-  - io.camunda.migration.code.recipes.sharedRecipes.DoesNotDeclareGradleDependencyRecipe:
-      groupId: io.camunda
-      artifactId: camunda-process-test-spring
 recipeList:
   - io.camunda.migration.code.recipes.sharedRecipes.ChangeGradleDependencyRecipe:
       oldGroupId: io.camunda
@@ -244,10 +224,6 @@ type: specs.openrewrite.org/v1beta/recipe
 name: io.camunda.migration.code.recipes.sharedRecipes.MigrateLegacyJavaProcessTestDependencyGradle
 displayName: Migrate the legacy standalone Zeebe Process Test Gradle dependency
 description: Replaces the legacy standalone process-test Gradle dependency.
-preconditions:
-  - io.camunda.migration.code.recipes.sharedRecipes.DoesNotDeclareGradleDependencyRecipe:
-      groupId: io.camunda
-      artifactId: camunda-process-test-java
 recipeList:
   - io.camunda.migration.code.recipes.sharedRecipes.ChangeGradleDependencyRecipe:
       oldGroupId: io.camunda
@@ -280,10 +256,6 @@ type: specs.openrewrite.org/v1beta/recipe
 name: io.camunda.migration.code.recipes.sharedRecipes.MigrateLegacyJavaProcessTestContainerDependencyGradle
 displayName: Migrate the legacy standalone Zeebe Process Test Testcontainers Gradle dependency
 description: Replaces the legacy standalone Testcontainers Gradle dependency.
-preconditions:
-  - io.camunda.migration.code.recipes.sharedRecipes.DoesNotDeclareGradleDependencyRecipe:
-      groupId: io.camunda
-      artifactId: camunda-process-test-java
 recipeList:
   - io.camunda.migration.code.recipes.sharedRecipes.ChangeGradleDependencyRecipe:
       oldGroupId: io.camunda
@@ -573,6 +545,7 @@ preconditions:
   - org.openrewrite.maven.search.DoesNotIncludeDependency:
       groupId: io.camunda
       artifactId: camunda-process-test-java
+      onlyDirect: true
 recipeList:
   - org.openrewrite.maven.AddDependency:
       groupId: io.camunda

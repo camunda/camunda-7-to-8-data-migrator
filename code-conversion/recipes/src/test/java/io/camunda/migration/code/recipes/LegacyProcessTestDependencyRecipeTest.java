@@ -7,6 +7,7 @@
  */
 package io.camunda.migration.code.recipes;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.gradle.Assertions.buildGradle;
 import static org.openrewrite.maven.Assertions.pomXml;
 
@@ -16,10 +17,17 @@ import org.openrewrite.test.RewriteTest;
 
 class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
 
+  private static final String FILTERED_CAMUNDA_VERSION =
+      RecipeDependencyConfigTest.camundaVersion();
+
   @Override
   public void defaults(RecipeSpec spec) {
     spec.recipeFromResources(
         "io.camunda.migration.code.recipes.sharedRecipes.MigrateLegacyProcessTestDependenciesRecipe");
+  }
+
+  private static String expected(String fixture) {
+    return fixture.replace("8.10.0-SNAPSHOT", FILTERED_CAMUNDA_VERSION);
   }
 
   @Test
@@ -48,7 +56,8 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
               </dependencies>
             </project>
             """,
-            """
+            expected(
+                """
             <project>
               <modelVersion>4.0.0</modelVersion>
               <groupId>com.example</groupId>
@@ -69,7 +78,7 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
                 </dependency>
               </dependencies>
             </project>
-            """));
+            """)));
   }
 
   @Test
@@ -86,7 +95,8 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
                 testImplementation "io.camunda:zeebe-process-test-extension-testcontainer:8.9.0"
             }
             """,
-            """
+            expected(
+                """
             plugins {
                 id 'java'
             }
@@ -95,7 +105,50 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
                 testImplementation "io.camunda:camunda-process-test-spring-boot-3:8.10.0-SNAPSHOT"
                 testImplementation "io.camunda:camunda-process-test-java:8.10.0-SNAPSHOT"
             }
-            """));
+            """)));
+  }
+
+  @Test
+  void migratesEveryLegacyGradleDependencyWhenTargetsAlreadyExist() {
+    rewriteRun(
+        buildGradle(
+            """
+            plugins {
+                id 'java'
+            }
+
+            dependencies {
+                testImplementation "io.camunda:camunda-process-test-spring-boot-3:8.10.0-SNAPSHOT"
+                testImplementation "io.camunda:spring-boot-starter-camunda-test:8.9.0"
+                testImplementation "io.camunda:spring-boot-starter-camunda-test-testcontainer:8.9.0"
+                testImplementation "io.camunda:camunda-process-test-java:8.10.0-SNAPSHOT"
+                testImplementation "io.camunda:zeebe-process-test-extension:8.9.0"
+                testImplementation "io.camunda:zeebe-process-test-extension-testcontainer:8.9.0"
+            }
+            """,
+            spec ->
+                spec.path("build.gradle")
+                    .after(
+                        after -> {
+                          assertThat(after)
+                              .contains(
+                                  "io.camunda:camunda-process-test-spring-boot-3:8.10.0-SNAPSHOT",
+                                  "io.camunda:camunda-process-test-java:8.10.0-SNAPSHOT")
+                              .doesNotContain(
+                                  "spring-boot-starter-camunda-test",
+                                  "zeebe-process-test-extension");
+                          assertThat(
+                                  after.split(
+                                          "io.camunda:camunda-process-test-spring-boot-3:", -1)
+                                      .length
+                                      - 1)
+                              .isEqualTo(1);
+                          assertThat(
+                                  after.split("io.camunda:camunda-process-test-java:", -1).length
+                                      - 1)
+                              .isEqualTo(1);
+                          return after;
+                        })));
   }
 
   @Test
@@ -118,7 +171,8 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
               </dependencies>
             </project>
             """,
-            """
+            expected(
+                """
             <project>
               <modelVersion>4.0.0</modelVersion>
               <groupId>com.example</groupId>
@@ -133,7 +187,7 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
                 </dependency>
               </dependencies>
             </project>
-            """));
+            """)));
 
     rewriteRun(
         buildGradle(
@@ -146,7 +200,8 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
                 testImplementation "io.camunda:camunda-process-test-spring-boot-4:8.8.22"
             }
             """,
-            """
+            expected(
+                """
             plugins {
                 id 'java'
             }
@@ -154,7 +209,7 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
             dependencies {
                 testImplementation "io.camunda:camunda-process-test-spring:8.10.0-SNAPSHOT"
             }
-            """));
+            """)));
   }
 
   @Test
@@ -179,7 +234,8 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
               </dependencies>
             </project>
             """,
-            """
+            expected(
+                """
             <project>
               <modelVersion>4.0.0</modelVersion>
               <groupId>com.example</groupId>
@@ -193,7 +249,7 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
                 </dependency>
               </dependencies>
             </project>
-            """));
+            """)));
 
     rewriteRun(
         spec ->
@@ -209,7 +265,8 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
                 implementation "io.camunda:zeebe-client-java:8.9.0"
             }
             """,
-            """
+            expected(
+                """
             plugins {
                 id 'java'
             }
@@ -217,7 +274,7 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
             dependencies {
                 implementation "io.camunda:camunda-client-java:8.10.0-SNAPSHOT"
             }
-            """));
+            """)));
   }
 
   @Test
@@ -247,7 +304,8 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
               </dependencies>
             </project>
             """,
-            """
+            expected(
+                """
             <project>
               <modelVersion>4.0.0</modelVersion>
               <groupId>com.example</groupId>
@@ -261,7 +319,7 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
                 </dependency>
               </dependencies>
             </project>
-            """));
+            """)));
   }
 
   @Test
@@ -302,7 +360,8 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
               </dependencies>
             </project>
             """,
-            """
+            expected(
+                """
             <project>
               <modelVersion>4.0.0</modelVersion>
               <groupId>com.example</groupId>
@@ -323,6 +382,6 @@ class LegacyProcessTestDependencyRecipeTest implements RewriteTest {
                 </dependency>
               </dependencies>
             </project>
-            """));
+            """)));
   }
 }

@@ -653,7 +653,7 @@ class RecipeDependencyConfigTest implements RewriteTest {
   }
 
   /**
-   * Structural guard for the Gradle branches, which the Maven fixtures above cannot reach.
+   * Structural guard for Gradle dependency branches, which the Maven fixtures above cannot reach.
    *
    * <p>{@code org.openrewrite.gradle.AddDependency} only skips the artifact it adds, so on its own
    * it happily adds the Spring Boot 3 artifact to a build that already declares the mutually
@@ -708,7 +708,7 @@ class RecipeDependencyConfigTest implements RewriteTest {
   }
 
   @Test
-  void everyGradleRenameIsGuardedAgainstTheTargetArtifact() {
+  void everyGradleRenameHandlesExistingTargetArtifacts() {
     String yaml = resourceText("/META-INF/rewrite/dependencyRecipes.yml");
 
     List<String> renamed = new ArrayList<>();
@@ -731,25 +731,41 @@ class RecipeDependencyConfigTest implements RewriteTest {
       String target = targetMatcher.group(1);
       renamed.add(target);
 
-      assertThat(document)
-          .as("Gradle rename to %s must be preconditioned on the target being absent", target)
-          .containsPattern(
-              Pattern.compile(
-                  "- io\\.camunda\\.migration\\.code\\.recipes\\.sharedRecipes\\."
-                      + "DoesNotDeclareGradleDependencyRecipe:\\s*\\n"
-                      + "\\s*groupId: io\\.camunda\\s*\\n"
-                      + "\\s*artifactId: "
-                      + Pattern.quote(target)
-                      + "\\s*\\n"));
+      if (isLegacyGradleMigration(document)) {
+        assertThat(document)
+            .as("Legacy Gradle rename to %s must process every old declaration", target)
+            .doesNotContain("DoesNotDeclareGradleDependencyRecipe");
+      } else {
+        assertThat(document)
+            .as("Selector Gradle rename to %s must be preconditioned on the target being absent", target)
+            .containsPattern(
+                Pattern.compile(
+                    "- io\\.camunda\\.migration\\.code\\.recipes\\.sharedRecipes\\."
+                        + "DoesNotDeclareGradleDependencyRecipe:\\s*\\n"
+                        + "\\s*groupId: io\\.camunda\\s*\\n"
+                        + "\\s*artifactId: "
+                        + Pattern.quote(target)
+                        + "\\s*\\n"));
+      }
     }
 
     assertThat(renamed)
-        .as("Gradle builds must guard every dependency rename target")
+        .as("Gradle builds must cover dependency rename targets")
         .contains(SB3_STARTER, SB4_STARTER, SB3_PROCESS_TEST, SB4_PROCESS_TEST)
         .allMatch(
             target ->
                 LEGACY_DEPENDENCY_TARGETS.contains(target)
                     || MUTUALLY_EXCLUSIVE_PAIRS.containsKey(target));
+  }
+
+  private static boolean isLegacyGradleMigration(String document) {
+    return document.contains("oldArtifactId: zeebe-client-java")
+        || document.contains("oldArtifactId: zeebe-process-test-extension")
+        || document.contains("oldArtifactId: zeebe-process-test-extension-testcontainer")
+        || document.contains("oldArtifactId: spring-boot-starter-camunda-test")
+        || document.contains("oldArtifactId: spring-boot-starter-camunda-test-testcontainer")
+        || document.contains("oldArtifactId: camunda-process-test-spring-4")
+        || document.contains("oldArtifactId: camunda-process-test-spring-boot-4");
   }
 
   private static String assertOnly(String pom, String expectedStarter, String expectedProcessTest) {
@@ -892,7 +908,7 @@ class RecipeDependencyConfigTest implements RewriteTest {
    * Reads the Camunda 8 version the recipes were filtered with, so fixtures stay in sync with
    * whatever {@code ${version.camunda-8}} resolved to at build time.
    */
-  private static String camundaVersion() {
+  static String camundaVersion() {
     Matcher matcher =
         Pattern.compile("artifactId: " + SB3_STARTER + "\\s*\\n\\s*version: (\\S+)")
             .matcher(resourceText("/META-INF/rewrite/dependencyRecipes.yml"));
