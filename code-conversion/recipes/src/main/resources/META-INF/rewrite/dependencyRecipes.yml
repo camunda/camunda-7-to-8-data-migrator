@@ -47,6 +47,7 @@ recipeList:
       newGroupId: io.camunda
       newArtifactId: camunda-client-java
       newVersion: ${version.camunda-8}
+  - org.openrewrite.maven.RemoveDuplicateDependencies
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.camunda.migration.code.recipes.sharedRecipes.MigrateLegacyJavaClientDependencyGradle
@@ -79,6 +80,7 @@ recipeList:
   - io.camunda.migration.code.recipes.sharedRecipes.MigrateLegacySpringBoot4ProcessTestDependencyRecipe
   - io.camunda.migration.code.recipes.sharedRecipes.MigrateLegacyJavaProcessTestDependencyRecipe
   - io.camunda.migration.code.recipes.sharedRecipes.MigrateLegacyJavaProcessTestContainerDependencyRecipe
+  - org.openrewrite.maven.RemoveDuplicateDependencies
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.camunda.migration.code.recipes.sharedRecipes.MigrateLegacySpringProcessTestDependencyRecipe
