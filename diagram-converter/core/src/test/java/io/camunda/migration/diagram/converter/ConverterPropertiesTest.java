@@ -22,7 +22,7 @@ public class ConverterPropertiesTest {
     assertThat(properties.getScriptJobType()).isEqualTo("script");
     assertThat(properties.getResourceHeader()).isEqualTo("resource");
     assertThat(properties.getScriptFormatHeader()).isEqualTo("language");
-    assertThat(properties.getPlatformVersion()).isEqualTo("8.9");
+    assertThat(properties.getPlatformVersion()).isEqualTo("8.10");
     assertThat(properties.getKeepJobTypeBlank()).isFalse();
     assertThat(properties.getAlwaysUseDefaultJobType()).isFalse();
     assertThat(properties.getAddDataMigrationExecutionListener()).isFalse();
@@ -44,5 +44,22 @@ public class ConverterPropertiesTest {
     assertEquals("adapter", converterProperties.getDefaultJobType());
     assertThat(converterProperties.getAppendDocumentationOnlyTaskAndWarning()).isTrue();
     assertNotNull(converterProperties.getResourceHeader());
+  }
+  @Test
+  void shouldAllowExplicitOlderTargetVersion() {
+    DefaultConverterProperties properties = new DefaultConverterProperties();
+    properties.setPlatformVersion("8.8");
+
+    ConverterProperties converterProperties =
+        ConverterPropertiesFactory.getInstance().merge(properties);
+
+    assertThat(converterProperties.getPlatformVersion()).isEqualTo("8.8");
+  }
+
+  @Test
+  void shouldRejectAConfiguredDefaultThatIsNotLatestStable() {
+    assertThatThrownBy(() -> TargetPlatformVersionPolicy.verifyConfiguredDefault("8.8"))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("must be 8.10");
   }
 }

@@ -496,20 +496,20 @@ describe("accessibility", () => {
 });
 
 describe("target platform version", () => {
-  it("marks 8.9 as the latest stable version and selects it by default", () => {
+  it("marks 8.10 as latest stable and selects it by default", () => {
     render(<App />);
 
     const versionGroup = screen.getByRole("radiogroup", {
       name: "Target Camunda 8 version",
     });
     const latestStable = within(versionGroup).getByRole("radio", {
-      name: "8.9 Latest stable",
+      name: "8.10 Latest stable",
     });
     const previousStable = within(versionGroup).getByRole("radio", {
-      name: "8.8 Previous stable",
+      name: "8.9 Previous stable",
     });
     const nextVersion = within(versionGroup).getByRole("radio", {
-      name: "8.10 Next version",
+      name: "8.11 Next version",
     });
 
     expect(within(versionGroup).getByText("Latest stable")).toBeTruthy();
@@ -519,7 +519,7 @@ describe("target platform version", () => {
     expect(nextVersion.getAttribute("aria-checked")).toBe("false");
   });
 
-  it("sends an explicitly selected 8.8 target to the conversion endpoints", async () => {
+  it("sends an explicitly selected 8.9 target to the conversion endpoints", async () => {
     configureUpload({
       fileName: "process.bpmn",
       content: '<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" />',
@@ -532,7 +532,7 @@ describe("target platform version", () => {
     });
     fireEvent.click(
       within(versionGroup).getByRole("radio", {
-        name: "8.8 Previous stable",
+        name: "8.9 Previous stable",
       })
     );
     fireEvent.click(screen.getByRole("button", { name: "Upload test file" }));
@@ -549,7 +549,7 @@ describe("target platform version", () => {
     );
     expect(conversionRequests).toHaveLength(2);
     conversionRequests.forEach(([, options]) => {
-      expect(options.body.get("platformVersion")).toBe("8.8");
+      expect(options.body.get("platformVersion")).toBe("8.9");
     });
   });
 });
