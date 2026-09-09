@@ -116,14 +116,19 @@ These rules apply to every later step.
 - An INFO finding is informational until a later cross-check identifies work.
 - Converter annotations are temporary review metadata. Once the verdict table is complete, strip
   `conversion:*` elements and attributes from the converted copies with namespace-aware XML tooling.
-- Keep `MIGRATION_REPORT.md` in the confirmed project root and keep it current. It holds the verdict
-  table, and it is the single source of truth for inventories, decisions, open items, phase status,
-  incompatibilities, and validation results. Never scatter this record across separate notes.
-- Keep an open-items section in `MIGRATION_REPORT.md` for a design question the migration cannot
-  answer. An open item names the call site, states the question, and carries a status of `open` or
-  `resolved`. A migrated query against secondary storage always creates one, regardless of the
-  running model. See `references/code-transform-checklist.md` for the mandatory triggers and the
-  wording.
+- Keep `MIGRATION_REPORT.md` in the confirmed project root.
+- Keep `MIGRATION_REPORT.md` current.
+- Use `MIGRATION_REPORT.md` as the single source of truth for inventories, decisions, open items,
+  phase status, incompatibilities, and validation results.
+- Never scatter this record across separate notes.
+- Keep an open-items section in `MIGRATION_REPORT.md` for each design question the migration cannot
+  answer.
+- Name the call site in each open item.
+- State the question in each open item.
+- Set each open item to status `open` or `resolved`.
+- Create an open item for every migrated query against secondary storage, regardless of the running
+  model.
+- See `references/code-transform-checklist.md` for the mandatory triggers and the wording.
 
 **Forms**
 
