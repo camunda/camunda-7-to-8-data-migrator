@@ -117,8 +117,13 @@ These rules apply to every later step.
 - Converter annotations are temporary review metadata. Once the verdict table is complete, strip
   `conversion:*` elements and attributes from the converted copies with namespace-aware XML tooling.
 - Keep `MIGRATION_REPORT.md` in the confirmed project root and keep it current. It holds the verdict
-  table, and it is the single source of truth for inventories, decisions, phase status,
+  table, and it is the single source of truth for inventories, decisions, open items, phase status,
   incompatibilities, and validation results. Never scatter this record across separate notes.
+- Keep an open-items section in `MIGRATION_REPORT.md` for a design question the migration cannot
+  answer. An open item names the call site, states the question, and carries a status of `open` or
+  `resolved`. A migrated query against secondary storage always creates one, regardless of the
+  running model. See `references/code-transform-checklist.md` for the mandatory triggers and the
+  wording.
 
 **Forms**
 
@@ -229,6 +234,9 @@ Each item below is a check to run and a condition that must hold at exit. Record
    `application.properties` or `.yaml`.
 8. **Tests** — run `mvn test` or the Gradle test task. Every test passes, or each failure is
    documented with an explanation.
+9. **Eventually-consistent queries** — search `SearchRequest`. Every migrated search call site has a
+   matching open item in the `MIGRATION_REPORT.md` open-items section. A missing entry fails the
+   check. See the mandatory open items in `references/code-transform-checklist.md`.
 
 Check these pitfalls as well:
 
@@ -237,7 +245,6 @@ Check these pitfalls as well:
   definitions swap the same way.
 - Camunda 7 `processInstanceId` is a `String`. Camunda 8 `processInstanceKey` is a `Long`. Update declarations and call sites, not only the names.
 - Variables are plain JSON and the `TypedValue` API is gone, so every `VariableMap` use changes.
-- `HistoryService` calls map to search endpoints, which are eventually consistent.
 - Batch operations exist since 8.8. Only a custom batch handler needs a manual design.
 
 #### Model checks, when models were migrated
@@ -277,8 +284,8 @@ target version. See the linting section in `references/model-migration-approache
 #### Summary
 
 Present a validation summary that states the status of compilation, remaining Camunda 7 imports,
-remaining migration TODOs, `businessKey` uses, tests, converted models, and the findings that still
-need follow-up. Record it in `MIGRATION_REPORT.md`.
+remaining migration TODOs, `businessKey` uses, the open items, tests, converted models, and the
+findings that still need follow-up. Record it in `MIGRATION_REPORT.md`.
 
 ### Step 5: AI Follow-up (offer after validation)
 
@@ -330,7 +337,9 @@ the declined candidates in `MIGRATION_REPORT.md`.
 ## Exit Criteria
 
 The migration run may exit when every pass condition in Step 4 holds and `MIGRATION_REPORT.md` holds
-the complete inventories, the decisions, and the validation results.
+the complete inventories, the decisions, the open items, and the validation results.
 The skill reports a complete migration only when no unresolved migration TODO, finding, compilation
 issue, or deletion candidate remains and no item has `deferred` or `blocked` status.
+An open item is a team decision, so an `open` status does not block completion, but the summary
+always lists every open item.
 Otherwise, the skill reports the migration as incomplete and records the follow-up work.
