@@ -2,6 +2,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: io.camunda.migration.code.recipes.sharedRecipes.ConfigureCamundaStarterRecipe
 displayName: Configure the Camunda Spring Boot starter for the project's Spring Boot major
 description: >-
+  Migrates the legacy Zeebe Java client dependency before configuring the Camunda Spring Boot
+  starter.
   Camunda 8.9 split the Spring Boot starter into two mutually exclusive artifacts. The split
   remains required in Camunda 8.10:
   `camunda-spring-boot-starter` requires Spring Boot 4.0.x and `camunda-spring-boot-3-starter`
