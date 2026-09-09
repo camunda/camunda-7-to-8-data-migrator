@@ -148,6 +148,70 @@ Present the grouped table before any per-finding follow-up starts, and record it
 
 #### 5d. Emit a per-category verdict table
 
+Before assigning verdicts, compare each finding `messageId` with the dedicated cross-check rules.
+The current dedicated cross-check categories are:
+
+| Category | Dedicated cross-check |
+|---|---|
+| `delegate-expression-as-job-type`, `delegate-implementation` | Check the 1:1 and many-to-one job-type mappings in `composing-code-and-models.md` |
+| `expression-method-not-possible` | Check the FEEL method-invocation remediation |
+| `collection-hint` | Check for now-redundant workaround code |
+| `element-available-in-future-version` | Verify the report target version |
+| `execution-listener`, `execution-listener-supported` | Match listener implementations during the workaround and listener cross-checks |
+
+The form procedures in 5f and 5g are also dedicated handling for their named form categories.
+Treat every other category as a fallback category.
+
+For a fallback category, assign the default verdict from the finding severity:
+
+| Severity | Default verdict |
+|---|---|
+| INFO | no action |
+| REVIEW | needs review |
+| WARNING or TASK | needs fix |
+
+Set the cross-referenced code artifact to **no dedicated cross-check** for a fallback category.
+Add the finding `link` to the `Link` column and surface it as the remediation starting point.
+Apply the same fallback when a report contains a category that is absent from the inventory below.
+Never infer a category-specific cross-check from the category name or message text.
+
+#### 5d.1. Converter category inventory
+
+This inventory records the `messageId` values produced by `MessageFactory` in converter version
+`0.3.6-SNAPSHOT`. It is the known-category list, not a list of dedicated cross-checks:
+
+```text
+all-in-signal-event, attribute-not-supported, attribute-removed, called-element-ref-binding,
+called-element-ref-version-tag, camunda-script, collection, collection-hint, condition-expression-feel,
+conditional-event-definition-generated-id, conditional-flow, connector-hint, connector-id,
+correlation-key-hint, data-migration-listener-added, decision-ref-binding, decision-ref-version-tag,
+delegate-expression-as-job-type, delegate-expression-as-job-type-null, delegate-implementation,
+delegate-implementation-no-default-job-type, delete-variable-event-not-supported,
+element-available-in-future-version, element-not-supported, element-not-supported-hint, element-variable,
+error-code-no-expression, error-event-definition, escalation-code-no-expression, execution-listener,
+execution-listener-field, execution-listener-supported, expression, expression-execution-not-available,
+expression-method-as-job-type, expression-method-not-possible, failed-job-retry-time-cycle,
+failed-job-retry-time-cycle-error, failed-job-retry-time-cycle-removed, field-content,
+form-already-camunda-8, form-component-unknown, form-data, form-juel-expression,
+form-key-camunda-form, form-key-embedded, form-key-expression, form-key-external, form-ref-binding,
+form-schema-version-missing, form-schema-version-outdated, in-all-hint, in-out-business-key,
+in-out-business-key-not-supported, inclusive-gateway-join, input-output-parameter-feel-script,
+input-output-parameter-is-no-expression, input-variable-not-supported, internal-script,
+job-priority-collision, local-variable-propagation-not-supported-hint, modeler-template,
+loop-cardinality, modeler-template-version, number-type, old-in-all-hint, only-feel-supported, out-all-hint,
+potential-starter, priority-invalid, priority-not-migrated, priority-scales-merged, property,
+resource, resource-on-conditional-event, resource-on-conditional-flow, result-variable-business-rule,
+result-variable-internal-script, result-variable-rest, script, script-format, script-job-type,
+script-on-conditional-event, script-on-conditional-flow, task-listener, task-listener-supported,
+timer-expression-not-supported, topic, variable-name-filter-not-supported, version-tag
+```
+
+When the referenced converter version changes, re-sync this inventory from
+`diagram-converter/core/src/main/java/io/camunda/migration/diagram/converter/message/MessageFactory.java`.
+Include IDs passed through helper methods, such as the `FormKeyType` mapping, not only literal
+arguments to `composeMessage`. A maintenance check should mechanically compare the extracted
+`MessageFactory` IDs with this inventory and report any difference.
+
 After grouping (and after the code cross-checks in `composing-code-and-models.md` when code is also in scope), assign each WARNING/TASK/REVIEW category exactly one verdict, and record the table in MIGRATION_REPORT.md. INFO categories are optional (MAY). If included, they typically take verdict no action. Never leave findings as severity counts or a generic "findings need follow-up" note.
 
 Verdicts:
@@ -158,19 +222,20 @@ Verdicts:
 | **needs review** | A human decision is required before any fix can start. For example, choosing the remediation approach for a category or integration group (one decision per homogeneous category or group, not per row), or confirming a cross-check result. | Surface it in the AI follow-up step only to collect the pending user decision through AskUserQuestion before any fix. |
 | **needs fix** | Concrete, known work remains: an uncovered cross-check item (job-type mismatch, uncovered original expressions, uncovered invoked methods) or a WARNING/TASK category with a clear remediation. | It is a direct work item for the AI follow-up step. |
 
-| Category (messageId or source category) | Count | Cross-referenced code artifact | Verdict |
-|---|---|---|---|
-| `expression-method-not-possible` | 2,137 | none yet — remediation decision pending | needs review |
-| `delegate-expression-as-job-type` | 2,491 | `DelegateDispatcher` @JobWorker (routes 38/42 expressions) | needs fix |
-| `form-data` | 96 | one `.form` per C7 Generated Task Form (`camunda:formData` / direct `camunda:formProperty`, see 5f) | needs fix |
-| `form-key-embedded` | 14 | none yet — keep/rebuild decision pending (see 5g) | needs review |
-| `form-key-external` | 31 | `LoanFormsController` custom app — integration owner confirmed (see 5g) | needs fix |
-| `c7-generic-task-form` | 8 | n/a — no finding, source-derived inventory (see 5g) | needs review |
+| Category (messageId or source category) | Count | Cross-referenced code artifact | Link | Verdict |
+|---|---|---|---|---|
+| `expression-method-not-possible` | 2,137 | none yet — remediation decision pending | `<finding link>` | needs review |
+| `delegate-expression-as-job-type` | 2,491 | `DelegateDispatcher` @JobWorker (routes 38/42 expressions) | `<finding link>` | needs fix |
+| `form-data` | 96 | one `.form` per C7 Generated Task Form (`camunda:formData` / direct `camunda:formProperty`, see 5f) | `<finding link>` | needs fix |
+| `form-key-embedded` | 14 | none yet — keep/rebuild decision pending (see 5g) | `<finding link>` | needs review |
+| `form-key-external` | 31 | `LoanFormsController` custom app — integration owner confirmed (see 5g) | `<finding link>` | needs fix |
+| `c7-generic-task-form` | 8 | n/a — no finding, source-derived inventory (see 5g) | n/a | needs review |
 
 Rules:
 
 - One row per category, sorted as in 5b.
-- The cross-referenced code artifact column names the `@JobWorker`, DMN definition, or other code element the cross-check matched, or `none yet` when no remediation exists. For models-only scope there is no code to cross-reference: use `n/a`. Derive a converter finding's initial verdict from severity alone (INFO → no action, REVIEW → needs review, WARNING/TASK → needs fix). Apply the procedure-defined lifecycle instead to source-derived synthetic categories and to `c7-*` categories that split a legacy generic `form-key` finding. Those categories have no independent converter severity.
+- The cross-referenced code artifact column names the `@JobWorker`, DMN definition, or other code element the cross-check matched, or `none yet` when no remediation exists. For models-only scope there is no code to cross-reference: use `n/a`. For a fallback category, write `no dedicated cross-check` in this column. Derive a converter finding's initial verdict from severity alone (INFO → no action, REVIEW → needs review, WARNING/TASK → needs fix). Apply the procedure-defined lifecycle instead to source-derived synthetic categories and to `c7-*` categories that split a legacy generic `form-key` finding. Those categories have no independent converter severity.
+- Copy each finding's `link` into the `Link` column. For a fallback category, present that link as the remediation starting point.
 - Classify every WARNING/TASK/REVIEW category. Never leave one without a verdict.
 - `form-data` is a special **needs fix** category even though the converter behaved correctly: the missing artifact is a separate C8 form. Keep it needs fix until `form-migration.md` has generated, reviewed, linked, validated, and covered the form with deployment.
 - A source-only `camunda:formProperty` definition from an older or imported report that lacks the current `form-data` finding uses the synthetic category `generated-form-property-source`. Give it the same verdict lifecycle as `form-data`.
