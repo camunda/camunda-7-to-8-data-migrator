@@ -168,7 +168,7 @@ export const process_instance = [
 				<>
 					<p>
 						Asterisks signify that an advanced filter can be
-						applied, similar to a unit test (
+						applied, similar to a unary test (
 						<code>$eq, $neq, $in, $like with wildcards,...</code>).
 					</p>
 					<p>
@@ -335,7 +335,7 @@ export const process_instance = [
 			additionalInfo: (
 				<p>
 					Asterisks signify that an advanced filter can be applied,
-					similar to a unit test (
+					similar to a unary test (
 					<code>$eq, $neq, $in, $like with wildcards,...</code>).
 				</p>
 			),
@@ -464,7 +464,7 @@ export const process_instance = [
 				<>
 					<p>
 						Asterisks signify that an advanced filter can be
-						applied, similar to a unit test (
+						applied, similar to a unary test (
 						<code>$eq, $neq, $in, $like with wildcards,...</code>).
 					</p>
 					<p>
@@ -553,7 +553,7 @@ export const process_instance = [
 			additionalInfo: (
 				<p>
 					Asterisks signify that an advanced filter can be applied,
-					similar to a unit test (
+					similar to a unary test (
 					<code>$eq, $neq, $in, $like with wildcards,...</code>).
 				</p>
 			),

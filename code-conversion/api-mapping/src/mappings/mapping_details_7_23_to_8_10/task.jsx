@@ -389,7 +389,7 @@ export const task = [
 					</p>
 					<p>
 						Asterisks signify that an advanced filter can be
-						applied, similar to a unit test (
+						applied, similar to a unary test (
 						<code>$eq, $neq, $in, $like with wildcards,...</code>).
 					</p>
 					<p>
