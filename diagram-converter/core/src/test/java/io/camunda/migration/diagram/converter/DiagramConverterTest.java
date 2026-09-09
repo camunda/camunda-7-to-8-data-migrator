@@ -117,6 +117,7 @@ public class DiagramConverterTest {
     filteredProperties.setPlatformVersion("8.9");
     ConverterProperties properties =
         ConverterPropertiesFactory.getInstance().merge(filteredProperties);
+    assertThat(properties.getPlatformVersion()).isEqualTo("8.9");
     BpmnModelInstance filteredModel = mixedSeverityModel();
 
     DiagramConverter converter = DiagramConverterFactory.getInstance().get();
@@ -135,11 +136,13 @@ public class DiagramConverterTest {
     DefaultConverterProperties converterProperties = new DefaultConverterProperties();
     converterProperties.setAppendDocumentation(true);
     converterProperties.setPlatformVersion("8.9");
+    ConverterProperties properties =
+        ConverterPropertiesFactory.getInstance().merge(converterProperties);
+    assertThat(properties.getPlatformVersion()).isEqualTo("8.9");
     BpmnModelInstance modelInstance = mixedSeverityModel();
 
     DiagramConverter converter = DiagramConverterFactory.getInstance().get();
-    converter.convert(
-        modelInstance, ConverterPropertiesFactory.getInstance().merge(converterProperties));
+    converter.convert(modelInstance, properties);
 
     assertThat(documentation(modelInstance)).contains("- WARNING:", "- REVIEW:");
   }

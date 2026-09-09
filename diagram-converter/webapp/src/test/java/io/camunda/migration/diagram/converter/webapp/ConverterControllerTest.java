@@ -566,7 +566,10 @@ public class ConverterControllerTest {
             .extract()
             .asByteArray();
 
-    assertThat(documentation(bpmn)).contains("- WARNING:").doesNotContain("- REVIEW:");
+    assertThat(documentation(bpmn))
+        .contains(
+            "- WARNING: Attribute 'taskPriority' with value '100' on 'serviceTask' is not supported.")
+        .doesNotContain("- REVIEW:");
   }
 
   @Test
@@ -660,7 +663,8 @@ public class ConverterControllerTest {
         entryCount++;
         entryNames.add(zipEntry.getName());
         assertThat(documentation(zis.readAllBytes()))
-            .contains("- WARNING:")
+            .contains(
+                "- WARNING: Attribute 'taskPriority' with value '100' on 'serviceTask' is not supported.")
             .doesNotContain("- REVIEW:");
       }
       assertThat(entryCount).isEqualTo(2);
