@@ -224,6 +224,28 @@ Never collapse these into one `form-reference` category. Never mark any of them 
   - A dedicated `documentPreview` component (property `dataSource`, a FEEL expression over an array of document references) renders an inline preview and download link for a Document API reference. Prefer it over a plain-text filename display or a hand-built HTML anchor. (SHOULD) When the process variable holds one document-reference object, wrap it in a one-element array in the form's FEEL only. Never change the variable to a form-specific array or a filename.
 - **Add a worker only when the form genuinely cannot do it**: real business logic, external calls, side effects. A service task that only reshapes variables for form consumption is a C7 workaround. Never port it.
 
+## JUEL Method-Invocation Worker Adapters
+
+For every model approach, use a new thin `*Worker` adapter component for a Spring bean method invoked
+by JUEL. Never add `@JobWorker` to an existing domain or service class from the C7 source. Keep the
+domain logic in the existing bean and delegate to it from the adapter. The code checklist defines
+the remediation and validation rules. Use this reference shape:
+
+```java
+@Component
+public class SampleBeanWorker {
+  @Autowired private SampleBean sampleBean;
+
+  @JobWorker(type = "sampleBean")
+  public Map<String, Object> someMethod(@Variable(name = "y") String y) {
+    return Map.of("theAnswer", sampleBean.someMethod(y));
+  }
+}
+```
+
+Apply this rule to JUEL method-invocation findings in M1, M2, M3, and E1. E1 uses the M1 local
+conversion flow after it acquires the source models.
+
 ## Approach M2 - Agentic AI (direct XML rewrite)
 
 Use when Java 21 is unavailable, the user wants to review every change, or the CLI cannot handle a case.
@@ -243,21 +265,7 @@ the original Camunda 7 implementation attribute.
 | `camunda:class` | Take the class name after the final dot. Decapitalize its first character. | `com.example.SampleDelegate` becomes `sampleDelegate`. |
 | `camunda:topic` on an external task | Copy the topic value without changing it. | `invoice-processing` remains `invoice-processing`. |
 
-For a Spring bean method invoked by JUEL, use a new thin `*Worker` adapter component by default.
-Never add `@JobWorker` to an existing domain or service class from the C7 source. Keep the domain
-logic in the existing bean and delegate to it from the adapter. Use this reference shape:
-
-```java
-@Component
-public class SampleBeanWorker {
-  @Autowired private SampleBean sampleBean;
-
-  @JobWorker(type = "sampleBean")
-  public Map<String, Object> someMethod(@Variable(name = "y") String y) {
-    return Map.of("theAnswer", sampleBean.someMethod(y));
-  }
-}
-```
+For JUEL method-invocation findings, apply the shared [worker adapter rule](#juel-method-invocation-worker-adapters).
 
 Treat a job type that differs from this table as an intentional deviation only when
 `MIGRATION_REPORT.md` records the source file and element, the original implementation, the emitted
