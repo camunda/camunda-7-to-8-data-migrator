@@ -247,7 +247,7 @@ Each item below is a check to run and a condition that must hold at exit. Record
 10. **Query counts and pagination** — search migrated sources for `.items().size()` and
     `.items().stream().count()`. Treat each hit as a validation failure when it represents a
     complete query count. Confirm that each migrated C7 `list().size()`, `list().stream().count()`,
-    or `count()` uses `.page().totalItems()` and review the lower-bound flag for large searches.
+    or `count()` uses `.page().totalItems()` and review `.page().hasMoreTotalItems()` for large searches.
 
 Check these pitfalls as well:
 

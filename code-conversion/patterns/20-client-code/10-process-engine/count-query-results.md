@@ -28,4 +28,4 @@ long runningInstances = camundaClient.newProcessInstanceSearchRequest()
 Use `page().totalItems()` when the result drives a count, guard, or business decision.
 Do not use `items().size()` or `items().stream().count()` for a complete result count.
 The `items()` list contains only the current page and can be limited by the configured page size.
-Review the `page.totalItems` lower-bound flag when the search can exceed cluster result limits.
+Review `page().hasMoreTotalItems()` when the search can exceed cluster result limits.

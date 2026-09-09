@@ -91,7 +91,8 @@ public class JavaDelegateWithClientQueryRecipesTest implements RewriteTest {
                     boolean proceed = camundaClient
                             .newProcessInstanceSearchRequest()
                             .filter(filter -> filter
-                                    .processDefinitionId("example-workflow-process"))
+                                    .processDefinitionId("example-workflow-process")
+                                    .state(ProcessInstanceState.ACTIVE))
                             .send()
                             .join()
                             .page()
@@ -100,7 +101,8 @@ public class JavaDelegateWithClientQueryRecipesTest implements RewriteTest {
                     Long activeCount = camundaClient
                             .newProcessInstanceSearchRequest()
                             .filter(filter -> filter
-                                    .processDefinitionId("example-workflow-process"))
+                                    .processDefinitionId("example-workflow-process")
+                                    .state(ProcessInstanceState.ACTIVE))
                             .send()
                             .join()
                             .page()
@@ -109,7 +111,8 @@ public class JavaDelegateWithClientQueryRecipesTest implements RewriteTest {
                     long streamCount = camundaClient
                             .newProcessInstanceSearchRequest()
                             .filter(filter -> filter
-                                    .processDefinitionId("example-workflow-process"))
+                                    .processDefinitionId("example-workflow-process")
+                                    .state(ProcessInstanceState.ACTIVE))
                             .send()
                             .join()
                             .page()
