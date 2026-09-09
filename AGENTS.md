@@ -43,6 +43,10 @@ See the module-specific instructions for implementation and testing details:
 - [code-conversion/AGENTS.md](code-conversion/AGENTS.md)
 - [agentic-migration-skills/AGENTS.md](agentic-migration-skills/AGENTS.md) - writing conventions for skill text
 
+When you change any file under `agentic-migration-skills/`, read and apply
+[agentic-migration-skills/AGENTS.md](agentic-migration-skills/AGENTS.md) before editing. Open the pull
+request against `main`.
+
 ## Build pipeline
 
 ### Prerequisites
