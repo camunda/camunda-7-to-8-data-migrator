@@ -6,6 +6,18 @@ A tool for analyzing and converting Camunda 7 models (BPMN & DMN) to Camunda 8 f
 - Converts those models to Camunda 8 format.
 - Can be extended to accommodate special requirements.
 
+For Camunda 8.10 targets, the converter also maps C7 call-activity business-key
+propagation to `zeebe:calledElement businessId`, static execution-listener fields
+to listener task headers, and dynamic DMN decision version-tag expressions to FEEL.
+
+## Online Availability
+
+The Diagram Converter is available online at [https://diagram-converter.camunda.io/](https://diagram-converter.camunda.io/), hosted by Camunda. Your diagrams are transiently processed - we don't store any of your data.
+
+## Documentation
+
+For installation and usage instructions, see the [official documentation](https://docs.camunda.io/docs/guides/migrating-from-camunda-7/migration-tooling/diagram-converter/).
+
 See it in action in the **[Camunda 7 to 8 Migration Example](https://github.com/camunda-community-hub/camunda-7-to-8-migration-example)**.
 
 To understand what conversions will be applied, have a look at the [BPMN Conversion Test Cases YAML](core/src/test/resources/BPMN_CONVERSION.yaml) - as this lists given Camunda 7 BPMN snippets, and the expected Camunda 8 snippet of the transformed BPMN. For example:
@@ -127,4 +139,3 @@ You can extend diagram conversion by leveraging the SPI. You can find an example
 ## License
 
 The source files in this repository are made available under the [Camunda License Version 1.0](../CAMUNDA-LICENSE-1.0.txt).
-
