@@ -37,7 +37,9 @@ export const task_variable = [
 					This endpoint returns effective variables visible from the
 					user task. Each variable name appears at most once; when a
 					name is defined in multiple scopes, the innermost scope
-					takes precedence.
+					takes precedence. Include{" "}
+					<code>?truncateValues=false</code> in the request to return
+					complete variable values.
 				</p>
 			),
 		},
@@ -145,6 +147,8 @@ export const task_variable = [
 					user task. Filter by <code>filter.name</code> to retrieve the
 					effective value for <code>varName</code>; shadowed variables
 					are deduplicated with the innermost scope taking precedence.
+					Include <code>?truncateValues=false</code> in the request to
+					return the complete value.
 				</p>
 			),
 		},

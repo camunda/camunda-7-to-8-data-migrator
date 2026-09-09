@@ -81,7 +81,14 @@ export const job = [
 				},
 				{
 					leftEntry: <pre>(object) jobQuery</pre>,
-					rightEntry: <pre>(object) filter</pre>,
+					rightEntry: (
+						<p>
+							Do not copy <code>jobQuery</code> directly to{" "}
+							<code>filter</code>. Translate supported criteria as
+							described below; criteria without a listed mapping
+							have no Camunda 8 equivalent.
+						</p>
+					),
 				},
 				{
 					leftEntry: <pre>(integer) retries</pre>,
@@ -89,11 +96,57 @@ export const job = [
 				},
 			],
 			additionalInfo: (
-				<p>
-					The Camunda 8.10 Update jobs (batch) endpoint is
-					asynchronous; its batch operation key can be used to track
-					progress.
-				</p>
+				<>
+					<p>
+						Translate the supported <code>jobQuery</code> criteria
+						as follows:
+					</p>
+					<pre>
+						{`jobId → filter.jobKey
+jobIds → filter.jobKey.$in
+processInstanceId → filter.processInstanceKey
+processInstanceIds → filter.processInstanceKey.$in
+processDefinitionId → filter.processDefinitionId
+processDefinitionKey → filter.processDefinitionKey
+activityId → filter.elementId
+failedActivityId → filter.elementId
+withRetriesLeft=true → filter.retries.$gt=0
+noRetriesLeft=true → filter.retries.$eq=0
+dueDates → filter.deadline.$gt / filter.deadline.$lt
+createTimes → filter.creationTime.$gt / filter.creationTime.$lt
+exceptionMessage → filter.errorMessage
+priorityLowerThanOrEquals → filter.priority.$lte
+priorityHigherThanOrEquals → filter.priority.$gte
+tenantIdIn → filter.tenantId.$in
+withoutTenantId=true → filter.tenantId.$exists=false`}
+					</pre>
+					<p>
+						Apply the{" "}
+						<a href="#key-to-id">Camunda 7 key → Camunda 8 id</a>{" "}
+						conversion to job and process-instance IDs. The
+						<code>jobDefinitionId</code>, <code>executionId</code>,{" "}
+						<code>executable</code>, <code>timers</code>,{" "}
+						<code>messages</code>, <code>withException</code>,{" "}
+						<code>active</code>, <code>suspended</code>, and{" "}
+						<code>includeJobsWithoutTenantId</code> criteria have no
+						direct equivalent in the Camunda 8.10 job filter.
+						Sorting is not applicable to a batch update.
+					</p>
+					<p>
+						Camunda 7 applies top-level <code>jobIds</code> and{" "}
+						<code>jobQuery</code> as a union, while fields in one
+						Camunda 8 <code>filter</code> are conjunctive. Issue
+						separate batch-update requests for the ID selector and
+						the translated query selector. Remove overlapping job
+						keys before the second request to avoid updating a job
+						twice.
+					</p>
+					<p>
+						The Camunda 8.10 Update jobs (batch) endpoint is
+						asynchronous; its batch operation key can be used to
+						track progress.
+					</p>
+				</>
 			),
 		},
 		discontinued: {

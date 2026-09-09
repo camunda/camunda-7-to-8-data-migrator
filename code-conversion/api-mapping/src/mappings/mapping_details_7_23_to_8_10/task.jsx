@@ -994,7 +994,9 @@ export const task = [
 					By not applying any filters, all variables of the user task
 					are returned as a list of objects, specifying various
 					details. Form-field types, defaults, and other form metadata
-					are not applied by this variable search.
+					are not applied by this variable search. Include{" "}
+					<code>?truncateValues=false</code> in the request to return
+					complete variable values.
 				</p>
 			),
 		},

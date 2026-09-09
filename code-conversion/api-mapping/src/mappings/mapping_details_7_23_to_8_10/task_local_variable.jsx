@@ -40,6 +40,8 @@ export const task_local_variable = [
 					To match the Camunda 7 local-variable semantics, retrieve
 					the user task's <code>elementInstanceKey</code> and keep
 					only variables whose <code>scopeKey</code> equals it.
+					Include <code>?truncateValues=false</code> in the request to
+					return complete variable values.
 				</p>
 			),
 		},
@@ -155,7 +157,9 @@ export const task_local_variable = [
 					the user task's <code>elementInstanceKey</code> and keep
 					only the variable whose <code>scopeKey</code> equals it. Use
 					<code>filter.name</code> to find the variable named by{" "}
-					<code>varName</code>.
+					<code>varName</code>. Include{" "}
+					<code>?truncateValues=false</code> in the request to return
+					the complete value.
 				</p>
 			),
 		},
