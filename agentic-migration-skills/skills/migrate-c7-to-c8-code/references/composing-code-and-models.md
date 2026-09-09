@@ -29,7 +29,9 @@ Also treat the `delegate-implementation` category (emitted when the converter ra
 
 ### 2a. 1:1 mapping - simple job-type match
 
-Job types emitted by the Diagram Converter should match the `@JobWorker(type = ...)` values produced by the code migration. Flag mismatches for the user.
+Job types in the converted model should match the `@JobWorker(type = ...)` values produced by the
+code migration. Use the Diagram Converter output for M1 and the binding rules in
+`model-migration-approaches.md` for M2. Flag mismatches for the user.
 
 ### 2b. Many-to-one mapping - dispatcher/adapter worker needed
 

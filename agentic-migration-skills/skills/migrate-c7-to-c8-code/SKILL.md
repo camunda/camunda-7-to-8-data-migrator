@@ -230,6 +230,13 @@ Each item below is a check to run and a condition that must hold at exit. Record
 8. **Tests** — run `mvn test` or the Gradle test task. Every test passes, or each failure is
    documented with an explanation.
 
+For M2 outputs, also validate every `zeebe:taskDefinition/@type` against the binding rules in
+`references/model-migration-approaches.md`. Confirm the type matches the original
+`delegateExpression`, expression, class, or external-task topic rule. If the type differs, require a
+confirmed decision-log entry in `MIGRATION_REPORT.md` with the source file and element, original
+implementation, emitted type, and rationale. Treat a mismatch without that entry as a validation
+failure.
+
 Check these pitfalls as well:
 
 - Naming swap: Camunda 7 `processDefinitionKey` (a string key) becomes Camunda 8 `bpmnProcessId`, and
