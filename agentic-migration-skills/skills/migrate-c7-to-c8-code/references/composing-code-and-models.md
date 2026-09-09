@@ -16,13 +16,15 @@ Cross-reference the grouped Diagram Converter findings (see `model-migration-app
 
 When M2 is in scope without a Diagram Converter report, scan every `zeebe:taskDefinition/@type` in
 each converted BPMN file. Read the corresponding original Camunda 7 implementation attribute and
-derive the expected type from the M2 binding rules in `model-migration-approaches.md`. Apply the
-same 1:1 or many-to-one check below. Do not wait for `delegate-expression-as-job-type` findings,
-because M2-only runs do not produce them.
+derive the expected type from the M2 binding rules in `model-migration-approaches.md`. Treat each
+original-implementation-to-emitted-type pair as an input row for step 1 below. Apply the same 1:1
+or many-to-one check. Do not wait for `delegate-expression-as-job-type` findings, because M2-only
+runs do not produce them.
 
 ### 1. Detect many-to-one job-type collapse
 
-Take all rows in the `delegate-expression-as-job-type` category. Each message has the shape:
+Take all rows in the `delegate-expression-as-job-type` category and all M2-derived input rows. Each
+row has the shape:
 
 > Delegate class or expression '\<original\>' has been transformed to job type '\<jobType\>'.
 

@@ -230,14 +230,6 @@ Each item below is a check to run and a condition that must hold at exit. Record
 8. **Tests** — run `mvn test` or the Gradle test task. Every test passes, or each failure is
    documented with an explanation.
 
-9. **M2 job types** — inspect every `zeebe:taskDefinition/@type` when the model uses M2. Derive the
-   expected type from the original `camunda:delegateExpression`, `camunda:expression`,
-   `camunda:class`, or `camunda:topic` attribute using the binding rules in
-   `references/model-migration-approaches.md`. If the emitted type differs, require a confirmed
-   decision-log entry in `MIGRATION_REPORT.md` with the source file and element, original
-   implementation, emitted type, and rationale. Treat a mismatch without that entry as a
-   validation failure.
-
 Check these pitfalls as well:
 
 - Naming swap: Camunda 7 `processDefinitionKey` (a string key) becomes Camunda 8 `bpmnProcessId`, and
@@ -281,6 +273,13 @@ target version. See the linting section in `references/model-migration-approache
 14. Once the verdict table is complete, the converted copies hold no `conversion:*` node, no
    `conversion:*` attribute, no unused Camunda 7 namespace declaration, and no leftover BPMN
    definitions-level XPath `expressionLanguage` attribute.
+15. When the model uses M2, inspect every `zeebe:taskDefinition/@type`. Derive the expected type
+    from the original `camunda:delegateExpression`, `camunda:expression`, `camunda:class`, or
+    `camunda:topic` attribute using the binding rules in
+    `references/model-migration-approaches.md`. If the emitted type differs, require a confirmed
+    decision-log entry in `MIGRATION_REPORT.md` with the source file and element, original
+    implementation, emitted type, and rationale. Treat a mismatch without that entry as a
+    validation failure.
 
 #### Summary
 

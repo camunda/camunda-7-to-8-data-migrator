@@ -239,7 +239,7 @@ the original Camunda 7 implementation attribute.
 | Camunda 7 source | Job type rule | Example |
 |---|---|---|
 | `camunda:delegateExpression` or `camunda:expression` with a bean reference | Remove the `${...}` or `#{...}` wrapper. Keep the first path segment unchanged. Capitalize the first character of each later path segment. | `${sampleBean}` becomes `sampleBean`. |
-| `camunda:delegateExpression` or `camunda:expression` with a method invocation (expression method) | Unwrap the expression. Split its bean path on `.`. Remove the final segment's `(...)` argument list. Join the segments with the first unchanged and later segments capitalized. | `${sampleBean.someMethod(x)}` becomes `sampleBeanSomeMethod`. |
+| `camunda:delegateExpression` or `camunda:expression` with a method invocation (expression method) | Unwrap the expression. Replace each `.` with an uppercase first character of the following segment. Remove the `(...)` argument list after the camel-case transformation. | `${sampleBean.someMethod(x)}` becomes `sampleBeanSomeMethod`. |
 | `camunda:class` | Take the class name after the final dot. Decapitalize its first character. | `com.example.SampleDelegate` becomes `sampleDelegate`. |
 | `camunda:topic` on an external task | Copy the topic value without changing it. | `invoice-processing` remains `invoice-processing`. |
 
