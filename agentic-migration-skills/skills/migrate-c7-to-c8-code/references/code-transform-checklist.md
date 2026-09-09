@@ -8,6 +8,68 @@ Confirm each item before the next. Ask the user before each commit.
 
 ---
 
+## OpenRewrite output: de-recipe cleanup
+
+Approach A runs this section after OpenRewrite. The cleanup removes recipe artifacts while preserving
+the worker's job type, inputs, outputs, and behavior. Load
+`30-glue-code/idiomatic-job-worker-cleanup.md` from the pattern catalog before editing.
+
+Inspect every generated `@JobWorker` method. Apply each matching rule:
+
+| Recipe artifact | Cleanup |
+|---|---|
+| A method name ends in `Migrated` or starts with `executeJob` | Rename the method to the worker's job type or the original delegate's intent. Preserve the explicit `@JobWorker(type = "...")` value. If the job type came from the method name, set it explicitly before renaming. |
+| The method reads one or more variables through `ActivatedJob` | Replace `job.getVariable(...)` or `job.getVariablesAsMap()` with typed `@Variable` parameters. Use `@VariablesAsType` for a cohesive variable object. Keep `ActivatedJob` only when the method uses its metadata or command key. |
+| The method has `throws Exception` after variable cleanup | Remove the declaration when the method no longer throws a checked exception. Preserve a specific checked exception when the worker still requires it. |
+| The method returns one output through a mutable map | Return `Map.of(...)` when the output has non-null values and callers do not mutate the map. Keep a mutable map when the worker needs mutation or supports nullable values. |
+| `@JobWorker(autoComplete = true)` is present | Remove the attribute because `true` is the default. Keep it only when the project documents the explicit setting as part of its configuration contract. |
+| An input can be absent | Mark the matching input `@Variable(optional = true)` and use a nullable or optional-compatible Java type. Do not mark required inputs optional. |
+| The source was a Camunda 7 delegate or external task worker | Preserve a short migration Javadoc. Add one when the generated method has no provenance note and the source origin is known. |
+
+Do not change a job type, variable name, output name, exception behavior, or worker completion mode
+during this cleanup. If the worker needs `ActivatedJob` for completion, failure, BPMN error, retry, or
+metadata, keep that parameter and clean only the unused recipe artifacts.
+
+### Before and after
+
+The following recipe output uses the job object for variable access, retains a generated method name,
+and builds a redundant result map:
+
+```java
+@JobWorker(type = "sampleJavaDelegate", autoComplete = true)
+public Map<String, Object> executeJobMigrated(ActivatedJob job) throws Exception {
+  Map<String, Object> resultMap = new HashMap<>();
+  Object x = job.getVariable("x");
+  System.out.println("SampleJavaDelegate " + x);
+  resultMap.put("y", "hello world");
+  return resultMap;
+}
+```
+
+The cleanup produces an idiomatic worker without changing the job type or variables:
+
+```java
+/**
+ * Migrated from the Camunda 7 SampleJavaDelegate.
+ */
+@JobWorker(type = "sampleJavaDelegate")
+public Map<String, Object> sampleJavaDelegate(@Variable Object x) {
+  System.out.println("SampleJavaDelegate " + x);
+  return Map.of("y", "hello world");
+}
+```
+
+When an input is optional, retain that semantic explicitly:
+
+```java
+@JobWorker(type = "sampleJavaDelegate")
+public void sampleJavaDelegate(@Variable(optional = true) String comment) {
+  // worker logic
+}
+```
+
+---
+
 ## 1. Dependencies and Configuration
 
 Catalog: `10-general/dependencies.md`. It owns the GA version resolution from Maven Central metadata,
