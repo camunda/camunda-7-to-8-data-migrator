@@ -50,6 +50,16 @@ public class JavaDelegateWithClientQueryRecipesTest implements RewriteTest {
                             .list()
                             .size() % 2 == 0;
 
+                    long activeCount = runtimeService.createProcessInstanceQuery()
+                            .processDefinitionKey("example-workflow-process")
+                            .count();
+
+                    long streamCount = runtimeService.createProcessInstanceQuery()
+                            .processDefinitionKey("example-workflow-process")
+                            .list()
+                            .stream()
+                            .count();
+
                     Object inputValue = execution.getVariable("inputValue");
                     System.out.println("ExampleWorkflowDelegate " + inputValue);
 
@@ -84,8 +94,26 @@ public class JavaDelegateWithClientQueryRecipesTest implements RewriteTest {
                                     .processDefinitionId("example-workflow-process"))
                             .send()
                             .join()
-                            .items()
-                            .size() % 2 == 0;
+                            .page()
+                            .totalItems() % 2 == 0;
+
+                    Long activeCount = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter
+                                    .processDefinitionId("example-workflow-process"))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems();
+
+                    long streamCount = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter
+                                    .processDefinitionId("example-workflow-process"))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems();
 
                     Object inputValue = job.getVariable("inputValue");
                     System.out.println("ExampleWorkflowDelegate " + inputValue);

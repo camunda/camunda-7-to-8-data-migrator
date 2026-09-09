@@ -191,6 +191,160 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
   }
 
   @Override
+  protected List<ReplacementUtils.BuilderReplacementSpec> countBuilderMethodInvocations() {
+    List<ReplacementUtils.BuilderReplacementSpec> specs = new ArrayList<>();
+
+    specs.add(new ReplacementUtils.BuilderReplacementSpec(
+        new MethodMatcher("org.camunda.bpm.engine.query.Query list()"),
+        Set.of("activityIdIn"),
+        List.of("activityIdIn"),
+        RecipeUtils.createSimpleJavaTemplate(
+            """
+            #{camundaClient:any(io.camunda.client.CamundaClient)}
+                .newProcessInstanceSearchRequest()
+                .filter(filter -> filter
+                    .elementId(#{activityIdIn:any(java.lang.String)})
+                    .state(ProcessInstanceState.ACTIVE))
+                .send()
+                .join()
+                .page()
+                .totalItems()
+            """,
+            PROCESS_INSTANCE_STATE,
+            "io.camunda.client.api.search.filter.ProcessInstanceFilter"),
+        RecipeUtils.createSimpleIdentifier("camundaClient", "io.camunda.client.CamundaClient"),
+        "java.lang.Long",
+        ReplacementUtils.ReturnTypeStrategy.USE_SPECIFIED_TYPE,
+        Collections.emptyList(),
+        Collections.emptyList(),
+        List.of(PROCESS_INSTANCE_STATE),
+        Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
+
+    specs.add(new ReplacementUtils.BuilderReplacementSpec(
+        new MethodMatcher("org.camunda.bpm.engine.query.Query list()"),
+        Set.of("processInstanceBusinessKey"),
+        Collections.emptyList(),
+        RecipeUtils.createSimpleJavaTemplate(
+            """
+            #{camundaClient:any(io.camunda.client.CamundaClient)}
+                .newProcessInstanceSearchRequest()
+                .filter(filter -> filter
+                    .state(ProcessInstanceState.ACTIVE))
+                .send()
+                .join()
+                .page()
+                .totalItems()
+            """,
+            PROCESS_INSTANCE_STATE,
+            "io.camunda.client.api.search.filter.ProcessInstanceFilter"),
+        RecipeUtils.createSimpleIdentifier("camundaClient", "io.camunda.client.CamundaClient"),
+        "java.lang.Long",
+        ReplacementUtils.ReturnTypeStrategy.USE_SPECIFIED_TYPE,
+        List.of(RecipeUtils.businessIdHint("processInstanceBusinessKey")),
+        Collections.emptyList(),
+        List.of(PROCESS_INSTANCE_STATE),
+        Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
+
+    specs.add(new ReplacementUtils.BuilderReplacementSpec(
+        new MethodMatcher("org.camunda.bpm.engine.query.Query list()"),
+        Set.of("processDefinitionKey"),
+        List.of("processDefinitionKey"),
+        RecipeUtils.createSimpleJavaTemplate(
+            """
+            #{camundaClient:any(io.camunda.client.CamundaClient)}
+                .newProcessInstanceSearchRequest()
+                .filter(filter -> filter
+                    .processDefinitionId(#{processDefinitionKey:any(java.lang.String)}))
+                .send()
+                .join()
+                .page()
+                .totalItems()
+            """,
+            "io.camunda.client.api.search.filter.ProcessInstanceFilter"),
+        RecipeUtils.createSimpleIdentifier("camundaClient", "io.camunda.client.CamundaClient"),
+        "java.lang.Long",
+        ReplacementUtils.ReturnTypeStrategy.USE_SPECIFIED_TYPE,
+        Collections.emptyList(),
+        Collections.emptyList(),
+        Collections.emptyList(),
+        Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
+
+    specs.add(new ReplacementUtils.BuilderReplacementSpec(
+        new MethodMatcher("org.camunda.bpm.engine.query.Query list()"),
+        Set.of("processInstanceBusinessKey", "processDefinitionKey"),
+        List.of("processDefinitionKey"),
+        RecipeUtils.createSimpleJavaTemplate(
+            """
+            #{camundaClient:any(io.camunda.client.CamundaClient)}
+                .newProcessInstanceSearchRequest()
+                .filter(filter -> filter
+                    .processDefinitionId(#{processDefinitionKey:any(java.lang.String)}))
+                .send()
+                .join()
+                .page()
+                .totalItems()
+            """,
+            "io.camunda.client.api.search.filter.ProcessInstanceFilter"),
+        RecipeUtils.createSimpleIdentifier("camundaClient", "io.camunda.client.CamundaClient"),
+        "java.lang.Long",
+        ReplacementUtils.ReturnTypeStrategy.USE_SPECIFIED_TYPE,
+        List.of(RecipeUtils.businessIdHint("processInstanceBusinessKey")),
+        Collections.emptyList(),
+        Collections.emptyList(),
+        Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
+
+    specs.add(new ReplacementUtils.BuilderReplacementSpec(
+        new MethodMatcher("org.camunda.bpm.engine.query.Query count()"),
+        Set.of(),
+        Collections.emptyList(),
+        RecipeUtils.createSimpleJavaTemplate(
+            """
+            #{camundaClient:any(io.camunda.client.CamundaClient)}
+                .newProcessInstanceSearchRequest()
+                .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                .send()
+                .join()
+                .page()
+                .totalItems()
+            """,
+            PROCESS_INSTANCE_STATE,
+            "io.camunda.client.api.search.filter.ProcessInstanceFilter"),
+        RecipeUtils.createSimpleIdentifier("camundaClient", "io.camunda.client.CamundaClient"),
+        "java.lang.Long",
+        ReplacementUtils.ReturnTypeStrategy.USE_SPECIFIED_TYPE,
+        Collections.emptyList(),
+        Collections.emptyList(),
+        List.of(PROCESS_INSTANCE_STATE),
+        Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
+
+    specs.add(new ReplacementUtils.BuilderReplacementSpec(
+        new MethodMatcher("org.camunda.bpm.engine.query.Query count()"),
+        Set.of("processDefinitionKey"),
+        List.of("processDefinitionKey"),
+        RecipeUtils.createSimpleJavaTemplate(
+            """
+            #{camundaClient:any(io.camunda.client.CamundaClient)}
+                .newProcessInstanceSearchRequest()
+                .filter(filter -> filter
+                    .processDefinitionId(#{processDefinitionKey:any(java.lang.String)}))
+                .send()
+                .join()
+                .page()
+                .totalItems()
+            """,
+            "io.camunda.client.api.search.filter.ProcessInstanceFilter"),
+        RecipeUtils.createSimpleIdentifier("camundaClient", "io.camunda.client.CamundaClient"),
+        "java.lang.Long",
+        ReplacementUtils.ReturnTypeStrategy.USE_SPECIFIED_TYPE,
+        Collections.emptyList(),
+        Collections.emptyList(),
+        Collections.emptyList(),
+        Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
+
+    return specs;
+  }
+
+  @Override
   protected List<ReplacementUtils.ReturnReplacementSpec> returnMethodInvocations() {
     return List.of();
   }

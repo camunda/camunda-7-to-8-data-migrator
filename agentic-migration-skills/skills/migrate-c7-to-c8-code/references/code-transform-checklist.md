@@ -80,6 +80,15 @@ record its wording. Replace `<call site>` with the class and the method.
 Set each open item to status `open`. Resolve it only on an explicit user decision, and record that
 decision in `MIGRATION_REPORT.md`.
 
+### Query counts and pagination
+
+Catalog: `20-client-code/10-process-engine/count-query-results.md`.
+
+- Replace `list().size()`, `list().stream().count()`, and `count()` with
+  `page().totalItems()` when the code needs the complete query count.
+- Never use `items().size()` or `items().stream().count()` for a complete query count.
+- Review the `page.totalItems` lower-bound flag when the search can exceed cluster result limits.
+
 ---
 
 ## 3. JavaDelegate to Job Worker (OpenRewrite covers this)
