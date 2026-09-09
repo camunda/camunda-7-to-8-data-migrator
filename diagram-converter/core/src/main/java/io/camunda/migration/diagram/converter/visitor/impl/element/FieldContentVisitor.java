@@ -45,20 +45,34 @@ public abstract class FieldContentVisitor extends AbstractCamundaElementVisitor 
 
   private boolean isStaticExecutionListenerField(DomElementVisitorContext context) {
     DomElement field = findField(context.getElement());
-    if (field == null || !isSupportedExecutionListener(field)) {
+    return field != null && isStaticExecutionListenerField(field);
+  }
+
+  static boolean isStaticExecutionListenerField(DomElement field) {
+    if (!isSupportedExecutionListener(field)) {
       return false;
     }
-
-    List<DomElement> children = field.getChildElements();
     String name = field.getAttribute("name");
     return name != null
         && !name.isBlank()
-        && children.size() == 1
+        && (field.hasAttribute("stringValue") || hasNestedStringValue(field));
+  }
+
+  static String getStaticExecutionListenerFieldValue(DomElement field) {
+    if (field.hasAttribute("stringValue")) {
+      return field.getAttribute("stringValue");
+    }
+    return field.getChildElements().get(0).getTextContent();
+  }
+
+  private static boolean hasNestedStringValue(DomElement field) {
+    List<DomElement> children = field.getChildElements();
+    return children.size() == 1
         && "string".equals(children.get(0).getLocalName())
         && NamespaceUri.CAMUNDA.equals(children.get(0).getNamespaceURI());
   }
 
-  private DomElement findField(DomElement element) {
+  private static DomElement findField(DomElement element) {
     if ("field".equals(element.getLocalName())) {
       return element;
     }
@@ -66,7 +80,7 @@ public abstract class FieldContentVisitor extends AbstractCamundaElementVisitor 
     return parent != null && "field".equals(parent.getLocalName()) ? parent : null;
   }
 
-  private boolean isSupportedExecutionListener(DomElement field) {
+  private static boolean isSupportedExecutionListener(DomElement field) {
     DomElement listener = field.getParentElement();
     return listener != null
         && NamespaceUri.CAMUNDA.equals(listener.getNamespaceURI())

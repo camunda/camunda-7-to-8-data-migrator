@@ -19,7 +19,6 @@ import io.camunda.migration.diagram.converter.message.MessageFactory;
 import io.camunda.migration.diagram.converter.version.SemanticVersion;
 import io.camunda.migration.diagram.converter.visitor.AbstractListenerVisitor;
 import io.camunda.migration.diagram.converter.visitor.AbstractListenerVisitor.ListenerImplementation.DelegateExpressionImplementation;
-import java.util.List;
 import java.util.regex.Matcher;
 import org.camunda.bpm.model.xml.instance.DomElement;
 
@@ -61,14 +60,10 @@ public class ExecutionListenerVisitor extends AbstractListenerVisitor {
     }
 
     for (DomElement field : context.getElement().getChildElementsByNameNs(CAMUNDA, "field")) {
-      String name = field.getAttribute("name");
-      List<DomElement> children = field.getChildElements();
-      if (name != null
-          && !name.isBlank()
-          && children.size() == 1
-          && "string".equals(children.get(0).getLocalName())
-          && CAMUNDA.equals(children.get(0).getNamespaceURI())) {
-        executionListener.addZeebeTaskHeader(name, children.get(0).getTextContent());
+      if (FieldContentVisitor.isStaticExecutionListenerField(field)) {
+        String name = field.getAttribute("name");
+        executionListener.addZeebeTaskHeader(
+            name, FieldContentVisitor.getStaticExecutionListenerFieldValue(field));
         context.addMessage(MessageFactory.executionListenerField(name));
       }
     }

@@ -620,6 +620,7 @@ categories:
                 <camunda:field name="headerName">
                   <camunda:string>headerValue</camunda:string>
                 </camunda:field>
+                <camunda:field name="attributeHeader" stringValue="attributeValue" />
               </camunda:executionListener>
             </bpmn:extensionElements>
           </bpmn:task>
@@ -645,6 +646,7 @@ categories:
         expectedMessages: |
           <conversion:message severity="WARNING">Element 'In' is not supported in Zeebe version '8.8'. It is available in version '8.10.0'.</conversion:message>
           <conversion:message severity="WARNING">Element 'Field' is not supported in Zeebe version '8.8'. It is available in version '8.10.0'.</conversion:message>
+          <conversion:message severity="WARNING">Element 'Field' is not supported in Zeebe version '8.8'. It is available in version '8.10.0'.</conversion:message>
           <conversion:message severity="TASK">Execution Listener at 'start' with implementation 'listenerJob' can be transformed to a job worker. Please adjust the job type.</conversion:message>
           <conversion:message severity="WARNING">Attribute 'decisionRefVersionTag' with value '${decisionVersion}' on 'businessRuleTask' is not supported.</conversion:message>
           <conversion:message severity="INFO">Decision reference binding has been mapped.</conversion:message>
@@ -663,6 +665,7 @@ categories:
                 <camunda:field name="headerName">
                   <camunda:string>headerValue</camunda:string>
                 </camunda:field>
+                <camunda:field name="attributeHeader" stringValue="attributeValue" />
               </camunda:executionListener>
             </bpmn:extensionElements>
           </bpmn:task>
@@ -688,6 +691,7 @@ categories:
         expectedMessages: |
           <conversion:message severity="WARNING">Element 'In' is not supported in Zeebe version '8.9'. It is available in version '8.10.0'.</conversion:message>
           <conversion:message severity="WARNING">Element 'Field' is not supported in Zeebe version '8.9'. It is available in version '8.10.0'.</conversion:message>
+          <conversion:message severity="WARNING">Element 'Field' is not supported in Zeebe version '8.9'. It is available in version '8.10.0'.</conversion:message>
           <conversion:message severity="TASK">Execution Listener at 'start' with implementation 'listenerJob' can be transformed to a job worker. Please adjust the job type.</conversion:message>
           <conversion:message severity="WARNING">Attribute 'decisionRefVersionTag' with value '${decisionVersion}' on 'businessRuleTask' is not supported.</conversion:message>
           <conversion:message severity="INFO">Decision reference binding has been mapped.</conversion:message>
@@ -706,6 +710,7 @@ categories:
                 <camunda:field name="headerName">
                   <camunda:string>headerValue</camunda:string>
                 </camunda:field>
+                <camunda:field name="attributeHeader" stringValue="attributeValue" />
               </camunda:executionListener>
             </bpmn:extensionElements>
           </bpmn:task>
@@ -722,6 +727,7 @@ categories:
                 <zeebe:executionListener eventType="start" type="listenerJob">
                   <zeebe:taskHeaders>
                     <zeebe:header key="headerName" value="headerValue"/>
+                    <zeebe:header key="attributeHeader" value="attributeValue"/>
                   </zeebe:taskHeaders>
                 </zeebe:executionListener>
               </zeebe:executionListeners>
@@ -736,6 +742,7 @@ categories:
           <conversion:message severity="INFO">Element 'camunda:in' with businessKey '#{execution.processBusinessKey}' was mapped to 'businessId' on 'zeebe:calledElement'.</conversion:message>
           <conversion:message severity="TASK">Execution Listener at 'start' with implementation 'listenerJob' can be transformed to a job worker. Please adjust the job type.</conversion:message>
           <conversion:message severity="INFO">Execution listener field 'headerName' was mapped to a task header.</conversion:message>
+          <conversion:message severity="INFO">Execution listener field 'attributeHeader' was mapped to a task header.</conversion:message>
           <conversion:message severity="REVIEW">Decision reference version tag: Please review transformed expression: '${decisionVersion}' -&gt; '=decisionVersion'.</conversion:message>
           <conversion:message severity="INFO">Decision reference binding has been mapped.</conversion:message>
   - category: Expressions
