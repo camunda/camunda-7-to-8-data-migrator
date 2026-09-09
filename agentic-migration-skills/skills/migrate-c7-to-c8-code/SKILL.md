@@ -159,6 +159,10 @@ Classify every Camunda 7 related Java file and config file into a table with the
 Complexity, Notes. See `references/code-transform-checklist.md` for the detection hints and the type
 classifications.
 
+Record the original Java source baseline used for migration with the Code Inventory. Include every
+domain or service class that could receive or delegate a `@JobWorker`, including classes without
+Camunda APIs.
+
 #### Model Inventory
 
 Glob for the model files. Record each one in a table with the columns File, Type, Uses `camunda:` ns,
@@ -248,6 +252,9 @@ Each item below is a check to run and a condition that must hold at exit. Record
     `.items().stream().count()`. Treat each hit as a validation failure when it represents a
     complete query count. Confirm that each migrated C7 `list().size()`, `list().stream().count()`,
     or `count()` uses `.page().totalItems()` and review `.page().hasMoreTotalItems()` for large searches.
+11. **Worker adapters** — inspect every `@JobWorker` declaration against the original Java source
+    baseline recorded in Step 2. Flag any `@JobWorker` on a class in that baseline. A migrated
+    Spring bean method must use a new `*Worker` adapter component instead.
 
 Check these pitfalls as well:
 
