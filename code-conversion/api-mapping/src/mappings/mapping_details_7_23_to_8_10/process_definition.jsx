@@ -49,7 +49,13 @@ export const process_definition = [
 							(string) nameLike
 						</pre>
 					),
-					rightEntry: <pre>(string) filter.name</pre>,
+					rightEntry: (
+						<pre>
+							(string) filter.name
+							<br />
+							(string) filter.name.$like
+						</pre>
+					),
 				},
 				{
 					leftEntry: (
@@ -346,9 +352,12 @@ export const process_definition = [
 					leftEntry: <pre>(boolean) cascade</pre>,
 					rightEntry: (
 						<p>
-							Deletion is only possible if there are no running
-							process instances. The effect of{" "}
-							<code>cascade</code> always applies in Camunda 8.
+							Camunda 8.10 accepts deletion while process
+							instances are running, places the definition in{" "}
+							<code>DRAINING</code>, and removes it after those
+							instances finish. This does not implement C7{" "}
+							<code>cascade</code>; history removal is controlled
+							separately by <code>deleteHistory</code>.
 						</p>
 					),
 				},
@@ -1107,7 +1116,14 @@ export const process_definition = [
 			rowInfo: [
 				{
 					leftEntry: <pre>(string) id</pre>,
-					rightEntry: <pre>(string) resourceKey</pre>,
+					rightEntry: (
+						<p>
+							Resolve the migrated definition to its C8{" "}
+							<code>processDefinitionKey</code> and use that key
+							as <code>resourceKey</code>; the C7 definition id is
+							not the C8 system-assigned key.
+						</p>
+					),
 				},
 			],
 			additionalInfo: "",
@@ -1118,9 +1134,12 @@ export const process_definition = [
 					leftEntry: <pre>(boolean) cascade</pre>,
 					rightEntry: (
 						<p>
-							Deletion is only possible if there are no running
-							process instances. The effect of{" "}
-							<code>cascade</code> always applies in Camunda 8.
+							Camunda 8.10 accepts deletion while process
+							instances are running, places the definition in{" "}
+							<code>DRAINING</code>, and removes it after those
+							instances finish. This does not implement C7{" "}
+							<code>cascade</code>; history removal is controlled
+							separately by <code>deleteHistory</code>.
 						</p>
 					),
 				},

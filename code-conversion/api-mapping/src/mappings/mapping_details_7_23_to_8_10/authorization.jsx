@@ -81,7 +81,14 @@ export const authorization = [
 		},
 		mappedExplanation: (
 			<div>
-				One to one mapping. For more details on authorizations in
+				This requires a semantic conversion, not a one-to-one request
+				forward. Map C7 <code>userId</code>/<code>groupId</code> to
+				C8 <code>ownerId</code>/<code>ownerType</code>, convert the
+				numeric <code>resourceType</code> to the C8 enum, map{" "}
+				<code>permissions</code> to <code>permissionTypes</code>, and
+				preserve <code>resourceId</code>. C7 <code>type</code> grant,
+				revoke, and global semantics have no direct C8 field and need
+				explicit handling. For more details on authorizations in
 				Camunda 8 check the{" "}
 				<a href="https://docs.camunda.io/docs/8.10/components/identity/authorization/">
 					docs
@@ -102,8 +109,11 @@ export const authorization = [
 		},
 		mappedExplanation: (
 			<div>
-				One to one mapping. For more details on authorizations in
-				Camunda 8 check the{" "}
+				The path requires the C8 system-assigned{" "}
+				<code>authorizationKey</code>, not the C7 authorization{" "}
+				<code>id</code>. Resolve the C7 id through the C8 search or a
+				persisted id mapping before deleting. For more details on
+				authorizations in Camunda 8 check the{" "}
 				<a href="https://docs.camunda.io/docs/8.10/components/identity/authorization/">
 					docs
 				</a>
@@ -152,8 +162,13 @@ export const authorization = [
 		},
 		mappedExplanation: (
 			<div>
-				One to one mapping. For more details on authorizations in
-				Camunda 8 check the{" "}
+				This update requires the C8 system-assigned{" "}
+				<code>authorizationKey</code>, not the C7 authorization{" "}
+				<code>id</code>. Convert the body to C8{" "}
+				<code>ownerId</code>/<code>ownerType</code>, the C8 enum{" "}
+				<code>resourceType</code>, and <code>permissionTypes</code>;
+				C7's fields are not forwarded one-to-one. For more details on
+				authorizations in Camunda 8 check the{" "}
 				<a href="https://docs.camunda.io/docs/8.10/components/identity/authorization/">
 					docs
 				</a>
