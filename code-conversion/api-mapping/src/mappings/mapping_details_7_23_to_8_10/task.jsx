@@ -141,7 +141,23 @@ export const task = [
 							(boolean) withoutTenantId
 						</pre>
 					),
-					rightEntry: <pre>(string) filter.tenantId</pre>,
+					rightEntry: (
+						<>
+							<pre>
+								(string) filter.tenantId
+								<br />
+								(string[]) filter.tenantId.$in
+							</pre>
+							<p>
+								Map <code>tenantIdIn</code> to{" "}
+								<code>filter.tenantId.$in</code>.{" "}
+								<code>withoutTenantId</code> has no direct
+								C8 equivalent; map a non-tenanted C7 task to
+								the C8 deployment's explicit default tenant,
+								typically <code>&lt;default&gt;</code>.
+							</p>
+						</>
+					),
 				},
 				{
 					leftEntry: (

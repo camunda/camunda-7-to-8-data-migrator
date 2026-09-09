@@ -63,9 +63,21 @@ export const process_definition = [
 					),
 					rightEntry: (
 						<>
-							<pre>(string) filter.processDefinitionId</pre>
+							<pre>
+								(string) filter.processDefinitionId
+								<br />
+								(string[]) filter.processDefinitionId.$in
+								<br />
+								(string) filter.processDefinitionId.$like
+							</pre>
 							<p>
-								See{" "}
+								Map <code>key</code> to the scalar filter. Map{" "}
+								<code>keysIn</code> to{" "}
+								<code>filter.processDefinitionId.$in</code>.
+								Map <code>keyLike</code> to{" "}
+								<code>$like</code> after converting C7{" "}
+								<code>%</code>/<code>_</code> wildcards to C8{" "}
+								<code>*</code>/<code>?</code>. See{" "}
 								<a href="#key-to-id">
 									Camunda 7 key → Camunda 8 id
 								</a>
