@@ -61,8 +61,9 @@ These items are not in the catalog:
 A C7 `RuntimeService`, `HistoryService`, `TaskService`, `RepositoryService`, or `DecisionService`
 query becomes a C8 search request (`newProcessInstanceSearchRequest`, `newElementInstanceSearchRequest`,
 `newVariableSearchRequest`, `newUserTaskSearchRequest`, `newIncidentSearchRequest`,
-`newDecisionInstanceSearchRequest`, `newProcessDefinitionSearchRequest`). A C8 search request reads
-secondary storage, so its result is eventually consistent. See
+`newUserTaskVariableSearchRequest`, `newDecisionInstanceSearchRequest`,
+`newProcessDefinitionSearchRequest`). A C8 search request reads secondary storage, so its result is
+eventually consistent. See
 `20-client-code/10-process-engine/query-history.md`.
 
 For every migrated query, the skill records an open item in the `MIGRATION_REPORT.md` open-items

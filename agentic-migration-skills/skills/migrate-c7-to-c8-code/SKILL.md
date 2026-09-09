@@ -239,9 +239,11 @@ Each item below is a check to run and a condition that must hold at exit. Record
    `application.properties` or `.yaml`.
 8. **Tests** — run `mvn test` or the Gradle test task. Every test passes, or each failure is
    documented with an explanation.
-9. **Eventually-consistent queries** — search `SearchRequest`. Every migrated search call site has a
-   matching open item in the `MIGRATION_REPORT.md` open-items section. A missing entry fails the
-   check. See the mandatory open items in `references/code-transform-checklist.md`.
+9. **Eventually-consistent queries** — search for every C8 search-request factory method listed in
+   `references/code-transform-checklist.md`, not only the `SearchRequest` type name. Every migrated
+   search call site has a matching open item in the `MIGRATION_REPORT.md` open-items section. A
+   missing entry fails the check. See the mandatory open items in
+   `references/code-transform-checklist.md`.
 
 Check these pitfalls as well:
 
