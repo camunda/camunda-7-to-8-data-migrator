@@ -112,7 +112,6 @@ activityId → filter.elementId
 failedActivityId → filter.elementId
 withRetriesLeft=true → filter.retries.$gt=0
 noRetriesLeft=true → filter.retries.$eq=0
-dueDates → filter.deadline.$gt / filter.deadline.$lt
 createTimes → filter.creationTime.$gt / filter.creationTime.$lt
 exceptionMessage → filter.errorMessage
 priorityLowerThanOrEquals → filter.priority.$lte
@@ -126,10 +125,14 @@ withoutTenantId=true → filter.tenantId.$exists=false`}
 						conversion to job and process-instance IDs. The
 						<code>jobDefinitionId</code>, <code>executionId</code>,{" "}
 						<code>executable</code>, <code>timers</code>,{" "}
-						<code>messages</code>, <code>withException</code>,{" "}
+						<code>messages</code>, 						<code>withException</code>,{" "}
 						<code>active</code>, <code>suspended</code>, and{" "}
 						<code>includeJobsWithoutTenantId</code> criteria have no
-						direct equivalent in the Camunda 8.10 job filter.
+						direct equivalent in the Camunda 8.10 job filter. C7{" "}
+						<code>dueDates</code> also has no direct equivalent:
+						C7 due dates control when a job becomes executable, while
+						the C8 <code>deadline</code> is an activated-job lease
+						expiry.
 						Sorting is not applicable to a batch update.
 					</p>
 					<p>

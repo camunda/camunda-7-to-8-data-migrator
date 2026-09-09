@@ -795,9 +795,15 @@ export const external_task = [
 			<div>
 				The Camunda 8.10 Search jobs endpoint can search by the
 				<code>type</code> field. External task topic names correspond to
-				job types in Camunda 8. The endpoint does not return a distinct
-				list of all job types, so topic names must be derived from the
-				search results.
+				job types in Camunda 8, but the endpoint is paginated and can
+				return terminal jobs. Page through all results, retain only
+				current jobs, and collect unique <code>type</code> values.
+				Translate <code>withLockedTasks</code>,{" "}
+				<code>withUnlockedTasks</code>, and{" "}
+				<code>withRetriesLeft</code> using the job's worker, deadline,
+				and retries fields. There is no exact single-request
+				equivalent, so unsupported filter combinations require
+				client-side handling.
 			</div>
 		),
 	},
