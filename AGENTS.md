@@ -140,6 +140,8 @@ Each module has its own AGENTS.md with specific Java style, architecture, and te
 
 Every bug reveals an unguarded category. Patch the category, not just the instance.
 
+For diagram-converter, the target version is an input independent of the libraries used to build a release line. Camunda 8.10 is the current stable/default target; keep the webapp selector, backend default, and regression tests aligned when changing that policy.
+
 ### Process
 
 1. **Bug found** — before writing the fix, ask: "What surface permitted this?"
