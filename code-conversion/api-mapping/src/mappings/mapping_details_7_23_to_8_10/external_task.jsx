@@ -810,7 +810,7 @@ export const external_task = [
 					rightEntry: <pre>(string) errorMessage</pre>,
 				},
 				{
-					leftEntry: <pre>(object) localVariables</pre>,
+					leftEntry: <pre>(object) variables</pre>,
 					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
@@ -818,10 +818,8 @@ export const external_task = [
 				<>
 					<p>
 						The Camunda 8.10 <code>variables</code> are created in
-						the job task's local scope, so map Camunda 7{" "}
-						<code>localVariables</code> here. Update non-local{" "}
-						<code>variables</code> separately with a scope-aware
-						variable update.
+						the catching error event's local scope. Map Camunda 7{" "}
+						<code>variables</code> directly here.
 					</p>
 					<p>
 						When jobs are activated with{" "}
@@ -874,13 +872,11 @@ export const external_task = [
 		discontinued: {
 			rowInfo: [
 				{
-					leftEntry: <pre>(object) variables</pre>,
+					leftEntry: <pre>(object) localVariables</pre>,
 					rightEntry: (
 						<p>
-							Camunda 7 non-local variables are propagated beyond
-							the external task. The Camunda 8.10 failure
-							endpoint only creates variables in the job task's
-							local scope, so update non-local variables
+							Camunda 7 local variables are not included in the
+							Camunda 8.10 completion request. Update them
 							separately with a scope-aware variable update.
 						</p>
 					),
@@ -978,7 +974,7 @@ export const external_task = [
 					),
 				},
 				{
-					leftEntry: <pre>(object) variables</pre>,
+					leftEntry: <pre>(object) localVariables</pre>,
 					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
@@ -1002,15 +998,14 @@ export const external_task = [
 					),
 				},
 				{
-					leftEntry: <pre>(object) localVariables</pre>,
+					leftEntry: <pre>(object) variables</pre>,
 					rightEntry: (
 						<p>
-							For this endpoint in Camunda 8.10, local variables
-							cannot be set. All variables are treated the same.
-							If they are defined as local on the task, they will
-							be merged into the task scope only. If not, they
-							will be merged to all parent scopes or until the
-							variable is defined as local in a scope.
+							Camunda 7 non-local variables are propagated beyond
+							the external task. The Camunda 8.10 failure
+							endpoint only creates variables in the job task's
+							local scope, so update non-local variables
+							separately with a scope-aware variable update.
 						</p>
 					),
 				},
