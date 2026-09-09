@@ -819,7 +819,11 @@ export const external_task = [
 					<p>
 						The Camunda 8.10 <code>variables</code> are created in
 						the catching error event's local scope. Map Camunda 7{" "}
-						<code>variables</code> directly here.
+						<code>variables</code> entries by unwrapping each{" "}
+						<code>VariableValueDto</code> and sending only its{" "}
+						<code>value</code> as the raw JSON value. Do not copy
+						the <code>type</code> or <code>valueInfo</code>{" "}
+						metadata.
 					</p>
 					<p>
 						When jobs are activated with{" "}
@@ -862,11 +866,20 @@ export const external_task = [
 				},
 			],
 			additionalInfo: (
-				<p>
-					When jobs are activated with{" "}
-					<code>withLease: true</code>, pass the returned{" "}
-					<code>leaseToken</code> in this request.
-				</p>
+				<>
+					<p>
+						Camunda 7 <code>variables</code> entries are{" "}
+						<code>VariableValueDto</code> wrappers. Unwrap each
+						entry and send only its <code>value</code> as the raw
+						JSON value; do not copy the <code>type</code> or{" "}
+						<code>valueInfo</code> metadata.
+					</p>
+					<p>
+						When jobs are activated with{" "}
+						<code>withLease: true</code>, pass the returned{" "}
+						<code>leaseToken</code> in this request.
+					</p>
+				</>
 			),
 		},
 		discontinued: {
@@ -979,11 +992,21 @@ export const external_task = [
 				},
 			],
 			additionalInfo: (
-				<p>
-					When jobs are activated with{" "}
-					<code>withLease: true</code>, pass the returned{" "}
-					<code>leaseToken</code> in this request.
-				</p>
+				<>
+					<p>
+						Camunda 7 <code>localVariables</code> entries are{" "}
+						<code>VariableValueDto</code> wrappers. Unwrap each
+						entry and send only its <code>value</code> as the raw
+						JSON value in Camunda 8 <code>variables</code>; do not
+						copy the <code>type</code> or{" "}
+						<code>valueInfo</code> metadata.
+					</p>
+					<p>
+						When jobs are activated with{" "}
+						<code>withLease: true</code>, pass the returned{" "}
+						<code>leaseToken</code> in this request.
+					</p>
+				</>
 			),
 		},
 		discontinued: {
