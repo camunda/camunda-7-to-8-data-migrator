@@ -1076,14 +1076,9 @@ export const process_instance = [
 					leftEntry: <pre>(string) id</pre>,
 					rightEntry: (
 						<>
-							<pre>
-								(string) filter.processInstanceKey
-								<br />
-								(string) filter.scopeKey
-							</pre>
+							<pre>(string) processInstanceKey</pre>
 							<p>
-								Use the same converted root process-instance key
-								for both fields. See{" "}
+								See{" "}
 								<a href="#key-to-id">
 									Camunda 7 key → Camunda 8 id
 								</a>
@@ -1092,14 +1087,6 @@ export const process_instance = [
 					),
 				},
 			],
-			additionalInfo: (
-				<p>
-					Set <code>filter.scopeKey</code> to the root process-instance
-					key so child-local variables are excluded. Include{" "}
-					<code>?truncateValues=false</code> in the request to return
-					complete variable values.
-				</p>
-			),
 		},
 		discontinued: {
 			rowInfo: [
@@ -1399,9 +1386,14 @@ export const process_instance = [
 					leftEntry: <pre>(string) id</pre>,
 					rightEntry: (
 						<>
-							<pre>(string) processInstanceKey</pre>
+							<pre>
+								(string) filter.processInstanceKey
+								<br />
+								(string) filter.scopeKey
+							</pre>
 							<p>
-								See{" "}
+								Use the same converted root process-instance key
+								for both fields. See{" "}
 								<a href="#key-to-id">
 									Camunda 7 key → Camunda 8 id
 								</a>
@@ -1410,6 +1402,14 @@ export const process_instance = [
 					),
 				},
 			],
+			additionalInfo: (
+				<p>
+					Set <code>filter.scopeKey</code> to the root process-instance
+					key so child-local variables are excluded. Include{" "}
+					<code>?truncateValues=false</code> in the request to return
+					complete variable values.
+				</p>
+			),
 		},
 		discontinued: {
 			rowInfo: [
@@ -1505,9 +1505,14 @@ export const process_instance = [
 					leftEntry: <pre>(string) id</pre>,
 					rightEntry: (
 						<>
-							<pre>(string) processInstanceKey</pre>
+							<pre>
+								(string) filter.processInstanceKey
+								<br />
+								(string) filter.scopeKey
+							</pre>
 							<p>
-								See{" "}
+								Use the same converted root process-instance key
+								for both fields. See{" "}
 								<a href="#key-to-id">
 									Camunda 7 key → Camunda 8 id
 								</a>
