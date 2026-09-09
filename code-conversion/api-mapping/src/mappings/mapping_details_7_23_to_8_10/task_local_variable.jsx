@@ -42,8 +42,9 @@ export const task_local_variable = [
 					only variables whose <code>scopeKey</code> equals it.
 					This search is paginated with a default page limit of 100.
 					Retrieve every page before filtering by{" "}
-					<code>scopeKey</code>, or use <code>filter.scopeKey</code> to
-					apply the scope restriction server-side.
+					<code>scopeKey</code>; the endpoint only supports{" "}
+					<code>filter.name</code>, so the scope restriction must be
+					applied client-side.
 					Include <code>?truncateValues=false</code> in the request to
 					return complete variable values.
 				</p>
@@ -164,8 +165,9 @@ export const task_local_variable = [
 					<code>varName</code>.{" "}
 					When filtering the returned results by <code>scopeKey</code>,
 					retrieve every page first because the search has a default
-					page limit of 100, or pass <code>filter.scopeKey</code> to
-					apply the restriction server-side. Include{" "}
+					page limit of 100. The endpoint only supports{" "}
+					<code>filter.name</code>, so apply the scope restriction
+					client-side. Include{" "}
 					<code>?truncateValues=false</code> in the request to return
 					the complete value.
 				</p>

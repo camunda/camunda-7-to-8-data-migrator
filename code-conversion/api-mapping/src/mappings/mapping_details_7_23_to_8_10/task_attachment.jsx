@@ -181,11 +181,19 @@ export const task_attachment = [
 			rowInfo: [
 				{
 					leftEntry: <pre>(string) attachmentId</pre>,
-					rightEntry: <pre>(string) documentId</pre>,
+					rightEntry: (
+						<p>
+							Use the Camunda 8 <code>documentId</code> created
+							during migration. It is not interchangeable with the
+							Camunda 7 <code>attachmentId</code>.
+						</p>
+					),
 				},
 			],
 			additionalInfo: (
 				<p>
+					Retain or look up the Camunda 8 document ID created during
+					migration before downloading the content.{" "}
 					For more information, take a look at{" "}
 					<a
 						href="https://docs.camunda.io/docs/8.10/guides/document-handling/"

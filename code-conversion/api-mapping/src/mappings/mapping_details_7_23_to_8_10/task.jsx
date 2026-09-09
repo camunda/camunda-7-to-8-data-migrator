@@ -363,6 +363,18 @@ export const task = [
 						applied, similar to a unit test (
 						<code>$eq, $neq, $in, $like with wildcards,...</code>).
 					</p>
+					<p>
+						Camunda 7 <code>/task</code> queries return runtime tasks
+						only, while the Camunda 8.10 search also returns{" "}
+						<code>COMPLETED</code> and <code>CANCELED</code> tasks.
+						When no state criterion is supplied, set{" "}
+						<code>filter.state.$in</code> to{" "}
+						<code>
+							["CREATING", "CREATED", "ASSIGNING", "UPDATING",
+							"COMPLETING", "CANCELING"]
+						</code>{" "}
+						to preserve the runtime-only result set.
+					</p>
 				</>
 			),
 		},

@@ -18,13 +18,7 @@ export const process_definition = [
 		direct: {
 			rowInfo: [
 				{
-					leftEntry: (
-						<pre>
-							(string) processDefinitionId
-							<br />
-							(string[]) processDefinitionIdIn
-						</pre>
-					),
+					leftEntry: <pre>(string) processDefinitionId</pre>,
 					rightEntry: (
 						<>
 							<pre>(string) filter.processDefinitionKey</pre>
@@ -35,6 +29,16 @@ export const process_definition = [
 								</a>
 							</p>
 						</>
+					),
+				},
+				{
+					leftEntry: <pre>(string[]) processDefinitionIdIn</pre>,
+					rightEntry: (
+						<p>
+							<code>filter.processDefinitionKey</code> accepts a
+							single value. Issue a separate search for each
+							<code>processDefinitionIdIn</code> value.
+						</p>
 					),
 				},
 				{
@@ -75,12 +79,6 @@ export const process_definition = [
 							(integer) version
 							<br />
 							(boolean) latestVersion
-							<br />
-							(string) versionTag
-							<br />
-							(string) versionTagLike
-							<br />
-							(boolean) withoutVersionTag
 						</pre>
 					),
 					rightEntry: (
@@ -89,8 +87,6 @@ export const process_definition = [
 								(integer) filter.version
 								<br />
 								(boolean) filter.isLatestVersion
-								<br />
-								(string) filter.versionTag
 							</pre>
 							<p>
 								In Camunda 8, versions are integers and assigned
@@ -102,42 +98,91 @@ export const process_definition = [
 					),
 				},
 				{
+					leftEntry: <pre>(string) versionTag</pre>,
+					rightEntry: <pre>(string) filter.versionTag</pre>,
+				},
+				{
 					leftEntry: (
 						<pre>
-							(string) resourceName
+							(string) versionTagLike
 							<br />
-							(string) resourceNameLike
+							(boolean) withoutVersionTag
 						</pre>
 					),
+					rightEntry: (
+						<p>
+							There is no direct Camunda 8.10 equivalent. Apply
+							these restrictions client-side after retrieving the
+							results.
+						</p>
+					),
+				},
+				{
+					leftEntry: <pre>(string) resourceName</pre>,
 					rightEntry: <pre>(string) filter.resourceName</pre>,
+				},
+				{
+					leftEntry: <pre>(string) resourceNameLike</pre>,
+					rightEntry: (
+						<p>
+							There is no direct Camunda 8.10 equivalent. Apply
+							this restriction client-side after retrieving the
+							results.
+						</p>
+					),
 				},
 				{
 					leftEntry: (
 						<pre>
 							(string[]) tenantIdIn
-							<br />
+						</pre>
+					),
+					rightEntry: (
+						<p>
+							<code>filter.tenantId</code> accepts a single value.
+							Issue a separate search for each{" "}
+							<code>tenantIdIn</code> value.
+						</p>
+					),
+				},
+				{
+					leftEntry: (
+						<pre>
 							(boolean) withoutTenantId
 							<br />
 							(boolean) includeProcessDefinitionsWithoutTenantId
 						</pre>
 					),
 					rightEntry: (
-						<>
-							<pre>(string) filter.tenantId</pre>
-							<p>
-								If multi-tenancy is disabled, all resources are
-								deployed to the tenantId "default". There is no
-								"withoutTenantId" in Camunda 8.
-							</p>
-						</>
+						<p>
+							There is no direct Camunda 8.10 equivalent. If
+							multi-tenancy is disabled, all resources are
+							deployed to the tenantId "default".
+						</p>
 					),
 				},
 			],
 			additionalInfo: (
-				<p>
-					<code>...Like</code> and <code>...In</code> parameters are
-					grouped together with the parameter they relate to.
-				</p>
+				<>
+					<p>
+						<code>processDefinitionKey</code>,{" "}
+						<code>versionTag</code>, <code>resourceName</code>, and{" "}
+						<code>tenantId</code> are exact, single-value filters in
+						Camunda 8.10. The Camunda 7{" "}
+						<code>processDefinitionIdIn</code> and{" "}
+						<code>tenantIdIn</code> filters require separate
+						searches, while <code>versionTagLike</code> and{" "}
+						<code>resourceNameLike</code> have no direct equivalent.
+					</p>
+					<p>
+						When <code>filter.state</code> is omitted, Camunda 8.10
+						also returns definitions in the{" "}
+						<code>DRAINING</code> and <code>DELETED</code> states.
+						Set <code>filter.state</code> to{" "}
+						<code>ACTIVE</code> by default to preserve the Camunda 7
+						runtime list behavior.
+					</p>
+				</>
 			),
 		},
 		discontinued: {

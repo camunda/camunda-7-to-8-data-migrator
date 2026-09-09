@@ -165,11 +165,22 @@ export const process_instance = [
 				},
 			],
 			additionalInfo: (
-				<p>
-					Asterisks signify that an advanced filter can be applied,
-					similar to a unit test (
-					<code>$eq, $neq, $in, $like with wildcards,...</code>).
-				</p>
+				<>
+					<p>
+						Asterisks signify that an advanced filter can be
+						applied, similar to a unit test (
+						<code>$eq, $neq, $in, $like with wildcards,...</code>).
+					</p>
+					<p>
+						Camunda 7 returns runtime process instances only. When
+						neither <code>active</code> nor <code>suspended</code> is
+						supplied, set <code>filter.state.$in</code> to{" "}
+						<code>["ACTIVE", "SUSPENDED"]</code> so the Camunda 8.10
+						search does not include historical{" "}
+						<code>COMPLETED</code> or <code>TERMINATED</code>{" "}
+						instances.
+					</p>
+				</>
 			),
 		},
 		discontinued: {
