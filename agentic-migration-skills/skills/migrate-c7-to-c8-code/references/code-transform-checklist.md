@@ -58,8 +58,8 @@ These items are not in the catalog:
 
 ### Mandatory open items for migrated queries
 
-A C7 `RuntimeService`, `HistoryService`, `TaskService`, or `RepositoryService` query becomes a C8
-search request (`newProcessInstanceSearchRequest`, `newElementInstanceSearchRequest`,
+A C7 `RuntimeService`, `HistoryService`, `TaskService`, `RepositoryService`, or `DecisionService`
+query becomes a C8 search request (`newProcessInstanceSearchRequest`, `newElementInstanceSearchRequest`,
 `newVariableSearchRequest`, `newUserTaskSearchRequest`, `newIncidentSearchRequest`,
 `newDecisionInstanceSearchRequest`, `newProcessDefinitionSearchRequest`). A C8 search request reads
 secondary storage, so its result is eventually consistent. See
@@ -74,7 +74,7 @@ record its wording. Replace `<call site>` with the class and the method.
 | A C7 query becomes a C8 search request | `<call site>` now reads secondary storage through the C8 search API. The result is eventually consistent, so an instance changed moments earlier can be missing. Confirm the surrounding logic tolerates an eventually-consistent result. |
 | The result drives a business decision, such as a count, a guard, or a branch | `<call site>` makes a business decision from an eventually-consistent search result. Confirm the decision still holds when the result lags. |
 | The C7 code read its own recent write inside a worker (read-after-write) | `<call site>` relied on a C7 transaction boundary for read-after-write. The C8 search is asynchronous. Confirm the logic does not depend on immediate visibility. |
-| The C7 project relied on `historyTimeToLive` for data availability or cleanup | This project relied on `historyTimeToLive`. Camunda 8 controls retention on the cluster, not per query. Confirm the cluster retention matches the old expectation. |
+| The C7 project relied on `historyTimeToLive` for data availability or cleanup | `<call site>` relied on `historyTimeToLive`. Camunda 8 controls retention on the cluster, not per query. Confirm the cluster retention matches the old expectation. |
 
 Set each open item to status `open`. Resolve it only on an explicit user decision, and record that
 decision in `MIGRATION_REPORT.md`.
