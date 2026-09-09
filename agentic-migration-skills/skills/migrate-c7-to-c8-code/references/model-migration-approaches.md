@@ -243,6 +243,22 @@ the original Camunda 7 implementation attribute.
 | `camunda:class` | Take the class name after the final dot. Decapitalize its first character. | `com.example.SampleDelegate` becomes `sampleDelegate`. |
 | `camunda:topic` on an external task | Copy the topic value without changing it. | `invoice-processing` remains `invoice-processing`. |
 
+For a Spring bean method invoked by JUEL, use a new thin `*Worker` adapter component by default.
+Never add `@JobWorker` to an existing domain or service class from the C7 source. Keep the domain
+logic in the existing bean and delegate to it from the adapter. Use this reference shape:
+
+```java
+@Component
+public class SampleBeanWorker {
+  @Autowired private SampleBean sampleBean;
+
+  @JobWorker(type = "sampleBean")
+  public Map<String, Object> someMethod(@Variable(name = "y") String y) {
+    return Map.of("theAnswer", sampleBean.someMethod(y));
+  }
+}
+```
+
 Treat a job type that differs from this table as an intentional deviation only when
 `MIGRATION_REPORT.md` records the source file and element, the original implementation, the emitted
 job type, and the confirmed rationale. Record the same decision for a custom or shared job type that

@@ -244,6 +244,9 @@ Each item below is a check to run and a condition that must hold at exit. Record
    search call site has a matching open item in the `MIGRATION_REPORT.md` open-items section. A
    missing entry fails the check. See the mandatory open items in
    `references/code-transform-checklist.md`.
+10. **Worker adapters** — inspect every `@JobWorker` declaration. Flag any `@JobWorker` on a class
+    that existed in the C7 source. A migrated Spring bean method must use a new `*Worker` adapter
+    component instead.
 
 Check these pitfalls as well:
 
