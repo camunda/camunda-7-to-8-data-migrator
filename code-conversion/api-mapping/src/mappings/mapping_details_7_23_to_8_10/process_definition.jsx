@@ -88,13 +88,15 @@ export const process_definition = [
 							<pre>
 								(integer) filter.version
 								<br />
+								(boolean) filter.isLatestVersion
+								<br />
 								(string) filter.versionTag
 							</pre>
 							<p>
 								In Camunda 8, versions are integers and assigned
-								on deployment. To get the latest version, omit
-								the version filter, but sort by version and
-								select the first item.
+								on deployment. To get the latest version of every
+								matching process definition, set{" "}
+								<code>filter.isLatestVersion=true</code>.
 							</p>
 						</>
 					),

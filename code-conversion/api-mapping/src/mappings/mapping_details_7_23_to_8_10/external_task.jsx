@@ -810,16 +810,25 @@ export const external_task = [
 					rightEntry: <pre>(string) errorMessage</pre>,
 				},
 				{
-					leftEntry: <pre>(object) variables</pre>,
+					leftEntry: <pre>(object) localVariables</pre>,
 					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
 			additionalInfo: (
-				<p>
-					When jobs are activated with{" "}
-					<code>withLease: true</code>, pass the returned{" "}
-					<code>leaseToken</code> in this request.
-				</p>
+				<>
+					<p>
+						The Camunda 8.10 <code>variables</code> are created in
+						the job task's local scope, so map Camunda 7{" "}
+						<code>localVariables</code> here. Update non-local{" "}
+						<code>variables</code> separately with a scope-aware
+						variable update.
+					</p>
+					<p>
+						When jobs are activated with{" "}
+						<code>withLease: true</code>, pass the returned{" "}
+						<code>leaseToken</code> in this request.
+					</p>
+				</>
 			),
 		},
 		discontinued: {
@@ -865,15 +874,14 @@ export const external_task = [
 		discontinued: {
 			rowInfo: [
 				{
-					leftEntry: <pre>(object) localVariables</pre>,
+					leftEntry: <pre>(object) variables</pre>,
 					rightEntry: (
 						<p>
-							For this endpoint in Camunda 8.10, local variables
-							cannot be set. All variables are treated the same.
-							If they are defined as local on the task, they will
-							be merged into the task scope only. If not, they
-							will be merged to all parent scopes or until the
-							variable is defined as local in a scope.
+							Camunda 7 non-local variables are propagated beyond
+							the external task. The Camunda 8.10 failure
+							endpoint only creates variables in the job task's
+							local scope, so update non-local variables
+							separately with a scope-aware variable update.
 						</p>
 					),
 				},
@@ -1048,14 +1056,17 @@ export const external_task = [
 					rightEntry: <pre>(string) jobKey</pre>,
 				},
 				{
-					leftEntry: <pre>(int32) priority</pre>,
+					leftEntry: <pre>(int64) priority</pre>,
 					rightEntry: <pre>(int32) changeset.priority</pre>,
 				},
 			],
 			additionalInfo: (
 				<p>
 					Job priority is supported by the Camunda 8.10 Update job
-					endpoint.
+					endpoint. Camunda 7 accepts a signed 64-bit priority, while
+					Camunda 8.10 accepts a signed 32-bit value; validate the
+					priority is within the signed 32-bit range before sending
+					it.
 				</p>
 			),
 		},

@@ -41,14 +41,16 @@ export const authorization = [
 			operation: "get",
 		},
 		target: {
-			path: "/authentication/me",
-			operation: "get",
+			path: "/authentication/me/authorizations/search",
+			operation: "post",
 		},
 		mappedExplanation: (
 			<div>
-				Instead of receiving an <code>authorized</code> boolean for a
-				specific check, a list of <code>authorizedApplications</code>{" "}
-				can be retrieved for the authenticated user.
+				The authenticated principal's authorization records can be
+				retrieved with this endpoint, but it does not return an{" "}
+				<code>authorized</code> boolean for an arbitrary user,
+				resource, and permission check. The Camunda 7{" "}
+				<code>userId</code> case requires separate handling.
 			</div>
 		),
 	},

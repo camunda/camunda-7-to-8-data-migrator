@@ -63,8 +63,9 @@ export const task_variable = [
 			additionalInfo: (
 				<p>
 					Set the boolean <code>local</code> to <code>false</code> to
-					merge the variables into all parent scopes or until the
-					variable is defined as a local variable. Camunda 7{" "}
+					propagate the variables upward and set them at the outermost
+					scope; it does not merge a copy into every parent scope.
+					Camunda 7{" "}
 					<code>modifications</code> entries are{" "}
 					<code>VariableValueDto</code> wrappers. Unwrap each entry and
 					send only its <code>value</code> as the corresponding raw JSON

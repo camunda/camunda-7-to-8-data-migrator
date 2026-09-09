@@ -106,8 +106,8 @@ export const job = [
 jobIds → filter.jobKey.$in
 processInstanceId → filter.processInstanceKey
 processInstanceIds → filter.processInstanceKey.$in
-processDefinitionId → filter.processDefinitionId
-processDefinitionKey → filter.processDefinitionKey
+processDefinitionId → filter.processDefinitionKey
+processDefinitionKey → filter.processDefinitionId
 activityId → filter.elementId
 failedActivityId → filter.elementId
 withRetriesLeft=true → filter.retries.$gt=0
@@ -175,14 +175,17 @@ withoutTenantId=true → filter.tenantId.$exists=false`}
 					rightEntry: <pre>(string) jobKey</pre>,
 				},
 				{
-					leftEntry: <pre>(int32) priority</pre>,
+					leftEntry: <pre>(int64) priority</pre>,
 					rightEntry: <pre>(int32) changeset.priority</pre>,
 				},
 			],
 			additionalInfo: (
 				<p>
 					Job priority is supported by the Camunda 8.10 Update job
-					endpoint.
+					endpoint. Camunda 7 accepts a signed 64-bit priority, while
+					Camunda 8.10 accepts a signed 32-bit value; validate the
+					priority is within the signed 32-bit range before sending
+					it.
 				</p>
 			),
 		},
