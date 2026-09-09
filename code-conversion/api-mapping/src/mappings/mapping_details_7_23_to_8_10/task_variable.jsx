@@ -62,9 +62,12 @@ export const task_variable = [
 			],
 			additionalInfo: (
 				<p>
-					Set the boolean <code>local</code> to <code>false</code> to
-					propagate the variables upward and set them at the outermost
-					scope; it does not merge a copy into every parent scope.
+					Resolve each effective variable's <code>scopeKey</code>{" "}
+					before updating it. For an existing variable, target its
+					declaring element scope with <code>local: true</code>;
+					use <code>local: false</code> only when the variable is
+					missing and must be created at the outermost scope. This
+					does not merge a copy into every parent scope.
 					Camunda 7{" "}
 					<code>modifications</code> entries are{" "}
 					<code>VariableValueDto</code> wrappers. Unwrap each entry and
@@ -195,10 +198,13 @@ export const task_variable = [
 					<code>
 						{"{ variables: { [varName]: value } }"}
 					</code>
-					. The default <code>local: false</code> behavior matches
-					Camunda 7's visible-variable update, which writes to the
-					outermost visible scope. Camunda 8 stores variables as JSON,
-					so convert Camunda 7 serialized values before sending them;
+					. Resolve the effective variable's <code>scopeKey</code>{" "}
+					first. For an existing task-visible variable, target its
+					declaring scope with <code>local: true</code>; use{" "}
+					<code>local: false</code> only when the variable is
+					missing and should be created at the outermost scope.
+					Camunda 8 stores variables as JSON, so convert Camunda 7
+					serialized values before sending them;
 					the Camunda 7 <code>type</code> and{" "}
 					<code>valueInfo</code> metadata have no direct equivalent.
 				</p>
