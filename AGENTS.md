@@ -29,6 +29,96 @@ Do not modify these paths without explicit human approval:
 - `license/` - legal files
 - `data-migrator/plugins/cockpit/frontend/dist/` - generated frontend output
 
+## Work tracking and change evidence
+
+Every implementation task must be linked to a GitHub issue or pull request before
+the first code or documentation change. Find an existing tracking item or create
+one; a commit message alone or an unlinked branch is not sufficient. Put the link
+in the pull request description; the branch name may also identify the work, but
+it does not replace the PR link. For a tracking issue, use `Closes #N` only when the
+PR delivers the issue's full scope, and use `Refs #N` for a partial
+implementation. For a tracking PR, use `Refs #N` or the PR URL; `Closes` does
+not auto-close pull requests.
+
+### Claim work before editing
+
+Before editing, the implementer must make ownership and active work visible:
+
+1. Assign the tracking item (issue or PR) to yourself and comment with the
+   branch or PR that will carry the work.
+2. Add the tracking item (issue or PR) to the repository's GitHub project
+   (project `182`, owned by `camunda`) if it is not already present.
+3. Set the project's `Status` field to `In Progress`.
+
+The API-backed commands below show the issue workflow. When the tracking item is
+a PR, replace `gh issue` with `gh pr`, `ISSUE` with the PR number, and
+`ISSUE_URL` with the PR URL.
+
+```bash
+REPO=camunda/camunda-7-to-8-migration-tooling
+ISSUE=1234
+ISSUE_URL=https://github.com/$REPO/issues/$ISSUE
+
+gh issue edit "$ISSUE" --repo "$REPO" --add-assignee @me
+gh issue comment "$ISSUE" --repo "$REPO" \
+  --body "Starting work on branch \`<branch-name>\`."
+gh project item-add 182 --owner camunda --url "$ISSUE_URL"  # only if absent
+gh project item-edit 182 --owner camunda --url "$ISSUE_URL" \
+  --field Status --value "In Progress"
+```
+
+Confirm the state through the GitHub API before implementation and when handing
+off the PR:
+
+```bash
+gh issue view "$ISSUE" --repo "$REPO" --json url,assignees,projectItems
+```
+
+For a machine-checkable guard, fail when the current actor is not assigned or
+the issue is not active on the project board:
+
+The guard requires the GitHub CLI (`gh`) and `jq` to be installed and available
+on `PATH`.
+
+```bash
+ISSUE_STATE=$(gh issue view "$ISSUE" --repo "$REPO" --json assignees,projectItems)
+ACTOR=$(gh api user --jq .login)
+printf '%s\n' "$ISSUE_STATE" | jq -e \
+  --arg actor "$ACTOR" \
+  'any(.assignees[]; .login == $actor) and
+   any(.projectItems[]; .status.name == "In Progress")' >/dev/null
+```
+
+An open implementation PR remains `In Progress` until it is merged. The tracking
+item owner, project status, and linked PR must identify who is actively
+responsible for the work; do not rely on an informal comment alone.
+
+### Exceptions and bug evidence
+
+An implementation without a linked issue or PR requires an explicit documented
+exception in the PR's **Work tracking** section. The exception must state the
+reason, scope, owner, and approver. Emergency work is not exempt from recording
+this information, and a commit-only reference is never an exception.
+
+Before fixing a bug, identify the defect class and capture a deterministic red
+reproducer: a failing test, command, API check, or other observable evidence.
+The PR must link that evidence, show the post-change green result, and explain
+the category surface covered. Use one of these classes (or explain why `Other`
+is necessary):
+
+- Boundary or input validation
+- Mapping or conversion
+- Persistence or serialization
+- Lifecycle, state, or concurrency
+- Compatibility or external integration
+- Configuration or observability
+- Test, build, or CI infrastructure
+- Other
+
+The reproducer must cover the defect category, not only the reported instance.
+For a non-bug change, mark the bug-evidence fields as not applicable rather than
+inventing a classification.
+
 ## Architecture
 
 - **data-migrator** is a Spring Boot, multi-module application that migrates runtime, history, and identity data.
