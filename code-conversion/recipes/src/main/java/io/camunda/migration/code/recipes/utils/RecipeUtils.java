@@ -43,7 +43,8 @@ public class RecipeUtils {
   public static String businessIdCallActivityHint() {
     return " TODO: if this businessKey was propagated to a called process via <camunda:in"
         + " businessKey=\"...\" /> on a BPMN call activity, migrate that propagation to businessId in"
-        + " the diagram as well (diagram converter)";
+        + " the diagram as well (diagram converter). Camunda 8.10+ can override the inherited"
+        + " businessId with a literal or FEEL expression when the child needs a different ID.";
   }
 
   public static J.Identifier createSimpleIdentifier(String simpleName, String javaType) {

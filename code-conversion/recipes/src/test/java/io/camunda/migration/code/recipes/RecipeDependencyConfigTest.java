@@ -47,6 +47,8 @@ class RecipeDependencyConfigTest implements RewriteTest {
   private static final String SB3_PROCESS_TEST = "camunda-process-test-spring-boot-3";
   private static final String SB4_PROCESS_TEST = "camunda-process-test-spring";
   private static final String GRADLE_TEST_CAMUNDA_VERSION = "8.9.0";
+  private static final List<String> LEGACY_DEPENDENCY_TARGETS =
+      List.of(SB3_PROCESS_TEST, "camunda-process-test-java", "camunda-client-java");
 
   /** The two artifacts of each pair are mutually exclusive - a project must declare exactly one. */
   private static final Map<String, String> MUTUALLY_EXCLUSIVE_PAIRS =
@@ -493,6 +495,35 @@ class RecipeDependencyConfigTest implements RewriteTest {
             spec -> spec.path("pom.xml")));
   }
 
+  @Test
+  void doesNotAddSpringProcessTestToAStandaloneJavaProcessTestProject() {
+    rewriteRun(
+        pomXml(
+            pom(
+                "",
+                """
+                <dependencies>
+                  <dependency>
+                    <groupId>io.camunda</groupId>
+                    <artifactId>camunda-process-test-java</artifactId>
+                    <version>%s</version>
+                    <scope>test</scope>
+                  </dependency>
+                </dependencies>
+                """
+                    .formatted(camundaVersion())),
+            spec ->
+                spec.path("pom.xml")
+                    .after(
+                            after -> {
+                              assertThat(after)
+                                  .contains("<artifactId>camunda-process-test-java</artifactId>")
+                                  .doesNotContain("<artifactId>" + SB3_PROCESS_TEST + "</artifactId>")
+                                  .doesNotContain("<artifactId>" + SB4_PROCESS_TEST + "</artifactId>");
+                              return after;
+                            })));
+  }
+
   /**
    * The situation reported in #2017: an earlier recipe version added the Spring Boot 4 artifacts to
    * a Spring Boot 3 project. Re-running has to repair the choice rather than leave the project
@@ -713,8 +744,12 @@ class RecipeDependencyConfigTest implements RewriteTest {
     }
 
     assertThat(renamed)
-        .as("Gradle builds must guard every mutually exclusive rename target")
-        .containsExactlyInAnyOrder(SB3_STARTER, SB4_STARTER, SB3_PROCESS_TEST, SB4_PROCESS_TEST);
+        .as("Gradle builds must guard every dependency rename target")
+        .contains(SB3_STARTER, SB4_STARTER, SB3_PROCESS_TEST, SB4_PROCESS_TEST)
+        .allMatch(
+            target ->
+                LEGACY_DEPENDENCY_TARGETS.contains(target)
+                    || MUTUALLY_EXCLUSIVE_PAIRS.containsKey(target));
   }
 
   private static String assertOnly(String pom, String expectedStarter, String expectedProcessTest) {

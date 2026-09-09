@@ -26,6 +26,21 @@ Also, configure your connection to the Camunda 8 cluster in the `application.pro
 
 **Java client artifact**: Use `io.camunda:camunda-client-java`. The legacy `io.camunda:zeebe-client-java` artifact is deprecated and will be discontinued in Camunda 8.10.
 
+**Process test artifact**: Camunda 8.10 removes Zeebe Process Test. Replace `zeebe-process-test-extension` and `zeebe-process-test-extension-testcontainer` with `io.camunda:camunda-process-test-java`:
+
+```
+<dependency>
+	<groupId>io.camunda</groupId>
+	<artifactId>camunda-process-test-java</artifactId>
+	<version>{version}</version>
+	<scope>test</scope>
+</dependency>
+```
+
+For Spring Boot applications, use `camunda-process-test-spring` with the Spring Boot 4 starter or `camunda-process-test-spring-boot-3` with `camunda-spring-boot-3-starter`. The former `spring-boot-starter-camunda-test` and `spring-boot-starter-camunda-test-testcontainer` artifacts are replaced by these CPT Spring modules.
+
+If the project uses the temporary `camunda-process-test-spring-4` or `camunda-process-test-spring-boot-4` artifact names from Camunda 8.8, replace them with `camunda-process-test-spring`.
+
 **Spring Boot 3.5.x and Apache HttpClient**: Spring Boot 3.5.x may manage `org.apache.httpcomponents.client5:httpclient5` to `5.5.2`, while `io.camunda:camunda-client-java` 8.9.13 requires `5.6.1` or later for API compatibility. This mismatch can prevent the `CamundaClient` bean from starting with a `NoSuchMethodError`; `5.6.3` is the minimum version that also addresses CVE-2026-64607. Until the upstream dependency alignment is fixed, override the managed version in the application:
 
 ```

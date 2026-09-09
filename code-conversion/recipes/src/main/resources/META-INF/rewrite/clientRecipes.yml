@@ -3,8 +3,8 @@ name: io.camunda.migration.code.recipes.AllClientPrepareRecipes
 displayName: Runs all client prepare recipes
 description: Prepares dependencies and shared API replacements before client method migration.
 recipeList:
-  # Camunda 8.9 split the Spring Boot starter: choose the starter based on the existing
-  # Spring Boot major in the migrated project (3.x -> boot-3 starter, 4.x -> default starter).
+  # Camunda 8.10 still ships separate Spring Boot 3 and 4 starters. Choose the starter based on
+  # the existing Spring Boot major in the migrated project.
   - io.camunda.migration.code.recipes.sharedRecipes.ConfigureCamundaStarterRecipe
   - io.camunda.migration.code.recipes.client.PrepareCamundaClientDependencyRecipe
   - io.camunda.migration.code.recipes.sharedRecipes.ReplaceTypedValueAPIRecipe
@@ -23,6 +23,7 @@ recipeList:
   - io.camunda.migration.code.recipes.client.DetectHistoryServiceUsageRecipe
   - io.camunda.migration.code.recipes.sharedRecipes.WarnSpringProfileNegationRecipe
   - io.camunda.migration.code.recipes.testing.ReplaceAssertionsRecipe
+  - io.camunda.migration.code.recipes.sharedRecipes.MigrateLegacyProcessTestDependenciesRecipe
   - io.camunda.migration.code.recipes.sharedRecipes.ConfigureCamundaProcessTestDependencyRecipe
   - org.openrewrite.java.UseStaticImport:
       methodPattern: io.camunda.process.test.api.CamundaAssert assertThat(..)
