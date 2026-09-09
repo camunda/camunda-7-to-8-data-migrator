@@ -413,6 +413,15 @@ export const external_task = [
 						supported fields listed above and omit unsupported
 						criteria.
 					</p>
+					<p>
+						Camunda 7 unions <code>externalTaskIds</code>,{" "}
+						<code>processInstanceIds</code>, and
+						query-selected tasks. Because fields in one Camunda 8{" "}
+						<code>filter</code> are conjunctive, issue separate
+						batch-update requests for each supported selector and
+						remove overlapping job keys before subsequent requests
+						to avoid updating a job twice.
+					</p>
 				</>
 			),
 		},
@@ -663,6 +672,15 @@ export const external_task = [
 						Camunda 8 <code>filter</code>. Translate only the
 						supported fields listed above and omit unsupported
 						criteria.
+					</p>
+					<p>
+						Camunda 7 unions <code>externalTaskIds</code>,{" "}
+						<code>processInstanceIds</code>, and
+						query-selected tasks. Because fields in one Camunda 8{" "}
+						<code>filter</code> are conjunctive, issue separate
+						batch-update requests for each supported selector and
+						remove overlapping job keys before subsequent requests
+						to avoid updating a job twice.
 					</p>
 				</>
 			),

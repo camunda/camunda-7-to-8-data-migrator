@@ -805,7 +805,8 @@ export const process_instance = [
 				},
 			],
 			additionalInfo: (
-				<p>
+				<>
+					<p>
 					The Camunda 8.10 request body must be{" "}
 					<code>{"{ filter: ... }"}</code>. With{" "}
 					<code>suspended: true</code>, the suspension endpoint
@@ -816,6 +817,15 @@ export const process_instance = [
 					<code>batchOperationKey</code>; monitor the batch operation
 					before relying on the updates being complete.
 				</p>
+				<p>
+					Camunda 7 unions <code>processInstanceIds</code> and{" "}
+					<code>processInstanceQuery</code> when both are
+					supplied. Preserve that behavior with separate translated
+					entries in <code>filter.$or</code>; do not combine the
+					selectors as top-level filter fields because Camunda 8
+					combines those fields conjunctively.
+				</p>
+				</>
 			),
 		},
 		discontinued: {
@@ -949,7 +959,8 @@ export const process_instance = [
 				},
 			],
 			additionalInfo: (
-				<p>
+				<>
+					<p>
 					The Camunda 8.10 request body must be{" "}
 					<code>{"{ filter: ... }"}</code>. With{" "}
 					<code>suspended: true</code>, the suspension endpoint
@@ -960,6 +971,15 @@ export const process_instance = [
 					<code>batchOperationKey</code>; monitor the batch operation
 					before relying on the updates being complete.
 				</p>
+				<p>
+					Camunda 7 unions <code>processInstanceIds</code> and{" "}
+					<code>processInstanceQuery</code> when both are
+					supplied. Preserve that behavior with separate translated
+					entries in <code>filter.$or</code>; do not combine the
+					selectors as top-level filter fields because Camunda 8
+					combines those fields conjunctively.
+				</p>
+				</>
 			),
 		},
 		discontinued: {
