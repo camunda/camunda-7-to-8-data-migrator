@@ -21,7 +21,7 @@ export const process_instance = [
 					leftEntry: <pre>(string[]) processInstanceIds</pre>,
 					rightEntry: (
 						<>
-							<pre>(string*) processInstanceKey</pre>
+							<pre>(string*) filter.processInstanceKey</pre>
 							<p>
 								See{" "}
 								<a href="#key-to-id">
@@ -35,7 +35,7 @@ export const process_instance = [
 					leftEntry: <pre>(string) processDefinitionId</pre>,
 					rightEntry: (
 						<>
-							<pre>(string*) processDefinitionKey</pre>
+							<pre>(string*) filter.processDefinitionKey</pre>
 							<p>
 								See{" "}
 								<a href="#key-to-id">
@@ -57,7 +57,7 @@ export const process_instance = [
 					),
 					rightEntry: (
 						<>
-							<pre>(string*) processDefinitionId</pre>
+							<pre>(string*) filter.processDefinitionId</pre>
 							<p>
 								See{" "}
 								<a href="#key-to-id">
@@ -69,13 +69,13 @@ export const process_instance = [
 				},
 				{
 					leftEntry: <pre>(string) superProcessInstance</pre>,
-					rightEntry: <pre>(string*) parentProcessInstanceKey</pre>,
+					rightEntry: <pre>(string*) filter.parentProcessInstanceKey</pre>,
 				},
 				{
 					leftEntry: <pre>(boolean) rootProcessInstances</pre>,
 					rightEntry: (
 						<>
-							<pre>(string*) parentElementInstanceKey</pre>
+							<pre>(string*) filter.parentElementInstanceKey</pre>
 							<p>
 								Check whether{" "}
 								<code>parentElementInstanceKey</code> is absent
@@ -94,7 +94,7 @@ export const process_instance = [
 					),
 					rightEntry: (
 						<>
-							<pre>(string*) state</pre>
+							<pre>(string*) filter.state</pre>
 							<p>
 								Use <code>ACTIVE</code> for active process
 								instances and <code>SUSPENDED</code> for
@@ -117,9 +117,9 @@ export const process_instance = [
 					),
 					rightEntry: (
 						<pre>
-							(boolean) hasIncident
+							(boolean) filter.hasIncident
 							<br />
-							(string*) errorMessage
+							(string*) filter.errorMessage
 						</pre>
 					),
 				},
@@ -133,7 +133,7 @@ export const process_instance = [
 							(boolean) processDefinitionWithoutTenantId
 						</pre>
 					),
-					rightEntry: <pre>(string*) tenantId</pre>,
+					rightEntry: <pre>(string*) filter.tenantId</pre>,
 				},
 				{
 					leftEntry: (
@@ -145,7 +145,7 @@ export const process_instance = [
 							(boolean) variableValuesIgnoreCase
 						</pre>
 					),
-					rightEntry: <pre>(object[]*) variables</pre>,
+					rightEntry: <pre>(object[]*) filter.variables</pre>,
 				},
 				{
 					leftEntry: (
@@ -811,7 +811,10 @@ export const process_instance = [
 					<code>suspended: true</code>, the suspension endpoint
 					updates only active process instances. With{" "}
 					<code>suspended: false</code>, use the resumption endpoint
-					to update only suspended process instances.
+					to update only suspended process instances. Both endpoints
+					execute asynchronously and return a{" "}
+					<code>batchOperationKey</code>; monitor the batch operation
+					before relying on the updates being complete.
 				</p>
 			),
 		},
@@ -952,7 +955,10 @@ export const process_instance = [
 					<code>suspended: true</code>, the suspension endpoint
 					updates only active process instances. With{" "}
 					<code>suspended: false</code>, use the resumption endpoint
-					to update only suspended process instances.
+					to update only suspended process instances. Both endpoints
+					execute asynchronously and return a{" "}
+					<code>batchOperationKey</code>; monitor the batch operation
+					before relying on the updates being complete.
 				</p>
 			),
 		},
@@ -1425,7 +1431,15 @@ export const process_instance = [
 					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
-			additionalInfo: null,
+			additionalInfo: (
+				<p>
+					Camunda 7 <code>modifications</code> entries are{" "}
+					<code>VariableValueDto</code> wrappers. Unwrap each entry and
+					send only its <code>value</code> as the corresponding raw JSON
+					value in <code>variables</code>; do not copy the{" "}
+					<code>type</code> or <code>valueInfo</code> metadata.
+				</p>
+			),
 		},
 		discontinued: {
 			rowInfo: [

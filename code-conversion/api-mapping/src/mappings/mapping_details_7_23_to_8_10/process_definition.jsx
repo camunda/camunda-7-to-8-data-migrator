@@ -27,7 +27,7 @@ export const process_definition = [
 					),
 					rightEntry: (
 						<>
-							<pre>(string) processDefinitionKey</pre>
+							<pre>(string) filter.processDefinitionKey</pre>
 							<p>
 								See{" "}
 								<a href="#key-to-id">
@@ -45,7 +45,7 @@ export const process_definition = [
 							(string) nameLike
 						</pre>
 					),
-					rightEntry: <pre>(string) name</pre>,
+					rightEntry: <pre>(string) filter.name</pre>,
 				},
 				{
 					leftEntry: (
@@ -59,7 +59,7 @@ export const process_definition = [
 					),
 					rightEntry: (
 						<>
-							<pre>(string) processDefinitionId</pre>
+							<pre>(string) filter.processDefinitionId</pre>
 							<p>
 								See{" "}
 								<a href="#key-to-id">
@@ -86,9 +86,9 @@ export const process_definition = [
 					rightEntry: (
 						<>
 							<pre>
-								(integer) version
+								(integer) filter.version
 								<br />
-								(string) versionTag
+								(string) filter.versionTag
 							</pre>
 							<p>
 								In Camunda 8, versions are integers and assigned
@@ -107,7 +107,7 @@ export const process_definition = [
 							(string) resourceNameLike
 						</pre>
 					),
-					rightEntry: <pre>(string) resourceName</pre>,
+					rightEntry: <pre>(string) filter.resourceName</pre>,
 				},
 				{
 					leftEntry: (
@@ -121,7 +121,7 @@ export const process_definition = [
 					),
 					rightEntry: (
 						<>
-							<pre>(string) tenantId</pre>
+							<pre>(string) filter.tenantId</pre>
 							<p>
 								If multi-tenancy is disabled, all resources are
 								deployed to the tenantId "default". There is no

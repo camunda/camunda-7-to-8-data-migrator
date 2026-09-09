@@ -63,7 +63,12 @@ export const task_local_variable = [
 			additionalInfo: (
 				<p>
 					Set the boolean <code>local</code> to <code>true</code> to
-					strictly merge the variables into the local scope.
+					strictly merge the variables into the local scope. Camunda 7{" "}
+					<code>modifications</code> entries are{" "}
+					<code>VariableValueDto</code> wrappers. Unwrap each entry and
+					send only its <code>value</code> as the corresponding raw JSON
+					value in <code>variables</code>; do not copy the{" "}
+					<code>type</code> or <code>valueInfo</code> metadata.
 				</p>
 			),
 		},
@@ -138,7 +143,7 @@ export const task_local_variable = [
 				},
 				{
 					leftEntry: <pre>(string) varName</pre>,
-					rightEntry: <pre>(string) name</pre>,
+					rightEntry: <pre>(string) filter.name</pre>,
 				},
 			],
 			additionalInfo: (
@@ -148,7 +153,9 @@ export const task_local_variable = [
 					<code>scopeKey</code>.{" "}
 					To match the Camunda 7 local-variable semantics, retrieve
 					the user task's <code>elementInstanceKey</code> and keep
-					only the variable whose <code>scopeKey</code> equals it.
+					only the variable whose <code>scopeKey</code> equals it. Use
+					<code>filter.name</code> to find the variable named by{" "}
+					<code>varName</code>.
 				</p>
 			),
 		},

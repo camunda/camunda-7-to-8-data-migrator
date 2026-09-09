@@ -62,7 +62,12 @@ export const task_variable = [
 				<p>
 					Set the boolean <code>local</code> to <code>false</code> to
 					merge the variables into all parent scopes or until the
-					variable is defined as a local variable.
+					variable is defined as a local variable. Camunda 7{" "}
+					<code>modifications</code> entries are{" "}
+					<code>VariableValueDto</code> wrappers. Unwrap each entry and
+					send only its <code>value</code> as the corresponding raw JSON
+					value in <code>variables</code>; do not copy the{" "}
+					<code>type</code> or <code>valueInfo</code> metadata.
 				</p>
 			),
 		},
@@ -131,13 +136,13 @@ export const task_variable = [
 				},
 				{
 					leftEntry: <pre>(string) varName</pre>,
-					rightEntry: <pre>(string) name</pre>,
+					rightEntry: <pre>(string) filter.name</pre>,
 				},
 			],
 			additionalInfo: (
 				<p>
 					This endpoint returns effective variables visible from the
-					user task. Filter by <code>name</code> to retrieve the
+					user task. Filter by <code>filter.name</code> to retrieve the
 					effective value for <code>varName</code>; shadowed variables
 					are deduplicated with the innermost scope taking precedence.
 				</p>

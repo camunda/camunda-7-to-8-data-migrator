@@ -27,7 +27,7 @@ export const task = [
 					),
 					rightEntry: (
 						<>
-							<pre>(string) userTaskKey</pre>
+							<pre>(string) filter.userTaskKey</pre>
 							<p>
 								For <code>taskIdIn</code>, use the advanced{" "}
 								<code>$or</code> filter with one{" "}
@@ -55,9 +55,9 @@ export const task = [
 					rightEntry: (
 						<>
 							<pre>
-								(string) processInstanceKey
+								(string) filter.processInstanceKey
 								<br />
-								(string[]) processInstanceKey.$in
+								(string[]) filter.processInstanceKey.$in
 							</pre>
 							<p>
 								Use <code>processInstanceKey</code> for the
@@ -78,7 +78,7 @@ export const task = [
 					leftEntry: <pre>(string) processDefinitionId</pre>,
 					rightEntry: (
 						<>
-							<pre>(string) processDefinitionKey</pre>
+							<pre>(string) filter.processDefinitionKey</pre>
 							<p>
 								See{" "}
 								<a href="#key-to-id">
@@ -99,9 +99,9 @@ export const task = [
 					rightEntry: (
 						<>
 							<pre>
-								(string) processDefinitionId
+								(string) filter.processDefinitionId
 								<br />
-								(string[]) processDefinitionId.$in
+								(string[]) filter.processDefinitionId.$in
 							</pre>
 							<p>
 								Use <code>processDefinitionId</code> for the
@@ -122,7 +122,7 @@ export const task = [
 					leftEntry: <pre>(string[]) activityInstanceIdIn</pre>,
 					rightEntry: (
 						<>
-							<pre>(string) elementInstanceKey</pre>
+							<pre>(string) filter.elementInstanceKey</pre>
 							<p>
 								<code>elementInstanceKey</code> is scalar-only.
 								For <code>activityInstanceIdIn</code>, use the
@@ -141,7 +141,7 @@ export const task = [
 							(boolean) withoutTenantId
 						</pre>
 					),
-					rightEntry: <pre>(string) tenantId</pre>,
+					rightEntry: <pre>(string) filter.tenantId</pre>,
 				},
 				{
 					leftEntry: (
@@ -159,7 +159,7 @@ export const task = [
 							(string) assigneeNotIn
 						</pre>
 					),
-					rightEntry: <pre>(string*) assignee</pre>,
+					rightEntry: <pre>(string*) filter.assignee</pre>,
 				},
 				{
 					leftEntry: (
@@ -179,7 +179,7 @@ export const task = [
 							(boolean) withoutCandidateGroups
 						</pre>
 					),
-					rightEntry: <pre>(string*) candidateGroup</pre>,
+					rightEntry: <pre>(string*) filter.candidateGroup</pre>,
 				},
 				{
 					leftEntry: (
@@ -193,7 +193,7 @@ export const task = [
 							(boolean) withoutCandidateUsers
 						</pre>
 					),
-					rightEntry: <pre>(string*) candidateUser</pre>,
+					rightEntry: <pre>(string*) filter.candidateUser</pre>,
 				},
 				{
 					leftEntry: (
@@ -205,7 +205,7 @@ export const task = [
 					),
 					rightEntry: (
 						<>
-							<pre>(string*) assignee</pre>
+							<pre>(string*) filter.assignee</pre>
 							<p>Use advanced filters.</p>
 						</>
 					),
@@ -220,7 +220,7 @@ export const task = [
 							(string) taskDefinitionKeyLike
 						</pre>
 					),
-					rightEntry: <pre>(string) elementId</pre>,
+					rightEntry: <pre>(string) filter.elementId</pre>,
 				},
 				{
 					leftEntry: (
@@ -232,7 +232,7 @@ export const task = [
 							(integer) minPriority
 						</pre>
 					),
-					rightEntry: <pre>(integer*) priority</pre>,
+					rightEntry: <pre>(integer*) filter.priority</pre>,
 				},
 				{
 					leftEntry: (
@@ -249,10 +249,10 @@ export const task = [
 							<br />
 							(dateTime) dueBeforeExpression
 							<br />
-							(dateTime) withoutDueDate
+							(boolean) withoutDueDate
 						</pre>
 					),
-					rightEntry: <pre>(dateTime*) dueDate</pre>,
+					rightEntry: <pre>(dateTime*) filter.dueDate</pre>,
 				},
 				{
 					leftEntry: (
@@ -274,7 +274,7 @@ export const task = [
 							(dateTime) followUpBeforeOrNotExistentExpression
 						</pre>
 					),
-					rightEntry: <pre>(dateTime*) followUpDate</pre>,
+					rightEntry: <pre>(dateTime*) filter.followUpDate</pre>,
 				},
 				{
 					leftEntry: (
@@ -292,15 +292,15 @@ export const task = [
 							(dateTime) createdBeforeExpression
 						</pre>
 					),
-					rightEntry: <pre>(dateTime*) creationDate</pre>,
+					rightEntry: <pre>(dateTime*) filter.creationDate</pre>,
 				},
 				{
 					leftEntry: <pre>(object[]*) taskVariables</pre>,
-					rightEntry: <pre>(object[]*) localVariables</pre>,
+					rightEntry: <pre>(object[]*) filter.localVariables</pre>,
 				},
 				{
 					leftEntry: <pre>(object[]*) processVariables</pre>,
-					rightEntry: <pre>(object[]*) processInstanceVariables</pre>,
+					rightEntry: <pre>(object[]*) filter.processInstanceVariables</pre>,
 				},
 				{
 					leftEntry: (
