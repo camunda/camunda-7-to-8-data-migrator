@@ -487,9 +487,18 @@ export const process_definition = [
 				},
 			],
 			additionalInfo: (
-				<p>
-					<strong>Different base path!</strong>
-				</p>
+				<>
+					<p>
+						Camunda 7 <code>variables</code> entries are{" "}
+						<code>VariableValueDto</code> wrappers. The Camunda 8.10
+						creation request expects raw JSON values, so unwrap each
+						entry and send only its <code>value</code>; do not copy
+						the <code>type</code> or <code>valueInfo</code> metadata.
+					</p>
+					<p>
+						<strong>Different base path!</strong>
+					</p>
+				</>
 			),
 		},
 		discontinued: {
@@ -515,7 +524,15 @@ export const process_definition = [
 					),
 				},
 			],
-			additionalInfo: "",
+			additionalInfo: (
+				<p>
+					Camunda 7 <code>variables</code> entries are{" "}
+					<code>VariableValueDto</code> wrappers. Unwrap each entry
+					and send only its <code>value</code> as the raw JSON value
+					in the Camunda 8.10 creation request; do not copy the{" "}
+					<code>type</code> or <code>valueInfo</code> metadata.
+				</p>
+			),
 		},
 	},
 	{
@@ -1344,6 +1361,15 @@ export const process_definition = [
 					rightEntry: <pre>(string) businessId</pre>,
 				},
 			],
+			additionalInfo: (
+				<p>
+					Camunda 7 <code>variables</code> entries are{" "}
+					<code>VariableValueDto</code> wrappers. Unwrap each entry
+					and send only its <code>value</code> as the raw JSON value
+					in the Camunda 8.10 creation request; do not copy the{" "}
+					<code>type</code> or <code>valueInfo</code> metadata.
+				</p>
+			),
 		},
 	},
 	{

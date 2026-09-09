@@ -593,12 +593,21 @@ export const process_instance = [
 				},
 			],
 			additionalInfo: (
-				<p>
-					The Camunda 8.10 request body must be{" "}
-					<code>{"{ filter: ..., changeset: { retries: ... } }"}</code>
-					. The operation is asynchronous and returns a batch
-					operation key that can be used to track its progress.
-				</p>
+				<>
+					<p>
+						The Camunda 8.10 request body must be{" "}
+						<code>{"{ filter: ..., changeset: { retries: ... } }"}</code>
+						. The operation is asynchronous and returns a batch
+						operation key that can be used to track its progress.
+					</p>
+					<p>
+						When both <code>processInstances</code> and{" "}
+						<code>processInstanceQuery</code> are supplied, issue
+						separate batch updates for the two selector sources.
+						Camunda 7 unions them, while Camunda 8 combines filter
+						fields conjunctively.
+					</p>
+				</>
 			),
 		},
 		discontinued: {
@@ -641,15 +650,25 @@ export const process_instance = [
 				},
 			],
 			additionalInfo: (
-				<p>
-					The Camunda 8.10 request body must be{" "}
-					<code>
-						{"{ filter: ..., changeset: { retries: ... } }"}
-					</code>
-					. Only explicitly translatable active-job criteria
-					can be represented by the Camunda 8 job filter; the
-					operation is asynchronous.
-				</p>
+				<>
+					<p>
+						The Camunda 8.10 request body must be{" "}
+						<code>
+							{"{ filter: ..., changeset: { retries: ... } }"}
+						</code>
+						. Only explicitly translatable active-job criteria
+						can be represented by the Camunda 8 job filter; the
+						operation is asynchronous.
+					</p>
+					<p>
+						If both <code>processInstances</code> and{" "}
+						<code>historicProcessInstanceQuery</code> are supplied,
+						only the process-instance IDs can be mapped; historic
+						criteria are not supported. Issue separate batch updates
+						when distinct active selector sources must be preserved,
+						because Camunda 8 combines filter fields conjunctively.
+					</p>
+				</>
 			),
 		},
 		discontinued: {
@@ -692,6 +711,15 @@ export const process_instance = [
 					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
+			additionalInfo: (
+				<p>
+					Camunda 7 <code>variables</code> entries are{" "}
+					<code>VariableValueDto</code> wrappers. Unwrap each entry
+					and send only its <code>value</code> as the raw JSON value
+					in the Camunda 8.10 publication request; do not copy the{" "}
+					<code>type</code> or <code>valueInfo</code> metadata.
+				</p>
+			),
 		},
 		discontinued: {
 			rowInfo: [
@@ -1058,6 +1086,15 @@ export const process_instance = [
 					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
+			additionalInfo: (
+				<p>
+					Camunda 7 <code>variables</code> entries are{" "}
+					<code>VariableValueDto</code> wrappers. Unwrap each entry
+					and send only its <code>value</code> as the raw JSON value
+					in each Camunda 8.10 variables request; do not copy the{" "}
+					<code>type</code> or <code>valueInfo</code> metadata.
+				</p>
+			),
 		},
 		discontinued: {
 			rowInfo: [

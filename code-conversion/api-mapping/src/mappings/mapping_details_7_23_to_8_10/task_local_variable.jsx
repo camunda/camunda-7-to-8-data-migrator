@@ -40,6 +40,10 @@ export const task_local_variable = [
 					To match the Camunda 7 local-variable semantics, retrieve
 					the user task's <code>elementInstanceKey</code> and keep
 					only variables whose <code>scopeKey</code> equals it.
+					This search is paginated with a default page limit of 100.
+					Retrieve every page before filtering by{" "}
+					<code>scopeKey</code>, or use <code>filter.scopeKey</code> to
+					apply the scope restriction server-side.
 					Include <code>?truncateValues=false</code> in the request to
 					return complete variable values.
 				</p>
@@ -157,7 +161,11 @@ export const task_local_variable = [
 					the user task's <code>elementInstanceKey</code> and keep
 					only the variable whose <code>scopeKey</code> equals it. Use
 					<code>filter.name</code> to find the variable named by{" "}
-					<code>varName</code>. Include{" "}
+					<code>varName</code>.{" "}
+					When filtering the returned results by <code>scopeKey</code>,
+					retrieve every page first because the search has a default
+					page limit of 100, or pass <code>filter.scopeKey</code> to
+					apply the restriction server-side. Include{" "}
 					<code>?truncateValues=false</code> in the request to return
 					the complete value.
 				</p>

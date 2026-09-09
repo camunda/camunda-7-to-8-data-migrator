@@ -871,6 +871,15 @@ export const task = [
 					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
+			additionalInfo: (
+				<p>
+					Camunda 7 <code>variables</code> entries are{" "}
+					<code>VariableValueDto</code> wrappers. Unwrap each entry and
+					send only its <code>value</code> as the raw JSON value in the
+					Camunda 8.10 completion request; do not copy the{" "}
+					<code>type</code> or <code>valueInfo</code> metadata.
+				</p>
+			),
 		},
 		discontinued: {
 			rowInfo: [
@@ -1069,6 +1078,15 @@ export const task = [
 					rightEntry: <pre>(object) variables</pre>,
 				},
 			],
+			additionalInfo: (
+				<p>
+					Camunda 7 <code>variables</code> entries are{" "}
+					<code>VariableValueDto</code> wrappers. Unwrap each entry and
+					send only its <code>value</code> as the raw JSON value in the
+					Camunda 8.10 completion request; do not copy the{" "}
+					<code>type</code> or <code>valueInfo</code> metadata.
+				</p>
+			),
 		},
 		discontinued: {
 			rowInfo: [
