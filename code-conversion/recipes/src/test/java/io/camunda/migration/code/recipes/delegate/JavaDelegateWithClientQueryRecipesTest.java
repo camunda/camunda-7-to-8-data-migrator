@@ -73,6 +73,7 @@ public class JavaDelegateWithClientQueryRecipesTest implements RewriteTest {
             import io.camunda.client.CamundaClient;
             import io.camunda.client.annotation.JobWorker;
             import io.camunda.client.api.response.ActivatedJob;
+            import io.camunda.client.api.search.enums.ProcessInstanceState;
             import org.springframework.beans.factory.annotation.Autowired;
             import org.springframework.stereotype.Component;
 

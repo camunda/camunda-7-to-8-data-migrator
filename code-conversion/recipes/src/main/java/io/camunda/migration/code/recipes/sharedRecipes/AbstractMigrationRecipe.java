@@ -480,8 +480,7 @@ public abstract class AbstractMigrationRecipe extends Recipe {
                             .map(collectedArgs::get)
                             .toArray());
 
-                return maybeAutoFormat(
-                    replacementTarget,
+                J.MethodInvocation templatedReplacement =
                     (J.MethodInvocation)
                         RecipeUtils.applyTemplate(
                             spec.template(),
@@ -491,8 +490,29 @@ public abstract class AbstractMigrationRecipe extends Recipe {
                             getCursor().getNearestMessage(replacementTarget.getId().toString())
                                     != null
                                 ? Collections.emptyList()
-                                : spec.textComments()),
-                    ctx);
+                                : spec.textComments());
+
+                templatedReplacement =
+                    (J.MethodInvocation)
+                        new JavaIsoVisitor<ExecutionContext>() {
+                          @Override
+                          public J.Identifier visitIdentifier(
+                              J.Identifier identifier, ExecutionContext ctx) {
+                            return spec.maybeAddImports().stream()
+                                    .filter(
+                                        importedType ->
+                                            RecipeUtils.getShortName(importedType)
+                                                .equals(identifier.getSimpleName()))
+                                    .findFirst()
+                                    .map(
+                                        importedType ->
+                                            identifier.withType(JavaType.buildType(importedType)))
+                                    .orElse(identifier);
+                          }
+                        }.visit(templatedReplacement, ctx);
+
+                return maybeAutoFormat(
+                    replacementTarget, templatedReplacement, ctx);
               }
             }
             return null;

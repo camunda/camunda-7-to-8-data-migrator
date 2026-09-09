@@ -111,7 +111,7 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
         ReplacementUtils.ReturnTypeStrategy.USE_SPECIFIED_TYPE,
         Collections.emptyList(),
         Collections.emptyList(),
-        List.of(PROCESS_INSTANCE_STATE),
+        Collections.emptyList(),
         Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
 
     specs.add(new ReplacementUtils.BuilderReplacementSpec(
@@ -136,7 +136,7 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
         ReplacementUtils.ReturnTypeStrategy.USE_SPECIFIED_TYPE,
         List.of(RecipeUtils.businessIdHint("processInstanceBusinessKey")),
         Collections.emptyList(),
-        List.of(PROCESS_INSTANCE_STATE),
+        Collections.emptyList(),
         Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
 
     specs.add(new ReplacementUtils.BuilderReplacementSpec(
@@ -160,7 +160,7 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
         ReplacementUtils.ReturnTypeStrategy.USE_SPECIFIED_TYPE,
         Collections.emptyList(),
         Collections.emptyList(),
-        Collections.emptyList(),
+        List.of(PROCESS_INSTANCE_STATE),
         Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
 
     specs.add(new ReplacementUtils.BuilderReplacementSpec(
@@ -184,7 +184,7 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
         ReplacementUtils.ReturnTypeStrategy.USE_SPECIFIED_TYPE,
         List.of(RecipeUtils.businessIdHint("processInstanceBusinessKey")),
         Collections.emptyList(),
-        Collections.emptyList(),
+        List.of(PROCESS_INSTANCE_STATE),
         Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
 
     return specs;
@@ -268,7 +268,7 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
         ReplacementUtils.ReturnTypeStrategy.USE_SPECIFIED_TYPE,
         Collections.emptyList(),
         Collections.emptyList(),
-        Collections.emptyList(),
+        List.of(PROCESS_INSTANCE_STATE),
         Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
 
     specs.add(new ReplacementUtils.BuilderReplacementSpec(
@@ -294,7 +294,7 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
         ReplacementUtils.ReturnTypeStrategy.USE_SPECIFIED_TYPE,
         List.of(RecipeUtils.businessIdHint("processInstanceBusinessKey")),
         Collections.emptyList(),
-        Collections.emptyList(),
+        List.of(PROCESS_INSTANCE_STATE),
         Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
 
     specs.add(new ReplacementUtils.BuilderReplacementSpec(
@@ -344,7 +344,7 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
         ReplacementUtils.ReturnTypeStrategy.USE_SPECIFIED_TYPE,
         Collections.emptyList(),
         Collections.emptyList(),
-        Collections.emptyList(),
+        List.of(PROCESS_INSTANCE_STATE),
         Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
 
     return specs;
