@@ -541,8 +541,12 @@ long runningInstances = engine.getRuntimeService()
 ###### Camunda 8
 
 ```java
+import io.camunda.client.api.search.enums.ProcessInstanceState;
+
 long runningInstances = camundaClient.newProcessInstanceSearchRequest()
-        .filter(filter -> filter.processDefinitionId("order-process"))
+        .filter(filter -> filter
+                .processDefinitionId("order-process")
+                .state(ProcessInstanceState.ACTIVE))
         .send()
         .join()
         .page()
