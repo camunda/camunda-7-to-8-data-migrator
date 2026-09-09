@@ -703,6 +703,7 @@ export const external_task = [
 							(boolean) processInstanceQuery.active
 							<br />
 							(boolean) processInstanceQuery.suspended
+							<br />
 							(object) processInstanceQuery.variables
 							<br />
 							(boolean) processInstanceQuery.withIncident

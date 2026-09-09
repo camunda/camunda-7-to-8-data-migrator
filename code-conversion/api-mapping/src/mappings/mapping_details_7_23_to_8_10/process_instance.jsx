@@ -1136,14 +1136,9 @@ export const process_instance = [
 					leftEntry: <pre>(string) id</pre>,
 					rightEntry: (
 						<>
-							<pre>
-								(string) filter.processInstanceKey
-								<br />
-								(string) filter.scopeKey
-							</pre>
+							<pre>(string) processInstanceKey</pre>
 							<p>
-								Use the same converted root process-instance key
-								for both fields. See{" "}
+								See{" "}
 								<a href="#key-to-id">
 									Camunda 7 key → Camunda 8 id
 								</a>

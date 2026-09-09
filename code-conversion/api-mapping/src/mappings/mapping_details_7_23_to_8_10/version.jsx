@@ -11,13 +11,16 @@ export const version = [
 			path: "/version",
 			operation: "get",
 		},
-		target: {},
-		discontinuedExplanation: (
+		target: {
+			path: "/topology",
+			operation: "get",
+		},
+		mappedExplanation: (
 			<div>
-				Camunda 8.10 has no endpoint equivalent to the Camunda 7 version
-				endpoint. The <code>GET /status</code> endpoint is only a health
-				probe for the default physical tenant and returns no version or
-				topology information.
+				In Camunda 8.10, the <code>GET /topology</code> endpoint returns
+				the gateway version together with the current cluster topology.
+				It is the closest available equivalent to the Camunda 7 version
+				endpoint, but the response shape is different.
 			</div>
 		),
 	},
