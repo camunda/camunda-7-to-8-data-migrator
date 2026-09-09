@@ -557,6 +557,7 @@ public class ConverterControllerTest {
                 "mixed-severities.bpmn",
                 BPMN_WITH_MIXED_SEVERITIES.getBytes(StandardCharsets.UTF_8),
                 "application/bpmn+xml")
+            .formParam("platformVersion", "8.9")
             .formParam("appendDocumentationOnlyTaskAndWarning", true)
             .accept("application/bpmn+xml")
             .post("/convert")
@@ -642,6 +643,7 @@ public class ConverterControllerTest {
             .contentType(ContentType.MULTIPART)
             .multiPart("file", "mixed-severities-1.bpmn", bpmn, "application/bpmn+xml")
             .multiPart("file", "mixed-severities-2.bpmn", bpmn, "application/bpmn+xml")
+            .formParam("platformVersion", "8.9")
             .formParam("appendDocumentationOnlyTaskAndWarning", true)
             .accept("application/zip")
             .post("/convertBatch")
@@ -765,7 +767,7 @@ public class ConverterControllerTest {
 
     String converted = new String(form, StandardCharsets.UTF_8);
     assertThat(converted).contains("\"executionPlatform\": \"Camunda Cloud\"");
-    assertThat(converted).contains("\"executionPlatformVersion\": \"8.9.0\"");
+    assertThat(converted).contains("\"executionPlatformVersion\": \"8.10.0\"");
     assertThat(converted).contains("\"customerName\"");
   }
 
@@ -913,7 +915,7 @@ public class ConverterControllerTest {
     assertThat(entries).containsOnlyKeys("converted-c8-example.bpmn", "converted-c8-simple.form");
     assertThat(entries.get("converted-c8-simple.form"))
         .contains("\"executionPlatform\": \"Camunda Cloud\"")
-        .contains("\"executionPlatformVersion\": \"8.9.0\"");
+        .contains("\"executionPlatformVersion\": \"8.10.0\"");
   }
 
   @Test
@@ -930,7 +932,7 @@ public class ConverterControllerTest {
             .asByteArray();
 
     String converted = new String(form, StandardCharsets.UTF_8);
-    assertThat(converted).contains("\"executionPlatformVersion\": \"8.9.0\"");
+    assertThat(converted).contains("\"executionPlatformVersion\": \"8.10.0\"");
   }
 
   @Test
@@ -951,7 +953,7 @@ public class ConverterControllerTest {
             .asByteArray();
 
     assertThat(new String(bpmn, StandardCharsets.UTF_8))
-        .contains("executionPlatformVersion=\"8.9.0\"");
+        .contains("executionPlatformVersion=\"8.10.0\"");
   }
 
   @Test

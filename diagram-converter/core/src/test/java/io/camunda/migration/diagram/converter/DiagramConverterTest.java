@@ -114,6 +114,7 @@ public class DiagramConverterTest {
   void shouldFilterDocumentationMessagesWithoutFilteringAnalysisResults() {
     DefaultConverterProperties filteredProperties = new DefaultConverterProperties();
     filteredProperties.setAppendDocumentationOnlyTaskAndWarning(true);
+    filteredProperties.setPlatformVersion("8.9");
     ConverterProperties properties =
         ConverterPropertiesFactory.getInstance().merge(filteredProperties);
     BpmnModelInstance filteredModel = mixedSeverityModel();
@@ -133,6 +134,7 @@ public class DiagramConverterTest {
   void shouldAppendAllDocumentationMessagesByDefault() {
     DefaultConverterProperties converterProperties = new DefaultConverterProperties();
     converterProperties.setAppendDocumentation(true);
+    converterProperties.setPlatformVersion("8.9");
     BpmnModelInstance modelInstance = mixedSeverityModel();
 
     DiagramConverter converter = DiagramConverterFactory.getInstance().get();
