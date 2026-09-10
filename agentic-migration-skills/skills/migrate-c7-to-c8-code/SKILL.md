@@ -251,9 +251,10 @@ Each item below is a check to run and a condition that must hold at exit. Record
    `references/code-transform-checklist.md`.
 10. **Worker adapters** — compare every `@JobWorker` declaration's fully qualified declaring class
     name with the original Java source baseline recorded in Step 2. Flag the declaration when its
-    class appears in that baseline. Accept it only when the class is new, is a `*Worker` adapter
-    component, and delegates to the baseline bean. A migrated Spring bean method must never receive
-    `@JobWorker` directly.
+    class appears in that baseline, even when the class name ends with `Worker`. Accept it only
+    when the class is absent from the baseline, is a new `*Worker` adapter component, and delegates
+    to the baseline bean. Record each flagged declaration and its replacement adapter in
+    `MIGRATION_REPORT.md`. A migrated Spring bean method must never receive `@JobWorker` directly.
 
 Check these pitfalls as well:
 
