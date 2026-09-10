@@ -66,18 +66,6 @@ public abstract class AbstractMigrationRecipe extends Recipe {
         preconditions(),
         new JavaIsoVisitor<>() {
 
-          // join specs - possible because we don't touch the method invocations
-          final List<ReplacementUtils.ReplacementSpec> commonSpecs =
-              Stream.concat(
-                      Stream.concat(
-                          simpleMethodInvocations().stream()
-                              .map(spec -> (ReplacementUtils.ReplacementSpec) spec),
-                          builderMethodInvocations().stream()
-                              .map(spec -> (ReplacementUtils.ReplacementSpec) spec)),
-                      countBuilderMethodInvocations().stream()
-                          .map(spec -> (ReplacementUtils.ReplacementSpec) spec))
-                  .toList();
-
           /**
            * Variable declarations are visited. Types are adjusted appropriately. Initializers are
            * replaced by wrapper methods + class methods.
@@ -532,9 +520,15 @@ public abstract class AbstractMigrationRecipe extends Recipe {
               }
             }
 
-            return commonSpecs.stream()
-                .filter(spec -> spec.matcher().matches(invocation))
-                .findFirst();
+            return findBuilderReplacementSpec(invocation, builderSpecMap)
+                .map(spec -> (ReplacementUtils.ReplacementSpec) spec)
+                .or(() -> findBuilderReplacementSpecForType(invocation, builderSpecMap))
+                .or(
+                    () ->
+                        simpleMethodInvocations.stream()
+                            .filter(spec -> spec.matcher().matches(invocation))
+                            .map(spec -> (ReplacementUtils.ReplacementSpec) spec)
+                            .findFirst());
           }
 
           private Optional<ReplacementUtils.BuilderReplacementSpec> findBuilderReplacementSpec(
@@ -545,6 +539,18 @@ public abstract class AbstractMigrationRecipe extends Recipe {
                 .filter(entry -> entry.getKey().matches(queryTerminal))
                 .flatMap(entry -> entry.getValue().stream())
                 .filter(spec -> matchesBuilderSpec(spec, queryTerminal, collectedArgs))
+                .findFirst();
+          }
+
+          private Optional<ReplacementUtils.ReplacementSpec> findBuilderReplacementSpecForType(
+              J.MethodInvocation invocation,
+              Map<MethodMatcher, List<ReplacementUtils.BuilderReplacementSpec>> specMap) {
+            return specMap.entrySet().stream()
+                .filter(entry -> entry.getKey().matches(invocation))
+                .flatMap(entry -> entry.getValue().stream())
+                .filter(spec -> matchesReceiverType(spec, invocation))
+                .sorted(Comparator.comparing(spec -> !spec.textComments().isEmpty()))
+                .map(spec -> (ReplacementUtils.ReplacementSpec) spec)
                 .findFirst();
           }
 

@@ -135,6 +135,7 @@ public class HandleProcessInstanceQueryMethodsTestClass {
             package org.camunda.community.migration.example;
 
             import org.camunda.bpm.engine.ProcessEngine;
+            import org.camunda.bpm.engine.task.Task;
             import io.camunda.client.CamundaClient;
             import org.springframework.beans.factory.annotation.Autowired;
             import org.springframework.stereotype.Component;
@@ -159,6 +160,9 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .list()
                             .size();
 
+                    List<Task> tasks = engine.getTaskService().createTaskQuery()
+                            .list();
+
                     engine.getTaskService().createTaskQuery()
                             .processDefinitionKey(processDefinitionKey)
                             .list();
@@ -169,6 +173,7 @@ public class HandleProcessInstanceQueryMethodsTestClass {
             package org.camunda.community.migration.example;
             import io.camunda.client.api.search.enums.ProcessInstanceState;
             import org.camunda.bpm.engine.ProcessEngine;
+            import org.camunda.bpm.engine.task.Task;
             import io.camunda.client.CamundaClient;
             import org.springframework.beans.factory.annotation.Autowired;
             import org.springframework.stereotype.Component;
@@ -197,6 +202,9 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                     int taskCount = engine.getTaskService().createTaskQuery()
                             .list()
                             .size();
+
+                    List<Task> tasks = engine.getTaskService().createTaskQuery()
+                            .list();
 
                     engine.getTaskService().createTaskQuery()
                             .processDefinitionKey(processDefinitionKey)
