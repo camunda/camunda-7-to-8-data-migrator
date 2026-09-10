@@ -18,7 +18,7 @@ public void executeJobMigrated(ActivatedJob job) {
 
 // After
 @JobWorker(type = "sampleJavaDelegate")
-public void sampleJavaDelegate(@Variable Object x) {
+public void sampleJavaDelegate(ActivatedJob job) {
   // ...
 }
 ```
