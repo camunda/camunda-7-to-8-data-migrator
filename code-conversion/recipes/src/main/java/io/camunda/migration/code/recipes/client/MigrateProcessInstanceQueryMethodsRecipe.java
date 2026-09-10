@@ -329,6 +329,32 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
 
     specs.add(new ReplacementUtils.BuilderReplacementSpec(
         new MethodMatcher("org.camunda.bpm.engine.query.Query count()"),
+        Set.of("processInstanceBusinessKey", "processDefinitionKey"),
+        List.of("processDefinitionKey"),
+        RecipeUtils.createSimpleJavaTemplate(
+            """
+            #{camundaClient:any(io.camunda.client.CamundaClient)}
+                .newProcessInstanceSearchRequest()
+                .filter(filter -> filter
+                    .processDefinitionId(#{processDefinitionKey:any(java.lang.String)})
+                    .state(ProcessInstanceState.ACTIVE))
+                .send()
+                .join()
+                .page()
+                .totalItems()
+            """,
+            PROCESS_INSTANCE_STATE,
+            "io.camunda.client.api.search.filter.ProcessInstanceFilter"),
+        RecipeUtils.createSimpleIdentifier("camundaClient", "io.camunda.client.CamundaClient"),
+        "java.lang.Long",
+        ReplacementUtils.ReturnTypeStrategy.USE_SPECIFIED_TYPE,
+        List.of(RecipeUtils.businessIdHint("processInstanceBusinessKey")),
+        Collections.emptyList(),
+        List.of(PROCESS_INSTANCE_STATE),
+        Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
+
+    specs.add(new ReplacementUtils.BuilderReplacementSpec(
+        new MethodMatcher("org.camunda.bpm.engine.query.Query count()"),
         Set.of("activityIdIn"),
         List.of("activityIdIn"),
         RecipeUtils.createSimpleJavaTemplate(

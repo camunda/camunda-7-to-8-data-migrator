@@ -405,6 +405,12 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .createProcessInstanceQuery()
                             .processInstanceBusinessKey(businessKey)
                             .count();
+
+                    long combinedCount = engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .processInstanceBusinessKey(businessKey)
+                            .processDefinitionKey("example-process")
+                            .count();
                 }
             }
             """,
@@ -441,6 +447,17 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                     Long businessCount = camundaClient
                             .newProcessInstanceSearchRequest()
                             .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems();
+
+                    // TODO: processInstanceBusinessKey was removed - use businessId (Camunda 8.9+) instead
+                    Long combinedCount = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter
+                                    .processDefinitionId("example-process")
+                                    .state(ProcessInstanceState.ACTIVE))
                             .send()
                             .join()
                             .page()
