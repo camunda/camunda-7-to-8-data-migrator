@@ -93,82 +93,83 @@ public abstract class AbstractMigrationRecipe extends Recipe {
             if (originalInitializer instanceof J.MethodInvocation invocation) {
 
               // run through prepared migration rules
-              for (ReplacementUtils.ReplacementSpec spec : commonSpecs) {
+              ReplacementUtils.ReplacementSpec matchingSpec =
+                  commonSpecs.stream()
+                      .filter(spec -> spec.matcher().matches(invocation))
+                      .findFirst()
+                      .orElseGet(() -> findCountedReplacementSpec(invocation).orElse(null));
 
-                // if match is found for the invocation, check returnTypeFqn to adjust variable
-                // declaration type
-                if (spec.matcher().matches(invocation)) {
+              if (matchingSpec != null) {
+                ReplacementUtils.ReplacementSpec spec = matchingSpec;
 
-                  // nothing to do if type stays the same
-                  if (spec.returnTypeStrategy()
-                      == ReplacementUtils.ReturnTypeStrategy.INFER_FROM_CONTEXT) {
-                    return super.visitVariableDeclarations(declarations, ctx);
-                  }
-
-                  String resolvedFqn = null;
-                  switch (spec.returnTypeStrategy()) {
-                    case USE_SPECIFIED_TYPE -> resolvedFqn = spec.returnTypeFqn();
-                    case VOID ->
-                        throw new IllegalStateException(
-                            "Should not visit declarations for void strategy.");
-                  }
-
-                  // get modifiers
-                  List<J.Modifier> modifiers = declarations.getModifiers();
-
-                  // Create simple java template to adjust variable declaration type, but keep
-                  // invocation as is
-                  assert resolvedFqn != null;
-
-                  String shortName = RecipeUtils.getShortName(resolvedFqn);
-                  String genericLongName = RecipeUtils.getGenericLongName(resolvedFqn);
-
-                  J.VariableDeclarations modifiedDeclarations =
-                      RecipeUtils.createSimpleJavaTemplate(
-                              (modifiers == null || modifiers.isEmpty()
-                                      ? ""
-                                      : modifiers.stream()
-                                          .map(J.Modifier::toString)
-                                          .collect(Collectors.joining(" ", "", " ")))
-                                  + shortName
-                                  + " "
-                                  + originalName.getSimpleName()
-                                  + " = #{any(java.lang.Object)}",
-                              genericLongName)
-                          .apply(getCursor(), declarations.getCoordinates().replace(), invocation);
-
-                  maybeAddImport(genericLongName);
-
-                  // ensure comments are added here, not on method invocation
-                  getCursor().putMessage(invocation.getId().toString(), "comments added");
-
-                  // record fqn of identifier for later uses
-                  getCursor()
-                      .dropParentUntil(parent -> parent instanceof J.Block)
-                      .putMessage(originalName.toString(), resolvedFqn);
-
-                  // merge comments
-                  modifiedDeclarations =
-                      modifiedDeclarations.withComments(
-                          Stream.concat(
-                                  declarations.getComments().stream(),
-                                  spec.textComments().stream()
-                                      .map(
-                                          text ->
-                                              RecipeUtils.createSimpleComment(declarations, text)))
-                              .toList());
-
-                  // visit method invocations
-                  modifiedDeclarations = super.visitVariableDeclarations(modifiedDeclarations, ctx);
-
-                  JavaType.FullyQualified originalType = declarations.getTypeAsFullyQualified();
-                  if (originalType != null) {
-                    maybeRemoveImport(
-                        RecipeUtils.getGenericLongName(originalType.toString()));
-                  }
-
-                  return maybeAutoFormat(declarations, modifiedDeclarations, ctx);
+                // nothing to do if type stays the same
+                if (spec.returnTypeStrategy()
+                    == ReplacementUtils.ReturnTypeStrategy.INFER_FROM_CONTEXT) {
+                  return super.visitVariableDeclarations(declarations, ctx);
                 }
+
+                String resolvedFqn = null;
+                switch (spec.returnTypeStrategy()) {
+                  case USE_SPECIFIED_TYPE -> resolvedFqn = spec.returnTypeFqn();
+                  case VOID ->
+                      throw new IllegalStateException(
+                          "Should not visit declarations for void strategy.");
+                }
+
+                // get modifiers
+                List<J.Modifier> modifiers = declarations.getModifiers();
+
+                // Create simple java template to adjust variable declaration type, but keep
+                // invocation as is
+                assert resolvedFqn != null;
+
+                String shortName = RecipeUtils.getShortName(resolvedFqn);
+                String genericLongName = RecipeUtils.getGenericLongName(resolvedFqn);
+
+                J.VariableDeclarations modifiedDeclarations =
+                    RecipeUtils.createSimpleJavaTemplate(
+                            (modifiers == null || modifiers.isEmpty()
+                                    ? ""
+                                    : modifiers.stream()
+                                        .map(J.Modifier::toString)
+                                        .collect(Collectors.joining(" ", "", " ")))
+                                + shortName
+                                + " "
+                                + originalName.getSimpleName()
+                                + " = #{any(java.lang.Object)}",
+                            genericLongName)
+                        .apply(getCursor(), declarations.getCoordinates().replace(), invocation);
+
+                maybeAddImport(genericLongName);
+
+                // ensure comments are added here, not on method invocation
+                getCursor().putMessage(invocation.getId().toString(), "comments added");
+
+                // record fqn of identifier for later uses
+                getCursor()
+                    .dropParentUntil(parent -> parent instanceof J.Block)
+                    .putMessage(originalName.toString(), resolvedFqn);
+
+                // merge comments
+                modifiedDeclarations =
+                    modifiedDeclarations.withComments(
+                        Stream.concat(
+                                declarations.getComments().stream(),
+                                spec.textComments().stream()
+                                    .map(
+                                        text ->
+                                            RecipeUtils.createSimpleComment(declarations, text)))
+                            .toList());
+
+                // visit method invocations
+                modifiedDeclarations = super.visitVariableDeclarations(modifiedDeclarations, ctx);
+
+                JavaType.FullyQualified originalType = declarations.getTypeAsFullyQualified();
+                if (originalType != null) {
+                  maybeRemoveImport(RecipeUtils.getGenericLongName(originalType.toString()));
+                }
+
+                return maybeAutoFormat(declarations, modifiedDeclarations, ctx);
               }
 
               // transform access to lists
@@ -231,67 +232,69 @@ public abstract class AbstractMigrationRecipe extends Recipe {
             }
 
             // run through prepared migration rules
-            for (ReplacementUtils.ReplacementSpec spec : commonSpecs) {
+            ReplacementUtils.ReplacementSpec matchingSpec =
+                commonSpecs.stream()
+                    .filter(spec -> spec.matcher().matches(invocation))
+                    .findFirst()
+                    .orElseGet(() -> findCountedReplacementSpec(invocation).orElse(null));
 
-              // if match is found for the invocation, check returnTypeFqn to adjust variable
-              // declaration type
-              if (spec.matcher().matches(invocation)) {
+            if (matchingSpec != null) {
+              ReplacementUtils.ReplacementSpec spec = matchingSpec;
 
-                // nothing to do if type stays the same
-                if (spec.returnTypeStrategy()
-                    == ReplacementUtils.ReturnTypeStrategy.INFER_FROM_CONTEXT) {
-                  return super.visitAssignment(assignment, ctx);
-                }
-
-                String resolvedFqn = null;
-                switch (spec.returnTypeStrategy()) {
-                  case USE_SPECIFIED_TYPE -> resolvedFqn = spec.returnTypeFqn();
-                  case VOID ->
-                      throw new IllegalStateException(
-                          "Should not visit assignment for void strategy.");
-                }
-
-                // Create simple java template to adjust variable declaration type, but keep
-                // invocation as is
-                J.Assignment modifiedAssignment =
-                    RecipeUtils.createSimpleJavaTemplate(
-                            originalName.getSimpleName() + " = #{any()}", resolvedFqn)
-                        .apply(getCursor(), assignment.getCoordinates().replace(), invocation);
-
-                assert resolvedFqn != null;
-                modifiedAssignment =
-                    modifiedAssignment.withVariable(
-                        modifiedAssignment.getVariable().withType(JavaType.buildType(resolvedFqn)));
-                modifiedAssignment = modifiedAssignment.withType(JavaType.buildType(resolvedFqn));
-
-                maybeAddImport(resolvedFqn);
-
-                // ensure comments are added here, not on method invocation
-                getCursor().putMessage(invocation.getId().toString(), "comments added");
-
-                // record fqn of identifier for later uses
-                getCursor()
-                    .dropParentUntil(parent -> parent instanceof J.Block)
-                    .putMessage(originalName.toString(), resolvedFqn);
-
-                // merge comments
-                modifiedAssignment =
-                    modifiedAssignment.withComments(
-                        Stream.concat(
-                                assignment.getComments().stream(),
-                                spec.textComments().stream()
-                                    .map(text -> RecipeUtils.createSimpleComment(assignment, text)))
-                            .toList());
-
-                // visit method invocations
-                modifiedAssignment = (J.Assignment) super.visitAssignment(modifiedAssignment, ctx);
-
-                if (originalName.getType() instanceof JavaType.FullyQualified fqn) {
-                  maybeRemoveImport(fqn);
-                }
-
-                return maybeAutoFormat(assignment, modifiedAssignment, ctx);
+              // nothing to do if type stays the same
+              if (spec.returnTypeStrategy()
+                  == ReplacementUtils.ReturnTypeStrategy.INFER_FROM_CONTEXT) {
+                return super.visitAssignment(assignment, ctx);
               }
+
+              String resolvedFqn = null;
+              switch (spec.returnTypeStrategy()) {
+                case USE_SPECIFIED_TYPE -> resolvedFqn = spec.returnTypeFqn();
+                case VOID ->
+                    throw new IllegalStateException(
+                        "Should not visit assignment for void strategy.");
+              }
+
+              // Create simple java template to adjust variable declaration type, but keep
+              // invocation as is
+              J.Assignment modifiedAssignment =
+                  RecipeUtils.createSimpleJavaTemplate(
+                          originalName.getSimpleName() + " = #{any()}", resolvedFqn)
+                      .apply(getCursor(), assignment.getCoordinates().replace(), invocation);
+
+              assert resolvedFqn != null;
+              modifiedAssignment =
+                  modifiedAssignment.withVariable(
+                      modifiedAssignment.getVariable().withType(JavaType.buildType(resolvedFqn)));
+              modifiedAssignment = modifiedAssignment.withType(JavaType.buildType(resolvedFqn));
+
+              maybeAddImport(resolvedFqn);
+
+              // ensure comments are added here, not on method invocation
+              getCursor().putMessage(invocation.getId().toString(), "comments added");
+
+              // record fqn of identifier for later uses
+              getCursor()
+                  .dropParentUntil(parent -> parent instanceof J.Block)
+                  .putMessage(originalName.toString(), resolvedFqn);
+
+              // merge comments
+              modifiedAssignment =
+                  modifiedAssignment.withComments(
+                      Stream.concat(
+                              assignment.getComments().stream(),
+                              spec.textComments().stream()
+                                  .map(text -> RecipeUtils.createSimpleComment(assignment, text)))
+                          .toList());
+
+              // visit method invocations
+              modifiedAssignment = (J.Assignment) super.visitAssignment(modifiedAssignment, ctx);
+
+              if (originalName.getType() instanceof JavaType.FullyQualified fqn) {
+                maybeRemoveImport(fqn);
+              }
+
+              return maybeAutoFormat(assignment, modifiedAssignment, ctx);
             }
             return super.visitAssignment(assignment, ctx);
           }
@@ -516,6 +519,29 @@ public abstract class AbstractMigrationRecipe extends Recipe {
               }
             }
             return null;
+          }
+
+          private Optional<ReplacementUtils.BuilderReplacementSpec> findCountedReplacementSpec(
+              J.MethodInvocation invocation) {
+            J.MethodInvocation countedQuery = findCountedQuery(invocation);
+            if (countedQuery == null) {
+              return Optional.empty();
+            }
+
+            Map<String, Expression> collectedArgs = collectArguments(countedQuery);
+            for (Map.Entry<MethodMatcher, List<ReplacementUtils.BuilderReplacementSpec>> entry :
+                countBuilderSpecMap.entrySet()) {
+              if (!entry.getKey().matches(countedQuery)) {
+                continue;
+              }
+
+              return entry.getValue().stream()
+                  .filter(
+                      spec ->
+                          collectedArgs.keySet().equals(spec.methodNamesToExtractParameters()))
+                  .findFirst();
+            }
+            return Optional.empty();
           }
 
           private Map<String, Expression> collectArguments(J.MethodInvocation invocation) {
