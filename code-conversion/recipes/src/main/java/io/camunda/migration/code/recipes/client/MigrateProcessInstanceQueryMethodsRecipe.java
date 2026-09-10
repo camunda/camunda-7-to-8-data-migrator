@@ -17,10 +17,14 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
 
 public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationRecipe {
 
   private static final String PROCESS_INSTANCE_STATE = "io.camunda.client.api.search.enums.ProcessInstanceState";
+  private static final Set<String> UNFILTERED_QUERY_METHODS =
+      Set.of("active", "count", "createProcessInstanceQuery", "getRuntimeService", "list");
 
   @Override
   public @NonNull String getDisplayName() {
@@ -374,6 +378,25 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
         Optional.of("org.camunda.bpm.engine.runtime.ProcessInstanceQuery")));
 
     return specs;
+  }
+
+  @Override
+  protected boolean isBuilderReplacementApplicable(
+      ReplacementUtils.BuilderReplacementSpec spec,
+      J.MethodInvocation queryTerminal,
+      Map<String, Expression> collectedArgs) {
+    if (!spec.methodNamesToExtractParameters().isEmpty()) {
+      return true;
+    }
+
+    Expression current = queryTerminal;
+    while (current instanceof J.MethodInvocation invocation) {
+      if (!UNFILTERED_QUERY_METHODS.contains(invocation.getSimpleName())) {
+        return false;
+      }
+      current = invocation.getSelect();
+    }
+    return true;
   }
 
   @Override

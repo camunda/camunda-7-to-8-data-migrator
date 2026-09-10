@@ -48,6 +48,13 @@ public abstract class AbstractMigrationRecipe extends Recipe {
     return List.of();
   }
 
+  protected boolean isBuilderReplacementApplicable(
+      ReplacementUtils.BuilderReplacementSpec spec,
+      J.MethodInvocation queryTerminal,
+      Map<String, Expression> collectedArgs) {
+    return true;
+  }
+
   protected abstract List<ReplacementUtils.ReturnReplacementSpec> returnMethodInvocations();
 
   protected abstract List<ReplacementUtils.RenameReplacementSpec> renameMethodInvocations();
@@ -465,7 +472,8 @@ public abstract class AbstractMigrationRecipe extends Recipe {
             Map<String, Expression> collectedArgs = collectArguments(queryTerminal);
 
             for (ReplacementUtils.BuilderReplacementSpec spec : specs) {
-              if (collectedArgs.keySet().equals(spec.methodNamesToExtractParameters())
+              if (isBuilderReplacementApplicable(spec, queryTerminal, collectedArgs)
+                  && collectedArgs.keySet().equals(spec.methodNamesToExtractParameters())
                   && spec.receiverTypeFqn()
                       .map(
                           fqn ->
@@ -538,7 +546,8 @@ public abstract class AbstractMigrationRecipe extends Recipe {
               return entry.getValue().stream()
                   .filter(
                       spec ->
-                          collectedArgs.keySet().equals(spec.methodNamesToExtractParameters()))
+                          isBuilderReplacementApplicable(spec, countedQuery, collectedArgs)
+                              && collectedArgs.keySet().equals(spec.methodNamesToExtractParameters()))
                   .findFirst();
             }
             return Optional.empty();
