@@ -311,33 +311,58 @@ export const process_instance = [
 			path: "/process-instance/delete",
 			operation: "post",
 		},
-		target: {
-			path: "/process-instances/cancellation",
-			operation: "post",
-		},
+		target: [
+			{
+				path: "/process-instances/cancellation",
+				operation: "post",
+			},
+			{
+				path: "/process-instances/{processInstanceKey}/cancellation",
+				operation: "post",
+			},
+		],
 		direct: {
 			rowInfo: [
 				{
 					leftEntry: <pre>(string[]) processInstanceIds</pre>,
 					rightEntry: (
 						<>
-							<pre>(string[]) filter.processInstanceKey.$in</pre>
+							<pre>
+								(string) processInstanceKey
+								<br />
+								(string[]) filter.processInstanceKey.$in
+							</pre>
 							<p>
-								See{" "}
-								<a href="#key-to-id">
-									Camunda 7 key → Camunda 8 id
-								</a>
+								For explicit IDs that may identify suspended or
+								child process instances, issue one request to
+								the individual cancellation endpoint per ID.
+								Use{" "}
+								<code>filter.processInstanceKey.$in</code> only
+								when every selected ID is an active root
+								process instance. See{" "}
+								<a href="#key-to-id">Camunda 7 key → Camunda 8 id</a>
 							</p>
 						</>
 					),
 				},
 			],
 			additionalInfo: (
-				<p>
-					Asterisks signify that an advanced filter can be applied,
-					similar to a unary test (
-					<code>$eq, $neq, $in, $like with wildcards,...</code>).
-				</p>
+				<>
+					<p>
+						The batch cancellation endpoint only cancels ACTIVE
+						root process instances. It ignores{" "}
+						<code>filter.state</code> and{" "}
+						<code>filter.parentProcessInstanceKey</code>. For
+						selections that may include suspended or child process
+						instances, resolve the matching IDs first and issue
+						individual cancellation requests.
+					</p>
+					<p>
+						Asterisks signify that an advanced filter can be
+						applied, similar to a unary test (
+						<code>$eq, $neq, $in, $like with wildcards,...</code>).
+					</p>
+				</>
 			),
 		},
 		discontinued: {
@@ -382,7 +407,18 @@ export const process_instance = [
 				},
 				{
 					leftEntry: <pre>(object) processInstanceQuery</pre>,
-					rightEntry: <p>See Get List endpoint for details.</p>,
+					rightEntry: (
+						<p>
+							The batch cancellation endpoint only cancels ACTIVE
+							root process instances and ignores{" "}
+							<code>state</code> and{" "}
+							<code>parentProcessInstanceKey</code> filters.
+							Use the batch endpoint only after ensuring the
+							selected instances are active roots; otherwise,
+							search for the matching IDs and cancel each one
+							with the individual cancellation endpoint.
+						</p>
+					),
 				},
 				{
 					leftEntry: <pre>(object) historicProcessInstanceQuery</pre>,
