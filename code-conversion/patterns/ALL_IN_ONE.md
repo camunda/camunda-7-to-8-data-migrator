@@ -28,6 +28,7 @@ Patterns:
     - [Search Process Definitions](#search-process-definitions)
     - [Starting Process Instances](#starting-process-instances)
 - [Glue code](#glue-code)
+  - [Idiomatic Job Worker Cleanup](#idiomatic-job-worker-cleanup)
   - [Outbound HTTP &#8594; REST Connector](#outbound-http-8594-rest-connector)
   - [JavaDelegate &#8594; Job Worker (Spring)](#javadelegate-8594-job-worker-spring)
     - [Class-level Changes](#class-level-changes)
@@ -85,6 +86,21 @@ Also, configure your connection to the Camunda 8 cluster in the `application.pro
 **Version resolution**: Resolve the latest released GA version from Maven Central's direct artifact metadata, for example `https://repo.maven.apache.org/maven2/io/camunda/<artifact-id>/maven-metadata.xml` (the equivalent `repo1.maven.org` path is also available). From `<versions>`, select the highest version matching the target Camunda minor (`8.8.x`, `8.9.x`, etc.) and exclude `-SNAPSHOT`, `-alpha`, `-beta`, and `-rc` versions. If no GA version exists for the target, ask before using a pre-release. Do not use `search.maven.org`'s search API or the Camunda public repository metadata for this lookup.
 
 **Java client artifact**: Use `io.camunda:camunda-client-java`. The legacy `io.camunda:zeebe-client-java` artifact is deprecated and will be discontinued in Camunda 8.10.
+
+**Process test artifact**: Camunda 8.10 removes Zeebe Process Test. Replace `zeebe-process-test-extension` and `zeebe-process-test-extension-testcontainer` with `io.camunda:camunda-process-test-java`:
+
+```
+<dependency>
+	<groupId>io.camunda</groupId>
+	<artifactId>camunda-process-test-java</artifactId>
+	<version>{version}</version>
+	<scope>test</scope>
+</dependency>
+```
+
+For Spring Boot applications, use `camunda-process-test-spring` with the Spring Boot 4 starter or `camunda-process-test-spring-boot-3` with `camunda-spring-boot-3-starter`. The former `spring-boot-starter-camunda-test` and `spring-boot-starter-camunda-test-testcontainer` artifacts are replaced by these CPT Spring modules.
+
+If the project uses the temporary `camunda-process-test-spring-4` or `camunda-process-test-spring-boot-4` artifact names from Camunda 8.8, replace them with `camunda-process-test-spring`.
 
 **Spring Boot 3.5.x and Apache HttpClient**: Spring Boot 3.5.x may manage `org.apache.httpcomponents.client5:httpclient5` to `5.5.2`, while `io.camunda:camunda-client-java` 8.9.13 requires `5.6.1` or later for API compatibility. This mismatch can prevent the `CamundaClient` bean from starting with a `NoSuchMethodError`; `5.6.3` is the minimum version that also addresses CVE-2026-64607. Until the upstream dependency alignment is fixed, override the managed version in the application:
 
@@ -311,7 +327,7 @@ The following patterns focus on methods how to broadcast signals in Camunda 7 an
 
 In Camunda 7, a process instance can carry a **business key**: a domain identifier (order number, claim ID) that is set on start and used to find instances later.
 
-Camunda 8 did not support business keys for a long time. Since **Camunda 8.9**, the direct successor is the **Business ID**. Since **Camunda 8.8**, **process instance tags** are available as a lightweight alternative.
+Camunda 8 did not support business keys for a long time. Since **Camunda 8.9**, the direct successor is the **Business ID**. Since **Camunda 8.8**, **process instance tags** are available as a lightweight alternative. Camunda 8.10 also makes business ID searchable on decision instances and user tasks and exposes it to FEEL expressions.
 
 | Camunda 7              | Camunda 8                                                                 |
 | ---------------------- | ------------------------------------------------------------------------- |
@@ -374,6 +390,21 @@ If your target version is **8.8**, use tags (for example, `order:1234`) or store
                 .items();
     }
 ```
+
+###### Assigning a Business ID after creation (Camunda 8.10+)
+
+If the domain identifier is not available when the process starts, assign it once to a running root process instance:
+
+```http
+POST /v2/process-instances/{processInstanceKey}/business-id-assignment
+Content-Type: application/json
+
+{"businessId": "order-1234"}
+```
+
+The assignment is irreversible and only artifacts created afterwards receive the ID. It is not available when business ID uniqueness enforcement is enabled. Use the dedicated API endpoint rather than trying to update a process variable or re-starting the instance.
+
+In Camunda 8.10, business ID filters also apply to decision instances and user tasks. The value is available in FEEL as `camunda.processInstance.businessId`; use it for model-side routing instead of duplicating the identifier in an untracked variable.
 
 ###### Alternative: Tags (Camunda 8.8+)
 
@@ -1098,8 +1129,8 @@ In Camunda 8, runtime and history data are separated: historic data is exported 
 | `createHistoricActivityInstanceQuery()`            | `newElementInstanceSearchRequest()`                        |
 | `createHistoricVariableInstanceQuery()`            | `newVariableSearchRequest()`                               |
 | `createHistoricIncidentQuery()`                    | `newIncidentSearchRequest()`                               |
-| `createHistoricTaskInstanceQuery()`                | `newUserTaskSearchRequest()`                               |
-| `createHistoricDecisionInstanceQuery()`            | `newDecisionInstanceSearchRequest()`                       |
+| `createHistoricTaskInstanceQuery()`                | `newUserTaskSearchRequest()` (8.10+)                       |
+| `createHistoricDecisionInstanceQuery()`            | `newDecisionInstanceSearchRequest()` (8.10+)               |
 | `createUserOperationLogQuery()`                    | Audit log search (`POST /v2/audit-logs/search`, 8.9+)      |
 
 ###### Searching Finished Process Instances
@@ -1132,6 +1163,7 @@ In Camunda 8, runtime and history data are separated: historic data is exported 
 -   C7 `.finished()` matches every instance with an end time — both `COMPLETED` and `TERMINATED` (cancelled) — so the C8 equivalent filters on both states; drop `TERMINATED` to narrow to successfully-completed instances only
 -   the same search endpoints serve running *and* finished entities — there is no separate "history API"
 -   search results are *eventually consistent*: data becomes visible after export to secondary storage, typically within a second; do not use search requests for read-after-write logic inside a worker
+-   user-task and decision-instance search became available in Camunda 8.10; keep these mappings as explicit TODO-backed API migrations when supporting an older target
 -   history time to live (HTTL) and data retention are configured on the cluster, not per query
 -   element instances are the equivalent of C7 activity instances; filter by `processInstanceKey` to get the execution trace (audit trail) of one instance
 
@@ -1383,6 +1415,93 @@ The glue code patterns look into the different scenarios and proposes code conve
 | `camunda:expression`             | `camunda:expression="${someBean.doStuff()}"`    | `someBeanDoStuff`                  | Method name used as job type; original expression saved as header so you can have your own worker evaluating the original expression     | [Java Expression](15-java-expression/README.md) |
 | No implementation / fallback     | *(none or unsupported type)*                    | `defaultJobType`           | Uses configured fallback (`"camunda-7-job"` by default)               | — |
 
+
+### Idiomatic Job Worker Cleanup
+
+OpenRewrite creates a reliable Camunda 8 worker shape. AI cleanup removes generated names and
+redundant code without changing the worker contract.
+
+###### Preserve the job type
+
+Rename `*Migrated` and `executeJob*` methods to the job type or the original delegate intent.
+Preserve an explicit `@JobWorker(type = "...")` value. If the job type came from the method name,
+set it explicitly before renaming the method.
+
+```java
+// Before
+@JobWorker(type = "sampleJavaDelegate")
+public void executeJobMigrated(ActivatedJob job) {
+  // ...
+}
+
+// After
+@JobWorker(type = "sampleJavaDelegate")
+public void sampleJavaDelegate(ActivatedJob job) {
+  // ...
+}
+```
+
+###### Inject variables
+
+Replace `job.getVariable(...)` and `job.getVariablesAsMap()` with typed `@Variable` parameters.
+Use `@VariablesAsType` when several variables form one input object. Keep `ActivatedJob` when the
+method uses job metadata or the job key (`job.getKey()`).
+
+```java
+// Before
+public void sampleJavaDelegate(ActivatedJob job) {
+  Object x = job.getVariable("x");
+}
+
+// After
+public void sampleJavaDelegate(@Variable Object x) {
+}
+```
+
+Mark an input optional only when the source worker accepts its absence:
+
+```java
+public void sampleJavaDelegate(@Variable(optional = true) String comment) {
+}
+```
+
+Remove `throws Exception` when the cleaned method no longer throws a checked exception. Keep a
+specific checked exception when the worker still requires it.
+
+###### Simplify outputs and defaults
+
+Return `Map.of(...)` for a single-entry output map when its values are non-null and callers do not
+mutate the map. Keep a mutable map when mutation or nullable values are required.
+
+```java
+// Before
+Map<String, Object> resultMap = new HashMap<>();
+resultMap.put("y", "hello world");
+return resultMap;
+
+// After
+return Map.of("y", "hello world");
+```
+
+Remove `autoComplete = true` because `true` is the default. Keep the attribute when the project
+documents the explicit setting as part of its configuration contract.
+
+###### Keep migration provenance
+
+Preserve a short Javadoc that identifies the Camunda 7 source. Add one when the source origin is
+known and the generated worker has no provenance note.
+
+```java
+/**
+ * Migrated from the Camunda 7 SampleJavaDelegate.
+ */
+@JobWorker(type = "sampleJavaDelegate")
+public Map<String, Object> sampleJavaDelegate(@Variable Object x) {
+  return Map.of("y", "hello world");
+}
+```
+
+---
 
 ### Outbound HTTP &#8594; REST Connector
 

@@ -292,9 +292,10 @@ Never collapse these into one `form-reference` category. Never mark any of them 
 ## JUEL Method-Invocation Worker Adapters
 
 For every model approach, use a new thin `*Worker` adapter component for a Spring bean method invoked
-by JUEL. Never add `@JobWorker` to an existing domain or service class from the C7 source. Keep the
-domain logic in the existing bean and delegate to it from the adapter. The code checklist defines
-the remediation and validation rules. Use this reference shape:
+by JUEL. Compare the adapter's fully qualified class name with the original Java source baseline,
+recorded as fully qualified class names. Never add `@JobWorker` to an existing domain or service
+class from the C7 source. Keep the domain logic in the existing bean and delegate to it from the
+adapter. The code checklist defines the remediation and validation rules. Use this reference shape:
 
 ```java
 @Component

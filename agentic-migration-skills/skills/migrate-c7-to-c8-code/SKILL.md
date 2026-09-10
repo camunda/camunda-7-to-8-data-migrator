@@ -159,9 +159,10 @@ Classify every Camunda 7 related Java file and config file into a table with the
 Complexity, Notes. See `references/code-transform-checklist.md` for the detection hints and the type
 classifications.
 
-Record the original Java source baseline used for migration with the Code Inventory. Include every
-domain or service class that could receive or delegate a `@JobWorker`, including classes without
-Camunda APIs.
+Record the original Java source baseline used for migration with the Code Inventory. Record each
+class by its fully qualified class name, including its package and class name. Include every domain
+or service class that could receive or delegate a `@JobWorker`, including classes without Camunda
+APIs.
 
 #### Model Inventory
 
@@ -249,12 +250,14 @@ Each item below is a check to run and a condition that must hold at exit. Record
    missing entry fails the check. See the mandatory open items in
    `references/code-transform-checklist.md`.
 10. **Query counts and pagination** — search migrated sources for `.items().size()` and
-    `.items().stream().count()`. Treat each hit as a validation failure when it represents a
-    complete query count. Confirm that each migrated C7 `list().size()`, `list().stream().count()`,
-    or `count()` uses `.page().totalItems()` and review `.page().hasMoreTotalItems()` for large searches.
-11. **Worker adapters** — inspect every `@JobWorker` declaration against the original Java source
-    baseline recorded in Step 2. Flag any `@JobWorker` on a class in that baseline. A migrated
-    Spring bean method must use a new `*Worker` adapter component instead.
+   `.items().stream().count()`. Treat each hit as a validation failure when it represents a
+   complete query count. Confirm that each migrated C7 `list().size()`, `list().stream().count()`,
+   or `count()` uses `.page().totalItems()` and review `.page().hasMoreTotalItems()` for large searches.
+11. **Worker adapters** — compare every `@JobWorker` declaration's fully qualified declaring class
+   name with the original Java source baseline recorded in Step 2. Flag the declaration when its
+   class appears in that baseline. Accept it only when the class is new, is a `*Worker` adapter
+   component, and delegates to the baseline bean. A migrated Spring bean method must never receive
+   `@JobWorker` directly.
 
 Check these pitfalls as well:
 
