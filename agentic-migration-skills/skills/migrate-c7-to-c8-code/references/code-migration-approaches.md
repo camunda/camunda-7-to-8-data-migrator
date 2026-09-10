@@ -92,6 +92,8 @@ Run the platform-appropriate command:
 
 Ask the user whether to run AI cleanup. Proceed only on YES. Load the pattern catalog (see references/pattern-catalog-sources.md), then work the Transform checklist for what OpenRewrite left:
 
+- Apply the **OpenRewrite output: de-recipe cleanup** section to every generated `@JobWorker`
+  method. Use the concrete examples in `30-glue-code/idiomatic-job-worker-cleanup.md`.
 - Resolve all `// TODO` comments it inserted, and fix compile errors.
 - Apply checklist items 1 (deps/config), 5 (listeners), 6 (tests), 7 (JUEL), 8 (generated-form dependencies), and any 2 (client code) the recipes did not cover.
 

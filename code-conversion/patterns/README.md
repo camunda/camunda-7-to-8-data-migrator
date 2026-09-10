@@ -56,6 +56,7 @@ Whenever you define code that is executed when a process arrives at a specific s
 
 Patterns:
 
+- [Idiomatic Job Worker Cleanup](30-glue-code/idiomatic-job-worker-cleanup.md)
 - [Outbound HTTP &#8594; REST Connector](30-glue-code/outbound-http-rest-connector.md)
 
 ### JavaDelegate &#8594; Job Worker (Spring)
