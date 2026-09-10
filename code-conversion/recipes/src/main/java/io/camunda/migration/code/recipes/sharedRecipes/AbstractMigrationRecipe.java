@@ -101,10 +101,14 @@ public abstract class AbstractMigrationRecipe extends Recipe {
 
               // run through prepared migration rules
               ReplacementUtils.ReplacementSpec matchingSpec =
-                  commonSpecs.stream()
-                      .filter(spec -> spec.matcher().matches(invocation))
-                      .findFirst()
-                      .orElseGet(() -> findCountedReplacementSpec(invocation).orElse(null));
+                  findCountedReplacementSpec(invocation)
+                      .map(spec -> (ReplacementUtils.ReplacementSpec) spec)
+                      .orElseGet(
+                          () ->
+                              commonSpecs.stream()
+                                  .filter(spec -> spec.matcher().matches(invocation))
+                                  .findFirst()
+                                  .orElse(null));
 
               if (matchingSpec != null) {
                 ReplacementUtils.ReplacementSpec spec = matchingSpec;
@@ -240,10 +244,14 @@ public abstract class AbstractMigrationRecipe extends Recipe {
 
             // run through prepared migration rules
             ReplacementUtils.ReplacementSpec matchingSpec =
-                commonSpecs.stream()
-                    .filter(spec -> spec.matcher().matches(invocation))
-                    .findFirst()
-                    .orElseGet(() -> findCountedReplacementSpec(invocation).orElse(null));
+                findCountedReplacementSpec(invocation)
+                    .map(spec -> (ReplacementUtils.ReplacementSpec) spec)
+                    .orElseGet(
+                        () ->
+                            commonSpecs.stream()
+                                .filter(spec -> spec.matcher().matches(invocation))
+                                .findFirst()
+                                .orElse(null));
 
             if (matchingSpec != null) {
               ReplacementUtils.ReplacementSpec spec = matchingSpec;
@@ -474,13 +482,7 @@ public abstract class AbstractMigrationRecipe extends Recipe {
             for (ReplacementUtils.BuilderReplacementSpec spec : specs) {
               if (isBuilderReplacementApplicable(spec, queryTerminal, collectedArgs)
                   && collectedArgs.keySet().equals(spec.methodNamesToExtractParameters())
-                  && spec.receiverTypeFqn()
-                      .map(
-                          fqn ->
-                              queryTerminal.getSelect() != null
-                                  && TypeUtils.isOfClassType(
-                                      queryTerminal.getSelect().getType(), fqn))
-                      .orElse(true)) {
+                  && matchesReceiverType(spec, queryTerminal)) {
                 spec.maybeRemoveImports().forEach(this::maybeRemoveImport);
                 spec.maybeAddImports().forEach(this::maybeAddImport);
 
@@ -537,20 +539,25 @@ public abstract class AbstractMigrationRecipe extends Recipe {
             }
 
             Map<String, Expression> collectedArgs = collectArguments(countedQuery);
-            for (Map.Entry<MethodMatcher, List<ReplacementUtils.BuilderReplacementSpec>> entry :
-                countBuilderSpecMap.entrySet()) {
-              if (!entry.getKey().matches(countedQuery)) {
-                continue;
-              }
+            // Method attribution can be incomplete while declarations are visited.
+            return countBuilderSpecMap.values().stream()
+                .flatMap(Collection::stream)
+                .filter(
+                    spec ->
+                        isBuilderReplacementApplicable(spec, countedQuery, collectedArgs)
+                            && collectedArgs.keySet().equals(spec.methodNamesToExtractParameters())
+                            && matchesReceiverType(spec, countedQuery))
+                .findFirst();
+          }
 
-              return entry.getValue().stream()
-                  .filter(
-                      spec ->
-                          isBuilderReplacementApplicable(spec, countedQuery, collectedArgs)
-                              && collectedArgs.keySet().equals(spec.methodNamesToExtractParameters()))
-                  .findFirst();
-            }
-            return Optional.empty();
+          private boolean matchesReceiverType(
+              ReplacementUtils.BuilderReplacementSpec spec, J.MethodInvocation queryTerminal) {
+            return spec.receiverTypeFqn()
+                .map(
+                    fqn ->
+                        queryTerminal.getSelect() != null
+                            && TypeUtils.isOfClassType(queryTerminal.getSelect().getType(), fqn))
+                .orElse(true);
           }
 
           private Map<String, Expression> collectArguments(J.MethodInvocation invocation) {

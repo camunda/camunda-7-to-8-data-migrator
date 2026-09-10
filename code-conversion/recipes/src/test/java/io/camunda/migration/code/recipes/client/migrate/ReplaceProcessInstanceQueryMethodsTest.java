@@ -155,6 +155,10 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .processDefinitionKey(processDefinitionKey)
                             .list();
 
+                    int taskCount = engine.getTaskService().createTaskQuery()
+                            .list()
+                            .size();
+
                     engine.getTaskService().createTaskQuery()
                             .processDefinitionKey(processDefinitionKey)
                             .list();
@@ -189,6 +193,10 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .send()
                             .join()
                             .items();
+
+                    int taskCount = engine.getTaskService().createTaskQuery()
+                            .list()
+                            .size();
 
                     engine.getTaskService().createTaskQuery()
                             .processDefinitionKey(processDefinitionKey)
@@ -345,6 +353,83 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .totalItems();
 
                     Long directCount = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems();
+
+                }
+            }
+            """));
+  }
+
+  @Test
+  void replacesFilteredProcessInstanceCounts() {
+    rewriteRun(
+        spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
+        java(
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class FilteredProcessInstanceCountsTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public void countQueries(String activityId, String businessKey) {
+                    long activityCount = engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .activityIdIn(activityId)
+                            .count();
+
+                    long businessCount = engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .processInstanceBusinessKey(businessKey)
+                            .count();
+                }
+            }
+            """,
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import io.camunda.client.api.search.enums.ProcessInstanceState;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class FilteredProcessInstanceCountsTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public void countQueries(String activityId, String businessKey) {
+                    Long activityCount = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter
+                                    .elementId(activityId)
+                                    .state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems();
+
+                    Long businessCount = camundaClient
                             .newProcessInstanceSearchRequest()
                             .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
                             .send()
