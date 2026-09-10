@@ -133,7 +133,18 @@ export const process_instance = [
 							(boolean) processDefinitionWithoutTenantId
 						</pre>
 					),
-					rightEntry: <pre>(string*) filter.tenantId</pre>,
+					rightEntry: (
+						<>
+							<pre>(string*) filter.tenantId</pre>
+							<p>
+								Map <code>withoutTenantId=true</code> and{" "}
+								<code>processDefinitionWithoutTenantId=true</code>{" "}
+								to the C8 default-tenant alias{" "}
+								<code>&lt;default&gt;</code> in{" "}
+								<code>filter.tenantId</code>.
+							</p>
+						</>
+					),
 				},
 				{
 					leftEntry: (
@@ -828,14 +839,25 @@ export const process_instance = [
 							(string) processDefinitionKey
 							<br />
 							(string) processDefinitionTenantId
+							<br />
+							(boolean) processDefinitionWithoutTenantId
 						</pre>
 					),
 					rightEntry: (
-						<pre>
-							(string) filter.processDefinitionId
-							<br />
-							(string) filter.tenantId
-						</pre>
+						<>
+							<pre>
+								(string) filter.processDefinitionId
+								<br />
+								(string) filter.tenantId
+							</pre>
+							<p>
+								Map{" "}
+								<code>processDefinitionWithoutTenantId=true</code>{" "}
+								to the C8 default-tenant alias{" "}
+								<code>&lt;default&gt;</code> in{" "}
+								<code>filter.tenantId</code>.
+							</p>
+						</>
 					),
 				},
 				{
@@ -909,8 +931,6 @@ export const process_instance = [
 					leftEntry: (
 						<pre>
 							(string) deploymentId
-							<br />
-							(boolean) processDefinitionWithoutTenantId
 							<br />
 							(object) historicProcessInstanceQuery
 						</pre>
@@ -982,14 +1002,25 @@ export const process_instance = [
 							(string) processDefinitionKey
 							<br />
 							(string) processDefinitionTenantId
+							<br />
+							(boolean) processDefinitionWithoutTenantId
 						</pre>
 					),
 					rightEntry: (
-						<pre>
-							(string) filter.processDefinitionId
-							<br />
-							(string) filter.tenantId
-						</pre>
+						<>
+							<pre>
+								(string) filter.processDefinitionId
+								<br />
+								(string) filter.tenantId
+							</pre>
+							<p>
+								Map{" "}
+								<code>processDefinitionWithoutTenantId=true</code>{" "}
+								to the C8 default-tenant alias{" "}
+								<code>&lt;default&gt;</code> in{" "}
+								<code>filter.tenantId</code>.
+							</p>
+						</>
 					),
 				},
 				{
@@ -1063,8 +1094,6 @@ export const process_instance = [
 					leftEntry: (
 						<pre>
 							(string) deploymentId
-							<br />
-							(boolean) processDefinitionWithoutTenantId
 							<br />
 							(object) historicProcessInstanceQuery
 						</pre>

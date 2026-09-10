@@ -266,7 +266,7 @@ export const mapping_7_23_to_8_10 = {
 			<h3>/tenant-id/{"{tenant-id}"} → POST search</h3>
 			<p>
 				In Camunda 7, many endpoints are duplicated in their basic
-				functionality to account for tenantIds. This is done by using
+				functionality to account for tenantIds. This is done by
 				appending the tenantId as a path parameter to an existing
 				endpoint: <code>/tenant-id/{"{tenant-id}"}</code>
 			</p>
@@ -312,7 +312,7 @@ export const mapping_7_23_to_8_10 = {
 							<ul>
 								<li>
 									(string) decisionDefinitionId: The DMN ID of
-									the decision definition..
+									the decision definition.
 								</li>
 								<li>
 									(string) name: The DMN name of the decision

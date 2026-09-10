@@ -209,7 +209,21 @@ export const task = [
 							(boolean) withoutCandidateUsers
 						</pre>
 					),
-					rightEntry: <pre>(string*) filter.candidateUser</pre>,
+					rightEntry: (
+						<>
+							<pre>(string*) filter.candidateUser</pre>
+							<p>
+								In Camunda 7, <code>candidateUser</code> also
+								matches tasks offered to any group the user
+								belongs to. Resolve the user's group IDs and use
+								an advanced <code>$or</code> filter with the
+								direct <code>candidateUser</code> clause plus
+								one <code>candidateGroup</code> clause per group,
+								or issue separate searches and deduplicate the
+								results.
+							</p>
+						</>
+					),
 				},
 				{
 					leftEntry: (

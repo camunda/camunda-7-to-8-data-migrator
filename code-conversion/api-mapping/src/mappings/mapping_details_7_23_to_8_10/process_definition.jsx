@@ -172,11 +172,19 @@ export const process_definition = [
 						</pre>
 					),
 					rightEntry: (
-						<p>
-							There is no direct Camunda 8.10 equivalent. If
-							multi-tenancy is disabled, all resources are
-							deployed to the tenantId "default".
-						</p>
+						<>
+							<pre>(string) filter.tenantId</pre>
+							<p>
+								Map <code>withoutTenantId=true</code> to{" "}
+								<code>filter.tenantId: "&lt;default&gt;"</code>.
+								For{" "}
+								<code>
+									includeProcessDefinitionsWithoutTenantId=true
+								</code>
+								, issue an additional search with this filter and
+								merge its results with the regular search.
+							</p>
+						</>
 					),
 				},
 			],

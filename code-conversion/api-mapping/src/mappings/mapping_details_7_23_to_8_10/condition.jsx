@@ -22,6 +22,19 @@ export const condition = [
 					rightEntry: <pre>(string) tenantId</pre>,
 				},
 				{
+					leftEntry: <pre>(boolean) withoutTenantId</pre>,
+					rightEntry: (
+						<>
+							<pre>(string) tenantId</pre>
+							<p>
+								Map <code>withoutTenantId=true</code> to the
+								<code>tenantId</code> value{" "}
+								<code>&lt;default&gt;</code>.
+							</p>
+						</>
+					),
+				},
+				{
 					leftEntry: <pre>(string) processDefinitionId</pre>,
 					rightEntry: (
 						<>
@@ -61,15 +74,6 @@ export const condition = [
 						<p>
 							Camunda 8.10 does not accept a business key for
 							conditional evaluation.
-						</p>
-					),
-				},
-				{
-					leftEntry: <pre>(boolean) withoutTenantId</pre>,
-					rightEntry: (
-						<p>
-							Camunda 8.10 has no equivalent filter for evaluating
-							only process definitions without a tenant.
 						</p>
 					),
 				},

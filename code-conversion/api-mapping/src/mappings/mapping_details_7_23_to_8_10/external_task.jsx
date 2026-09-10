@@ -105,7 +105,20 @@ export const external_task = [
 				},
 				{
 					leftEntry: <pre>(int32) maxTasks</pre>,
-					rightEntry: <pre>(int32) maxJobsToActivate</pre>,
+					rightEntry: (
+						<>
+							<pre>(int32) maxJobsToActivate</pre>
+							<p>
+								Camunda 8 accepts one <code>type</code> per
+								request. Issue one activation request per topic
+								and treat <code>maxTasks</code> as a shared
+								budget: set{" "}
+								<code>maxJobsToActivate</code> to the remaining
+								budget and subtract the number of activated jobs
+								before the next request.
+							</p>
+						</>
+					),
 				},
 				{
 					leftEntry: <pre>(int64) asyncResponseTimeout</pre>,
@@ -149,7 +162,13 @@ export const external_task = [
 					rightEntry: (
 						<>
 							<pre>(string[]) tenantIds</pre>
-							<p>Only one type at a time.</p>
+							<p>
+								Map <code>withoutTenantId=true</code> to the{" "}
+								<code>&lt;default&gt;</code> tenant alias and
+								append it to <code>tenantIds</code> alongside
+								any <code>tenantIdIn</code> values. Only one
+								type at a time.
+							</p>
 						</>
 					),
 				},

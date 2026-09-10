@@ -117,7 +117,7 @@ exceptionMessage → filter.errorMessage
 priorityLowerThanOrEquals → filter.priority.$lte
 priorityHigherThanOrEquals → filter.priority.$gte
 tenantIdIn → filter.tenantId.$in
-withoutTenantId=true → filter.tenantId.$exists=false`}
+withoutTenantId=true → filter.tenantId="<default>"`}
 					</pre>
 					<p>
 						Apply the{" "}
