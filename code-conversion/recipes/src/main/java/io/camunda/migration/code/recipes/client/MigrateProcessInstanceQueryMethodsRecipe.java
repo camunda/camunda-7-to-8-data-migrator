@@ -148,7 +148,8 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
             #{camundaClient:any(io.camunda.client.CamundaClient)}
                 .newProcessInstanceSearchRequest()
                 .filter(filter -> filter
-                    .processDefinitionId(#{processDefinitionKey:any(java.lang.String)}))
+                    .processDefinitionId(#{processDefinitionKey:any(java.lang.String)})
+                    .state(ProcessInstanceState.ACTIVE))
                 .send()
                 .join()
                 .items()
@@ -172,7 +173,8 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
             #{camundaClient:any(io.camunda.client.CamundaClient)}
                 .newProcessInstanceSearchRequest()
                 .filter(filter -> filter
-                    .processDefinitionId(#{processDefinitionKey:any(java.lang.String)}))
+                    .processDefinitionId(#{processDefinitionKey:any(java.lang.String)})
+                    .state(ProcessInstanceState.ACTIVE))
                 .send()
                 .join()
                 .items()
