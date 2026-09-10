@@ -174,11 +174,11 @@ class DetectHistoryServiceUsageTest implements RewriteTest {
                     // See: https://docs.camunda.io/docs/apis-tools/orchestration-cluster-api-rest/orchestration-cluster-api-rest-overview/
                     historyService.createHistoricVariableInstanceQuery().list();
                     // TODO: HistoryService has no direct equivalent in Camunda 8.
-                    // Use the Orchestration Cluster REST API: POST /v2/user-tasks/search
+                    // Use the Orchestration Cluster REST API: POST /v2/user-tasks/search (8.10+)
                     // See: https://docs.camunda.io/docs/apis-tools/orchestration-cluster-api-rest/orchestration-cluster-api-rest-overview/
                     historyService.createHistoricTaskInstanceQuery().list();
                     // TODO: HistoryService has no direct equivalent in Camunda 8.
-                    // Use the Orchestration Cluster REST API: POST /v2/decision-instances/search
+                    // Use the Orchestration Cluster REST API: POST /v2/decision-instances/search (8.10+)
                     // See: https://docs.camunda.io/docs/apis-tools/orchestration-cluster-api-rest/orchestration-cluster-api-rest-overview/
                     historyService.createHistoricDecisionInstanceQuery().list();
                     // TODO: HistoryService has no direct equivalent in Camunda 8.

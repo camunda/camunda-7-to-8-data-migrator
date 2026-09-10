@@ -216,7 +216,7 @@ class ReplaceStartProcessInstanceMethodsTest implements RewriteTest {
                                 .join();
 
                         // TODO: businessKey was removed - use businessId (Camunda 8.9+) instead
-                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter)
+                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter). Camunda 8.10+ can override the inherited businessId with a literal or FEEL expression when the child needs a different ID.
                         camundaClient
                                 .newCreateInstanceCommand()
                                 .bpmnProcessId(processDefinitionKey)
@@ -241,7 +241,7 @@ class ReplaceStartProcessInstanceMethodsTest implements RewriteTest {
                                 .join();
 
                         // TODO: businessKey was removed - use businessId (Camunda 8.9+) instead
-                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter)
+                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter). Camunda 8.10+ can override the inherited businessId with a literal or FEEL expression when the child needs a different ID.
                         camundaClient
                                 .newCreateInstanceCommand()
                                 .bpmnProcessId(processDefinitionKey)
@@ -251,7 +251,7 @@ class ReplaceStartProcessInstanceMethodsTest implements RewriteTest {
                                 .join();
 
                         // TODO: businessKey was removed - use businessId (Camunda 8.9+) instead
-                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter)
+                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter). Camunda 8.10+ can override the inherited businessId with a literal or FEEL expression when the child needs a different ID.
                         camundaClient
                                 .newCreateInstanceCommand()
                                 .bpmnProcessId(processDefinitionKey)
@@ -270,7 +270,7 @@ class ReplaceStartProcessInstanceMethodsTest implements RewriteTest {
                                 .join();
 
                         // TODO: businessKey was removed - use businessId (Camunda 8.9+) instead
-                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter)
+                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter). Camunda 8.10+ can override the inherited businessId with a literal or FEEL expression when the child needs a different ID.
                         camundaClient
                                 .newCreateInstanceCommand()
                                 .bpmnProcessId(processDefinitionKey)
@@ -310,7 +310,7 @@ class ReplaceStartProcessInstanceMethodsTest implements RewriteTest {
                                 .join();
 
                         // TODO: businessKey was removed - use businessId (Camunda 8.9+) instead
-                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter)
+                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter). Camunda 8.10+ can override the inherited businessId with a literal or FEEL expression when the child needs a different ID.
                         camundaClient
                                 .newCreateInstanceCommand()
                                 .processDefinitionKey(Long.valueOf(processDefinitionId))
@@ -340,7 +340,7 @@ class ReplaceStartProcessInstanceMethodsTest implements RewriteTest {
                                 .join();
 
                         // TODO: businessKey was removed - use businessId (Camunda 8.9+) instead
-                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter)
+                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter). Camunda 8.10+ can override the inherited businessId with a literal or FEEL expression when the child needs a different ID.
                         camundaClient
                                 .newCreateInstanceCommand()
                                 .processDefinitionKey(Long.valueOf(processDefinitionId))
@@ -349,7 +349,7 @@ class ReplaceStartProcessInstanceMethodsTest implements RewriteTest {
                                 .join();
 
                         // TODO: businessKey was removed - use businessId (Camunda 8.9+) instead
-                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter)
+                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter). Camunda 8.10+ can override the inherited businessId with a literal or FEEL expression when the child needs a different ID.
                         camundaClient
                                 .newCreateInstanceCommand()
                                 .processDefinitionKey(Long.valueOf(processDefinitionId))
@@ -358,7 +358,7 @@ class ReplaceStartProcessInstanceMethodsTest implements RewriteTest {
                                 .join();
 
                         // TODO: businessKey was removed - use businessId (Camunda 8.9+) instead
-                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter)
+                        // TODO: if this businessKey was propagated to a called process via <camunda:in businessKey="..." /> on a BPMN call activity, migrate that propagation to businessId in the diagram as well (diagram converter). Camunda 8.10+ can override the inherited businessId with a literal or FEEL expression when the child needs a different ID.
                         camundaClient
                                 .newCreateInstanceCommand()
                                 .processDefinitionKey(Long.valueOf(processDefinitionId))

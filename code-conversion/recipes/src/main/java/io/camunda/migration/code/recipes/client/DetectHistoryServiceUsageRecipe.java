@@ -48,10 +48,10 @@ public class DetectHistoryServiceUsageRecipe extends Recipe {
               "POST /v2/variables/search"),
           new MethodEndpoint(
               new MethodMatcher(HISTORY_SERVICE_FQN + " createHistoricTaskInstanceQuery()"),
-              "POST /v2/user-tasks/search"),
+              "POST /v2/user-tasks/search (8.10+)"),
           new MethodEndpoint(
               new MethodMatcher(HISTORY_SERVICE_FQN + " createHistoricDecisionInstanceQuery()"),
-              "POST /v2/decision-instances/search"),
+              "POST /v2/decision-instances/search (8.10+)"),
           new MethodEndpoint(
               new MethodMatcher(HISTORY_SERVICE_FQN + " createUserOperationLogQuery()"),
               "POST /v2/audit-logs/search (8.9+)"),

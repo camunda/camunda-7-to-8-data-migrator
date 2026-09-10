@@ -159,7 +159,7 @@ public class BuilderSpecFactory {
     // createProcessInstance builder (newCreateInstanceCommand). It is dropped here (rather than
     // migrated to `.businessId(...)` like the plain start-process overloads) because the
     // ProcessInstantiationBuilder.businessKey() semantics may differ from businessId - uniqueness
-    // enforcement / retry idempotency is opt-in in Camunda 8.9 - so a human should review it.
+    // enforcement / retry idempotency is opt-in in Camunda 8.10 - so a human should review it.
     // We therefore emit a businessId hint plus a reminder that any businessKey propagated to a
     // call activity must also be migrated on the diagram side.
     // Note: processInstanceBusinessKey on search/query paths is handled separately and does

@@ -85,6 +85,21 @@ Also, configure your connection to the Camunda 8 cluster in the `application.pro
 
 **Java client artifact**: Use `io.camunda:camunda-client-java`. The legacy `io.camunda:zeebe-client-java` artifact is deprecated and will be discontinued in Camunda 8.10.
 
+**Process test artifact**: Camunda 8.10 removes Zeebe Process Test. Replace `zeebe-process-test-extension` and `zeebe-process-test-extension-testcontainer` with `io.camunda:camunda-process-test-java`:
+
+```
+<dependency>
+	<groupId>io.camunda</groupId>
+	<artifactId>camunda-process-test-java</artifactId>
+	<version>{version}</version>
+	<scope>test</scope>
+</dependency>
+```
+
+For Spring Boot applications, use `camunda-process-test-spring` with the Spring Boot 4 starter or `camunda-process-test-spring-boot-3` with `camunda-spring-boot-3-starter`. The former `spring-boot-starter-camunda-test` and `spring-boot-starter-camunda-test-testcontainer` artifacts are replaced by these CPT Spring modules.
+
+If the project uses the temporary `camunda-process-test-spring-4` or `camunda-process-test-spring-boot-4` artifact names from Camunda 8.8, replace them with `camunda-process-test-spring`.
+
 **Spring Boot 3.5.x and Apache HttpClient**: Spring Boot 3.5.x may manage `org.apache.httpcomponents.client5:httpclient5` to `5.5.2`, while `io.camunda:camunda-client-java` 8.9.13 requires `5.6.1` or later for API compatibility. This mismatch can prevent the `CamundaClient` bean from starting with a `NoSuchMethodError`; `5.6.3` is the minimum version that also addresses CVE-2026-64607. Until the upstream dependency alignment is fixed, override the managed version in the application:
 
 ```
@@ -310,7 +325,7 @@ The following patterns focus on methods how to broadcast signals in Camunda 7 an
 
 In Camunda 7, a process instance can carry a **business key**: a domain identifier (order number, claim ID) that is set on start and used to find instances later.
 
-Camunda 8 did not support business keys for a long time. Since **Camunda 8.9**, the direct successor is the **Business ID**. Since **Camunda 8.8**, **process instance tags** are available as a lightweight alternative.
+Camunda 8 did not support business keys for a long time. Since **Camunda 8.9**, the direct successor is the **Business ID**. Since **Camunda 8.8**, **process instance tags** are available as a lightweight alternative. Camunda 8.10 also makes business ID searchable on decision instances and user tasks and exposes it to FEEL expressions.
 
 | Camunda 7              | Camunda 8                                                                 |
 | ---------------------- | ------------------------------------------------------------------------- |
@@ -373,6 +388,21 @@ If your target version is **8.8**, use tags (for example, `order:1234`) or store
                 .items();
     }
 ```
+
+###### Assigning a Business ID after creation (Camunda 8.10+)
+
+If the domain identifier is not available when the process starts, assign it once to a running root process instance:
+
+```http
+POST /v2/process-instances/{processInstanceKey}/business-id-assignment
+Content-Type: application/json
+
+{"businessId": "order-1234"}
+```
+
+The assignment is irreversible and only artifacts created afterwards receive the ID. It is not available when business ID uniqueness enforcement is enabled. Use the dedicated API endpoint rather than trying to update a process variable or re-starting the instance.
+
+In Camunda 8.10, business ID filters also apply to decision instances and user tasks. The value is available in FEEL as `camunda.processInstance.businessId`; use it for model-side routing instead of duplicating the identifier in an untracked variable.
 
 ###### Alternative: Tags (Camunda 8.8+)
 
@@ -1059,8 +1089,8 @@ In Camunda 8, runtime and history data are separated: historic data is exported 
 | `createHistoricActivityInstanceQuery()`            | `newElementInstanceSearchRequest()`                        |
 | `createHistoricVariableInstanceQuery()`            | `newVariableSearchRequest()`                               |
 | `createHistoricIncidentQuery()`                    | `newIncidentSearchRequest()`                               |
-| `createHistoricTaskInstanceQuery()`                | `newUserTaskSearchRequest()`                               |
-| `createHistoricDecisionInstanceQuery()`            | `newDecisionInstanceSearchRequest()`                       |
+| `createHistoricTaskInstanceQuery()`                | `newUserTaskSearchRequest()` (8.10+)                       |
+| `createHistoricDecisionInstanceQuery()`            | `newDecisionInstanceSearchRequest()` (8.10+)               |
 | `createUserOperationLogQuery()`                    | Audit log search (`POST /v2/audit-logs/search`, 8.9+)      |
 
 ###### Searching Finished Process Instances
@@ -1093,6 +1123,7 @@ In Camunda 8, runtime and history data are separated: historic data is exported 
 -   C7 `.finished()` matches every instance with an end time — both `COMPLETED` and `TERMINATED` (cancelled) — so the C8 equivalent filters on both states; drop `TERMINATED` to narrow to successfully-completed instances only
 -   the same search endpoints serve running *and* finished entities — there is no separate "history API"
 -   search results are *eventually consistent*: data becomes visible after export to secondary storage, typically within a second; do not use search requests for read-after-write logic inside a worker
+-   user-task and decision-instance search became available in Camunda 8.10; keep these mappings as explicit TODO-backed API migrations when supporting an older target
 -   history time to live (HTTL) and data retention are configured on the cluster, not per query
 -   element instances are the equivalent of C7 activity instances; filter by `processInstanceKey` to get the execution trace (audit trail) of one instance
 
