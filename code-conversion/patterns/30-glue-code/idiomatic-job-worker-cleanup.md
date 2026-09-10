@@ -27,7 +27,7 @@ public void sampleJavaDelegate(@Variable Object x) {
 
 Replace `job.getVariable(...)` and `job.getVariablesAsMap()` with typed `@Variable` parameters.
 Use `@VariablesAsType` when several variables form one input object. Keep `ActivatedJob` when the
-method uses job metadata or a command key.
+method uses job metadata or the job key (`job.getKey()`).
 
 ```java
 // Before

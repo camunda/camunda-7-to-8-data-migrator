@@ -19,7 +19,7 @@ Inspect every generated `@JobWorker` method. Apply each matching rule:
 | Recipe artifact | Cleanup |
 |---|---|
 | A method name ends in `Migrated` or starts with `executeJob` | Rename the method to the worker's job type or the original delegate's intent. Preserve the explicit `@JobWorker(type = "...")` value. If the job type came from the method name, set it explicitly before renaming. |
-| The method reads one or more variables through `ActivatedJob` | Replace `job.getVariable(...)` or `job.getVariablesAsMap()` with typed `@Variable` parameters. Use `@VariablesAsType` for a cohesive variable object. Keep `ActivatedJob` only when the method uses its metadata or command key. |
+| The method reads one or more variables through `ActivatedJob` | Replace `job.getVariable(...)` or `job.getVariablesAsMap()` with typed `@Variable` parameters. Use `@VariablesAsType` for a cohesive variable object. Keep `ActivatedJob` only when the method uses its metadata or the job key (`job.getKey()`). |
 | The method has `throws Exception` after variable cleanup | Remove the declaration when the method no longer throws a checked exception. Preserve a specific checked exception when the worker still requires it. |
 | The method returns one output through a mutable map | Return `Map.of(...)` when the output has non-null values and callers do not mutate the map. Keep a mutable map when the worker needs mutation or supports nullable values. |
 | A `@JobWorker` annotation contains `autoComplete = true` | Remove the attribute because `true` is the default. Keep it only when the project documents the explicit setting as part of its configuration contract. |
