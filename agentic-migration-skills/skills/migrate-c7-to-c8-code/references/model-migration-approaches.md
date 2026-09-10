@@ -309,6 +309,10 @@ public class SampleBeanWorker {
 }
 ```
 
+The baseline comparison is authoritative. A class that existed in the C7 source is not an adapter,
+even when its name ends with `Worker`. Record the baseline match and the replacement adapter in
+`MIGRATION_REPORT.md`.
+
 Apply this rule to JUEL method-invocation findings in M1, M2, M3, and E1. E1 uses the M1 local
 conversion flow after it acquires the source models.
 
