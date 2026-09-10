@@ -264,4 +264,95 @@ public class HandleProcessInstanceQueryMethodsTestClass {
             }
             """));
   }
+
+  @Test
+  void replacesUnfilteredProcessInstanceCounts() {
+    rewriteRun(
+        spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
+        java(
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class UnfilteredProcessInstanceCountsTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public void countQueries() {
+                    int listSize = engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size();
+
+                    long streamCount = engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .stream()
+                            .count();
+
+                    long directCount = engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .count();
+
+                }
+            }
+            """,
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import io.camunda.client.api.search.enums.ProcessInstanceState;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class UnfilteredProcessInstanceCountsTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public void countQueries() {
+                    Long listSize = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems();
+
+                    Long streamCount = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems();
+
+                    Long directCount = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems();
+                }
+            }
+            """));
+  }
 }
