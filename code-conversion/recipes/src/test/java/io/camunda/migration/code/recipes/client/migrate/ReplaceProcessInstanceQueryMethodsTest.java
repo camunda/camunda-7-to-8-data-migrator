@@ -429,6 +429,7 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .page()
                             .totalItems();
 
+                    // TODO: processInstanceBusinessKey was removed - use businessId (Camunda 8.9+) instead
                     Long businessCount = camundaClient
                             .newProcessInstanceSearchRequest()
                             .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))

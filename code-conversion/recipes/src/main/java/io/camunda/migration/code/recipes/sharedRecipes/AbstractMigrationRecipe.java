@@ -101,14 +101,7 @@ public abstract class AbstractMigrationRecipe extends Recipe {
 
               // run through prepared migration rules
               ReplacementUtils.ReplacementSpec matchingSpec =
-                  findCountedReplacementSpec(invocation)
-                      .map(spec -> (ReplacementUtils.ReplacementSpec) spec)
-                      .orElseGet(
-                          () ->
-                              commonSpecs.stream()
-                                  .filter(spec -> spec.matcher().matches(invocation))
-                                  .findFirst()
-                                  .orElse(null));
+                  findReplacementSpec(invocation).orElse(null);
 
               if (matchingSpec != null) {
                 ReplacementUtils.ReplacementSpec spec = matchingSpec;
@@ -244,14 +237,7 @@ public abstract class AbstractMigrationRecipe extends Recipe {
 
             // run through prepared migration rules
             ReplacementUtils.ReplacementSpec matchingSpec =
-                findCountedReplacementSpec(invocation)
-                    .map(spec -> (ReplacementUtils.ReplacementSpec) spec)
-                    .orElseGet(
-                        () ->
-                            commonSpecs.stream()
-                                .filter(spec -> spec.matcher().matches(invocation))
-                                .findFirst()
-                                .orElse(null));
+                findReplacementSpec(invocation).orElse(null);
 
             if (matchingSpec != null) {
               ReplacementUtils.ReplacementSpec spec = matchingSpec;
@@ -531,23 +517,49 @@ public abstract class AbstractMigrationRecipe extends Recipe {
             return null;
           }
 
-          private Optional<ReplacementUtils.BuilderReplacementSpec> findCountedReplacementSpec(
+          private Optional<ReplacementUtils.ReplacementSpec> findReplacementSpec(
               J.MethodInvocation invocation) {
             J.MethodInvocation countedQuery = findCountedQuery(invocation);
-            if (countedQuery == null) {
-              return Optional.empty();
+            if (countedQuery != null) {
+              return findBuilderReplacementSpec(countedQuery, countBuilderSpecMap)
+                  .map(spec -> (ReplacementUtils.ReplacementSpec) spec);
             }
 
-            Map<String, Expression> collectedArgs = collectArguments(countedQuery);
-            // Method attribution can be incomplete while declarations are visited.
-            return countBuilderSpecMap.values().stream()
-                .flatMap(Collection::stream)
-                .filter(
-                    spec ->
-                        isBuilderReplacementApplicable(spec, countedQuery, collectedArgs)
-                            && collectedArgs.keySet().equals(spec.methodNamesToExtractParameters())
-                            && matchesReceiverType(spec, countedQuery))
+            if (invocation.getSimpleName().equals("count")) {
+              if (!countBuilderSpecMap.isEmpty()) {
+                return findBuilderReplacementSpec(invocation, countBuilderSpecMap)
+                    .map(spec -> (ReplacementUtils.ReplacementSpec) spec);
+              }
+            }
+
+            return commonSpecs.stream()
+                .filter(spec -> spec.matcher().matches(invocation))
                 .findFirst();
+          }
+
+          private Optional<ReplacementUtils.BuilderReplacementSpec> findBuilderReplacementSpec(
+              J.MethodInvocation queryTerminal,
+              Map<MethodMatcher, List<ReplacementUtils.BuilderReplacementSpec>> specMap) {
+            Map<String, Expression> collectedArgs = collectArguments(queryTerminal);
+            return specMap.entrySet().stream()
+                .filter(entry -> entry.getKey().matches(queryTerminal))
+                .flatMap(entry -> entry.getValue().stream())
+                .filter(spec -> matchesBuilderSpec(spec, queryTerminal, collectedArgs))
+                .findFirst();
+          }
+
+          private boolean matchesBuilderSpec(
+              ReplacementUtils.BuilderReplacementSpec spec, J.MethodInvocation queryTerminal) {
+            return matchesBuilderSpec(spec, queryTerminal, collectArguments(queryTerminal));
+          }
+
+          private boolean matchesBuilderSpec(
+              ReplacementUtils.BuilderReplacementSpec spec,
+              J.MethodInvocation queryTerminal,
+              Map<String, Expression> collectedArgs) {
+            return isBuilderReplacementApplicable(spec, queryTerminal, collectedArgs)
+                && collectedArgs.keySet().equals(spec.methodNamesToExtractParameters())
+                && matchesReceiverType(spec, queryTerminal);
           }
 
           private boolean matchesReceiverType(
