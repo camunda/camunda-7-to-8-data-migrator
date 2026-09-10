@@ -21,7 +21,10 @@ Before any local approach (M1, M2, E1), scan for outputs of previous migration a
 
 Never flag the `.camunda-migration/` CLI JAR — an intentional cache, not a leftover.
 
-If anything is found, warn through AskUserQuestion before converting:
+Treat report files already under `.camunda-migration/reports/` as intentional non-packaged artifacts.
+Do not include them in the packaged-resource warning. Never consume them as this run's reports.
+
+If anything else is found, warn through AskUserQuestion before converting:
 
 > Found outputs from a previous migration attempt: `<list>`. This run will not overwrite them. The fresh analysis report is written alongside under a ` (n)`-suffixed name, and only this run's own outputs are used — stale files are never consumed. Diagrams whose `converted-c8-*` target already exists are skipped with an error, so for a full re-conversion, cancel and delete or move the old files first.
 
@@ -75,15 +78,34 @@ Other options:
 
 The converter writes a new file next to the source (e.g., `converted-c8-order-process.bpmn`), so originals are never mutated in place.
 
-Capture the exact paths of everything the run produces from the `Created ...` lines in the CLI console output (e.g. `Created analysis-results (1).json`). These paths are the authoritative inputs for steps 4 and 5. Never glob for `analysis-results.json` or `converted-c8-*` on disk, which may match stale files from a previous attempt or a different `--platform-version`.
+Capture the exact paths of everything the run produces from the `Created ...` lines in the CLI console output (e.g. `Created analysis-results (1).json`). These paths are authoritative until the report relocation below completes. Never glob for `analysis-results.json` or `converted-c8-*` on disk, which may match stale files from a previous attempt or a different `--platform-version`.
+
+### 3a. Relocate findings reports
+
+The CLI writes converted copies and findings reports beside the input. A report under a packaged
+resource directory is included in a Maven or Gradle application artifact.
+
+After the CLI exits, create `.camunda-migration/reports/` in the confirmed project root. Move every
+fresh findings report captured from a `Created ...` line into that directory before validation.
+Move `analysis-results.csv`, `analysis-results.json`, `analysis-results.md`, and
+`analysis-results.xlsx` when the selected flags create them. Keep every `converted-c8-*` file beside
+its source model.
+
+Do not overwrite an existing file in `.camunda-migration/reports/`. Choose an available
+` (n)`-suffixed name and use the moved path as the authoritative report path. If relocation fails,
+stop model validation and report the error. Do not claim a complete migration.
+
+Before packaging the project, inspect every configured resource directory. No `analysis-results.*`
+file may remain there. Keep the findings reports in `.camunda-migration/reports/` or another
+explicitly non-packaged directory.
 
 ### 4. Surface Outputs
 
-After the run, report:
+After the run and report relocation, report:
 - Converted files: every `converted-c8-*.bpmn` / `*.dmn` produced (from the captured `Created ...` lines).
 - Skipped files: any `File already exists` errors, naming the stale targets. Those diagrams were NOT converted. Offer to re-run once the user removes the stale copies (see Pre-flight: Leftover Artifacts).
 - Analysis findings: summarize from CLI stdout and/or the JSON report, grouped by severity (WARNING / TASK / REVIEW / INFO).
-- Analysis artifacts: point the user to the XLSX report (human-readable), and note the JSON report is the step 5 input.
+- Analysis artifacts: point the user to the relocated XLSX report (human-readable), and note the relocated JSON report is the step 5 input.
 - Generated Task Forms: source owners discovered before conversion. They stay manual `form-data` follow-up items until the form procedure completes.
 - Referenced forms: the embedded, external, Camunda Form, dynamic, and form-free owners discovered before conversion. They stay open until their category decision and follow-up work complete.
 
