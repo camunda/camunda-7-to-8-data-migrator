@@ -140,7 +140,12 @@ Count occurrences for sizing, but decide remediation ONCE per category (or per c
 
 **Decision process. Present all options to the user and let them choose:**
 
-1. **Precompute via job worker** (default): create a new thin `*Worker` adapter component. Never add `@JobWorker` to an existing domain or service class from the C7 source. Keep the domain logic in the existing bean and delegate to it from the adapter. Use this shape for a Spring bean method:
+1. **Precompute via job worker** (default): compare the bean's fully qualified class name with the
+   original Java source baseline, recorded as fully qualified class names. Create a new thin
+   `*Worker` adapter component when the class is present in that baseline. Never add `@JobWorker` to
+   an existing domain or service class from the C7 source, including a Spring `@Component` or
+   `@Service`. Keep the domain logic in the existing bean and delegate to it from the adapter. Use
+   this shape for a Spring bean method:
 
    ```java
    @Component
