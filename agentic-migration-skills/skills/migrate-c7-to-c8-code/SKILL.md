@@ -159,9 +159,10 @@ Classify every Camunda 7 related Java file and config file into a table with the
 Complexity, Notes. See `references/code-transform-checklist.md` for the detection hints and the type
 classifications.
 
-Record the original Java source baseline used for migration with the Code Inventory. Include every
-domain or service class that could receive or delegate a `@JobWorker`, including classes without
-Camunda APIs.
+Record the original Java source baseline used for migration with the Code Inventory. Record each
+class by its fully qualified class name, including its package and class name. Include every domain
+or service class that could receive or delegate a `@JobWorker`, including classes without Camunda
+APIs.
 
 #### Model Inventory
 
