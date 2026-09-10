@@ -466,4 +466,38 @@ public class HandleProcessInstanceQueryMethodsTestClass {
             }
             """));
   }
+
+  @Test
+  void doesNotRewriteCountsWithUnsupportedProcessInstanceFilters() {
+    rewriteRun(
+            spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
+            java(
+                """
+                package org.camunda.community.migration.example;
+
+                import io.camunda.client.CamundaClient;
+                import org.camunda.bpm.engine.ProcessEngine;
+                import org.springframework.beans.factory.annotation.Autowired;
+                import org.springframework.stereotype.Component;
+
+                @Component
+                public class UnsupportedProcessInstanceFilterTestClass {
+
+                    @Autowired
+                    private ProcessEngine engine;
+
+                    @Autowired
+                    private CamundaClient camundaClient;
+
+                    public int countSuspended(String activityId) {
+                        return engine.getRuntimeService()
+                                .createProcessInstanceQuery()
+                                .activityIdIn(activityId)
+                                .suspended()
+                                .list()
+                                .size();
+                    }
+                }
+                """));
+  }
 }

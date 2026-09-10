@@ -461,13 +461,10 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
       ReplacementUtils.BuilderReplacementSpec spec,
       J.MethodInvocation queryTerminal,
       Map<String, Expression> collectedArgs) {
-    if (!spec.methodNamesToExtractParameters().isEmpty()) {
-      return true;
-    }
-
     Expression current = queryTerminal;
     while (current instanceof J.MethodInvocation invocation) {
-      if (!UNFILTERED_QUERY_METHODS.contains(invocation.getSimpleName())) {
+      if (!UNFILTERED_QUERY_METHODS.contains(invocation.getSimpleName())
+          && !spec.methodNamesToExtractParameters().contains(invocation.getSimpleName())) {
         return false;
       }
       current = invocation.getSelect();
