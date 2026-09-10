@@ -248,9 +248,11 @@ Each item below is a check to run and a condition that must hold at exit. Record
    search call site has a matching open item in the `MIGRATION_REPORT.md` open-items section. A
    missing entry fails the check. See the mandatory open items in
    `references/code-transform-checklist.md`.
-10. **Worker adapters** — inspect every `@JobWorker` declaration against the original Java source
-    baseline recorded in Step 2. Flag any `@JobWorker` on a class in that baseline. A migrated
-    Spring bean method must use a new `*Worker` adapter component instead.
+10. **Worker adapters** — compare every `@JobWorker` declaration's fully qualified declaring class
+    name with the original Java source baseline recorded in Step 2. Flag the declaration when its
+    class appears in that baseline. Accept it only when the class is new, is a `*Worker` adapter
+    component, and delegates to the baseline bean. A migrated Spring bean method must never receive
+    `@JobWorker` directly.
 
 Check these pitfalls as well:
 
