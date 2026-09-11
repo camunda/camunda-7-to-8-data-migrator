@@ -32,6 +32,12 @@ export const external_task = [
 				<code>endTime == null</code>, including <code>FAILED</code>{" "}
 				jobs with zero retries, and apply C7 pagination only to the
 				remaining jobs.
+				Camunda 7's <code>active</code> and{" "}
+				<code>suspended</code> query flags are valid filters, but C8's{" "}
+				<code>JobFilter</code> has no equivalent fields. If either is
+				supplied, apply the predicate in a separate post-filter before
+				applying C7 pagination, or mark the mapping unsupported; do not
+				silently omit it.
 			</div>
 		),
 	},
@@ -61,6 +67,12 @@ export const external_task = [
 				<code>endTime == null</code>, including <code>FAILED</code>{" "}
 				jobs with zero retries, and apply C7 pagination only to the
 				remaining jobs.
+				Camunda 7's <code>active</code> and{" "}
+				<code>suspended</code> query flags are valid filters, but C8's{" "}
+				<code>JobFilter</code> has no equivalent fields. If either is
+				supplied, apply the predicate in a separate post-filter before
+				applying C7 pagination, or mark the mapping unsupported; do not
+				silently omit it.
 			</div>
 		),
 	},
@@ -91,6 +103,12 @@ export const external_task = [
 				jobs where <code>endTime == null</code>, including{" "}
 				<code>FAILED</code> jobs with zero retries, and count the
 				remaining jobs instead of using <code>page.totalItems</code>.
+				Camunda 7's <code>active</code> and{" "}
+				<code>suspended</code> query flags are valid filters, but C8's{" "}
+				<code>JobFilter</code> has no equivalent fields. If either is
+				supplied, apply the predicate in a separate post-filter before
+				counting, or mark the mapping unsupported; do not silently omit
+				it.
 			</div>
 		),
 	},
@@ -121,6 +139,12 @@ export const external_task = [
 				jobs where <code>endTime == null</code>, including{" "}
 				<code>FAILED</code> jobs with zero retries, and count the
 				remaining jobs instead of using <code>page.totalItems</code>.
+				Camunda 7's <code>active</code> and{" "}
+				<code>suspended</code> query flags are valid filters, but C8's{" "}
+				<code>JobFilter</code> has no equivalent fields. If either is
+				supplied, apply the predicate in a separate post-filter before
+				counting, or mark the mapping unsupported; do not silently omit
+				it.
 			</div>
 		),
 	},

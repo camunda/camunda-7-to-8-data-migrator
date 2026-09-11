@@ -367,18 +367,6 @@ export const variable_instance = [
 			path: "/variables/search",
 			operation: "post",
 		},
-		mappedExplanation: (
-			<p>
-				Use the same filter, sorting, and pagination mappings as the GET
-				<code>/variable-instance</code> endpoint. The Camunda 8 request
-				body uses <code>filter</code>, <code>sort</code>, and{" "}
-				<code>page</code> at the root level. When both{" "}
-				<code>variableName</code> and{" "}
-				<code>variableNameLike</code> are supplied, use{" "}
-				<code>filter.name.$eq</code> and{" "}
-				<code>filter.name.$like</code> together.
-			</p>
-		),
 		direct: {
 			rowInfo: [
 				{
@@ -444,6 +432,16 @@ export const variable_instance = [
 			],
 			additionalInfo: (
 				<>
+					<p>
+						Use the same filter, sorting, and pagination mappings as
+						the GET <code>/variable-instance</code> endpoint. The
+						Camunda 8 request body uses <code>filter</code>,{" "}
+						<code>sort</code>, and <code>page</code> at the root
+						level. When both <code>variableName</code> and{" "}
+						<code>variableNameLike</code> are supplied, use{" "}
+						<code>filter.name.$eq</code> and{" "}
+						<code>filter.name.$like</code> together.
+					</p>
 					<p>
 						See the GET <code>/variable-instance</code> mapping for
 						filter conversions, scope-key resolution, and unsupported
