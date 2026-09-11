@@ -17,18 +17,22 @@ Before any local approach (M1, M2, E1), scan for outputs of previous migration a
 
 - `converted-c8-*.bpmn` / `converted-c8-*.dmn` (or the `--prefix` equivalent)
 - accepted generated forms beside converted BPMN, and drafts under `.camunda-migration/generated-form-drafts/`
-- `analysis-results.csv` / `.json` / `.md` / `.xlsx`, including ` (n)`-suffixed siblings such as `analysis-results (1).json` — a sure sign of a previous run
+- `analysis-results.<ext>` and `analysis-results (n).<ext>` findings reports, where `n` is a positive integer and `<ext>` is `.csv`, `.json`, `.md`, or `.xlsx`
 
 Never flag the `.camunda-migration/` CLI JAR — an intentional cache, not a leftover.
 
+A packaged resource directory is any resource directory that Maven or Gradle includes in an application artifact. Include `src/main/resources` when it exists.
+
 Treat report files already under `.camunda-migration/reports/` as intentional non-packaged artifacts.
 Do not include them in the packaged-resource warning. Never consume them as this run's reports.
+
+If a findings report exists under a packaged resource directory, stop before conversion and ask the user to move or remove it. Do not offer **OK, proceed** while it remains there.
 
 If anything else is found, warn through AskUserQuestion before converting:
 
 > Found outputs from a previous migration attempt: `<list>`. This run will not overwrite them. Fresh findings reports are written beside the source under ` (n)`-suffixed names, then relocated to `.camunda-migration/reports/` before validation. Only this run's own outputs are used — stale files are never consumed. Diagrams whose `converted-c8-*` target already exists are skipped with an error, so for a full re-conversion, cancel and delete or move the old files first.
 
-- **OK, proceed** — run without `-o`/`--override`. Old files stay untouched.
+- **OK, proceed** — when no findings report remains under a packaged resource directory, run without `-o`/`--override`. Old files stay untouched.
 - **Cancel** — stop so the user can back up or clean up first.
 
 For local approaches (M1, M2, E1), never consume a pre-existing report or converted file found on disk. It may come from an interrupted attempt or a different `--platform-version`. The findings flow (M1 steps 3-5) works only from this session's own run. M3 is the exception: hosted-converter outputs are allowed only after the imported-report version and pairing checks in step 5.
@@ -86,19 +90,18 @@ The CLI writes converted copies and findings reports beside the input. A report 
 resource directory is included in a Maven or Gradle application artifact.
 
 After the CLI exits, create `.camunda-migration/reports/` in the project root. Move every
-fresh findings report captured from a `Created ...` line into that directory before validation.
-Move `analysis-results.csv`, `analysis-results.json`, `analysis-results.md`, and
-`analysis-results.xlsx` when the selected flags create them. Keep every `converted-c8-*` file beside
-its source model.
+fresh findings report captured from a `Created ...` line into that directory before validation,
+including ` (n)`-suffixed names. Keep every `converted-c8-*` file beside its source model.
 
 Do not overwrite an existing file in `.camunda-migration/reports/`. Choose an available
 ` (n)`-suffixed name and use the moved path as the authoritative report path. If relocation fails,
 stop model validation and report the error. Do not claim a complete migration.
 
 Before packaging the project, inspect every resource directory that the build configures for
-packaging, including `src/main/resources` when it exists. No `analysis-results.*` file may remain
-there. Keep the findings reports in `.camunda-migration/reports/` or another explicitly
-non-packaged directory.
+packaging, including `src/main/resources` when it exists. No findings report named
+`analysis-results.<ext>` or `analysis-results (n).<ext>` may remain there, where `<ext>` is `.csv`,
+`.json`, `.md`, or `.xlsx` and `n` is a positive integer. Keep the findings reports in `.camunda-migration/reports/` or another
+explicitly non-packaged directory.
 
 ### 4. Surface Outputs
 
@@ -138,7 +141,9 @@ If the report's version does not match the chosen target, or cannot be determine
 
 #### 5a. Parse the JSON report
 
-Read the JSON report programmatically, using the exact path captured from this run's `Created ...` line. It is written next to the converted files when `--json` is passed (which M1 always does), under a ` (n)`-suffixed name when a stale report exists. Never parse a pre-existing `analysis-results.json` found on disk. Never rely on stdout severity counts instead.
+Read the JSON report programmatically at the exact path recorded after step 3a relocation. The path
+may include a ` (n)` suffix when a stale report exists. Never parse a pre-existing findings report
+found on disk. Never rely on stdout severity counts instead.
 
 Format: a JSON array with one object per finding, fields:
 
@@ -148,7 +153,11 @@ filename, elementName, elementId, elementType, severity, messageId, message, lin
 
 Parse it with real JSON tooling (e.g. `jq` or a built-in JSON parser), never ad-hoc string splitting.
 
-If the JSON report is missing (e.g. only `analysis-results.md` or a CSV/XLSX was generated), re-run the converter with `--check --json --xlsx` on the same input. The markdown and XLSX reports are for humans. CSV is never consumed — this skill has no CSV parsing path, and the JSON report is the only machine-readable findings source.
+If the JSON report is missing (e.g. only `analysis-results.md` or a CSV/XLSX was generated), re-run
+the converter with `--check --json --xlsx` on the same input. Capture the fallback run's `Created ...`
+paths and apply step 3a before parsing. The markdown and XLSX reports are for humans. CSV is never
+consumed — this skill has no CSV parsing path, and the JSON report is the only machine-readable
+findings source.
 
 #### 5b. Group findings by category
 
