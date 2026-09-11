@@ -34,9 +34,11 @@ If a findings report exists under a packaged resource directory, stop before con
 
 If anything else is found, warn through AskUserQuestion before converting:
 
-> Found outputs from a previous migration attempt: `<list>`. This run will not overwrite them. Fresh findings reports are written beside the source. The CLI adds a ` (n)` suffix only when the unsuffixed name already exists. Relocate fresh findings reports to `.camunda-migration/reports/` when that directory is not packaged, or to another explicitly non-packaged directory, before validation. Only this run's own outputs are used — stale files are never consumed. Diagrams whose target with the selected prefix already exists are skipped with an error, so for a full re-conversion, cancel and delete or move the old files first.
+> Found outputs from a previous migration attempt: `<list>`. This run will not overwrite them. Fresh findings reports are written beside the source. The CLI adds a ` (n)` suffix only when the unsuffixed name already exists. Relocate fresh findings reports to `.camunda-migration/reports/` when that directory is not packaged, or to another explicitly non-packaged directory, before validation. Only this run's own outputs are used — stale files are never consumed. For M1 and E1, diagrams whose target with the selected prefix already exists are skipped with an error, so for a full re-conversion, cancel and delete or move the old files first. For M2, never overwrite an existing converted copy. Choose a collision-safe filename and record it.
 
-- **OK, proceed** — when no findings report remains under a packaged resource directory, run without `-o`/`--override`. Old files stay untouched.
+- **OK, proceed** — when no findings report remains under a packaged resource directory:
+  - For M1 and E1, run without `-o`/`--override`. Old files stay untouched.
+  - For M2, use a collision-safe filename and never overwrite an existing converted copy.
 - **Cancel** — stop so the user can back up or clean up first.
 
 For local approaches (M1, M2, E1), never consume a pre-existing report or converted file found on disk. It may come from an interrupted attempt or a different `--platform-version`. The findings flow (M1 steps 3-5) works only from this session's own run. M3 is the exception: hosted-converter outputs are allowed only after the imported-report version and pairing checks in step 5.
@@ -112,7 +114,7 @@ directory. Otherwise, use another explicitly non-packaged directory.
 ### 4. Surface Outputs
 
 After the run and report relocation, report:
-- Converted files: every converted model path captured from the `Created ...` lines, including the
+- Converted copies: every converted copy path captured from the `Created ...` lines, including the
   selected `--prefix` and the full filename suffix.
 - Skipped files: any `File already exists` errors, naming the stale targets. Those diagrams were NOT converted. Offer to re-run once the user removes the stale copies (see Pre-flight: Leftover Artifacts).
 - Analysis findings: summarize from CLI stdout and/or the JSON report, grouped by severity (WARNING / TASK / REVIEW / INFO).

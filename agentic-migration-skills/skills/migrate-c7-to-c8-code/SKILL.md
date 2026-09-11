@@ -84,13 +84,14 @@ These rules apply to every later step.
 - Before the first change, check for uncommitted changes. If the working tree is dirty, then ask the
   user to commit or stash.
 - Never commit without an explicit user request.
-- Where the selected model approach is M1 or E1, write each converted model to a converted copy
-  with the selected `--prefix`.
-- Where the selected model approach is M1 or E1, use `converted-c8-` when no prefix is selected.
-- Where the selected model approach is M2, write each converted model to a new converted copy and
-  record its actual filename.
-- Where the selected model approach is M3, record the actual filename of each downloaded converted
-  model and pair it with its original.
+- If the selected model approach is M1 or E1 and the run is not analyze-only, then write each
+  converted copy with the selected `--prefix`.
+- If the selected model approach is M1 or E1 and the run is not analyze-only, then use `converted-c8-`
+  when no prefix is selected.
+- If the selected model approach is M2 and the run is not analyze-only, then write each converted
+  copy and record its actual filename.
+- If the selected model approach is M3 and the run is not analyze-only, then record the actual
+  filename of each downloaded converted copy and pair it with its original.
 - Leave every original file unchanged.
 - Where the target is a separate location, such as a sibling Camunda 8 project, treat the Camunda 7
   project as read-only and copy the assets across.
@@ -282,11 +283,11 @@ Check these pitfalls as well:
 After every manual BPMN edit, lint the converted copy with the Camunda compatibility ruleset for the
 target version. See the linting section in `references/model-migration-approaches.md`.
 
-1. A converted model file exists for every in-scope diagram, unless the run is analyze-only:
+1. A converted copy exists for every in-scope diagram, unless the run is analyze-only:
    - For M1 and E1, use a converted copy with the selected `--prefix`. The default is
      `converted-c8-`.
    - For M2, use the converted copy with the actual filename recorded after the rewrite.
-   - For M3, use the downloaded converted file paired with its original.
+   - For M3, use the downloaded converted copy paired with its original.
 2. Every original file is intact and was never overwritten.
 3. Treat every resource directory that the build configures for inclusion in a Maven or Gradle
    application artifact as a packaged resource directory. Include `src/main/resources` when it

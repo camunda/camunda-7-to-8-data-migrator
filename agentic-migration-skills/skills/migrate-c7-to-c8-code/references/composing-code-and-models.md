@@ -142,10 +142,10 @@ only, then do not ask this question and preserve existing deployment wiring.
   - Where the application uses non-Spring `CamundaClient` commands, validate each inventory entry
     against the source used by the explicit deployment command instead of requiring a packaged
     classpath resource.
-  - Where the selected model approach is M1 or E1, record converted model paths from `Created ...` lines.
-  - Where the selected model approach is M2, record each converted model path after writing the converted copy.
-  - Where the selected model approach is M3, record each downloaded converted model path after pairing it with its original.
-  - Build the deployment inventory from those recorded converted model paths.
+  - Where the selected model approach is M1 or E1, record converted copy paths from `Created ...` lines.
+  - Where the selected model approach is M2, record each converted copy path after writing the converted copy.
+  - Where the selected model approach is M3, record each downloaded converted copy path after pairing it with its original.
+  - Build the deployment inventory from those recorded converted copy paths.
   - Exclude findings reports and other non-deployable artifacts from the deployment inventory.
   - Add every form with a recorded `bindingType=deployment`, including relinked forms, to the deployment inventory.
   - Record each deployment-bound form's final project-relative path in the deployment inventory.
@@ -181,15 +181,17 @@ only, then do not ask this question and preserve existing deployment wiring.
   - Where the application uses Spring Boot `@Deployment`, derive each model pattern from its
     recorded filename suffix.
   - If the recorded paths use the default `converted-c8-` prefix and the `.bpmn` suffix, then use
-    `classpath*:**/converted-c8-*.bpmn`.
+    `classpath*:**/converted-c8-*.bpmn` only after confirming that every packaged match is a
+    recorded inventory entry.
   - If the recorded paths use full suffixes such as `.bpmn20.xml` or `.dmn11.xml`, then include
     those suffixes in the patterns.
   - If a packaged converted DMN file is recorded, then add a DMN pattern.
   - Where the application uses Spring Boot `@Deployment`, derive each form pattern from its
     normalized recorded deployment-bound form path, including relinked forms.
   - If a form with a recorded `bindingType=deployment` is packaged, then add the `.form` pattern.
-  - If the Spring Boot deployment inventory is non-empty, then never target original diagrams,
-    draft forms, declined forms, or resource types with no migration inventory entry.
+  - If the Spring Boot deployment inventory is non-empty, then migration-managed patterns must not
+    target original diagrams, draft forms, declined forms, or resource types with no migration
+    inventory entry.
   - If the Spring Boot deployment inventory is empty, then preserve existing deployment wiring.
   - Preserve pre-existing deployment entries that are not migration-managed.
 - **No, I will handle deployment outside app startup** - leave code unchanged and record this decision in MIGRATION_REPORT.md.
