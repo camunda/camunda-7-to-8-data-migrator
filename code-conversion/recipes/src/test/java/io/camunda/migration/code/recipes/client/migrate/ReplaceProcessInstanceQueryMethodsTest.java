@@ -613,6 +613,72 @@ public class HandleProcessInstanceQueryMethodsTestClass {
   }
 
   @Test
+  void usesLastRepeatedProcessInstanceFilter() {
+    rewriteRun(
+        spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
+        java(
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class RepeatedProcessInstanceFilterTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public long countWithRepeatedProcessDefinitionKey(
+                        String firstProcessDefinitionKey, String secondProcessDefinitionKey) {
+                    return engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .processDefinitionKey(firstProcessDefinitionKey)
+                            .processDefinitionKey(secondProcessDefinitionKey)
+                            .count();
+                }
+            }
+            """,
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import io.camunda.client.api.search.enums.ProcessInstanceState;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class RepeatedProcessInstanceFilterTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public long countWithRepeatedProcessDefinitionKey(
+                        String firstProcessDefinitionKey, String secondProcessDefinitionKey) {
+                    return camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter
+                                    .processDefinitionId(secondProcessDefinitionKey)
+                                    .state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems();
+                }
+            }
+            """));
+  }
+
+  @Test
   void doesNotRewriteCountsForPreconfiguredProcessInstanceQuery() {
     rewriteRun(
         spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
@@ -692,6 +758,15 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .suspended()
                             .list();
                 }
+
+                public List<ProcessInstance> findSuspendedByProcessDefinitionKey(
+                        String processDefinitionKey) {
+                    return engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .processDefinitionKey(processDefinitionKey)
+                            .suspended()
+                            .list();
+                }
             }
             """));
   }
@@ -699,68 +774,68 @@ public class HandleProcessInstanceQueryMethodsTestClass {
   @Test
   void doesNotRewriteCountsWithUnsupportedProcessInstanceFilters() {
     rewriteRun(
-            spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
-            java(
-                """
-                package org.camunda.community.migration.example;
+        spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
+        java(
+            """
+            package org.camunda.community.migration.example;
 
-                import io.camunda.client.CamundaClient;
-                import org.camunda.bpm.engine.ProcessEngine;
-                import org.springframework.beans.factory.annotation.Autowired;
-                import org.springframework.stereotype.Component;
+            import io.camunda.client.CamundaClient;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
 
-                @Component
-                public class UnsupportedProcessInstanceFilterTestClass {
+            @Component
+            public class UnsupportedProcessInstanceFilterTestClass {
 
-                    @Autowired
-                    private ProcessEngine engine;
+                @Autowired
+                private ProcessEngine engine;
 
-                    @Autowired
-                    private CamundaClient camundaClient;
+                @Autowired
+                private CamundaClient camundaClient;
 
-                    public int countSuspended(String activityId) {
-                        return engine.getRuntimeService()
-                                .createProcessInstanceQuery()
-                                .activityIdIn(activityId)
-                                .suspended()
-                                .list()
-                                .size();
-                    }
-
-                    public int countSuspendedWithProcessDefinitionKey(String processDefinitionKey) {
-                        return engine.getRuntimeService()
-                                .createProcessInstanceQuery()
-                                .processDefinitionKey(processDefinitionKey)
-                                .suspended()
-                                .list()
-                                .size();
-                    }
-
-                    public long directCountSuspendedWithProcessDefinitionKey(
-                            String processDefinitionKey) {
-                        return engine.getRuntimeService()
-                                .createProcessInstanceQuery()
-                                .processDefinitionKey(processDefinitionKey)
-                                .suspended()
-                                .count();
-                    }
-
-                    public long directCountMultipleActivityIds(String firstActivityId, String secondActivityId) {
-                        return engine.getRuntimeService()
-                                .createProcessInstanceQuery()
-                                .activityIdIn(firstActivityId, secondActivityId)
-                                .count();
-                    }
-
-                    public int listSizeMultipleActivityIds(String firstActivityId, String secondActivityId) {
-                        return engine.getRuntimeService()
-                                .createProcessInstanceQuery()
-                                .activityIdIn(firstActivityId, secondActivityId)
-                                .list()
-                                .size();
-                    }
+                public int countSuspended(String activityId) {
+                    return engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .activityIdIn(activityId)
+                            .suspended()
+                            .list()
+                            .size();
                 }
-                """));
+
+                public int countSuspendedWithProcessDefinitionKey(String processDefinitionKey) {
+                    return engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .processDefinitionKey(processDefinitionKey)
+                            .suspended()
+                            .list()
+                            .size();
+                }
+
+                public long directCountSuspendedWithProcessDefinitionKey(
+                        String processDefinitionKey) {
+                    return engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .processDefinitionKey(processDefinitionKey)
+                            .suspended()
+                            .count();
+                }
+
+                public long directCountMultipleActivityIds(String firstActivityId, String secondActivityId) {
+                    return engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .activityIdIn(firstActivityId, secondActivityId)
+                            .count();
+                }
+
+                public int listSizeMultipleActivityIds(String firstActivityId, String secondActivityId) {
+                    return engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .activityIdIn(firstActivityId, secondActivityId)
+                            .list()
+                            .size();
+                }
+            }
+            """));
   }
 
   @Test

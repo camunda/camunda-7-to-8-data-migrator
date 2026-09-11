@@ -479,6 +479,11 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
     return true;
   }
 
+  @Override
+  protected boolean shouldStopBuilderTraversal(J.MethodInvocation invocation) {
+    return hasCreateProcessInstanceQueryInReceiverChain(invocation);
+  }
+
   private boolean hasUnsupportedActivityIdInArguments(J.MethodInvocation invocation) {
     Expression current = invocation.getSelect();
     while (current instanceof J.MethodInvocation methodInvocation) {

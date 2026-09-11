@@ -55,6 +55,10 @@ public abstract class AbstractMigrationRecipe extends Recipe {
     return true;
   }
 
+  protected boolean shouldStopBuilderTraversal(J.MethodInvocation invocation) {
+    return false;
+  }
+
   protected J.MethodInvocation adjustBuilderReplacement(
       J.MethodInvocation replacement, J.MethodInvocation replacementTarget, Cursor cursor) {
     return replacement;
@@ -405,7 +409,9 @@ public abstract class AbstractMigrationRecipe extends Recipe {
                 }
               }
             }
-            if (invocation.getSimpleName().equals("count") && terminalMatcherMatched) {
+            if (terminalMatcherMatched
+                && (invocation.getSimpleName().equals("count")
+                    || shouldStopBuilderTraversal(invocation))) {
               return invocation;
             }
 
@@ -629,7 +635,7 @@ public abstract class AbstractMigrationRecipe extends Recipe {
               String name = mi.getSimpleName();
               if (!mi.getArguments().isEmpty()
                   && !(mi.getArguments().get(0) instanceof J.Empty)) {
-                collectedArgs.put(name, mi.getArguments().get(0));
+                collectedArgs.putIfAbsent(name, mi.getArguments().get(0));
               }
               current = mi.getSelect();
             }
