@@ -89,14 +89,10 @@ public class HandleProcessInstanceQueryMethodsTestClass {
 
     public void processInstanceQueryMethods(String activityIdIn, String businessKey, String processDefinitionKey) {
 
-        camundaClient
-                .newProcessInstanceSearchRequest()
-                .filter(filter -> filter
-                        .elementId(activityIdIn)
-                        .state(ProcessInstanceState.ACTIVE))
-                .send()
-                .join()
-                .items();
+        engine.getRuntimeService().createProcessInstanceQuery()
+                .activityIdIn(activityIdIn)
+                .active()
+                .list();
 
         // TODO: processInstanceBusinessKey was removed - use businessId (Camunda 8.9+) instead
         camundaClient
@@ -561,15 +557,10 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                 private CamundaClient camundaClient;
 
                 public void countQueries(String activityId, String businessKey) {
-                    Long activityCount = camundaClient
-                            .newProcessInstanceSearchRequest()
-                            .filter(filter -> filter
-                                    .elementId(activityId)
-                                    .state(ProcessInstanceState.ACTIVE))
-                            .send()
-                            .join()
-                            .page()
-                            .totalItems();
+                    long activityCount = engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .activityIdIn(activityId)
+                            .count();
 
                     // TODO: processInstanceBusinessKey was removed - use businessId (Camunda 8.9+) instead
                     Long businessCount = camundaClient
@@ -744,5 +735,124 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                     }
                 }
                 """));
+  }
+
+  @Test
+  void doesNotRewriteActivityIdInFiltersWithoutSupportedC8Mapping() {
+    rewriteRun(
+        spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
+        java(
+            """
+            package org.camunda.community.migration.example;
+
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class UnsupportedActivityIdInFilterTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                public void queryByActivityId(String activityId, String[] activityIds) {
+                    engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .activityIdIn(activityId)
+                            .active()
+                            .list();
+
+                    engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .activityIdIn(activityIds)
+                            .active()
+                            .count();
+                }
+            }
+            """));
+  }
+
+  @Test
+  void preservesFollowingVariablesForCountExpressions() {
+    rewriteRun(
+        spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
+        java(
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class MultipleCountVariablesTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public long directCount() {
+                    long count = engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .count(), other = 0;
+                    return count + other;
+                }
+
+                public long streamCount() {
+                    long count = engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .stream()
+                            .count(), other = 0;
+                    return count + other;
+                }
+            }
+            """,
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import io.camunda.client.api.search.enums.ProcessInstanceState;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class MultipleCountVariablesTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public long directCount() {
+                    long count = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems(), other = 0;
+                    return count + other;
+                }
+
+                public long streamCount() {
+                    long count = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems(), other = 0;
+                    return count + other;
+                }
+            }
+            """));
   }
 }
