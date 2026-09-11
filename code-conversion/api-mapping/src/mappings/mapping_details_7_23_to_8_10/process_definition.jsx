@@ -1185,7 +1185,7 @@ export const process_definition = [
 					leftEntry: <pre>(string) id</pre>,
 					rightEntry: (
 						<>
-							<pre>(string) processDefinitionKey</pre>
+							<pre>(string) filter.processDefinitionKey</pre>
 							<p>
 								See{" "}
 								<a href="#key-to-id">

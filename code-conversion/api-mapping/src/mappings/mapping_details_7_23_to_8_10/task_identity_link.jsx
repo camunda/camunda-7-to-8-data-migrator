@@ -46,10 +46,16 @@ export const task_identity_link = [
 			path: "/task/{id}/identity-links",
 			operation: "post",
 		},
-		target: {
-			path: "/user-tasks/{userTaskKey}",
-			operation: "patch",
-		},
+		target: [
+			{
+				path: "/user-tasks/{userTaskKey}",
+				operation: "patch",
+			},
+			{
+				path: "/user-tasks/{userTaskKey}/assignment",
+				operation: "post",
+			},
+		],
 		direct: {
 			rowInfo: [
 				{
@@ -86,10 +92,16 @@ export const task_identity_link = [
 			path: "/task/{id}/identity-links/delete",
 			operation: "post",
 		},
-		target: {
-			path: "/user-tasks/{userTaskKey}",
-			operation: "patch",
-		},
+		target: [
+			{
+				path: "/user-tasks/{userTaskKey}",
+				operation: "patch",
+			},
+			{
+				path: "/user-tasks/{userTaskKey}/assignee",
+				operation: "delete",
+			},
+		],
 		direct: {
 			rowInfo: [
 				{
@@ -116,7 +128,7 @@ export const task_identity_link = [
 					requested identity from the relevant list, and submit the
 					complete remaining list. To unassign the{" "}
 					<code>assignee</code>, use the{" "}
-					<code>Delete Unassign user task</code> endpoint.
+					<code>Unassign user task</code> endpoint.
 				</p>
 			),
 		},
