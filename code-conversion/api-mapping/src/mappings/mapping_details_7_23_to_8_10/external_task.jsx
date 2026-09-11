@@ -19,7 +19,10 @@ export const external_task = [
 			<div>
 				In Camunda 8.10, the <code>POST Search jobs</code> endpoint can
 				be used to search for jobs without activating them. Note that
-				external tasks in Camunda 7 correspond to jobs in Camunda 8.
+				external tasks in Camunda 7 correspond to BPMN element jobs
+				in Camunda 8. Set <code>filter.kind</code> to{" "}
+				<code>BPMN_ELEMENT</code> so listener and ad-hoc-subprocess
+				jobs are excluded.
 			</div>
 		),
 	},
@@ -36,7 +39,10 @@ export const external_task = [
 			<div>
 				In Camunda 8.10, the <code>POST Search jobs</code> endpoint can
 				be used to search for jobs without activating them. Note that
-				external tasks in Camunda 7 correspond to jobs in Camunda 8.
+				external tasks in Camunda 7 correspond to BPMN element jobs
+				in Camunda 8. Set <code>filter.kind</code> to{" "}
+				<code>BPMN_ELEMENT</code> so listener and ad-hoc-subprocess
+				jobs are excluded.
 			</div>
 		),
 	},
@@ -54,7 +60,9 @@ export const external_task = [
 				In Camunda 8.10, the <code>POST Search jobs</code> endpoint can
 				be used to search for jobs. The response includes a{" "}
 				<code>page.totalItems</code> field that provides the total count
-				of matching jobs.
+				of matching BPMN element jobs. Set <code>filter.kind</code> to{" "}
+				<code>BPMN_ELEMENT</code> so listener and ad-hoc-subprocess
+				jobs are excluded.
 			</div>
 		),
 	},
@@ -72,7 +80,9 @@ export const external_task = [
 				In Camunda 8.10, the <code>POST Search jobs</code> endpoint can
 				be used to search for jobs. The response includes a{" "}
 				<code>page.totalItems</code> field that provides the total count
-				of matching jobs.
+				of matching BPMN element jobs. Set <code>filter.kind</code> to{" "}
+				<code>BPMN_ELEMENT</code> so listener and ad-hoc-subprocess
+				jobs are excluded.
 			</div>
 		),
 	},
@@ -447,6 +457,12 @@ export const external_task = [
 						track progress.
 					</p>
 					<p>
+						Set <code>filter.kind</code> to{" "}
+						<code>BPMN_ELEMENT</code> in every request. Camunda 7
+						external tasks do not include execution-listener,
+						task-listener, or ad-hoc-subprocess jobs.
+					</p>
+					<p>
 						Do not pass either Camunda 7 query object directly as a
 						Camunda 8 <code>filter</code>. Translate only the
 						supported fields listed above and omit unsupported
@@ -723,6 +739,12 @@ export const external_task = [
 						track progress.
 					</p>
 					<p>
+						Set <code>filter.kind</code> to{" "}
+						<code>BPMN_ELEMENT</code> in every request. Camunda 7
+						external tasks do not include execution-listener,
+						task-listener, or ad-hoc-subprocess jobs.
+					</p>
+					<p>
 						Do not pass either Camunda 7 query object directly as a
 						Camunda 8 <code>filter</code>. Translate only the
 						supported fields listed above and omit unsupported
@@ -814,9 +836,11 @@ export const external_task = [
 			<div>
 				The Camunda 8.10 Search jobs endpoint can search by the
 				<code>type</code> field. External task topic names correspond to
-				job types in Camunda 8, but the endpoint is paginated and can
-				return terminal jobs. Page through all results, retain only
-				current jobs, and collect unique <code>type</code> values.
+				BPMN element job types in Camunda 8. Set{" "}
+				<code>filter.kind</code> to <code>BPMN_ELEMENT</code>. The
+				endpoint is paginated and can return terminal jobs. Page through
+				all results, retain only current jobs, and collect unique{" "}
+				<code>type</code> values.
 				Translate <code>withLockedTasks</code>,{" "}
 				<code>withUnlockedTasks</code>, and{" "}
 				<code>withRetriesLeft</code> using the job's worker, deadline,
