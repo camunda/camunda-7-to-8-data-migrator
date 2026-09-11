@@ -23,14 +23,17 @@ Never flag the `.camunda-migration/` CLI JAR — an intentional cache, not a lef
 
 A packaged resource directory is any resource directory that Maven or Gradle includes in an application artifact. Include `src/main/resources` when it exists.
 
-Treat report files already under `.camunda-migration/reports/` as intentional non-packaged artifacts.
-Do not include them in the packaged-resource warning. Never consume them as this run's reports.
+Treat report files already under `.camunda-migration/reports/` as intentional non-packaged artifacts
+only after confirming that the build does not package that directory. If the build packages that
+directory, treat its findings reports as packaged artifacts and stop before conversion. Otherwise,
+do not include them in the packaged-resource warning. Never consume local reports already there as
+this run's reports.
 
 If a findings report exists under a packaged resource directory, stop before conversion and ask the user to move or remove it. Do not offer **OK, proceed** while it remains there.
 
 If anything else is found, warn through AskUserQuestion before converting:
 
-> Found outputs from a previous migration attempt: `<list>`. This run will not overwrite them. Fresh findings reports are written beside the source under ` (n)`-suffixed names, then relocated to `.camunda-migration/reports/` before validation. Only this run's own outputs are used — stale files are never consumed. Diagrams whose `converted-c8-*` target already exists are skipped with an error, so for a full re-conversion, cancel and delete or move the old files first.
+> Found outputs from a previous migration attempt: `<list>`. This run will not overwrite them. Fresh findings reports are written beside the source. The CLI adds a ` (n)` suffix only when the unsuffixed name already exists. Relocate fresh findings reports to `.camunda-migration/reports/` when that directory is not packaged, or to another explicitly non-packaged directory, before validation. Only this run's own outputs are used — stale files are never consumed. Diagrams whose `converted-c8-*` target already exists are skipped with an error, so for a full re-conversion, cancel and delete or move the old files first.
 
 - **OK, proceed** — when no findings report remains under a packaged resource directory, run without `-o`/`--override`. Old files stay untouched.
 - **Cancel** — stop so the user can back up or clean up first.
@@ -89,19 +92,21 @@ Capture the exact paths of everything the run produces from the `Created ...` li
 The CLI writes converted copies and findings reports beside the input. A report under a packaged
 resource directory is included in a Maven or Gradle application artifact.
 
-After the CLI exits, create `.camunda-migration/reports/` in the project root. Move every
-fresh findings report captured from a `Created ...` line into that directory before validation,
-including ` (n)`-suffixed names. Keep every `converted-c8-*` file beside its source model.
+After the CLI exits, create `.camunda-migration/reports/` in the project root when the build does
+not package that directory. Otherwise, create another explicitly non-packaged reports directory in
+the project root. Move every fresh findings report captured from a `Created ...` line into that
+directory before validation, including ` (n)`-suffixed names. Keep every `converted-c8-*` file beside
+its source model.
 
-Do not overwrite an existing file in `.camunda-migration/reports/`. Choose an available
-` (n)`-suffixed name and use the moved path as the authoritative report path. If relocation fails,
-stop model validation and report the error. Do not claim a complete migration.
+Do not overwrite an existing file in the chosen reports directory. Choose an available ` (n)`-suffixed
+name and use the moved path as the authoritative report path. If relocation fails, stop model
+validation and report the error. Do not claim a complete migration.
 
 Before packaging the project, inspect every resource directory that the build configures for
 packaging, including `src/main/resources` when it exists. No findings report named
 `analysis-results.<ext>` or `analysis-results (n).<ext>` may remain there, where `<ext>` is `.csv`,
-`.json`, `.md`, or `.xlsx` and `n` is a positive integer. Keep the findings reports in `.camunda-migration/reports/` or another
-explicitly non-packaged directory.
+`.json`, `.md`, or `.xlsx` and `n` is a positive integer. Keep findings reports under `.camunda-migration/reports/` only when the build does not package that
+directory. Otherwise, use another explicitly non-packaged directory.
 
 ### 4. Surface Outputs
 
@@ -141,9 +146,11 @@ If the report's version does not match the chosen target, or cannot be determine
 
 #### 5a. Parse the JSON report
 
-Read the JSON report programmatically at the exact path recorded after step 3a relocation. The path
-may include a ` (n)` suffix when a stale report exists. Never parse a pre-existing findings report
-found on disk. Never rely on stdout severity counts instead.
+Read the JSON report programmatically at the authoritative path. For a local M1 or E1 run, use the
+path captured after step 3a relocation. For an imported M3 report, use the downloaded JSON path
+after the version and pairing checks in step 5. The local path may include a ` (n)` suffix when a
+stale report exists. Never parse a pre-existing local findings report found on disk. Never rely on
+stdout severity counts instead.
 
 Format: a JSON array with one object per finding, fields:
 
@@ -154,8 +161,9 @@ filename, elementName, elementId, elementType, severity, messageId, message, lin
 Parse it with real JSON tooling (e.g. `jq` or a built-in JSON parser), never ad-hoc string splitting.
 
 If the JSON report is missing (e.g. only `analysis-results.md` or a CSV/XLSX was generated), re-run
-the converter with `--check --json --xlsx` on the same input. Capture the fallback run's `Created ...`
-paths and apply step 3a before parsing. The markdown and XLSX reports are for humans. CSV is never
+the converter with `--check --json --xlsx --platform-version <target-version>` on the same input.
+Capture the fallback run's `Created ...` paths and apply step 3a before parsing. The markdown and
+XLSX reports are for humans. CSV is never
 consumed — this skill has no CSV parsing path, and the JSON report is the only machine-readable
 findings source.
 
