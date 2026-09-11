@@ -36,9 +36,31 @@ export const task_identity_link = [
 				<p>
 					There is no specific API endpoint to retrieve the identity
 					links in Camunda 8.10. Instead, retrieve the user task and
-					extract the necessary information from the response.
+					extract the assignee, candidate users, and candidate
+					groups from the response. Owner and custom identity-link
+					types have no equivalent in the Camunda 8.10 response.
 				</p>
 			),
+		},
+		discontinued: {
+			rowInfo: [
+				{
+					leftEntry: (
+						<pre>
+							(string) owner
+							<br />
+							(string) custom identity-link type
+						</pre>
+					),
+					rightEntry: (
+						<p>
+							These identity-link types are unavailable in the
+							Camunda 8.10 user-task response and must be
+							migrated separately.
+						</p>
+					),
+				},
+			],
 		},
 	},
 	{

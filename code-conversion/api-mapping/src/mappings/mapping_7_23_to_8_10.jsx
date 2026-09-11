@@ -38,8 +38,8 @@ export const mapping_7_23_to_8_10 = {
 			</p>
 			<p>
 				<strong>
-			to the Camunda 8 API (243 endpoints in 42 endpoint groups).
-					endpoints.
+					The Camunda 8 API has 42 endpoint groups and 243 HTTP
+					operations.
 				</strong>
 			</p>
 			<p>

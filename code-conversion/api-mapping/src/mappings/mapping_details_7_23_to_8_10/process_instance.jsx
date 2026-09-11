@@ -401,8 +401,10 @@ export const process_instance = [
 					leftEntry: <pre>(boolean) skipSubprocesses</pre>,
 					rightEntry: (
 						<p>
-							Subprocesses are not automatically deleted by this
-							request.
+							Camunda 8 cancellation cascades to child process
+							instances. There is no equivalent of{" "}
+							<code>skipSubprocesses=true</code>, so preserving
+							subprocesses requires a separate migration strategy.
 						</p>
 					),
 				},
@@ -497,6 +499,15 @@ export const process_instance = [
 								nested <code>filter</code> object. Do not send
 								<code>processInstanceQuery</code> as a
 								top-level field.
+							</p>
+							<p>
+								<code>processInstanceQuery.superProcessInstance</code>{" "}
+								cannot be mapped to{" "}
+								<code>filter.parentProcessInstanceKey</code>{" "}
+								because this endpoint ignores that filter.
+								Resolve the child instance keys first and
+								pass them as{" "}
+								<code>filter.processInstanceKey.$in</code>.
 							</p>
 						</>
 					),
@@ -740,6 +751,15 @@ export const process_instance = [
 								nested <code>filter</code> object. Do not send
 								<code>processInstanceQuery</code> as a
 								top-level field.
+							</p>
+							<p>
+								<code>processInstanceQuery.superProcessInstance</code>{" "}
+								cannot be mapped to{" "}
+								<code>filter.parentProcessInstanceKey</code>{" "}
+								because these endpoints ignore that filter.
+								Resolve the child instance keys first and
+								pass them as{" "}
+								<code>filter.processInstanceKey.$in</code>.
 							</p>
 						</>
 					),

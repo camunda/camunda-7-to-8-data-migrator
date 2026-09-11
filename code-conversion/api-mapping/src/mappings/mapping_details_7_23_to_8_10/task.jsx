@@ -1068,6 +1068,28 @@ export const task = [
 		discontinued: {
 			rowInfo: [
 				{
+					leftEntry: <pre>(string) variableNames</pre>,
+					rightEntry: (
+						<p>
+							The Camunda 8.10 filter accepts one exact variable
+							name per request. For a comma-separated list,
+							issue one search per name or fetch all pages and
+							filter the results client-side.
+						</p>
+					),
+				},
+				{
+					leftEntry: <pre>(boolean) deserializeValues</pre>,
+					rightEntry: (
+						<p>
+							There is no equivalent in Camunda 8.10. The
+							effective-variable search returns JSON values and
+							does not support Camunda 7 server-side Java
+							deserialization or serialized-value responses.
+						</p>
+					),
+				},
+				{
 					leftEntry: (
 						<pre>
 							(object) form field types
