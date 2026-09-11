@@ -28,12 +28,11 @@ export const external_task = [
 				restriction is not an exact C7 external-task mapping.
 				Unlike Camunda 7's current external tasks, C8 search results can
 				include completed and canceled jobs. Follow{" "}
-				<code>page.endCursor</code> through all pages, retain jobs whose{" "}
-				<code>state</code> is neither <code>COMPLETED</code> nor{" "}
-				<code>CANCELED</code> (including <code>FAILED</code> jobs with
-				zero retries), and apply C7 pagination only to the remaining
-				jobs. Do not use <code>endTime</code> alone to determine this
-				current-task set.
+				<code>page.endCursor</code> through all pages, retain jobs with{" "}
+				<code>endTime == null</code> (including{" "}
+				<code>FAILED</code> jobs with zero retries), and apply C7
+				pagination only to the remaining jobs. Do not infer
+				current-task membership from <code>state</code> alone.
 			</div>
 		),
 	},
@@ -59,12 +58,11 @@ export const external_task = [
 				restriction is not an exact C7 external-task mapping.
 				Unlike Camunda 7's current external tasks, C8 search results can
 				include completed and canceled jobs. Follow{" "}
-				<code>page.endCursor</code> through all pages, retain jobs whose{" "}
-				<code>state</code> is neither <code>COMPLETED</code> nor{" "}
-				<code>CANCELED</code> (including <code>FAILED</code> jobs with
-				zero retries), and apply C7 pagination only to the remaining
-				jobs. Do not use <code>endTime</code> alone to determine this
-				current-task set.
+				<code>page.endCursor</code> through all pages, retain jobs with{" "}
+				<code>endTime == null</code> (including{" "}
+				<code>FAILED</code> jobs with zero retries), and apply C7
+				pagination only to the remaining jobs. Do not infer
+				current-task membership from <code>state</code> alone.
 			</div>
 		),
 	},
@@ -92,12 +90,10 @@ export const external_task = [
 				and can overcount C7 external tasks.
 				The C7 count includes only current external tasks. Follow{" "}
 				<code>page.endCursor</code> through all result pages, retain
-				jobs whose <code>state</code> is neither{" "}
-				<code>COMPLETED</code> nor <code>CANCELED</code>, including{" "}
+				jobs with <code>endTime == null</code>, including{" "}
 				<code>FAILED</code> jobs with zero retries, and count the
 				remaining jobs instead of using <code>page.totalItems</code>.
-				Do not use <code>endTime</code> alone to determine the current
-				task set.
+				Do not infer the current task set from <code>state</code> alone.
 			</div>
 		),
 	},
@@ -125,12 +121,10 @@ export const external_task = [
 				and can overcount C7 external tasks.
 				The C7 count includes only current external tasks. Follow{" "}
 				<code>page.endCursor</code> through all result pages, retain
-				jobs whose <code>state</code> is neither{" "}
-				<code>COMPLETED</code> nor <code>CANCELED</code>, including{" "}
+				jobs with <code>endTime == null</code>, including{" "}
 				<code>FAILED</code> jobs with zero retries, and count the
 				remaining jobs instead of using <code>page.totalItems</code>.
-				Do not use <code>endTime</code> alone to determine the current
-				task set.
+				Do not infer the current task set from <code>state</code> alone.
 			</div>
 		),
 	},
@@ -519,15 +513,14 @@ export const external_task = [
 					<p>
 						For retry updates, a kind/type filter can still match
 						terminal job records. Search each translated selector
-						first, follow all cursor pages, retain jobs whose{" "}
-						<code>state</code> is neither{" "}
-						<code>COMPLETED</code> nor <code>CANCELED</code>,
-						including <code>FAILED</code> jobs with zero retries,
-						and submit the update by the resulting deduplicated{" "}
-						<code>jobKey.$in</code>. An exact job key must also pass
-						this state check; do not use <code>endTime</code> alone
-						or send a broad kind/type filter directly when C7
-						current-task semantics are required.
+						first, follow all cursor pages, retain jobs with{" "}
+						<code>endTime == null</code>, including{" "}
+						<code>FAILED</code> jobs with zero retries, and submit
+						the update by the resulting deduplicated{" "}
+						<code>jobKey.$in</code>. An exact job key must also
+						have <code>endTime == null</code>; do not send a broad
+						kind/type filter directly when C7 current-task
+						semantics are required.
 					</p>
 					<p>
 						Do not pass either Camunda 7 query object directly as a
@@ -821,13 +814,12 @@ export const external_task = [
 						Apply the same current-task restriction to this
 						asynchronous mapping: do not submit a broad kind/type
 						filter directly. Search each translated selector,
-						follow all cursor pages, retain jobs whose{" "}
-						<code>state</code> is neither{" "}
-						<code>COMPLETED</code> nor <code>CANCELED</code>,
-						including <code>FAILED</code> jobs with zero retries,
-						deduplicate the resulting job keys, and submit the
-						update with <code>filter.jobKey.$in</code>. Check exact
-						job keys against the same state set before updating.
+						follow all cursor pages, retain jobs with{" "}
+						<code>endTime == null</code>, including{" "}
+						<code>FAILED</code> jobs with zero retries, deduplicate
+						the resulting job keys, and submit the update with{" "}
+						<code>filter.jobKey.$in</code>. Check exact job keys
+						for <code>endTime == null</code> before updating.
 					</p>
 					<p>
 						Do not pass either Camunda 7 query object directly as a
@@ -929,11 +921,10 @@ export const external_task = [
 				unique types. Without that allowlist, mark this mapping as
 				non-equivalent rather than treating every returned type as a
 				topic name. The endpoint is paginated and can return terminal
-				jobs, so page through all results and retain jobs whose{" "}
-				<code>state</code> is neither <code>COMPLETED</code> nor{" "}
-				<code>CANCELED</code>, including <code>FAILED</code> jobs with
-				zero retries. Do not infer current-task membership from{" "}
-				<code>endTime</code> alone.
+				jobs, so page through all results and retain jobs with{" "}
+				<code>endTime == null</code>, including{" "}
+				<code>FAILED</code> jobs with zero retries. Do not infer
+				current-task membership from <code>state</code> alone.
 				Translate <code>withLockedTasks</code>,{" "}
 				<code>withUnlockedTasks</code>, and{" "}
 				<code>withRetriesLeft</code> using the job's worker, deadline,
@@ -961,12 +952,9 @@ export const external_task = [
 				are excluded. Resolve the C7 external-task ID to the
 				corresponding C8 job key before making the request.
 				After the search, treat the task as found when the matching job
-				has a <code>state</code> other than{" "}
-				<code>COMPLETED</code> or <code>CANCELED</code>, including a{" "}
-				<code>FAILED</code> job with exhausted retries. Report only
-				completed or canceled jobs as not found; do not use{" "}
-				<code>endTime</code> alone because C7 still exposes an external
-				task whose retries are exhausted.
+				has <code>endTime == null</code>, including a{" "}
+				<code>FAILED</code> job with exhausted retries. Report a job
+				with a non-null <code>endTime</code> as not found.
 			</div>
 		),
 	},

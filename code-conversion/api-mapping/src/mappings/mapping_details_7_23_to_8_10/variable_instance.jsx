@@ -91,7 +91,11 @@ export const variable_instance = [
 							<p>
 								Resolve Camunda 7 execution, task, activity, and
 								variable-scope IDs to the corresponding Camunda 8
-								element instance keys. These are separate C7
+								<code>scopeKey</code> values. Depending on the
+								source ID and scope, the target can be a
+								process-instance key or an element-instance key;
+								do not assume every source resolves to an
+								element-instance key. These are separate C7
 								predicates: do not combine IDs from different source
 								fields into one <code>$in</code> list. Issue one
 								request per populated field and intersect the complete
@@ -110,8 +114,10 @@ export const variable_instance = [
 								C7 treats <code>tenantIdIn</code> as an OR list.
 								Issue one request per C7 tenant ID, retrieve all
 								pages, then union and deduplicate the results by{" "}
-								<code>variableKey</code> before applying pagination
-								or deriving a count. Do not sum per-tenant totals.
+								<code>variableKey</code>. Reapply the requested C7
+								sort to the combined result before applying
+								pagination or deriving a count. Do not sum
+								per-tenant totals.
 							</p>
 						</>
 					),
@@ -170,6 +176,16 @@ export const variable_instance = [
 								Map Camunda 7 <code>asc</code> and{" "}
 								<code>desc</code> to Camunda 8{" "}
 								<code>ASC</code> and <code>DESC</code>.
+								This is not a direct mapping for every C7{" "}
+								<code>sortBy</code> value. Use only C8 sort fields
+								with an equivalent C7 ordering:{" "}
+								<code>value</code>, <code>name</code>,{" "}
+								<code>tenantId</code>, <code>variableKey</code>,{" "}
+								<code>scopeKey</code>, or{" "}
+								<code>processInstanceKey</code>. Resolve{" "}
+								<code>activityInstanceId</code> and sort
+								client-side, and mark{" "}
+								<code>variableType</code> unsupported.
 							</p>
 						</>
 					),
@@ -214,14 +230,13 @@ export const variable_instance = [
 						criteria where the target filter supports them. Variable
 						values in{" "}
 						<code>filter.value</code> must use their serialized JSON
-						representation. For GET requests, the query value is an
-						untyped string token. Resolve the source variable type
-						before JSON-encoding it (for example, numeric{" "}
-						<code>5</code> becomes <code>5</code>, while a string
-						value becomes <code>"5"</code>). If the type cannot be
-						resolved, retrieve candidates and apply the value
-						predicate client-side instead of forcing every value to
-						a JSON string. For POST requests, preserve number,
+						representation. For GET requests,{" "}
+						<code>variableValues</code> query values are always C7
+						<code>String</code> objects. JSON-encode the query value
+						as a string, including its quotes (for example,{" "}
+						<code>5</code> becomes <code>"5"</code>), regardless of
+						the stored variable type. Do not infer a native JSON
+						type for GET. For POST requests, preserve number,
 						boolean, and string types with{" "}
 						<code>JSON.stringify</code>; string values also include
 						quotes. For <code>like</code>, escape
@@ -488,10 +503,12 @@ export const variable_instance = [
 				<code>page.totalItems</code> and{" "}
 				<code>page.hasMoreTotalItems</code> from the Camunda 8 search
 				response. When <code>hasMoreTotalItems</code> is{" "}
-				<code>true</code>, <code>totalItems</code> is only a lower
-				bound, not the exact C7 count. Follow{" "}
-				<code>page.endCursor</code> and count all returned items,
-				even for a single filter. For multiple{" "}
+				<code>false</code> for a single search,{" "}
+				<code>page.totalItems</code> is exact and can be returned
+				directly. When it is <code>true</code>,{" "}
+				<code>page.totalItems</code> is only a lower bound, not the
+				exact C7 count; follow <code>page.endCursor</code> and count
+				all returned items. For multiple{" "}
 				<code>tenantIdIn</code> values,{" "}
 				<code>variableValues</code> entries, or process-instance and
 				scope selector fields, follow <code>page.endCursor</code> for
@@ -518,10 +535,12 @@ export const variable_instance = [
 				<code>page.totalItems</code> and{" "}
 				<code>page.hasMoreTotalItems</code> from the Camunda 8 search
 				response. When <code>hasMoreTotalItems</code> is{" "}
-				<code>true</code>, <code>totalItems</code> is only a lower
-				bound, not the exact C7 count. Follow{" "}
-				<code>page.endCursor</code> and count all returned items,
-				even for a single filter. For multiple{" "}
+				<code>false</code> for a single search,{" "}
+				<code>page.totalItems</code> is exact and can be returned
+				directly. When it is <code>true</code>,{" "}
+				<code>page.totalItems</code> is only a lower bound, not the
+				exact C7 count; follow <code>page.endCursor</code> and count
+				all returned items. For multiple{" "}
 				<code>tenantIdIn</code> values,{" "}
 				<code>variableValues</code> entries, or process-instance and
 				scope selector fields, follow <code>page.endCursor</code> for
