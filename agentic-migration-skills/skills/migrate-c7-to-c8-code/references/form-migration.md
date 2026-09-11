@@ -364,9 +364,28 @@ another user question.
 
 ## Deployment and validation
 
-Deployment binding requires the converted BPMN and accepted `.form` file in the same deployment. Use
-explicit accepted resource paths when possible. Use a recursive pattern such as
-`classpath*:**/converted-c8-*.form` only when it cannot include drafts or declined forms.
+Deployment binding requires the converted BPMN and accepted `.form` file in the same deployment.
+Apply the following resource-mapping and path rules only to accepted forms with
+`bindingType=deployment`.
+Where deployment uses Spring Boot `@Deployment`, inspect the selected build's application-artifact
+resource mapping for each deployment-bound accepted form, using Maven resource configuration or
+Gradle resource-destination settings as examples.
+Where deployment uses Spring Boot `@Deployment`, resolve the packaged classpath-relative path from
+that mapping.
+Where deployment uses Spring Boot `@Deployment`, normalize the resolved path to `/` separators.
+Where deployment uses Spring Boot `@Deployment`, remove a source resource-directory prefix, such as
+`src/main/resources/`, only when the mapping strips it.
+Where deployment uses Spring Boot `@Deployment`, retain any target prefix that the mapping adds.
+Where deployment uses Spring Boot `@Deployment`, use explicit accepted resource paths derived from
+each normalized packaged path when possible.
+Where deployment uses Spring Boot `@Deployment`, derive a recursive pattern from the normalized
+packaged paths, including any selected prefix, only when it cannot include drafts or declined forms.
+Where deployment uses an explicit `CamundaClient` command, validate each deployment-bound accepted
+form against the source used by the explicit deployment command.
+Where deployment uses an explicit `CamundaClient` command, confirm that the command supplies the
+form with its owning converted BPMN.
+Where deployment uses an explicit `CamundaClient` command, do not require a packaged
+classpath-relative path.
 
 Before reporting a form complete:
 

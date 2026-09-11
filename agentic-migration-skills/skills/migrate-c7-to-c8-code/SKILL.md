@@ -84,7 +84,15 @@ These rules apply to every later step.
 - Before the first change, check for uncommitted changes. If the working tree is dirty, then ask the
   user to commit or stash.
 - Never commit without an explicit user request.
-- Write each converted model to a `converted-c8-*` copy. Leave every original file unchanged.
+- If the selected model approach is M1 or E1 and the run is not analyze-only, then write each
+  converted copy with the selected `--prefix`.
+- If the selected model approach is M1 or E1 and the run is not analyze-only, then use `converted-c8-`
+  when no prefix is selected.
+- If the selected model approach is M2 and the run is not analyze-only, then write each converted
+  copy and record its actual filename.
+- If the selected model approach is M3 and the run is not analyze-only, then record the actual
+  filename of each downloaded converted copy and pair it with its original.
+- Leave every original file unchanged.
 - Where the target is a separate location, such as a sibling Camunda 8 project, treat the Camunda 7
   project as read-only and copy the assets across.
 - Before any edit, load the pattern catalog. See `references/pattern-catalog-sources.md`.
@@ -244,12 +252,17 @@ Each item below is a check to run and a condition that must hold at exit. Record
    `application.properties` or `.yaml`.
 8. **Tests** — run `mvn test` or the Gradle test task. Every test passes, or each failure is
    documented with an explanation.
-9. **Eventually-consistent queries** — search for every C8 search-request factory method listed in
+9. **Deployment resources** — Where model migration is in scope, the selected code approach can
+   mutate application code, and the user chose **Yes, add/update deployment for converted files**,
+   apply `references/composing-code-and-models.md` as the deployment-wiring authority. If the
+   selected code approach is assessment only, then do not modify application code and preserve
+   existing deployment wiring.
+10. **Eventually-consistent queries** — search for every C8 search-request factory method listed in
    `references/code-transform-checklist.md`, not only the `SearchRequest` type name. Every migrated
    search call site has a matching open item in the `MIGRATION_REPORT.md` open-items section. A
    missing entry fails the check. See the mandatory open items in
    `references/code-transform-checklist.md`.
-10. **Worker adapters** — compare every `@JobWorker` declaration's fully qualified declaring class
+11. **Worker adapters** — compare every `@JobWorker` declaration's fully qualified declaring class
     name with the original Java source baseline recorded in Step 2. Flag the declaration when its
     class appears in that baseline, even when the class name ends with `Worker`. Accept it only
     when the class is absent from the baseline, is a new `*Worker` adapter component, and delegates
@@ -270,15 +283,22 @@ Check these pitfalls as well:
 After every manual BPMN edit, lint the converted copy with the Camunda compatibility ruleset for the
 target version. See the linting section in `references/model-migration-approaches.md`.
 
-1. A `converted-c8-*` file exists for every in-scope diagram, unless the run is analyze-only.
+1. Build the converted-copy inventory from paths recorded during the current run. Never infer a
+   converted copy from filesystem existence or a filename prefix. If M1 or E1 reports `File already
+   exists`, treat the diagram as missing a converted copy until the current run records a fresh path.
+   A converted copy exists for every in-scope diagram, unless the run is analyze-only:
+   - For M1 and E1, use a converted copy with the selected `--prefix`. The default is
+     `converted-c8-`.
+   - For M2, use the converted copy with the actual filename recorded after the rewrite.
+   - For M3, use the downloaded converted copy paired with its original.
 2. Every original file is intact and was never overwritten.
-3. Treat every resource directory that the build configures for inclusion in a Maven or Gradle
+3. Treat every resource directory that the selected build configures for inclusion in its
    application artifact as a packaged resource directory. Include `src/main/resources` when it
    exists. No findings report named `analysis-results.<ext>` or `analysis-results (n).<ext>` remains
    under a packaged resource directory, where `n` is a positive integer and `<ext>` is `.csv`,
    `.json`, `.md`, or `.xlsx`. Keep findings reports under `.camunda-migration/reports/` only when
-   the build does not package that directory. Otherwise, use another explicitly non-packaged
-   directory.
+   the selected build does not package that directory. Otherwise, use another explicitly
+   non-packaged directory.
 4. Every WARNING, TASK, and REVIEW finding is fixed, or classified in the per-category verdict table
    with its category, count, cross-referenced code artifact, and verdict. See
    `references/model-migration-approaches.md` step 5d. A flat "fixed or recorded" note is not enough.
