@@ -27,4 +27,10 @@ class SemanticVersionTest {
     assertThatThrownBy(() -> SemanticVersion.parse("9.0"))
         .isInstanceOf(IllegalStateException.class);
   }
+
+  @Test
+  void shouldParseLatestAndNextTargetVersions() {
+    assertThat(SemanticVersion.parse("8.10")).isEqualTo(SemanticVersion._8_10);
+    assertThat(SemanticVersion.parse("8.11")).isEqualTo(SemanticVersion._8_11);
+  }
 }
