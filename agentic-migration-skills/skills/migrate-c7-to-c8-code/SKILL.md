@@ -244,12 +244,15 @@ Each item below is a check to run and a condition that must hold at exit. Record
    `application.properties` or `.yaml`.
 8. **Tests** — run `mvn test` or the Gradle test task. Every test passes, or each failure is
    documented with an explanation.
-9. **Eventually-consistent queries** — search for every C8 search-request factory method listed in
+9. **Deployment resources** — when application code contains `@Deployment(resources = ...)`, resolve
+   every pattern against the packaged classpath and confirm that it matches at least one recorded
+   converted file or accepted form. Remove patterns for resource types with no recorded output.
+10. **Eventually-consistent queries** — search for every C8 search-request factory method listed in
    `references/code-transform-checklist.md`, not only the `SearchRequest` type name. Every migrated
    search call site has a matching open item in the `MIGRATION_REPORT.md` open-items section. A
    missing entry fails the check. See the mandatory open items in
    `references/code-transform-checklist.md`.
-10. **Worker adapters** — compare every `@JobWorker` declaration's fully qualified declaring class
+11. **Worker adapters** — compare every `@JobWorker` declaration's fully qualified declaring class
     name with the original Java source baseline recorded in Step 2. Flag the declaration when its
     class appears in that baseline, even when the class name ends with `Worker`. Accept it only
     when the class is absent from the baseline, is a new `*Worker` adapter component, and delegates

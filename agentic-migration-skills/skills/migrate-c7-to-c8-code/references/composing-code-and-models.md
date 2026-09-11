@@ -129,7 +129,7 @@ remediation starting point. Do not infer a category-specific cross-check from an
 
 After both complete, ask via AskUserQuestion whether to wire deployment of converted files in application code:
 
-- **Yes, add/update @Deployment for converted files** (recommended when code scope includes a Spring Boot app) - add or update `@Deployment(resources = ...)` so it targets only converted resources with explicit recursive classpath patterns. Include accepted generated forms when present, for example: `@Deployment(resources = {"classpath*:**/converted-c8-*.bpmn", "classpath*:**/converted-c8-*.dmn", "classpath*:**/converted-c8-*.form"})`. Never target original diagrams, draft forms, or declined forms.
+- **Yes, add/update @Deployment for converted files** (recommended when code scope includes a Spring Boot app) - build the resource list from the recorded output file list, including paths captured from `Created ...` lines, rather than from a generic resource-type template. Add only patterns that match at least one accepted converted file or form. Use explicit recursive classpath patterns, for example: `@Deployment(resources = {"classpath*:**/converted-c8-*.bpmn", "classpath*:**/converted-c8-*.dmn", "classpath*:**/converted-c8-*.form"})`. Never target original diagrams, draft forms, declined forms, or resource types with no recorded output.
 - **No, I will handle deployment outside app startup** - leave code unchanged and record this decision in MIGRATION_REPORT.md.
 
 ## Report Keeping
