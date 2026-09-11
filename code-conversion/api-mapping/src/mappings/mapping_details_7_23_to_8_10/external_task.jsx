@@ -31,7 +31,11 @@ export const external_task = [
 				<code>page.endCursor</code> through all pages, retain jobs where{" "}
 				<code>endTime == null</code>, including <code>FAILED</code>{" "}
 				jobs with zero retries, and apply C7 pagination only to the
-				remaining jobs.
+				remaining jobs. For <code>withRetriesLeft=true</code>, retain
+				only jobs with <code>retries &gt; 0</code>; for{" "}
+				<code>noRetriesLeft=true</code>, retain only jobs with{" "}
+				<code>retries == 0</code>. Apply these retry predicates before
+				C7 pagination.
 				Camunda 7's <code>active</code> and{" "}
 				<code>suspended</code> query flags are valid filters, but C8's{" "}
 				<code>JobFilter</code> has no equivalent fields. If either is
@@ -66,7 +70,11 @@ export const external_task = [
 				<code>page.endCursor</code> through all pages, retain jobs where{" "}
 				<code>endTime == null</code>, including <code>FAILED</code>{" "}
 				jobs with zero retries, and apply C7 pagination only to the
-				remaining jobs.
+				remaining jobs. For <code>withRetriesLeft=true</code>, retain
+				only jobs with <code>retries &gt; 0</code>; for{" "}
+				<code>noRetriesLeft=true</code>, retain only jobs with{" "}
+				<code>retries == 0</code>. Apply these retry predicates before
+				C7 pagination.
 				Camunda 7's <code>active</code> and{" "}
 				<code>suspended</code> query flags are valid filters, but C8's{" "}
 				<code>JobFilter</code> has no equivalent fields. If either is
@@ -103,6 +111,11 @@ export const external_task = [
 				jobs where <code>endTime == null</code>, including{" "}
 				<code>FAILED</code> jobs with zero retries, and count the
 				remaining jobs instead of using <code>page.totalItems</code>.
+				After fetching all pages, apply the requested retry predicate
+				before counting: <code>retries &gt; 0</code> for{" "}
+				<code>withRetriesLeft=true</code> or{" "}
+				<code>retries == 0</code> for{" "}
+				<code>noRetriesLeft=true</code>.
 				Camunda 7's <code>active</code> and{" "}
 				<code>suspended</code> query flags are valid filters, but C8's{" "}
 				<code>JobFilter</code> has no equivalent fields. If either is
@@ -139,6 +152,11 @@ export const external_task = [
 				jobs where <code>endTime == null</code>, including{" "}
 				<code>FAILED</code> jobs with zero retries, and count the
 				remaining jobs instead of using <code>page.totalItems</code>.
+				After fetching all pages, apply the requested retry predicate
+				before counting: <code>retries &gt; 0</code> for{" "}
+				<code>withRetriesLeft=true</code> or{" "}
+				<code>retries == 0</code> for{" "}
+				<code>noRetriesLeft=true</code>.
 				Camunda 7's <code>active</code> and{" "}
 				<code>suspended</code> query flags are valid filters, but C8's{" "}
 				<code>JobFilter</code> has no equivalent fields. If either is
@@ -945,10 +963,15 @@ export const external_task = [
 				jobs, so page through all results and retain jobs whose{" "}
 				<code>endTime == null</code>, including{" "}
 				<code>FAILED</code> jobs with zero retries.
-				Translate <code>withLockedTasks</code>,{" "}
-				<code>withUnlockedTasks</code>, and{" "}
-				<code>withRetriesLeft</code> using the job's worker, deadline,
-				and retries fields. There is no exact single-request
+				For <code>withRetriesLeft=true</code>, retain only jobs with{" "}
+				<code>retries &gt; 0</code>; for{" "}
+				<code>noRetriesLeft=true</code>, retain only jobs with{" "}
+				<code>retries == 0</code>. When neither retry flag is set,
+				retain current failed jobs with zero retries. Apply the retry
+				predicate before collecting types. Translate{" "}
+				<code>withLockedTasks</code> and{" "}
+				<code>withUnlockedTasks</code> using the job's worker and
+				deadline fields. There is no exact single-request
 				equivalent, so unsupported filter combinations require
 				client-side handling.
 			</div>

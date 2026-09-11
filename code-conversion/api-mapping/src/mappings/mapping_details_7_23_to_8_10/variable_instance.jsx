@@ -148,7 +148,9 @@ export const variable_instance = [
 								cannot be resolved, omit the value filter and
 								search or post-filter using C7 string semantics
 								instead of assuming a JSON string. For{" "}
-								<code>like</code>, escape literal backslashes,{" "}
+								<code>like</code>, mark filters on non-string
+								variables unsupported. For string-valued
+								variables, escape literal backslashes,{" "}
 								<code>*</code>, and <code>?</code>, translate{" "}
 								<code>%</code> wildcards to <code>*</code>, and
 								JSON-encode the resulting string pattern. C8
@@ -245,8 +247,10 @@ export const variable_instance = [
 						unconditionally quote every GET token. For POST
 						requests, preserve the resolved number, boolean, and
 						string types with <code>JSON.stringify</code>; string
-						values include quotes. For <code>like</code>, escape
-						literal backslashes, <code>*</code>, and{" "}
+						values include quotes. For <code>like</code>, non-string
+						variable values are unsupported. For
+						string-valued variables, escape literal backslashes,
+						<code>*</code>, and{" "}
 						<code>?</code> before translating C7{" "}
 						<code>%</code> wildcards to C8 <code>*</code>, then
 						JSON-encode the complete pattern.
@@ -389,8 +393,10 @@ export const variable_instance = [
 								operator. Preserve each POST value's JSON type
 								with <code>JSON.stringify</code> before setting{" "}
 								<code>filter.value</code>; string values include
-								their JSON quotes. For <code>like</code>, escape
-								literal backslashes, <code>*</code>, and{" "}
+								their JSON quotes. For <code>like</code>, mark
+								filters on non-string variables unsupported.
+								For string-valued variables, escape literal
+								backslashes, <code>*</code>, and{" "}
 								<code>?</code>, translate C7{" "}
 								<code>%</code> wildcards to C8{" "}
 								<code>*</code>, and JSON-encode the complete
@@ -628,8 +634,9 @@ export const variable_instance = [
 				<code>GET /variables/{"{variableKey}"}</code>
 				, resolve its <code>DocumentReference</code>, and download the
 				content with <code>GET /documents/{"{documentId}"}</code>,
-				passing <code>storeId</code> and the non-null{" "}
-				<code>contentHash</code> as query parameters. See the
+				always passing <code>storeId</code> and including{" "}
+				<code>contentHash</code> only when it is non-null as query
+				parameters. See the
 				process-variable mapping for this conditional flow. Other
 				non-document binary variable types have no equivalent endpoint.
 			</p>
