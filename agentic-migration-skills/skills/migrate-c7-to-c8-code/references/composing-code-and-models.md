@@ -129,7 +129,20 @@ remediation starting point. Do not infer a category-specific cross-check from an
 
 After both complete, ask via AskUserQuestion whether to wire deployment of converted files in application code:
 
-- **Yes, add/update @Deployment for converted files** (recommended where code scope includes a Spring Boot app) - treat every resource directory that the build configures for inclusion in a Maven or Gradle application artifact as a packaged resource directory. Include `src/main/resources` when it exists. Confirm that each recorded converted file and accepted form is under a packaged resource directory before adding its deployment pattern. Move each accepted resource into a packaged resource directory, or configure the build to package its current directory. Build the resource list from the recorded output file list, including paths captured from `Created ...` lines, rather than from a generic resource-type template. Add a pattern only where its resource type has at least one accepted converted file or form under a packaged resource directory. For example, add `classpath*:**/converted-c8-*.bpmn` only where a packaged converted BPMN file was recorded, add the `.dmn` pattern only where a packaged converted DMN file was recorded, and add the `.form` pattern only where a packaged accepted form was recorded. Never target original diagrams, draft forms, declined forms, or resource types with no recorded output.
+- **Yes, add/update @Deployment for converted files** (recommended where code scope includes a Spring Boot app):
+  - Treat every resource directory that the build configures for inclusion in a Maven or Gradle application artifact as a packaged resource directory.
+  - Include `src/main/resources` when it exists.
+  - Build the deployment inventory from the recorded output file list, including paths captured from `Created ...` lines, and every form with a recorded `bindingType=deployment`, including relinked forms.
+  - Confirm that each inventory entry is under a packaged resource directory before adding its deployment pattern.
+  - Move or package each recorded converted file and each form with a recorded `bindingType=deployment` before adding its deployment pattern.
+  - Add a deployment pattern only when its resource type has an inventory entry under a packaged resource directory.
+  - Use a deployment pattern only when its packaged-classpath matches are limited to inventory entries.
+  - Confirm that every inventory entry matches at least one deployment pattern.
+  - Confirm that every deployment pattern matches at least one inventory entry.
+  - Add `classpath*:**/converted-c8-*.bpmn` only when a packaged converted BPMN file is recorded.
+  - Add the `.dmn` pattern only when a packaged converted DMN file is recorded.
+  - Add the `.form` pattern only when a form with a recorded `bindingType=deployment` is packaged.
+  - Never target original diagrams, draft forms, declined forms, or resource types with no inventory entry.
 - **No, I will handle deployment outside app startup** - leave code unchanged and record this decision in MIGRATION_REPORT.md.
 
 ## Report Keeping

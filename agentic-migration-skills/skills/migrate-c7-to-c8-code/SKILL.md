@@ -247,13 +247,17 @@ Each item below is a check to run and a condition that must hold at exit. Record
 9. **Deployment resources** — where application code contains `@Deployment(resources = ...)`, treat
    every resource directory that the build configures for inclusion in a Maven or Gradle
    application artifact as a packaged resource directory. Include `src/main/resources` when it
-   exists. Confirm that every recorded converted file and accepted form is under a packaged
-   resource directory and is available on the application classpath before validating deployment
-   patterns. Move or package each accepted resource outside a packaged resource directory before
-   adding its deployment pattern. Confirm that every recorded converted file and accepted form is
-   matched by at least one deployment pattern. Confirm that every deployment pattern matches at
-   least one recorded converted file or accepted form under a packaged resource directory. Remove
-   patterns for resource types with no recorded output.
+   exists. Confirm that every recorded converted file and every form with a recorded
+   `bindingType=deployment` is under a packaged resource directory and is available on the
+   application classpath before validating deployment patterns. Build the deployment inventory from
+   recorded converted files and every form with a recorded `bindingType=deployment`, including
+   relinked forms. If an inventory entry is outside a packaged resource directory, move it into one
+   or configure the build to package its current directory before adding its deployment pattern. Use
+   a deployment pattern only when its
+   packaged-classpath matches are limited to inventory entries. Confirm that every inventory entry
+   matches at least one deployment pattern. Confirm that every deployment pattern matches at least
+   one inventory entry under a packaged resource directory. Remove patterns for resource types with
+   no inventory entry.
 10. **Eventually-consistent queries** — search for every C8 search-request factory method listed in
    `references/code-transform-checklist.md`, not only the `SearchRequest` type name. Every migrated
    search call site has a matching open item in the `MIGRATION_REPORT.md` open-items section. A
