@@ -15,7 +15,8 @@ Before conversion, namespace-parse the exact original BPMN and inventory every C
 
 Before any local approach (M1, M2, E1), scan for outputs of previous migration attempts:
 
-- `converted-c8-*.bpmn` / `converted-c8-*.dmn` (or the `--prefix` equivalent)
+- M1/E1 converted copies using the selected `--prefix`, M2 converted copies with their recorded
+  filenames, and M3 downloaded converted files
 - accepted generated forms beside converted BPMN, and drafts under `.camunda-migration/generated-form-drafts/`
 - `analysis-results.<ext>` and `analysis-results (n).<ext>` findings reports, where `n` is a positive integer and `<ext>` is `.csv`, `.json`, `.md`, or `.xlsx`
 
@@ -33,7 +34,7 @@ If a findings report exists under a packaged resource directory, stop before con
 
 If anything else is found, warn through AskUserQuestion before converting:
 
-> Found outputs from a previous migration attempt: `<list>`. This run will not overwrite them. Fresh findings reports are written beside the source. The CLI adds a ` (n)` suffix only when the unsuffixed name already exists. Relocate fresh findings reports to `.camunda-migration/reports/` when that directory is not packaged, or to another explicitly non-packaged directory, before validation. Only this run's own outputs are used — stale files are never consumed. Diagrams whose `converted-c8-*` target already exists are skipped with an error, so for a full re-conversion, cancel and delete or move the old files first.
+> Found outputs from a previous migration attempt: `<list>`. This run will not overwrite them. Fresh findings reports are written beside the source. The CLI adds a ` (n)` suffix only when the unsuffixed name already exists. Relocate fresh findings reports to `.camunda-migration/reports/` when that directory is not packaged, or to another explicitly non-packaged directory, before validation. Only this run's own outputs are used — stale files are never consumed. Diagrams whose target with the selected prefix already exists are skipped with an error, so for a full re-conversion, cancel and delete or move the old files first.
 
 - **OK, proceed** — when no findings report remains under a packaged resource directory, run without `-o`/`--override`. Old files stay untouched.
 - **Cancel** — stop so the user can back up or clean up first.
@@ -83,9 +84,9 @@ Other options:
 - `--prefix <str>` - prefix for generated filenames (default `converted-c8-`)
 - `--md` - write analysis report in markdown format
 
-The converter writes a new file next to the source (e.g., `converted-c8-order-process.bpmn`), so originals are never mutated in place.
+The converter writes a new file next to the source (for example, `converted-c8-order-process.bpmn`), so originals are never mutated in place.
 
-Capture the exact paths of everything the run produces from the `Created ...` lines in the CLI console output (e.g. `Created analysis-results (1).json`). These paths are authoritative until the report relocation below completes. Never glob for `analysis-results.json` or `converted-c8-*` on disk, which may match stale files from a previous attempt or a different `--platform-version`.
+Capture the exact paths of everything the run produces from the `Created ...` lines in the CLI console output (e.g. `Created analysis-results (1).json`). These paths are authoritative until the report relocation below completes. Never glob for `analysis-results.json` or converted files on disk, which may match stale files from a previous attempt or a different `--platform-version`.
 
 ### 3a. Relocate findings reports
 
@@ -95,8 +96,8 @@ resource directory is included in a Maven or Gradle application artifact.
 After the CLI exits, create `.camunda-migration/reports/` in the project root when the build does
 not package that directory. Otherwise, create another explicitly non-packaged reports directory in
 the project root. Move every fresh findings report captured from a `Created ...` line into that
-directory before validation, including ` (n)`-suffixed names. Keep every `converted-c8-*` file beside
-its source model.
+directory before validation, including ` (n)`-suffixed names. Keep every converted copy with the
+selected prefix beside its source model.
 
 Do not overwrite an existing file in the chosen reports directory. Choose an available ` (n)`-suffixed
 name and use the moved path as the authoritative report path. If relocation fails, stop model
@@ -123,7 +124,7 @@ Severity counts are only a headline. Never start per-finding work from them. Par
 
 ### 5. Follow Up on Findings
 
-REVIEW/WARNING/TASK findings remain and JUEL conversion is partial. Resolve them in the AI follow-up step, working on the `converted-c8-*` copies, never the originals.
+REVIEW/WARNING/TASK findings remain and JUEL conversion is partial. Resolve them in the AI follow-up step, working on the recorded converted copies, never the originals.
 
 Trust the converter's output for what it did NOT flag. The job types and listener wiring it emitted are authoritative. Apply manual fixes only for what the report flags. Never second-guess or re-derive converted structures.
 
@@ -285,7 +286,7 @@ Rules:
 
 #### 5e. Strip converter annotations from converted models
 
-After every finding has a verdict, remove the temporary converter annotations from the fresh `converted-c8-*` copies. The verdict table and `MIGRATION_REPORT.md` are the durable record. Never leave the report embedded in the deployable model.
+After every finding has a verdict, remove the temporary converter annotations from the fresh recorded converted copies. The verdict table and `MIGRATION_REPORT.md` are the durable record. Never leave the report embedded in the deployable model.
 
 Use a namespace-aware XML parser or XML tooling, never regular expressions. For each converted BPMN/DMN file:
 
@@ -383,7 +384,8 @@ Treat a job type that differs from this table as an intentional deviation only w
 job type, and the confirmed rationale. Record the same decision for a custom or shared job type that
 has no source binding in the table. Do not replace a method-specific type with the bean-only type.
 
-For each in-scope diagram, produce a new `converted-c8-<name>.bpmn`/`.dmn` (never edit the original), applying:
+For each in-scope diagram, produce a new converted copy with a recorded filename (never edit the
+original), applying:
 
 - `camunda:` namespace/extension elements to `zeebe:` equivalents (task definitions/job types, IO mappings, headers)
 - remove C7 generated-form elements from the converted copy after their source inventory is captured. `form-migration.md` creates separate standard `.form` resources.

@@ -84,8 +84,13 @@ These rules apply to every later step.
 - Before the first change, check for uncommitted changes. If the working tree is dirty, then ask the
   user to commit or stash.
 - Never commit without an explicit user request.
-- Write each converted model to a converted copy with the selected `--prefix`.
-- Use `converted-c8-` when no prefix is selected.
+- Where the selected model approach is M1 or E1, write each converted model to a converted copy
+  with the selected `--prefix`.
+- Where the selected model approach is M1 or E1, use `converted-c8-` when no prefix is selected.
+- Where the selected model approach is M2, write each converted model to a new converted copy and
+  record its actual filename.
+- Where the selected model approach is M3, record the actual filename of each downloaded converted
+  model and pair it with its original.
 - Leave every original file unchanged.
 - Where the target is a separate location, such as a sibling Camunda 8 project, treat the Camunda 7
   project as read-only and copy the assets across.
@@ -246,57 +251,11 @@ Each item below is a check to run and a condition that must hold at exit. Record
    `application.properties` or `.yaml`.
 8. **Tests** — run `mvn test` or the Gradle test task. Every test passes, or each failure is
    documented with an explanation.
-9. **Deployment resources** — Where the scope includes model migration and the user chose **Yes,
-   add/update deployment for converted files**, apply these checks to Spring Boot application code
-   in scope. For non-Spring application code, use explicit `CamundaClient` deployment commands and
-   apply equivalent inventory and coverage checks.
-   - Require an `@Deployment(resources = ...)` declaration when Spring Boot application code is in
-     scope and the deployment inventory is non-empty.
-   - Require explicit `CamundaClient` deployment commands when non-Spring application code is in
-     scope and the deployment inventory is non-empty.
-   - Add or update the selected deployment path before validating deployment patterns or resource
-     lists.
-   - Rerun compilation and tests after adding or updating the deployment path.
-   - For Spring Boot `@Deployment`, treat every resource directory that the build configures for
-     inclusion in a Maven or Gradle application artifact as a packaged resource directory.
-   - For Spring Boot `@Deployment`, include `src/main/resources` when it exists.
-   - For Spring Boot `@Deployment`, confirm that every recorded converted file and every form with a
-     recorded `bindingType=deployment` is under a packaged resource directory and is available on
-     the application classpath before validating deployment patterns.
-   - For non-Spring `CamundaClient` commands, validate each inventory entry against the source used
-     by the explicit deployment command instead of requiring a packaged classpath resource.
-   - Build the deployment inventory from recorded converted model paths and every form with a
-     recorded `bindingType=deployment`, including relinked forms.
-   - Exclude findings reports and other non-deployable artifacts from the deployment inventory.
-   - For Spring Boot `@Deployment`, if an inventory entry is outside a packaged resource directory,
-     copy only the recorded converted file and associated deployment-bound forms to a dedicated
-     packaged resource directory, or configure precise build includes for those files.
-   - Keep the original source model unchanged.
-   - For Spring Boot `@Deployment`, do not add its source directory as a new resource root when it
-     contains unrelated files.
-   - For Spring Boot `@Deployment`, if its directory is already packaged, use precise build
-     includes or copy only the recorded converted files and associated deployment-bound forms.
-   - Update every recorded path after copying a resource.
-   - For Spring Boot `@Deployment`, derive each deployment pattern from the recorded converted
-     paths or the selected `--prefix`.
-   - For Spring Boot `@Deployment`, use the default `converted-c8-` pattern only when the recorded
-     paths use that prefix.
-   - For Spring Boot `@Deployment`, derive each form pattern from its recorded deployment-bound form
-     path, including relinked forms.
-   - For Spring Boot `@Deployment`, use a deployment pattern only when its packaged-classpath
-     matches are limited to inventory entries.
-   - For Spring Boot `@Deployment`, confirm that every inventory entry matches at least one
-     deployment pattern.
-   - For non-Spring `CamundaClient` commands, confirm that every inventory entry is supplied by an
-     explicit deployment command.
-   - For Spring Boot `@Deployment`, confirm that every deployment pattern matches at least one
-     inventory entry under a packaged resource directory.
-   - For Spring Boot `@Deployment`, when the deployment inventory is non-empty, remove patterns for
-     resource types with no inventory entry.
-   - For Spring Boot `@Deployment`, when the deployment inventory is empty, preserve existing
-     deployment patterns.
-   Where the scope excludes model migration or the user chose **No**, preserve existing deployment
-   patterns and do not compare them with the current model inventory.
+9. **Deployment resources** — Where model migration is in scope, the selected code approach can
+   mutate application code, and the user chose **Yes, add/update deployment for converted files**,
+   apply `references/composing-code-and-models.md` as the deployment-wiring authority. If the
+   selected code approach is assessment only, then do not modify application code and preserve
+   existing deployment wiring.
 10. **Eventually-consistent queries** — search for every C8 search-request factory method listed in
    `references/code-transform-checklist.md`, not only the `SearchRequest` type name. Every migrated
    search call site has a matching open item in the `MIGRATION_REPORT.md` open-items section. A
@@ -323,8 +282,11 @@ Check these pitfalls as well:
 After every manual BPMN edit, lint the converted copy with the Camunda compatibility ruleset for the
 target version. See the linting section in `references/model-migration-approaches.md`.
 
-1. A converted copy with the selected `--prefix` exists for every in-scope diagram, unless the run
-   is analyze-only. The default `--prefix` is `converted-c8-`.
+1. A converted model file exists for every in-scope diagram, unless the run is analyze-only:
+   - For M1 and E1, use a converted copy with the selected `--prefix`. The default is
+     `converted-c8-`.
+   - For M2, use the converted copy with the actual filename recorded after the rewrite.
+   - For M3, use the downloaded converted file paired with its original.
 2. Every original file is intact and was never overwritten.
 3. Treat every resource directory that the build configures for inclusion in a Maven or Gradle
    application artifact as a packaged resource directory. Include `src/main/resources` when it

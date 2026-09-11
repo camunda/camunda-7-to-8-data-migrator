@@ -364,9 +364,11 @@ another user question.
 
 ## Deployment and validation
 
-Deployment binding requires the converted BPMN and accepted `.form` file in the same deployment. Use
-explicit accepted resource paths derived from each recorded final form path when possible. If a
-recursive pattern is necessary, derive it from the recorded final paths, including any selected
+Deployment binding requires the converted BPMN and accepted `.form` file in the same deployment.
+Normalize each recorded final project-relative form path to `/` separators and remove its packaged
+resource-directory prefix, such as `src/main/resources/`, before deriving a classpath path. Use
+explicit accepted resource paths derived from each normalized final form path when possible. If a
+recursive pattern is necessary, derive it from the normalized final paths, including any selected
 prefix, and use it only when it cannot include drafts or declined forms.
 
 Before reporting a form complete:
