@@ -15,12 +15,15 @@ import io.camunda.client.api.command.ClientException;
 import io.camunda.client.api.command.ClientStatusException;
 import io.camunda.client.api.command.ProblemException;
 import io.camunda.client.api.search.response.ProcessInstance;
+import io.camunda.client.api.search.response.Tenant;
+import io.camunda.client.api.search.response.TenantUser;
 import io.camunda.client.api.search.response.Variable;
 import io.camunda.migration.data.RuntimeMigrator;
 import io.camunda.migration.data.impl.clients.DbClient;
 import io.camunda.migration.data.qa.AbstractMigratorTest;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.awaitility.Awaitility;
@@ -79,7 +82,7 @@ public abstract class RuntimeMigrationAbstractTest extends AbstractMigratorTest 
     repositoryService.createDeploymentQuery().list().forEach(d -> repositoryService.deleteDeployment(d.getId(), true));
 
     // C8
-    List<ProcessInstance> items = camundaClient.newProcessInstanceSearchRequest().execute().items();
+    List<ProcessInstance> items = findAllProcessInstances();
     for (ProcessInstance i : items) {
       try {
         camundaClient.newDeleteResourceCommand(i.getProcessInstanceKey()).execute();
@@ -90,10 +93,48 @@ public abstract class RuntimeMigrationAbstractTest extends AbstractMigratorTest 
         // Ignore NOT_FOUND errors as the instance might have been deleted already
       }
     }
+    Awaitility.await().ignoreException(ClientException.class).untilAsserted(() ->
+        assertThat(camundaClient.newProcessInstanceSearchRequest().execute().items()).isEmpty());
 
     // Migrator
     dbClient.deleteAllMappings();
     runtimeMigrator.setMode(MIGRATE);
+  }
+
+  protected List<ProcessInstance> findAllProcessInstances() {
+    final List<ProcessInstance> items = new ArrayList<>();
+    String cursor = null;
+
+    while (true) {
+      final var request = camundaClient.newProcessInstanceSearchRequest();
+      if (cursor != null) {
+        final String pageCursor = cursor;
+        request.page(page -> page.after(pageCursor));
+      }
+
+      final var response = request.execute();
+      items.addAll(response.items());
+
+      final String nextCursor = response.page().endCursor();
+      if (response.items().isEmpty() || nextCursor == null || nextCursor.equals(cursor)) {
+        return items;
+      }
+      cursor = nextCursor;
+    }
+  }
+
+  protected void awaitTenantVisible(String tenantId) {
+    Awaitility.await().ignoreException(ClientException.class).untilAsserted(() ->
+        assertThat(camundaClient.newTenantsSearchRequest().filter(filter -> filter.tenantId(tenantId)).execute().items())
+            .extracting(Tenant::getTenantId)
+            .contains(tenantId));
+  }
+
+  protected void awaitUserTenantMembership(String username, String tenantId) {
+    Awaitility.await().ignoreException(ClientException.class).untilAsserted(() ->
+        assertThat(camundaClient.newUsersByTenantSearchRequest(tenantId).execute().items())
+            .extracting(TenantUser::getUsername)
+            .contains(username));
   }
 
   protected Optional<Variable> getVariableByScope(Long processInstanceKey, Long scopeKey, String variableName) {
