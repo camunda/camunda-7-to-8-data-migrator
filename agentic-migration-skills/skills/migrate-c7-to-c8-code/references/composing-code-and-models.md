@@ -131,31 +131,34 @@ Where the selected code approach can mutate application code, ask via AskUserQue
 wire deployment of converted files in application code. If the selected code approach is assessment
 only, then do not ask this question and preserve existing deployment wiring.
 
-- **Yes, add/update deployment for converted files** (use `@Deployment(resources = ...)` for Spring Boot applications):
-  - Where the application is non-Spring, use explicit `CamundaClient` deployment commands.
+- **Yes, add/update deployment for converted files**:
+  - Branch on the deployment mechanism, not the application framework.
+  - Where deployment uses Spring Boot `@Deployment`, use `@Deployment(resources = ...)`.
+  - Where deployment uses an explicit `CamundaClient` command, use that command's resource source.
   - Apply the inventory, coverage, and co-location rules to the explicit resource list.
 
     Use this decision table before editing deployment declarations:
 
-    | Application path | Deployment inventory | Resource authority | Required action |
+    | Deployment mechanism | Deployment inventory | Resource authority | Required action |
     |---|---|---|---|
     | Spring Boot `@Deployment` | Non-empty | The selected build's application-artifact resource mapping | Resolve packaged classpath paths, then apply the Spring Boot pattern and coverage rules. |
     | Spring Boot `@Deployment` | Empty | Existing deployment declaration | Preserve existing deployment wiring. |
-    | Non-Spring `CamundaClient` | Non-empty | The source used by the explicit deployment command | Supply each inventory entry explicitly, then apply the command coverage and co-location rules. |
-    | Non-Spring `CamundaClient` | Empty | Existing deployment command | Preserve existing deployment wiring. |
+    | Explicit `CamundaClient` command | Non-empty | The source used by the explicit deployment command | Supply each inventory entry explicitly, then apply the command coverage and co-location rules. |
+    | Explicit `CamundaClient` command | Empty | Existing deployment command | Preserve existing deployment wiring. |
 
     Apply only the row that matches the application and inventory.
-  - Where the application uses Spring Boot `@Deployment`, treat every resource directory that the
+  - Where deployment uses Spring Boot `@Deployment`, treat every resource directory that the
     selected build configures for inclusion in its application artifact as a packaged resource
     directory.
-  - Where the application uses Spring Boot `@Deployment`, include `src/main/resources` when it
+  - Where deployment uses Spring Boot `@Deployment`, include `src/main/resources` when it
     exists.
-  - Where the application uses non-Spring `CamundaClient` commands, validate each inventory entry
+  - Where deployment uses an explicit `CamundaClient` command, validate each inventory entry
     against the source used by the explicit deployment command instead of requiring a packaged
     classpath resource.
   - Where the selected model approach is M1 or E1, record BPMN and DMN converted copy paths from `Created ...` lines.
   - Where the selected model approach is M2, record each converted copy path after writing the converted copy.
-  - Where the selected model approach is M3, record each downloaded converted copy path after pairing it with its original.
+  - Where the selected model approach is M3, record each validated hosted converted copy path after
+    pairing it with its original.
   - Filter the recorded converted paths to BPMN and DMN files before building the model deployment inventory.
   - Exclude findings reports and other non-deployable artifacts from the deployment inventory.
   - Add every form with a recorded `bindingType=deployment`, including relinked forms, to the deployment inventory.
@@ -173,11 +176,11 @@ only, then do not ask this question and preserve existing deployment wiring.
   - Record each added pattern with `migration-managed=true`.
   - Before a later run applies the preservation rule, reload the current pattern rows and markers
     from `MIGRATION_REPORT.md`.
-  - Where the application uses Spring Boot `@Deployment`, confirm that each inventory entry is
+  - Where deployment uses Spring Boot `@Deployment`, confirm that each inventory entry is
     under a packaged resource directory before adding its deployment pattern.
-  - Where the application uses Spring Boot `@Deployment`, prefer packaging the existing directory
+  - Where deployment uses Spring Boot `@Deployment`, prefer packaging the existing directory
     for each inventory entry when it contains only inventory entries. (SHOULD)
-  - If the application uses Spring Boot `@Deployment` and an inventory entry is outside a packaged
+  - If deployment uses Spring Boot `@Deployment` and an inventory entry is outside a packaged
     resource directory, then copy only the recorded converted file and associated deployment-bound
     forms to a dedicated packaged resource directory, or configure precise build includes for those
     files.
@@ -186,41 +189,45 @@ only, then do not ask this question and preserve existing deployment wiring.
   - Never overwrite a destination resource during this copy.
   - Keep each original source model unchanged in its original location.
   - Update every recorded path after copying a resource.
-  - Where the application uses Spring Boot `@Deployment`, add a deployment pattern only when its
+  - Where deployment uses Spring Boot `@Deployment`, add a deployment pattern only when its
     resource type has an inventory entry under a packaged resource directory.
-  - Where the application uses Spring Boot `@Deployment`, add or update a migration-managed
+  - Where deployment uses Spring Boot `@Deployment`, add or update a migration-managed
     deployment pattern only when its packaged-classpath matches are limited to inventory entries.
-  - Where the application uses Spring Boot `@Deployment`, confirm that every inventory entry
+  - Where deployment uses Spring Boot `@Deployment`, confirm that every inventory entry
     matches at least one effective deployment pattern, including preserved patterns.
-  - Where the application uses non-Spring `CamundaClient` commands, confirm that every inventory
+  - Where deployment uses an explicit `CamundaClient` command, confirm that every inventory
     entry is supplied by an explicit deployment command.
-  - Where the application uses Spring Boot `@Deployment`, confirm that every migration-managed
-    deployment pattern matches at least one inventory entry.
+  - Where deployment uses Spring Boot `@Deployment`, confirm that every effective deployment
+    pattern matches at least one packaged classpath resource.
+  - Where deployment uses Spring Boot `@Deployment` and the inventory is non-empty, confirm that
+    every migration-managed deployment pattern matches at least one inventory entry.
   - Validate that each deployment-bound form and its owning converted BPMN share the same deployment declaration or invocation.
-  - Where the application uses Spring Boot `@Deployment`, normalize each recorded project-relative
+  - Where deployment uses Spring Boot `@Deployment`, normalize each recorded project-relative
     path to `/` separators.
-  - Where the application uses Spring Boot `@Deployment`, resolve the packaged classpath-relative
+  - Where deployment uses Spring Boot `@Deployment`, resolve the packaged classpath-relative
     path from the selected build's application-artifact resource mapping.
-  - Where the application uses Spring Boot `@Deployment` and the mapping strips a source
+  - Where deployment uses Spring Boot `@Deployment` and the mapping strips a source
     resource-directory prefix, such as `src/main/resources/`, remove that prefix before deriving a
     classpath pattern.
-  - Where the application uses Spring Boot `@Deployment` and the mapping adds a target prefix,
+  - Where deployment uses Spring Boot `@Deployment` and the mapping adds a target prefix,
     retain that prefix before deriving a classpath pattern.
-  - Where the application uses Spring Boot `@Deployment`, derive each deployment pattern from the
+  - Where deployment uses Spring Boot `@Deployment`, derive each deployment pattern from the
     normalized converted paths or the selected `--prefix`.
-  - Where the application uses Spring Boot `@Deployment`, derive each model pattern from its
+  - Where deployment uses Spring Boot `@Deployment`, derive each model pattern from its
     recorded filename suffix.
-  - Where the application uses Spring Boot `@Deployment` and the recorded paths use the default
+  - Where deployment uses Spring Boot `@Deployment` and the recorded paths use the default
     `converted-c8-` prefix and the `.bpmn` suffix, use
-    `classpath*:**/converted-c8-*.bpmn` only after confirming that every packaged match is a
-    recorded inventory entry.
-  - Where the application uses Spring Boot `@Deployment` and the recorded paths use full suffixes
+    `classpath*:**/converted-c8-*.bpmn` only after scanning every runtime classpath root, including
+    dependency JARs, and confirming that every match is a recorded inventory entry.
+  - Prefer an application-specific classpath path or explicit paths when any dependency match
+    exists or the complete runtime classpath cannot be verified.
+  - Where deployment uses Spring Boot `@Deployment` and the recorded paths use full suffixes
     such as `.bpmn20.xml` or `.dmn11.xml`, include those suffixes in the patterns.
-  - Where the application uses Spring Boot `@Deployment` and a packaged converted DMN file is
+  - Where deployment uses Spring Boot `@Deployment` and a packaged converted DMN file is
     recorded, add a DMN pattern.
-  - Where the application uses Spring Boot `@Deployment`, derive each form pattern from its
+  - Where deployment uses Spring Boot `@Deployment`, derive each form pattern from its
     normalized recorded deployment-bound form path, including relinked forms.
-  - Where the application uses Spring Boot `@Deployment` and a form with a recorded
+  - Where deployment uses Spring Boot `@Deployment` and a form with a recorded
     `bindingType=deployment` is packaged, add the `.form` pattern.
   - If the Spring Boot deployment inventory is non-empty, then migration-managed patterns must not
     target original diagrams, draft forms, declined forms, or resource types with no migration

@@ -33,8 +33,9 @@ DMN file already present as a stale converted-copy candidate, including files re
 
 For M3, choose a new collision-safe download destination or move existing converted files before
 downloading. Do not allow the browser to overwrite an existing file. Scan the destination before
-pairing downloaded files with originals. Treat every file present before this run as stale and do
-not use it as a converted copy. Record only files created during this run.
+pairing downloaded files with originals. Treat files already present as imported hosted outputs.
+Use an imported output only after the imported-report version and exact original/converted pairing
+checks in step 5. Record only converted files from pairs that pass those checks.
 
 A packaged resource directory is any resource directory that the selected build includes in its
 application artifact. Include `src/main/resources` when it exists.
@@ -54,22 +55,26 @@ If anything else is found, warn through AskUserQuestion before converting:
 > when the unsuffixed name already exists. Relocate those reports to
 > `.camunda-migration/reports/` when that directory is not packaged, or to another explicitly
 > non-packaged directory, before validation. For M2, produce the findings summary directly and do
-> not treat an existing converted copy as current. For M3, use only files downloaded and paired
-> during this run. Treat earlier downloads as stale. Only this run's own outputs are used. For M1
-> and E1, diagrams whose target with the selected prefix already exists are skipped with an error.
-> For a full re-conversion, cancel and delete or move the old files first. For M2, never overwrite
-> an existing converted copy. Choose a collision-safe filename and record it.
+> not treat an existing converted copy as current. For M3, treat existing hosted files as imported
+> candidates. Use them only after the imported-report version and exact original/converted pairing
+> checks in step 5. Record only validated pairs. For M1 and E1, diagrams whose target with the
+> selected prefix already exists are skipped with an error. For a full re-conversion, cancel and
+> delete or move the old files first. For M2, never overwrite an existing converted copy. Choose a
+> collision-safe filename and record it.
 
 For M1 and E1, record only converted copies created during the current run. For M2, record only
-converted copies created during the current non-analyze-only run. For M3, record only files
-downloaded and paired during the current run.
+converted copies created during the current non-analyze-only run. For M3, record only converted
+files from imported pairs that pass the version and pairing checks.
 
 - **OK, proceed** — when no findings report remains under a packaged resource directory:
   - For M1 and E1, run without `-o`/`--override`. Old files stay untouched.
   - For M2, use a collision-safe filename and never overwrite an existing converted copy.
 - **Cancel** — stop so the user can back up or clean up first.
 
-For local approaches (M1, M2, E1), never consume a pre-existing report or converted file found on disk. It may come from an interrupted attempt or a different `--platform-version`. The findings flow (M1 steps 3-5) works only from this session's own run. M3 is the exception: hosted-converter outputs are allowed only after the imported-report version and pairing checks in step 5.
+For local approaches (M1, M2, E1), never consume a pre-existing report or converted file found on
+disk. It may come from an interrupted attempt or a different `--platform-version`. The findings
+flow (M1 steps 3-5) works only from this session's own run. For M3, consume hosted-converter
+outputs only after the imported-report version and pairing checks in step 5.
 
 ## Approach M1 - Diagram Converter CLI + AI (recommended)
 
