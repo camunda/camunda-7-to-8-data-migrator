@@ -153,10 +153,10 @@ only, then do not ask this question and preserve existing deployment wiring.
   - Where the application uses non-Spring `CamundaClient` commands, validate each inventory entry
     against the source used by the explicit deployment command instead of requiring a packaged
     classpath resource.
-  - Where the selected model approach is M1 or E1, record converted copy paths from `Created ...` lines.
+  - Where the selected model approach is M1 or E1, record BPMN and DMN converted copy paths from `Created ...` lines.
   - Where the selected model approach is M2, record each converted copy path after writing the converted copy.
   - Where the selected model approach is M3, record each downloaded converted copy path after pairing it with its original.
-  - Build the deployment inventory from those recorded converted copy paths.
+  - Filter the recorded converted paths to BPMN and DMN files before building the model deployment inventory.
   - Exclude findings reports and other non-deployable artifacts from the deployment inventory.
   - Add every form with a recorded `bindingType=deployment`, including relinked forms, to the deployment inventory.
   - Record each deployment-bound form's final project-relative path in the deployment inventory.

@@ -18,7 +18,7 @@ Use `.camunda-migration/m2/` for M2 converted copies. Record every M2 converted-
 
 Before any approach (M1, M2, M3, E1), scan for outputs of previous migration attempts:
 
-- M1/E1 converted copies using the selected `--prefix`
+- M1/E1 converted copies from previous runs, regardless of the selected `--prefix`
 - M2 converted copies under `.camunda-migration/m2/` and every path recorded in
   `MIGRATION_REPORT.md`
 - M3 downloaded converted files
@@ -31,8 +31,10 @@ For M2, scan the complete `.camunda-migration/m2/` directory before conversion. 
 DMN file already present as a stale converted-copy candidate, including files recorded in an older
 `MIGRATION_REPORT.md`. Do not use a pre-existing M2 file in the current inventory.
 
-For M3, scan downloaded converted files before pairing them with originals. Treat every file present
-before this run as stale and do not use it as a converted copy.
+For M3, choose a new collision-safe download destination or move existing converted files before
+downloading. Do not allow the browser to overwrite an existing file. Scan the destination before
+pairing downloaded files with originals. Treat every file present before this run as stale and do
+not use it as a converted copy. Record only files created during this run.
 
 A packaged resource directory is any resource directory that the selected build includes in its
 application artifact. Include `src/main/resources` when it exists.
