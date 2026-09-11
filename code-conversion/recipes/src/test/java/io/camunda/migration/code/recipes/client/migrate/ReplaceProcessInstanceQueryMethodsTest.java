@@ -468,6 +468,45 @@ public class HandleProcessInstanceQueryMethodsTestClass {
   }
 
   @Test
+  void doesNotRewriteCountsForPreconfiguredProcessInstanceQuery() {
+    rewriteRun(
+        spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
+        java(
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.camunda.bpm.engine.runtime.ProcessInstanceQuery;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class PreconfiguredProcessInstanceQueryTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public int countPreconfiguredQuery(ProcessInstanceQuery query) {
+                    engine.getRuntimeService().createProcessInstanceQuery();
+                    return query.list().size();
+                }
+
+                public long streamCountPreconfiguredQuery(ProcessInstanceQuery query) {
+                    return query.list().stream().count();
+                }
+
+                public long directCountPreconfiguredQuery(ProcessInstanceQuery query) {
+                    return query.count();
+                }
+            }
+            """));
+  }
+
+  @Test
   void doesNotRewriteCountsWithUnsupportedProcessInstanceFilters() {
     rewriteRun(
             spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),

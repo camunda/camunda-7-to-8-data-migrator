@@ -461,6 +461,11 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
       ReplacementUtils.BuilderReplacementSpec spec,
       J.MethodInvocation queryTerminal,
       Map<String, Expression> collectedArgs) {
+    if (spec.methodNamesToExtractParameters().isEmpty()
+        && !hasCreateProcessInstanceQueryInReceiverChain(queryTerminal)) {
+      return false;
+    }
+
     Expression current = queryTerminal;
     while (current instanceof J.MethodInvocation invocation) {
       if (!UNFILTERED_QUERY_METHODS.contains(invocation.getSimpleName())
@@ -470,6 +475,17 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
       current = invocation.getSelect();
     }
     return true;
+  }
+
+  private boolean hasCreateProcessInstanceQueryInReceiverChain(J.MethodInvocation invocation) {
+    Expression current = invocation.getSelect();
+    while (current instanceof J.MethodInvocation methodInvocation) {
+      if (methodInvocation.getSimpleName().equals("createProcessInstanceQuery")) {
+        return true;
+      }
+      current = methodInvocation.getSelect();
+    }
+    return false;
   }
 
   @Override
