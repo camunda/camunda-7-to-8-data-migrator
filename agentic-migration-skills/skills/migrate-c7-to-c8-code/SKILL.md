@@ -244,10 +244,16 @@ Each item below is a check to run and a condition that must hold at exit. Record
    `application.properties` or `.yaml`.
 8. **Tests** — run `mvn test` or the Gradle test task. Every test passes, or each failure is
    documented with an explanation.
-9. **Deployment resources** — where application code contains `@Deployment(resources = ...)`, confirm
-   that every recorded converted file and accepted form is matched by at least one deployment
-   pattern. Confirm that every deployment pattern matches at least one recorded converted file or
-   accepted form. Remove patterns for resource types with no recorded output.
+9. **Deployment resources** — where application code contains `@Deployment(resources = ...)`, treat
+   every resource directory that the build configures for inclusion in a Maven or Gradle
+   application artifact as a packaged resource directory. Include `src/main/resources` when it
+   exists. Confirm that every recorded converted file and accepted form is under a packaged
+   resource directory and is available on the application classpath before validating deployment
+   patterns. Move or package each accepted resource outside a packaged resource directory before
+   adding its deployment pattern. Confirm that every recorded converted file and accepted form is
+   matched by at least one deployment pattern. Confirm that every deployment pattern matches at
+   least one recorded converted file or accepted form under a packaged resource directory. Remove
+   patterns for resource types with no recorded output.
 10. **Eventually-consistent queries** — search for every C8 search-request factory method listed in
    `references/code-transform-checklist.md`, not only the `SearchRequest` type name. Every migrated
    search call site has a matching open item in the `MIGRATION_REPORT.md` open-items section. A
