@@ -11,16 +11,24 @@ Use the assessment model scan before choosing a path.
 
 Before conversion, namespace-parse the exact original BPMN and inventory every C7 form. Route Generated Task Forms (`camunda:formData`/`formField` and direct `camunda:formProperty`) to `form-migration.md`. Route referenced forms (`camunda:formKey`, `camunda:formRef`) and user tasks or process-level none start events with no form at all to `form-reference-migration.md`. Keep source path, process id, and owner id/type so each definition can be paired with a fresh converted copy. The converter strips generated-form metadata and copies form-key references verbatim, so post-conversion discovery is too late or ambiguous.
 
+Use `.camunda-migration/m2/` for M2 converted copies. Record every M2 converted-copy path in
+`MIGRATION_REPORT.md`.
+
 ## Pre-flight: Leftover Artifacts
 
 Before any local approach (M1, M2, E1), scan for outputs of previous migration attempts:
 
-- M1/E1 converted copies using the selected `--prefix`, M2 converted copies with their recorded
-  filenames, and M3 downloaded converted files
+- M1/E1 converted copies using the selected `--prefix`
+- M2 converted copies under `.camunda-migration/m2/` and every path recorded in
+  `MIGRATION_REPORT.md`
+- M3 downloaded converted files
 - accepted generated forms beside converted BPMN, and drafts under `.camunda-migration/generated-form-drafts/`
 - `analysis-results.<ext>` and `analysis-results (n).<ext>` findings reports, where `n` is a positive integer and `<ext>` is `.csv`, `.json`, `.md`, or `.xlsx`
 
 Never flag the `.camunda-migration/` CLI JAR — an intentional cache, not a leftover.
+
+For M2, scan the complete `.camunda-migration/m2/` directory before conversion. Treat every
+unrecorded BPMN or DMN file as a stale converted-copy candidate and include it in the user warning.
 
 A packaged resource directory is any resource directory that Maven or Gradle includes in an application artifact. Include `src/main/resources` when it exists.
 
@@ -386,8 +394,8 @@ Treat a job type that differs from this table as an intentional deviation only w
 job type, and the confirmed rationale. Record the same decision for a custom or shared job type that
 has no source binding in the table. Do not replace a method-specific type with the bean-only type.
 
-For each in-scope diagram, produce a new converted copy with a recorded filename (never edit the
-original), applying:
+For each in-scope diagram, produce a new converted copy under `.camunda-migration/m2/` with a
+recorded filename (never edit the original), applying:
 
 - `camunda:` namespace/extension elements to `zeebe:` equivalents (task definitions/job types, IO mappings, headers)
 - remove C7 generated-form elements from the converted copy after their source inventory is captured. `form-migration.md` creates separate standard `.form` resources.

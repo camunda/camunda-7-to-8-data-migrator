@@ -366,11 +366,13 @@ another user question.
 
 Deployment binding requires the converted BPMN and accepted `.form` file in the same deployment.
 Inspect Maven resource configuration or Gradle resource-destination settings for each accepted form.
-Record the resulting packaged classpath-relative path. Normalize that path to `/` separators and
-remove the source resource-directory prefix only when the build mapping preserves that prefix. Use
-explicit accepted resource paths derived from each normalized packaged path when possible. If a
-recursive pattern is necessary, derive it from the normalized packaged paths, including any
-selected prefix, and use it only when it cannot include drafts or declined forms.
+Resolve the packaged classpath-relative path from that mapping. Normalize the resolved path to `/`
+separators. Remove a source resource-directory prefix, such as `src/main/resources/`, only when
+the mapping strips it. Retain any target prefix that the mapping adds. Use explicit accepted
+resource paths derived from each
+normalized packaged path when possible. If a recursive pattern is necessary, derive it from the
+normalized packaged paths, including any selected prefix, and use it only when it cannot include
+drafts or declined forms.
 
 Before reporting a form complete:
 

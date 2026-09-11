@@ -283,7 +283,10 @@ Check these pitfalls as well:
 After every manual BPMN edit, lint the converted copy with the Camunda compatibility ruleset for the
 target version. See the linting section in `references/model-migration-approaches.md`.
 
-1. A converted copy exists for every in-scope diagram, unless the run is analyze-only:
+1. Build the converted-copy inventory from paths recorded during the current run. Never infer a
+   converted copy from filesystem existence or a filename prefix. If M1 or E1 reports `File already
+   exists`, treat the diagram as missing a converted copy until the current run records a fresh path.
+   A converted copy exists for every in-scope diagram, unless the run is analyze-only:
    - For M1 and E1, use a converted copy with the selected `--prefix`. The default is
      `converted-c8-`.
    - For M2, use the converted copy with the actual filename recorded after the rewrite.

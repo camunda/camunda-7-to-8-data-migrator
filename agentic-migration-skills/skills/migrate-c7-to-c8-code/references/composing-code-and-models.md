@@ -150,8 +150,11 @@ only, then do not ask this question and preserve existing deployment wiring.
   - Add every form with a recorded `bindingType=deployment`, including relinked forms, to the deployment inventory.
   - Record each deployment-bound form's final project-relative path in the deployment inventory.
   - Record each deployment-bound form's owning converted BPMN path.
-  - Record existing deployment resources before editing.
-  - Mark each added or updated deployment pattern as migration-managed.
+  - Record existing deployment resources in `MIGRATION_REPORT.md` before editing.
+  - Record each added or updated deployment pattern and its `migration-managed` marker in
+    `MIGRATION_REPORT.md`.
+  - Before a later run applies the preservation rule, reload deployment-pattern provenance from
+    `MIGRATION_REPORT.md`.
   - Where the application uses Spring Boot `@Deployment`, confirm that each inventory entry is
     under a packaged resource directory before adding its deployment pattern.
   - Where the application uses Spring Boot `@Deployment`, prefer packaging the existing directory
@@ -174,21 +177,30 @@ only, then do not ask this question and preserve existing deployment wiring.
     deployment pattern matches at least one inventory entry.
   - Validate that each deployment-bound form and its owning converted BPMN share the same deployment declaration or invocation.
   - Where the application uses Spring Boot `@Deployment`, normalize each recorded project-relative
-    path to `/` separators and remove its packaged resource-directory prefix, such as
-    `src/main/resources/`, before deriving a classpath pattern.
+    path to `/` separators.
+  - Where the application uses Spring Boot `@Deployment`, resolve the packaged classpath-relative
+    path from the actual Maven or Gradle resource mapping.
+  - Where the application uses Spring Boot `@Deployment` and the mapping strips a source
+    resource-directory prefix, such as `src/main/resources/`, remove that prefix before deriving a
+    classpath pattern.
+  - Where the application uses Spring Boot `@Deployment` and the mapping adds a target prefix,
+    retain that prefix before deriving a classpath pattern.
   - Where the application uses Spring Boot `@Deployment`, derive each deployment pattern from the
     normalized converted paths or the selected `--prefix`.
   - Where the application uses Spring Boot `@Deployment`, derive each model pattern from its
     recorded filename suffix.
-  - If the recorded paths use the default `converted-c8-` prefix and the `.bpmn` suffix, then use
+  - Where the application uses Spring Boot `@Deployment` and the recorded paths use the default
+    `converted-c8-` prefix and the `.bpmn` suffix, use
     `classpath*:**/converted-c8-*.bpmn` only after confirming that every packaged match is a
     recorded inventory entry.
-  - If the recorded paths use full suffixes such as `.bpmn20.xml` or `.dmn11.xml`, then include
-    those suffixes in the patterns.
-  - If a packaged converted DMN file is recorded, then add a DMN pattern.
+  - Where the application uses Spring Boot `@Deployment` and the recorded paths use full suffixes
+    such as `.bpmn20.xml` or `.dmn11.xml`, include those suffixes in the patterns.
+  - Where the application uses Spring Boot `@Deployment` and a packaged converted DMN file is
+    recorded, add a DMN pattern.
   - Where the application uses Spring Boot `@Deployment`, derive each form pattern from its
     normalized recorded deployment-bound form path, including relinked forms.
-  - If a form with a recorded `bindingType=deployment` is packaged, then add the `.form` pattern.
+  - Where the application uses Spring Boot `@Deployment` and a form with a recorded
+    `bindingType=deployment` is packaged, add the `.form` pattern.
   - If the Spring Boot deployment inventory is non-empty, then migration-managed patterns must not
     target original diagrams, draft forms, declined forms, or resource types with no migration
     inventory entry.
