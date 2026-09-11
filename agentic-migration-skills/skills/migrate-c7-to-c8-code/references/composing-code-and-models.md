@@ -134,8 +134,19 @@ only, then do not ask this question and preserve existing deployment wiring.
 - **Yes, add/update deployment for converted files** (use `@Deployment(resources = ...)` for Spring Boot applications):
   - Where the application is non-Spring, use explicit `CamundaClient` deployment commands.
   - Apply the inventory, coverage, and co-location rules to the explicit resource list.
+
+    Use this decision table before editing deployment declarations:
+
+    | Application path | Deployment inventory | Resource authority | Required action |
+    |---|---|---|---|
+    | Spring Boot `@Deployment` | Non-empty | The selected build's application-artifact resource mapping | Resolve packaged classpath paths, then apply the Spring Boot pattern and coverage rules. |
+    | Spring Boot `@Deployment` | Empty | Existing deployment declaration | Preserve existing deployment wiring. |
+    | Non-Spring `CamundaClient` | Non-empty | The source used by the explicit deployment command | Supply each inventory entry explicitly, then apply the command coverage and co-location rules. |
+    | Non-Spring `CamundaClient` | Empty | Existing deployment command | Preserve existing deployment wiring. |
+
+    Apply only the row that matches the application and inventory.
   - Where the application uses Spring Boot `@Deployment`, treat every resource directory that the
-    build configures for inclusion in a Maven or Gradle application artifact as a packaged resource
+    selected build configures for inclusion in its application artifact as a packaged resource
     directory.
   - Where the application uses Spring Boot `@Deployment`, include `src/main/resources` when it
     exists.
@@ -151,12 +162,17 @@ only, then do not ask this question and preserve existing deployment wiring.
   - Record each deployment-bound form's final project-relative path in the deployment inventory.
   - Record each deployment-bound form's owning converted BPMN path.
   - Record every existing deployment pattern in `MIGRATION_REPORT.md` before editing.
-  - Include its exact project-relative pattern and owning deployment declaration.
+  - Store one current report row per pattern with its owning declaration, exact pattern, source
+    path, and `migration-managed` marker.
   - Preserve a prior `migration-managed` marker for an existing pattern.
   - If no prior marker exists, record `migration-managed=false`.
-  - Record each added or updated deployment pattern with `migration-managed=true`.
-  - Before a later run applies the preservation rule, reload every pattern record and marker from
-    `MIGRATION_REPORT.md`.
+  - Never edit an existing pattern recorded as `migration-managed=false`. Add a distinct pattern
+    with `migration-managed=true` when migration wiring needs another match.
+  - When updating a pattern recorded as `migration-managed=true`, keep the marker true and replace
+    its current report row instead of creating conflicting current rows.
+  - Record each added pattern with `migration-managed=true`.
+  - Before a later run applies the preservation rule, reload the current pattern rows and markers
+    from `MIGRATION_REPORT.md`.
   - Where the application uses Spring Boot `@Deployment`, confirm that each inventory entry is
     under a packaged resource directory before adding its deployment pattern.
   - Where the application uses Spring Boot `@Deployment`, prefer packaging the existing directory
@@ -184,7 +200,7 @@ only, then do not ask this question and preserve existing deployment wiring.
   - Where the application uses Spring Boot `@Deployment`, normalize each recorded project-relative
     path to `/` separators.
   - Where the application uses Spring Boot `@Deployment`, resolve the packaged classpath-relative
-    path from the actual Maven or Gradle resource mapping.
+    path from the selected build's application-artifact resource mapping.
   - Where the application uses Spring Boot `@Deployment` and the mapping strips a source
     resource-directory prefix, such as `src/main/resources/`, remove that prefix before deriving a
     classpath pattern.

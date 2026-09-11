@@ -365,7 +365,8 @@ another user question.
 ## Deployment and validation
 
 Deployment binding requires the converted BPMN and accepted `.form` file in the same deployment.
-Inspect Maven resource configuration or Gradle resource-destination settings for each accepted form.
+Inspect the selected build's application-artifact resource mapping for each accepted form, using
+Maven resource configuration or Gradle resource-destination settings as examples.
 Resolve the packaged classpath-relative path from that mapping. Normalize the resolved path to `/`
 separators. Remove a source resource-directory prefix, such as `src/main/resources/`, only when
 the mapping strips it. Retain any target prefix that the mapping adds. Use explicit accepted

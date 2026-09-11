@@ -34,7 +34,8 @@ DMN file already present as a stale converted-copy candidate, including files re
 For M3, scan downloaded converted files before pairing them with originals. Treat every file present
 before this run as stale and do not use it as a converted copy.
 
-A packaged resource directory is any resource directory that Maven or Gradle includes in an application artifact. Include `src/main/resources` when it exists.
+A packaged resource directory is any resource directory that the selected build includes in its
+application artifact. Include `src/main/resources` when it exists.
 
 Treat report files already under `.camunda-migration/reports/` as intentional non-packaged artifacts
 only after confirming that the build does not package that directory. If the build packages that
@@ -46,7 +47,20 @@ If a findings report exists under a packaged resource directory, stop before con
 
 If anything else is found, warn through AskUserQuestion before converting:
 
-> Found outputs from a previous migration attempt: `<list>`. This run will not overwrite them. Fresh findings reports are written beside the source. The CLI adds a ` (n)` suffix only when the unsuffixed name already exists. Relocate fresh findings reports to `.camunda-migration/reports/` when that directory is not packaged, or to another explicitly non-packaged directory, before validation. Only this run's own outputs are used — stale files are never consumed. For M1 and E1, diagrams whose target with the selected prefix already exists are skipped with an error, so for a full re-conversion, cancel and delete or move the old files first. For M2, never overwrite an existing converted copy. Choose a collision-safe filename and record it.
+> Found outputs from a previous migration attempt: `<list>`. This run will not overwrite them. For
+> M1 and E1, fresh findings reports are written beside the input and the CLI adds a ` (n)` suffix
+> when the unsuffixed name already exists. Relocate those reports to
+> `.camunda-migration/reports/` when that directory is not packaged, or to another explicitly
+> non-packaged directory, before validation. For M2, produce the findings summary directly and do
+> not treat an existing converted copy as current. For M3, use only files downloaded and paired
+> during this run. Treat earlier downloads as stale. Only this run's own outputs are used. For M1
+> and E1, diagrams whose target with the selected prefix already exists are skipped with an error.
+> For a full re-conversion, cancel and delete or move the old files first. For M2, never overwrite
+> an existing converted copy. Choose a collision-safe filename and record it.
+
+For M1 and E1, record only converted copies created during the current run. For M2, record only
+converted copies created during the current non-analyze-only run. For M3, record only files
+downloaded and paired during the current run.
 
 - **OK, proceed** — when no findings report remains under a packaged resource directory:
   - For M1 and E1, run without `-o`/`--override`. Old files stay untouched.
@@ -105,7 +119,7 @@ Capture the exact paths of everything the run produces from the `Created ...` li
 ### 3a. Relocate findings reports
 
 The CLI writes converted copies and findings reports beside the input. A report under a packaged
-resource directory is included in a Maven or Gradle application artifact.
+resource directory is included in the application artifact produced by the selected build.
 
 After the CLI exits, create `.camunda-migration/reports/` in the project root when the build does
 not package that directory. Otherwise, create another explicitly non-packaged reports directory in
@@ -398,8 +412,8 @@ Treat a job type that differs from this table as an intentional deviation only w
 job type, and the confirmed rationale. Record the same decision for a custom or shared job type that
 has no source binding in the table. Do not replace a method-specific type with the bean-only type.
 
-For each in-scope diagram, produce a new converted copy under `.camunda-migration/m2/` with a
-recorded filename (never edit the original), applying:
+When the selected run is not analyze-only, produce a new converted copy under
+`.camunda-migration/m2/` with a recorded filename. Never edit the original. Apply:
 
 - `camunda:` namespace/extension elements to `zeebe:` equivalents (task definitions/job types, IO mappings, headers)
 - remove C7 generated-form elements from the converted copy after their source inventory is captured. `form-migration.md` creates separate standard `.form` resources.
@@ -410,7 +424,11 @@ recorded filename (never edit the original), applying:
 - Conditional events are native only on 8.9+. Otherwise flag them.
 - DMN: update decision/definition namespaces and expression language as needed
 
-Emit a findings summary mirroring CLI severities (WARNING/TASK/REVIEW/INFO), and ask for human review. Lint every rewritten BPMN file per the linting section below. After the converted copy exists, run `form-migration.md` and `form-reference-migration.md` against the original/converted pair.
+When the selected run is not analyze-only, emit a findings summary mirroring CLI severities
+(WARNING/TASK/REVIEW/INFO), and ask for human review. Lint every rewritten BPMN file per the
+linting section below. After the converted copy exists, run `form-migration.md` and
+`form-reference-migration.md` against the original/converted pair. When the selected run is
+analyze-only, do not write a converted copy or edit BPMN. Follow Analyze-Only Mode instead.
 
 ## Approach M3 - Online Diagram Converter (hosted)
 
