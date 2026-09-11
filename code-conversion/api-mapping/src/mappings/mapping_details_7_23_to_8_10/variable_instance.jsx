@@ -141,9 +141,13 @@ export const variable_instance = [
 								<code>eq</code>, <code>neq</code>, and{" "}
 								<code>like</code> to the corresponding C8
 								operator. For <code>eq</code> and{" "}
-								<code>neq</code>, JSON-encode the C7 string
-								value, including its quotes, before setting{" "}
-								<code>filter.value</code>. For{" "}
+								<code>neq</code>, resolve the migrated variable
+								type before serializing the value: encode
+								numbers and booleans as native JSON values and
+								actual strings with their quotes. If the type
+								cannot be resolved, omit the value filter and
+								search or post-filter using C7 string semantics
+								instead of assuming a JSON string. For{" "}
 								<code>like</code>, escape literal backslashes,{" "}
 								<code>*</code>, and <code>?</code>, translate{" "}
 								<code>%</code> wildcards to <code>*</code>, and
@@ -177,14 +181,12 @@ export const variable_instance = [
 								<code>desc</code> to Camunda 8{" "}
 								<code>ASC</code> and <code>DESC</code>.
 								This is not a direct mapping for every C7{" "}
-								<code>sortBy</code> value. Use only C8 sort fields
-								with an equivalent C7 ordering:{" "}
-								<code>value</code>, <code>name</code>,{" "}
-								<code>tenantId</code>, <code>variableKey</code>,{" "}
-								<code>scopeKey</code>, or{" "}
-								<code>processInstanceKey</code>. Resolve{" "}
+								<code>sortBy</code> value. Map only{" "}
+								<code>variableName</code> to{" "}
+								<code>name</code> and <code>tenantId</code> to{" "}
+								<code>tenantId</code>. Resolve{" "}
 								<code>activityInstanceId</code> and sort
-								client-side, and mark{" "}
+								client-side. Mark{" "}
 								<code>variableType</code> unsupported.
 							</p>
 						</>
@@ -232,14 +234,18 @@ export const variable_instance = [
 						<code>filter.value</code> must use their serialized JSON
 						representation. For GET requests,{" "}
 						<code>variableValues</code> query values are always C7
-						<code>String</code> objects. JSON-encode the query value
-						as a string, including its quotes (for example,{" "}
-						<code>5</code> becomes <code>"5"</code>), regardless of
-						the stored variable type. Do not infer a native JSON
-						type for GET. For POST requests, preserve number,
-						boolean, and string types with{" "}
-						<code>JSON.stringify</code>; string values also include
-						quotes. For <code>like</code>, escape
+						<code>String</code> tokens, but C8 compares serialized
+						JSON values with type-sensitive equality. Resolve the
+						migrated variable type before constructing an{" "}
+						<code>eq</code> or <code>neq</code> filter: serialize
+						numbers and booleans as native JSON values and actual
+						strings with their quotes. If the type cannot be
+						resolved, search without the value filter and
+						post-filter using C7 string semantics. Do not
+						unconditionally quote every GET token. For POST
+						requests, preserve the resolved number, boolean, and
+						string types with <code>JSON.stringify</code>; string
+						values include quotes. For <code>like</code>, escape
 						literal backslashes, <code>*</code>, and{" "}
 						<code>?</code> before translating C7{" "}
 						<code>%</code> wildcards to C8 <code>*</code>, then
@@ -262,8 +268,11 @@ export const variable_instance = [
 						<code>page.after</code> until all matching variables
 						are retrieved before applying{" "}
 						<code>firstResult</code> and{" "}
-						<code>maxResults</code>. Use one page only when the
-						requested C7 result window is known to fit in it.
+						<code>maxResults</code>. Remove <code>page.from</code>
+						when switching to cursor traversal because C8 does not
+						allow offset and cursor pagination together. Use one
+						page only when the requested C7 result window is known
+						to fit in it.
 					</p>
 					<p>
 						For multiple <code>variableValues</code> entries, issue
@@ -441,7 +450,9 @@ export const variable_instance = [
 						POST query, or when <code>maxResults</code> can exceed
 						one page, follow <code>page.endCursor</code> with{" "}
 						<code>page.after</code> until all matching variables are
-						retrieved before applying{" "}
+						retrieved. Remove <code>page.from</code> when switching
+						to cursor traversal because C8 does not allow offset
+						and cursor pagination together. Apply{" "}
 						<code>firstResult</code> and{" "}
 						<code>maxResults</code>.
 					</p>
@@ -585,9 +596,13 @@ export const variable_instance = [
 					containing the serialized JSON representation, not a typed
 					JSON value. Parse it as JSON when recreating the parsed
 					Camunda 7 value, or preserve the serialized string when
-					the Camunda 7 caller requested the serialized form. The
-					Camunda 7 <code>deserializeValue</code> option has no
-					direct equivalent, so apply this conversion explicitly.
+					the Camunda 7 caller requested the serialized form. The C7
+					<code>type</code>, <code>valueInfo</code>, and{" "}
+					<code>errorMessage</code> response fields have no direct C8
+					equivalent; preserve them from migration metadata when
+					available or mark them unavailable. The Camunda 7{" "}
+					<code>deserializeValue</code> option has no direct
+					equivalent, so apply this conversion explicitly.
 				</p>
 			),
 		},
@@ -608,9 +623,15 @@ export const variable_instance = [
 		target: {},
 		discontinuedExplanation: (
 			<p>
-				Camunda 8.10 does not provide a binary variable download endpoint.
-				Use <code>GET /variables/{"{variableKey}"}</code> for the full
-				JSON value when the variable is JSON-compatible.
+				Camunda 8.10 does not provide a generic binary variable download
+				endpoint. For a document-backed variable, call{" "}
+				<code>
+					GET /variables/{"{variableKey}"}?truncateValues=false
+				</code>
+				, resolve its <code>DocumentReference</code>, and download the
+				content with <code>GET /documents/{"{documentId}"}</code>. See
+				the process-variable mapping for this conditional flow. Other
+				non-document binary variable types have no equivalent endpoint.
 			</p>
 		),
 	},
