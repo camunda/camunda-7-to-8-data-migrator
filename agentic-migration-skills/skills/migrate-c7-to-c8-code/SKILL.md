@@ -116,9 +116,19 @@ These rules apply to every later step.
 - An INFO finding is informational until a later cross-check identifies work.
 - Converter annotations are temporary review metadata. Once the verdict table is complete, strip
   `conversion:*` elements and attributes from the converted copies with namespace-aware XML tooling.
-- Keep `MIGRATION_REPORT.md` in the confirmed project root and keep it current. It holds the verdict
-  table, and it is the single source of truth for inventories, decisions, phase status,
-  incompatibilities, and validation results. Never scatter this record across separate notes.
+- Keep `MIGRATION_REPORT.md` in the confirmed project root.
+- Keep `MIGRATION_REPORT.md` current.
+- Use `MIGRATION_REPORT.md` as the single source of truth for inventories, decisions, open items,
+  phase status, incompatibilities, and validation results.
+- Never scatter this record across separate notes.
+- Keep an open-items section in `MIGRATION_REPORT.md` for each design question the migration cannot
+  answer.
+- Name the call site in each open item.
+- State the question in each open item.
+- Set each open item to status `open` or `resolved`.
+- Create an open item for every migrated query against secondary storage, regardless of the running
+  model.
+- See `references/code-transform-checklist.md` for the mandatory triggers and the wording.
 
 **Forms**
 
@@ -148,6 +158,11 @@ Scan the project and produce the inventories that the chosen scope needs.
 Classify every Camunda 7 related Java file and config file into a table with the columns File, Type,
 Complexity, Notes. See `references/code-transform-checklist.md` for the detection hints and the type
 classifications.
+
+Record the original Java source baseline used for migration with the Code Inventory. Record each
+class by its fully qualified class name, including its package and class name. Include every domain
+or service class that could receive or delegate a `@JobWorker`, including classes without Camunda
+APIs.
 
 #### Model Inventory
 
@@ -229,6 +244,17 @@ Each item below is a check to run and a condition that must hold at exit. Record
    `application.properties` or `.yaml`.
 8. **Tests** — run `mvn test` or the Gradle test task. Every test passes, or each failure is
    documented with an explanation.
+9. **Eventually-consistent queries** — search for every C8 search-request factory method listed in
+   `references/code-transform-checklist.md`, not only the `SearchRequest` type name. Every migrated
+   search call site has a matching open item in the `MIGRATION_REPORT.md` open-items section. A
+   missing entry fails the check. See the mandatory open items in
+   `references/code-transform-checklist.md`.
+10. **Worker adapters** — compare every `@JobWorker` declaration's fully qualified declaring class
+    name with the original Java source baseline recorded in Step 2. Flag the declaration when its
+    class appears in that baseline, even when the class name ends with `Worker`. Accept it only
+    when the class is absent from the baseline, is a new `*Worker` adapter component, and delegates
+    to the baseline bean. Record each flagged declaration and its replacement adapter in
+    `MIGRATION_REPORT.md`. A migrated Spring bean method must never receive `@JobWorker` directly.
 
 Check these pitfalls as well:
 
@@ -237,7 +263,6 @@ Check these pitfalls as well:
   definitions swap the same way.
 - Camunda 7 `processInstanceId` is a `String`. Camunda 8 `processInstanceKey` is a `Long`. Update declarations and call sites, not only the names.
 - Variables are plain JSON and the `TypedValue` API is gone, so every `VariableMap` use changes.
-- `HistoryService` calls map to search endpoints, which are eventually consistent.
 - Batch operations exist since 8.8. Only a custom batch handler needs a manual design.
 
 #### Model checks, when models were migrated
@@ -247,38 +272,52 @@ target version. See the linting section in `references/model-migration-approache
 
 1. A `converted-c8-*` file exists for every in-scope diagram, unless the run is analyze-only.
 2. Every original file is intact and was never overwritten.
-3. Every WARNING, TASK, and REVIEW finding is fixed, or classified in the per-category verdict table
+3. Treat every resource directory that the build configures for inclusion in a Maven or Gradle
+   application artifact as a packaged resource directory. Include `src/main/resources` when it
+   exists. No findings report named `analysis-results.<ext>` or `analysis-results (n).<ext>` remains
+   under a packaged resource directory, where `n` is a positive integer and `<ext>` is `.csv`,
+   `.json`, `.md`, or `.xlsx`. Keep findings reports under `.camunda-migration/reports/` only when
+   the build does not package that directory. Otherwise, use another explicitly non-packaged
+   directory.
+4. Every WARNING, TASK, and REVIEW finding is fixed, or classified in the per-category verdict table
    with its category, count, cross-referenced code artifact, and verdict. See
    `references/model-migration-approaches.md` step 5d. A flat "fixed or recorded" note is not enough.
-4. Every source Generated Task Form is `accepted`, `blocked`, or `declined`, including a
+5. Every source Generated Task Form is `accepted`, `blocked`, or `declined`, including a
    form-property-only definition. None is silently omitted.
-5. Every accepted form is a standard Camunda 8 `.form`.
-6. Every accepted form parses.
-7. Where a target-compatible official schema exists, the skill validates every accepted form with it.
-8. Where target-compatible form-js tooling exists, the skill imports or renders every accepted form
+6. Every accepted form is a standard Camunda 8 `.form`.
+7. Every accepted form parses.
+8. Where a target-compatible official schema exists, the skill validates every accepted form with it.
+9. Where target-compatible form-js tooling exists, the skill imports or renders every accepted form
    with it.
-9. Every accepted form has a matching `zeebe:formDefinition`.
-10. The skill deploys every accepted form with its BPMN.
-11. No draft, blocked, or declined form is linked or deployed. Every semantic gap and every user
+10. Every accepted form has a matching `zeebe:formDefinition`.
+11. The skill deploys every accepted form with its BPMN.
+12. No draft, blocked, or declined form is linked or deployed. Every semantic gap and every user
    decision is recorded.
-12. Every referenced form and every form-free owner has a recorded per-category decision and a final
+13. Every referenced form and every form-free owner has a recorded per-category decision and a final
    status of `kept`, `relinked`, `accepted`, `declined`, `deferred`, or `blocked`. The in-progress
    statuses `pending` and `draft` must not remain. A `deferred` or `blocked` item stays open follow-up
    work. A kept external reference is never reported as a completed migration, and no category is
    closed as **no action** because the converter copied a reference.
-13. Every relinked or rebuilt form is referenced by `zeebe:formDefinition@formId` with a recorded
+14. Every relinked or rebuilt form is referenced by `zeebe:formDefinition@formId` with a recorded
    binding decision: `bindingType` written for `deployment` and `versionTag`, or `latest` left
    deliberately to the Camunda 8 default. The copied Camunda 7 `externalReference` or `formKey` is
    gone from that element.
-14. Once the verdict table is complete, the converted copies hold no `conversion:*` node, no
+15. Once the verdict table is complete, the converted copies hold no `conversion:*` node, no
    `conversion:*` attribute, no unused Camunda 7 namespace declaration, and no leftover BPMN
    definitions-level XPath `expressionLanguage` attribute.
+16. When the model uses M2, inspect every `zeebe:taskDefinition/@type`. Derive the expected type
+    from the original `camunda:delegateExpression`, `camunda:expression`, `camunda:class`, or
+    `camunda:topic` attribute using the binding rules in
+    `references/model-migration-approaches.md`. If the emitted type differs, require a confirmed
+    decision-log entry in `MIGRATION_REPORT.md` with the source file and element, original
+    implementation, emitted type, and rationale. Treat a mismatch without that entry as a
+    validation failure.
 
 #### Summary
 
 Present a validation summary that states the status of compilation, remaining Camunda 7 imports,
-remaining migration TODOs, `businessKey` uses, tests, converted models, and the findings that still
-need follow-up. Record it in `MIGRATION_REPORT.md`.
+remaining migration TODOs, `businessKey` uses, the open items, tests, converted models, and the
+findings that still need follow-up. Record it in `MIGRATION_REPORT.md`.
 
 ### Step 5: AI Follow-up (offer after validation)
 
@@ -330,7 +369,9 @@ the declined candidates in `MIGRATION_REPORT.md`.
 ## Exit Criteria
 
 The migration run may exit when every pass condition in Step 4 holds and `MIGRATION_REPORT.md` holds
-the complete inventories, the decisions, and the validation results.
+the complete inventories, the decisions, the open items, and the validation results.
 The skill reports a complete migration only when no unresolved migration TODO, finding, compilation
 issue, or deletion candidate remains and no item has `deferred` or `blocked` status.
+An open item is a team decision, so an `open` status does not block completion, but the summary
+always lists every open item.
 Otherwise, the skill reports the migration as incomplete and records the follow-up work.

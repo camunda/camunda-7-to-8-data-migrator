@@ -2,7 +2,7 @@
 
 In Camunda 7, a process instance can carry a **business key**: a domain identifier (order number, claim ID) that is set on start and used to find instances later.
 
-Camunda 8 did not support business keys for a long time. Since **Camunda 8.9**, the direct successor is the **Business ID**. Since **Camunda 8.8**, **process instance tags** are available as a lightweight alternative.
+Camunda 8 did not support business keys for a long time. Since **Camunda 8.9**, the direct successor is the **Business ID**. Since **Camunda 8.8**, **process instance tags** are available as a lightweight alternative. Camunda 8.10 also makes business ID searchable on decision instances and user tasks and exposes it to FEEL expressions.
 
 | Camunda 7              | Camunda 8                                                                 |
 | ---------------------- | ------------------------------------------------------------------------- |
@@ -65,6 +65,21 @@ If your target version is **8.8**, use tags (for example, `order:1234`) or store
                 .items();
     }
 ```
+
+### Assigning a Business ID after creation (Camunda 8.10+)
+
+If the domain identifier is not available when the process starts, assign it once to a running root process instance:
+
+```http
+POST /v2/process-instances/{processInstanceKey}/business-id-assignment
+Content-Type: application/json
+
+{"businessId": "order-1234"}
+```
+
+The assignment is irreversible and only artifacts created afterwards receive the ID. It is not available when business ID uniqueness enforcement is enabled. Use the dedicated API endpoint rather than trying to update a process variable or re-starting the instance.
+
+In Camunda 8.10, business ID filters also apply to decision instances and user tasks. The value is available in FEEL as `camunda.processInstance.businessId`; use it for model-side routing instead of duplicating the identifier in an untracked variable.
 
 ## Alternative: Tags (Camunda 8.8+)
 

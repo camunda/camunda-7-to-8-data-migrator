@@ -17,15 +17,25 @@ Before any local approach (M1, M2, E1), scan for outputs of previous migration a
 
 - `converted-c8-*.bpmn` / `converted-c8-*.dmn` (or the `--prefix` equivalent)
 - accepted generated forms beside converted BPMN, and drafts under `.camunda-migration/generated-form-drafts/`
-- `analysis-results.csv` / `.json` / `.md` / `.xlsx`, including ` (n)`-suffixed siblings such as `analysis-results (1).json` — a sure sign of a previous run
+- `analysis-results.<ext>` and `analysis-results (n).<ext>` findings reports, where `n` is a positive integer and `<ext>` is `.csv`, `.json`, `.md`, or `.xlsx`
 
 Never flag the `.camunda-migration/` CLI JAR — an intentional cache, not a leftover.
 
-If anything is found, warn through AskUserQuestion before converting:
+A packaged resource directory is any resource directory that Maven or Gradle includes in an application artifact. Include `src/main/resources` when it exists.
 
-> Found outputs from a previous migration attempt: `<list>`. This run will not overwrite them. The fresh analysis report is written alongside under a ` (n)`-suffixed name, and only this run's own outputs are used — stale files are never consumed. Diagrams whose `converted-c8-*` target already exists are skipped with an error, so for a full re-conversion, cancel and delete or move the old files first.
+Treat report files already under `.camunda-migration/reports/` as intentional non-packaged artifacts
+only after confirming that the build does not package that directory. If the build packages that
+directory, treat its findings reports as packaged artifacts and stop before conversion. Otherwise,
+do not include them in the packaged-resource warning. Never consume local reports already there as
+this run's reports.
 
-- **OK, proceed** — run without `-o`/`--override`. Old files stay untouched.
+If a findings report exists under a packaged resource directory, stop before conversion and ask the user to move or remove it. Do not offer **OK, proceed** while it remains there.
+
+If anything else is found, warn through AskUserQuestion before converting:
+
+> Found outputs from a previous migration attempt: `<list>`. This run will not overwrite them. Fresh findings reports are written beside the source. The CLI adds a ` (n)` suffix only when the unsuffixed name already exists. Relocate fresh findings reports to `.camunda-migration/reports/` when that directory is not packaged, or to another explicitly non-packaged directory, before validation. Only this run's own outputs are used — stale files are never consumed. Diagrams whose `converted-c8-*` target already exists are skipped with an error, so for a full re-conversion, cancel and delete or move the old files first.
+
+- **OK, proceed** — when no findings report remains under a packaged resource directory, run without `-o`/`--override`. Old files stay untouched.
 - **Cancel** — stop so the user can back up or clean up first.
 
 For local approaches (M1, M2, E1), never consume a pre-existing report or converted file found on disk. It may come from an interrupted attempt or a different `--platform-version`. The findings flow (M1 steps 3-5) works only from this session's own run. M3 is the exception: hosted-converter outputs are allowed only after the imported-report version and pairing checks in step 5.
@@ -75,15 +85,36 @@ Other options:
 
 The converter writes a new file next to the source (e.g., `converted-c8-order-process.bpmn`), so originals are never mutated in place.
 
-Capture the exact paths of everything the run produces from the `Created ...` lines in the CLI console output (e.g. `Created analysis-results (1).json`). These paths are the authoritative inputs for steps 4 and 5. Never glob for `analysis-results.json` or `converted-c8-*` on disk, which may match stale files from a previous attempt or a different `--platform-version`.
+Capture the exact paths of everything the run produces from the `Created ...` lines in the CLI console output (e.g. `Created analysis-results (1).json`). These paths are authoritative until the report relocation below completes. Never glob for `analysis-results.json` or `converted-c8-*` on disk, which may match stale files from a previous attempt or a different `--platform-version`.
+
+### 3a. Relocate findings reports
+
+The CLI writes converted copies and findings reports beside the input. A report under a packaged
+resource directory is included in a Maven or Gradle application artifact.
+
+After the CLI exits, create `.camunda-migration/reports/` in the project root when the build does
+not package that directory. Otherwise, create another explicitly non-packaged reports directory in
+the project root. Move every fresh findings report captured from a `Created ...` line into that
+directory before validation, including ` (n)`-suffixed names. Keep every `converted-c8-*` file beside
+its source model.
+
+Do not overwrite an existing file in the chosen reports directory. Choose an available ` (n)`-suffixed
+name and use the moved path as the authoritative report path. If relocation fails, stop model
+validation and report the error. Do not claim a complete migration.
+
+Before packaging the project, inspect every resource directory that the build configures for
+packaging, including `src/main/resources` when it exists. No findings report named
+`analysis-results.<ext>` or `analysis-results (n).<ext>` may remain there, where `<ext>` is `.csv`,
+`.json`, `.md`, or `.xlsx` and `n` is a positive integer. Keep findings reports under `.camunda-migration/reports/` only when the build does not package that
+directory. Otherwise, use another explicitly non-packaged directory.
 
 ### 4. Surface Outputs
 
-After the run, report:
+After the run and report relocation, report:
 - Converted files: every `converted-c8-*.bpmn` / `*.dmn` produced (from the captured `Created ...` lines).
 - Skipped files: any `File already exists` errors, naming the stale targets. Those diagrams were NOT converted. Offer to re-run once the user removes the stale copies (see Pre-flight: Leftover Artifacts).
 - Analysis findings: summarize from CLI stdout and/or the JSON report, grouped by severity (WARNING / TASK / REVIEW / INFO).
-- Analysis artifacts: point the user to the XLSX report (human-readable), and note the JSON report is the step 5 input.
+- Analysis artifacts: point the user to the relocated XLSX report (human-readable), and note the relocated JSON report is the step 5 input.
 - Generated Task Forms: source owners discovered before conversion. They stay manual `form-data` follow-up items until the form procedure completes.
 - Referenced forms: the embedded, external, Camunda Form, dynamic, and form-free owners discovered before conversion. They stay open until their category decision and follow-up work complete.
 
@@ -115,7 +146,11 @@ If the report's version does not match the chosen target, or cannot be determine
 
 #### 5a. Parse the JSON report
 
-Read the JSON report programmatically, using the exact path captured from this run's `Created ...` line. It is written next to the converted files when `--json` is passed (which M1 always does), under a ` (n)`-suffixed name when a stale report exists. Never parse a pre-existing `analysis-results.json` found on disk. Never rely on stdout severity counts instead.
+Read the JSON report programmatically at the authoritative path. For a local M1 or E1 run, use the
+path captured after step 3a relocation. For an imported M3 report, use the downloaded JSON path
+after the version and pairing checks in step 5. The local path may include a ` (n)` suffix when a
+stale report exists. Never parse a pre-existing local findings report found on disk. Never rely on
+stdout severity counts instead.
 
 Format: a JSON array with one object per finding, fields:
 
@@ -125,7 +160,12 @@ filename, elementName, elementId, elementType, severity, messageId, message, lin
 
 Parse it with real JSON tooling (e.g. `jq` or a built-in JSON parser), never ad-hoc string splitting.
 
-If the JSON report is missing (e.g. only `analysis-results.md` or a CSV/XLSX was generated), re-run the converter with `--check --json --xlsx` on the same input. The markdown and XLSX reports are for humans. CSV is never consumed — this skill has no CSV parsing path, and the JSON report is the only machine-readable findings source.
+If the JSON report is missing (e.g. only `analysis-results.md` or a CSV/XLSX was generated), re-run
+the converter with `--check --json --xlsx --platform-version <target-version>` on the same input.
+Capture the fallback run's `Created ...` paths and apply step 3a before parsing. The markdown and
+XLSX reports are for humans. CSV is never
+consumed — this skill has no CSV parsing path, and the JSON report is the only machine-readable
+findings source.
 
 #### 5b. Group findings by category
 
@@ -148,6 +188,70 @@ Present the grouped table before any per-finding follow-up starts, and record it
 
 #### 5d. Emit a per-category verdict table
 
+Before assigning verdicts, compare each finding `messageId` with the dedicated cross-check rules.
+The current dedicated cross-check categories are:
+
+| Category | Dedicated cross-check |
+|---|---|
+| `delegate-expression-as-job-type`, `delegate-implementation` | Check the 1:1 and many-to-one job-type mappings in `composing-code-and-models.md` |
+| `expression-method-not-possible` | Check the FEEL method-invocation remediation |
+| `collection-hint` | Check for now-redundant workaround code |
+| `element-available-in-future-version` | Verify the report target version |
+| `execution-listener`, `execution-listener-supported` | Match listener implementations during the workaround and listener cross-checks |
+
+The form procedures in 5f and 5g are also dedicated handling for their named form categories.
+Treat every other category as a fallback category.
+
+For a fallback category, assign the default verdict from the finding severity:
+
+| Severity | Default verdict |
+|---|---|
+| INFO | no action |
+| REVIEW | needs review |
+| WARNING or TASK | needs fix |
+
+Set the cross-referenced code artifact to **no dedicated cross-check** for a fallback category.
+Add the finding `link` to the `Link` column and surface it as the remediation starting point.
+Apply the same fallback when a report contains a category that is absent from the inventory below.
+Never infer a category-specific cross-check from the category name or message text.
+
+#### 5d.1. Converter category inventory
+
+This inventory records the `messageId` values produced by `MessageFactory` in converter version
+`0.3.6-SNAPSHOT`. It is the known-category list, not a list of dedicated cross-checks:
+
+```text
+all-in-signal-event, attribute-not-supported, attribute-removed, called-element-ref-binding,
+called-element-ref-version-tag, camunda-script, collection, collection-hint, condition-expression-feel,
+conditional-event-definition-generated-id, conditional-flow, connector-hint, connector-id,
+correlation-key-hint, data-migration-listener-added, decision-ref-binding, decision-ref-version-tag,
+delegate-expression-as-job-type, delegate-expression-as-job-type-null, delegate-implementation,
+delegate-implementation-no-default-job-type, delete-variable-event-not-supported,
+element-available-in-future-version, element-not-supported, element-not-supported-hint, element-variable,
+error-code-no-expression, error-event-definition, escalation-code-no-expression, execution-listener,
+execution-listener-field, execution-listener-supported, expression, expression-execution-not-available,
+expression-method-as-job-type, expression-method-not-possible, failed-job-retry-time-cycle,
+failed-job-retry-time-cycle-error, failed-job-retry-time-cycle-removed, field-content,
+form-already-camunda-8, form-component-unknown, form-data, form-juel-expression,
+form-key-camunda-form, form-key-embedded, form-key-expression, form-key-external, form-ref-binding,
+form-schema-version-missing, form-schema-version-outdated, in-all-hint, in-out-business-key,
+in-out-business-key-not-supported, inclusive-gateway-join, input-output-parameter-feel-script,
+input-output-parameter-is-no-expression, input-variable-not-supported, internal-script,
+job-priority-collision, local-variable-propagation-not-supported-hint, modeler-template,
+loop-cardinality, modeler-template-version, number-type, old-in-all-hint, only-feel-supported, out-all-hint,
+potential-starter, priority-invalid, priority-not-migrated, priority-scales-merged, property,
+resource, resource-on-conditional-event, resource-on-conditional-flow, result-variable-business-rule,
+result-variable-internal-script, result-variable-rest, script, script-format, script-job-type,
+script-on-conditional-event, script-on-conditional-flow, task-listener, task-listener-supported,
+timer-expression-not-supported, topic, variable-name-filter-not-supported, version-tag
+```
+
+When the referenced converter version changes, re-sync this inventory from
+`diagram-converter/core/src/main/java/io/camunda/migration/diagram/converter/message/MessageFactory.java`.
+Include IDs passed through helper methods, such as the `FormKeyType` mapping, not only literal
+arguments to `composeMessage`. A maintenance check should mechanically compare the extracted
+`MessageFactory` IDs with this inventory and report any difference.
+
 After grouping (and after the code cross-checks in `composing-code-and-models.md` when code is also in scope), assign each WARNING/TASK/REVIEW category exactly one verdict, and record the table in MIGRATION_REPORT.md. INFO categories are optional (MAY). If included, they typically take verdict no action. Never leave findings as severity counts or a generic "findings need follow-up" note.
 
 Verdicts:
@@ -158,19 +262,20 @@ Verdicts:
 | **needs review** | A human decision is required before any fix can start. For example, choosing the remediation approach for a category or integration group (one decision per homogeneous category or group, not per row), or confirming a cross-check result. | Surface it in the AI follow-up step only to collect the pending user decision through AskUserQuestion before any fix. |
 | **needs fix** | Concrete, known work remains: an uncovered cross-check item (job-type mismatch, uncovered original expressions, uncovered invoked methods) or a WARNING/TASK category with a clear remediation. | It is a direct work item for the AI follow-up step. |
 
-| Category (messageId or source category) | Count | Cross-referenced code artifact | Verdict |
-|---|---|---|---|
-| `expression-method-not-possible` | 2,137 | none yet — remediation decision pending | needs review |
-| `delegate-expression-as-job-type` | 2,491 | `DelegateDispatcher` @JobWorker (routes 38/42 expressions) | needs fix |
-| `form-data` | 96 | one `.form` per C7 Generated Task Form (`camunda:formData` / direct `camunda:formProperty`, see 5f) | needs fix |
-| `form-key-embedded` | 14 | none yet — keep/rebuild decision pending (see 5g) | needs review |
-| `form-key-external` | 31 | `LoanFormsController` custom app — integration owner confirmed (see 5g) | needs fix |
-| `c7-generic-task-form` | 8 | n/a — no finding, source-derived inventory (see 5g) | needs review |
+| Category (messageId or source category) | Count | Cross-referenced code artifact | Link | Verdict |
+|---|---|---|---|---|
+| `expression-method-not-possible` | 2,137 | none yet — remediation decision pending | `<finding link>` | needs review |
+| `delegate-expression-as-job-type` | 2,491 | `DelegateDispatcher` @JobWorker (routes 38/42 expressions) | `<finding link>` | needs fix |
+| `form-data` | 96 | one `.form` per C7 Generated Task Form (`camunda:formData` / direct `camunda:formProperty`, see 5f) | `<finding link>` | needs fix |
+| `form-key-embedded` | 14 | none yet — keep/rebuild decision pending (see 5g) | `<finding link>` | needs review |
+| `form-key-external` | 31 | `LoanFormsController` custom app — integration owner confirmed (see 5g) | `<finding link>` | needs fix |
+| `c7-generic-task-form` | 8 | n/a — no finding, source-derived inventory (see 5g) | n/a | needs review |
 
 Rules:
 
 - One row per category, sorted as in 5b.
-- The cross-referenced code artifact column names the `@JobWorker`, DMN definition, or other code element the cross-check matched, or `none yet` when no remediation exists. For models-only scope there is no code to cross-reference: use `n/a`. Derive a converter finding's initial verdict from severity alone (INFO → no action, REVIEW → needs review, WARNING/TASK → needs fix). Apply the procedure-defined lifecycle instead to source-derived synthetic categories and to `c7-*` categories that split a legacy generic `form-key` finding. Those categories have no independent converter severity.
+- The cross-referenced code artifact column names the `@JobWorker`, DMN definition, or other code element the cross-check matched, or `none yet` when no remediation exists. For models-only scope there is no code to cross-reference: use `n/a`. For a fallback category, write `no dedicated cross-check` in this column. Derive a converter finding's initial verdict from severity alone (INFO → no action, REVIEW → needs review, WARNING/TASK → needs fix). Apply the procedure-defined lifecycle instead to source-derived synthetic categories and to `c7-*` categories that split a legacy generic `form-key` finding. Those categories have no independent converter severity.
+- Copy each finding's `link` into the `Link` column. For a fallback category, present that link as the remediation starting point.
 - Classify every WARNING/TASK/REVIEW category. Never leave one without a verdict.
 - `form-data` is a special **needs fix** category even though the converter behaved correctly: the missing artifact is a separate C8 form. Keep it needs fix until `form-migration.md` has generated, reviewed, linked, validated, and covered the form with deployment.
 - A source-only `camunda:formProperty` definition from an older or imported report that lacks the current `form-data` finding uses the synthetic category `generated-form-property-source`. Give it the same verdict lifecycle as `form-data`.
@@ -224,12 +329,58 @@ Never collapse these into one `form-reference` category. Never mark any of them 
   - A dedicated `documentPreview` component (property `dataSource`, a FEEL expression over an array of document references) renders an inline preview and download link for a Document API reference. Prefer it over a plain-text filename display or a hand-built HTML anchor. (SHOULD) When the process variable holds one document-reference object, wrap it in a one-element array in the form's FEEL only. Never change the variable to a form-specific array or a filename.
 - **Add a worker only when the form genuinely cannot do it**: real business logic, external calls, side effects. A service task that only reshapes variables for form consumption is a C7 workaround. Never port it.
 
+## JUEL Method-Invocation Worker Adapters
+
+For every model approach, use a new thin `*Worker` adapter component for a Spring bean method invoked
+by JUEL. Compare the adapter's fully qualified class name with the original Java source baseline,
+recorded as fully qualified class names. Never add `@JobWorker` to an existing domain or service
+class from the C7 source. Keep the domain logic in the existing bean and delegate to it from the
+adapter. The code checklist defines the remediation and validation rules. Use this reference shape:
+
+```java
+@Component
+public class SampleBeanWorker {
+  @Autowired private SampleBean sampleBean;
+
+  @JobWorker(type = "sampleBean")
+  public Map<String, Object> someMethod(@Variable(name = "y") String y) {
+    return Map.of("theAnswer", sampleBean.someMethod(y));
+  }
+}
+```
+
+The baseline comparison is authoritative. A class that existed in the C7 source is not an adapter,
+even when its name ends with `Worker`. Record the baseline match and the replacement adapter in
+`MIGRATION_REPORT.md`.
+
+Apply this rule to JUEL method-invocation findings in M1, M2, M3, and E1. E1 uses the M1 local
+conversion flow after it acquires the source models.
+
 ## Approach M2 - Agentic AI (direct XML rewrite)
 
 Use when Java 21 is unavailable, the user wants to review every change, or the CLI cannot handle a case.
 
 Fetch the current diagram-conversion guidance:
 `https://raw.githubusercontent.com/camunda/camunda-docs/main/docs/guides/migrating-from-camunda-7/migration-tooling/diagram-converter.md`
+
+### Job type naming
+
+Use the Diagram Converter naming rules as the binding convention for M2. Apply the rule that matches
+the original Camunda 7 implementation attribute.
+
+| Camunda 7 source | Job type rule | Example |
+|---|---|---|
+| `camunda:delegateExpression` or `camunda:expression` with a bean reference | Remove the `${...}` or `#{...}` wrapper. Keep the first path segment unchanged. Capitalize the first character of each later path segment. | `${sampleBean}` becomes `sampleBean`. |
+| `camunda:delegateExpression` or `camunda:expression` with a method invocation (expression method) | Unwrap the expression. Replace each `.` with an uppercase first character of the following segment. Remove the `(...)` argument list after the camel-case transformation. | `${sampleBean.someMethod(x)}` becomes `sampleBeanSomeMethod`. |
+| `camunda:class` | Take the class name after the final dot. Decapitalize its first character. | `com.example.SampleDelegate` becomes `sampleDelegate`. |
+| `camunda:topic` on an external task | Copy the topic value without changing it. | `invoice-processing` remains `invoice-processing`. |
+
+For JUEL method-invocation findings, apply the shared [worker adapter rule](#juel-method-invocation-worker-adapters).
+
+Treat a job type that differs from this table as an intentional deviation only when
+`MIGRATION_REPORT.md` records the source file and element, the original implementation, the emitted
+job type, and the confirmed rationale. Record the same decision for a custom or shared job type that
+has no source binding in the table. Do not replace a method-specific type with the bean-only type.
 
 For each in-scope diagram, produce a new `converted-c8-<name>.bpmn`/`.dmn` (never edit the original), applying:
 

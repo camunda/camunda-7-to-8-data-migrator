@@ -7,15 +7,21 @@
  */
 package io.camunda.migration.code.recipes.sharedRecipes;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
+import org.openrewrite.SourceFile;
+import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.gradle.trait.GradleDependency;
-import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.Space;
+import org.openrewrite.marker.Markers;
 
 /**
  * Changes Gradle dependency coordinates without requiring the target artifact to resolve first.
@@ -56,16 +62,31 @@ public class ChangeGradleDependencyRecipe extends Recipe {
 
   @Override
   public @NonNull TreeVisitor<?, ExecutionContext> getVisitor() {
-    return new JavaIsoVisitor<>() {
+    return new JavaVisitor<>() {
       private final GradleDependency.Matcher matcher =
           new GradleDependency.Matcher().groupId(oldGroupId).artifactId(oldArtifactId);
+      private final GradleDependency.Matcher targetMatcher =
+          new GradleDependency.Matcher().groupId(newGroupId).artifactId(newArtifactId);
+      private final Set<String> seenTargets = new HashSet<>();
 
       @Override
-      public J.MethodInvocation visitMethodInvocation(
-          J.MethodInvocation method, ExecutionContext ctx) {
-        J.MethodInvocation visited = super.visitMethodInvocation(method, ctx);
+      public @Nullable J visit(@Nullable Tree tree, ExecutionContext ctx) {
+        if (tree instanceof SourceFile) {
+          seenTargets.clear();
+        }
+        return super.visit(tree, ctx);
+      }
+
+      @Override
+      public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+        J visited = super.visitMethodInvocation(method, ctx);
         Optional<GradleDependency> dependency = matcher.get(getCursor());
         if (dependency.isEmpty()) {
+          Optional<GradleDependency> target = targetMatcher.get(getCursor());
+          if (target.isPresent()
+              && !seenTargets.add(dependencyKey(target.get()))) {
+            return new J.Empty(Tree.randomId(), Space.EMPTY, Markers.EMPTY);
+          }
           return visited;
         }
 
@@ -75,7 +96,18 @@ public class ChangeGradleDependencyRecipe extends Recipe {
                 .withDeclaredGroupId(newGroupId)
                 .withDeclaredArtifactId(newArtifactId)
                 .withDeclaredVersion(newVersion);
+        if (!seenTargets.add(dependencyKey(updated))) {
+          return new J.Empty(Tree.randomId(), Space.EMPTY, Markers.EMPTY);
+        }
         return updated.getTree();
+      }
+
+      private String dependencyKey(GradleDependency dependency) {
+        return dependency.getConfigurationName()
+            + ":"
+            + dependency.getDeclaredGroupId()
+            + ":"
+            + dependency.getDeclaredArtifactId();
       }
     };
   }

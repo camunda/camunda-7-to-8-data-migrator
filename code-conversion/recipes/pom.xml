@@ -206,7 +206,7 @@
     </dependency>
     <dependency>
       <groupId>io.camunda</groupId>
-      <artifactId>zeebe-client-java</artifactId>
+      <artifactId>camunda-client-java</artifactId>
       <version>${version.camunda-8}</version>
       <scope>provided</scope>
     </dependency>

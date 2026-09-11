@@ -8,6 +8,68 @@ Confirm each item before the next. Ask the user before each commit.
 
 ---
 
+## OpenRewrite output: de-recipe cleanup
+
+Approach A runs this section after OpenRewrite. The cleanup removes recipe artifacts while preserving
+the worker's job type, inputs, outputs, and behavior. Load
+`30-glue-code/idiomatic-job-worker-cleanup.md` from the pattern catalog before editing.
+
+Inspect every generated `@JobWorker` method. Apply each matching rule:
+
+| Recipe artifact | Cleanup |
+|---|---|
+| A method name ends in `Migrated` or starts with `executeJob` | Rename the method to the worker's job type or the original delegate's intent. Preserve the explicit `@JobWorker(type = "...")` value. If the job type came from the method name, set it explicitly before renaming. |
+| The method reads one or more variables through `ActivatedJob` | Replace `job.getVariable(...)` or `job.getVariablesAsMap()` with typed `@Variable` parameters. Use `@VariablesAsType` for a cohesive variable object. Keep `ActivatedJob` only when the method uses its metadata or the job key (`job.getKey()`). |
+| The method has `throws Exception` after variable cleanup | Remove the declaration when the method no longer throws a checked exception. Preserve a specific checked exception when the worker still requires it. |
+| The method returns one output through a mutable map | Return `Map.of(...)` when the output has non-null values and callers do not mutate the map. Keep a mutable map when the worker needs mutation or supports nullable values. |
+| A `@JobWorker` annotation contains `autoComplete = true` | Remove the attribute because `true` is the default. Keep it only when the project documents the explicit setting as part of its configuration contract. |
+| An input can be absent | Mark the matching input `@Variable(optional = true)` and use a nullable or optional-compatible Java type. Do not mark required inputs optional. |
+| The source was a Camunda 7 delegate or external task worker | Preserve a short migration Javadoc. Add one when the generated method has no provenance note and the source origin is known. |
+
+Do not change a job type, variable name, output name, exception behavior, or worker completion mode
+during this cleanup. If the worker needs `ActivatedJob` for completion, failure, BPMN error, retry, or
+metadata, keep that parameter and clean only the unused recipe artifacts.
+
+### Before and after
+
+The following recipe output uses the job object for variable access, retains a generated method name,
+and builds a redundant result map:
+
+```java
+@JobWorker(type = "sampleJavaDelegate", autoComplete = true)
+public Map<String, Object> executeJobMigrated(ActivatedJob job) throws Exception {
+  Map<String, Object> resultMap = new HashMap<>();
+  Object x = job.getVariable("x");
+  System.out.println("SampleJavaDelegate " + x);
+  resultMap.put("y", "hello world");
+  return resultMap;
+}
+```
+
+The cleanup produces an idiomatic worker without changing the job type or variables:
+
+```java
+/**
+ * Migrated from the Camunda 7 SampleJavaDelegate.
+ */
+@JobWorker(type = "sampleJavaDelegate")
+public Map<String, Object> sampleJavaDelegate(@Variable Object x) {
+  System.out.println("SampleJavaDelegate " + x);
+  return Map.of("y", "hello world");
+}
+```
+
+When an input is optional, retain that semantic explicitly:
+
+```java
+@JobWorker(type = "sampleJavaDelegate")
+public void sampleJavaDelegate(@Variable(optional = true) String comment) {
+  // worker logic
+}
+```
+
+---
+
 ## 1. Dependencies and Configuration
 
 Catalog: `10-general/dependencies.md`. It owns the GA version resolution from Maven Central metadata,
@@ -55,6 +117,30 @@ These items are not in the catalog:
 - Flag the business-key semantic difference in `MIGRATION_REPORT.md` when the migrated process
   mutates the key.
 - Preserve startup behavior exactly: what starts, when it starts, and how many instances.
+
+### Mandatory open items for migrated queries
+
+A C7 `RuntimeService`, `HistoryService`, `TaskService`, `RepositoryService`, or `DecisionService`
+query becomes a C8 search request (`newProcessInstanceSearchRequest`, `newElementInstanceSearchRequest`,
+`newVariableSearchRequest`, `newUserTaskSearchRequest`, `newIncidentSearchRequest`,
+`newUserTaskVariableSearchRequest`, `newDecisionInstanceSearchRequest`,
+`newProcessDefinitionSearchRequest`). A C8 search request reads secondary storage, so its result is
+eventually consistent. See
+`20-client-code/10-process-engine/query-history.md`.
+
+For every migrated query, the skill records an open item in the `MIGRATION_REPORT.md` open-items
+section. This is mandatory and never depends on the running model. When a trigger below matches,
+record its wording. Replace `<call site>` with the class and the method.
+
+| Trigger | Open item to record |
+|---|---|
+| A C7 query becomes a C8 search request | `<call site>` now reads secondary storage through the C8 search API. The result is eventually consistent, so an instance changed moments earlier can be missing. Confirm the surrounding logic tolerates an eventually-consistent result. |
+| The result drives a business decision, such as a count, a guard, or a branch | `<call site>` makes a business decision from an eventually-consistent search result. Confirm the decision still holds when the result lags. |
+| The C7 code read its own recent write inside a worker (read-after-write) | `<call site>` relied on a C7 transaction boundary for read-after-write. The C8 search is asynchronous. Confirm the logic does not depend on immediate visibility. |
+| The C7 project relied on `historyTimeToLive` for data availability or cleanup | `<call site>` relied on `historyTimeToLive`. Camunda 8 controls retention on the cluster, not per query. Confirm the cluster retention matches the old expectation. |
+
+Set each open item to status `open`. Resolve it only on an explicit user decision, and record that
+decision in `MIGRATION_REPORT.md`.
 
 ---
 
@@ -116,7 +202,29 @@ Count occurrences for sizing, but decide remediation ONCE per category (or per c
 
 **Decision process. Present all options to the user and let them choose:**
 
-1. **Precompute via job worker** (default): add a preceding service task whose `@JobWorker` calls the method (or runs the equivalent logic) and stores the result in a plain process variable. Then replace the expression with a FEEL reference to that variable (e.g. `=total`). For multi-instance `collection` this is the required shape, because the collection must exist as a variable before the multi-instance body starts.
+1. **Precompute via job worker** (default): compare the bean's fully qualified class name with the
+   original Java source baseline, recorded as fully qualified class names. Create a new thin
+   `*Worker` adapter component when the class is present in that baseline. Never add `@JobWorker` to
+   an existing domain or service class from the C7 source, including a Spring `@Component` or
+   `@Service`. Keep the domain logic in the existing bean and delegate to it from the adapter. Use
+   this shape for a Spring bean method:
+
+   ```java
+   @Component
+   public class SampleBeanWorker {
+     @Autowired private SampleBean sampleBean;
+
+     @JobWorker(type = "sampleBean")
+     public Map<String, Object> someMethod(@Variable(name = "y") String y) {
+       return Map.of("theAnswer", sampleBean.someMethod(y));
+     }
+   }
+   ```
+
+   Treat the baseline comparison as authoritative. A class remains an invalid worker target even
+   when its name ends with `Worker`. Only a class absent from the baseline can be the new adapter.
+
+   Add a preceding service task whose `@JobWorker` calls the method (or runs the equivalent logic) and stores the result in a plain process variable. Then replace the expression with a FEEL reference to that variable (e.g. `=total`). For multi-instance `collection` this is the required shape, because the collection must exist as a variable before the multi-instance body starts.
 2. **Compute via execution listener** (most elegant when no extra visible shape in the diagram is desired): attach a `zeebe:executionListener` (8.6+) backed by a `@JobWorker` that computes the value into a variable, e.g. on the `end` event of the preceding element or the `start` event of the element carrying the expression. Caveats: the listener must run BEFORE the expression is evaluated. For multi-instance `collection` it must sit on a preceding element, never the MI body itself (the collection is read at activation). Listeners are jobs too, so a failure creates an incident on the element. The precompute step becomes invisible in the diagram, so document it.
 3. **Refactor into DMN** (when the expression encodes a business rule/decision, typical for gateway conditions): move the logic into a DMN table in a preceding business rule task and read its output variable.
 4. **JUEL job worker** (exceptional, only when the expression must stay dynamic): keep the JUEL string in a task header and evaluate it inside a generic worker. ⚠️ This is dynamic expression evaluation: only ever evaluate trusted, model-controlled expressions (never user input), and constrain the evaluation context (e.g. a bean allow-list) to avoid code injection.
