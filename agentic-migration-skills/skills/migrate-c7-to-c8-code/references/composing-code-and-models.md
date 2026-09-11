@@ -188,10 +188,10 @@ only, then do not ask this question and preserve existing deployment wiring.
   - Update every recorded path after copying a resource.
   - Where the application uses Spring Boot `@Deployment`, add a deployment pattern only when its
     resource type has an inventory entry under a packaged resource directory.
-  - Where the application uses Spring Boot `@Deployment`, use a deployment pattern only when its
-    packaged-classpath matches are limited to inventory entries.
+  - Where the application uses Spring Boot `@Deployment`, add or update a migration-managed
+    deployment pattern only when its packaged-classpath matches are limited to inventory entries.
   - Where the application uses Spring Boot `@Deployment`, confirm that every inventory entry
-    matches at least one migration-managed deployment pattern.
+    matches at least one effective deployment pattern, including preserved patterns.
   - Where the application uses non-Spring `CamundaClient` commands, confirm that every inventory
     entry is supplied by an explicit deployment command.
   - Where the application uses Spring Boot `@Deployment`, confirm that every migration-managed

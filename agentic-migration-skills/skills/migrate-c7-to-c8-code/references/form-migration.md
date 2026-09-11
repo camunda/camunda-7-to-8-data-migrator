@@ -365,15 +365,27 @@ another user question.
 ## Deployment and validation
 
 Deployment binding requires the converted BPMN and accepted `.form` file in the same deployment.
-Inspect the selected build's application-artifact resource mapping for each accepted form, using
-Maven resource configuration or Gradle resource-destination settings as examples.
-Resolve the packaged classpath-relative path from that mapping. Normalize the resolved path to `/`
-separators. Remove a source resource-directory prefix, such as `src/main/resources/`, only when
-the mapping strips it. Retain any target prefix that the mapping adds. Use explicit accepted
-resource paths derived from each
-normalized packaged path when possible. If a recursive pattern is necessary, derive it from the
-normalized packaged paths, including any selected prefix, and use it only when it cannot include
-drafts or declined forms.
+Where the application uses Spring Boot `@Deployment`, inspect the selected build's
+application-artifact resource mapping for each accepted form, using Maven resource configuration or
+Gradle resource-destination settings as examples.
+Where the application uses Spring Boot `@Deployment`, resolve the packaged classpath-relative path
+from that mapping.
+Where the application uses Spring Boot `@Deployment`, normalize the resolved path to `/` separators.
+Where the application uses Spring Boot `@Deployment`, remove a source resource-directory prefix,
+such as `src/main/resources/`, only when the mapping strips it.
+Where the application uses Spring Boot `@Deployment`, retain any target prefix that the mapping
+adds.
+Where the application uses Spring Boot `@Deployment`, use explicit accepted resource paths derived
+from each normalized packaged path when possible.
+Where the application uses Spring Boot `@Deployment`, derive a recursive pattern from the
+normalized packaged paths, including any selected prefix, only when it cannot include drafts or
+declined forms.
+Where the application uses non-Spring `CamundaClient` commands, validate each accepted form against
+the source used by the explicit deployment command.
+Where the application uses non-Spring `CamundaClient` commands, confirm that the command supplies
+the form with its owning converted BPMN.
+Where the application uses non-Spring `CamundaClient` commands, do not require a packaged
+classpath-relative path.
 
 Before reporting a form complete:
 
