@@ -45,6 +45,7 @@ public class ConverterPropertiesTest {
     assertThat(converterProperties.getAppendDocumentationOnlyTaskAndWarning()).isTrue();
     assertNotNull(converterProperties.getResourceHeader());
   }
+
   @Test
   void shouldAllowExplicitOlderTargetVersion() {
     DefaultConverterProperties properties = new DefaultConverterProperties();
