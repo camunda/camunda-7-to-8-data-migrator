@@ -123,19 +123,19 @@ export const variable_instance = [
 								<code>name_operator_value</code>. Map{" "}
 								<code>eq</code>, <code>neq</code>, and{" "}
 								<code>like</code> to the corresponding C8
-							operator. For <code>eq</code> and{" "}
-							<code>neq</code>, JSON-encode the C7 string
-							value, including its quotes, before setting{" "}
-							<code>filter.value</code>. For{" "}
-							<code>like</code>, escape literal backslashes,{" "}
-							<code>*</code>, and <code>?</code>, translate{" "}
-							<code>%</code> wildcards to <code>*</code>, and
-							JSON-encode the resulting string pattern. C8
-							has no numeric comparison operator for variable
-							values, so{" "}
-							<code>gt</code>, <code>gteq</code>,{" "}
-							<code>lt</code>, and <code>lteq</code> are
-							unsupported.
+								operator. For <code>eq</code> and{" "}
+								<code>neq</code>, JSON-encode the C7 string
+								value, including its quotes, before setting{" "}
+								<code>filter.value</code>. For{" "}
+								<code>like</code>, escape literal backslashes,{" "}
+								<code>*</code>, and <code>?</code>, translate{" "}
+								<code>%</code> wildcards to <code>*</code>, and
+								JSON-encode the resulting string pattern. C8
+								has no numeric comparison operator for variable
+								values, so{" "}
+								<code>gt</code>, <code>gteq</code>,{" "}
+								<code>lt</code>, and <code>lteq</code> are
+								unsupported.
 							</p>
 						</>
 					),
