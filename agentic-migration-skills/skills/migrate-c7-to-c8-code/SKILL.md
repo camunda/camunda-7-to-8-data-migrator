@@ -250,7 +250,8 @@ Each item below is a check to run and a condition that must hold at exit. Record
    missing entry fails the check. See the mandatory open items in
    `references/code-transform-checklist.md`.
 10. **Query counts and pagination**
-    - Search migrated sources for `.items().size()` and `.items().stream().count()`.
+    - Use a whitespace-tolerant or syntax-aware search for `.items()` followed by `.size()`.
+    - Use a whitespace-tolerant or syntax-aware search for `.items()` followed by `.stream()` and `.count()`.
     - Treat each hit as a validation failure when it represents a complete query count.
     - Confirm that each migrated C7 `list().size()`, `list().stream().count()`, or `count()` uses
       `.page().totalItems()`.

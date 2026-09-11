@@ -590,6 +590,7 @@ public abstract class AbstractMigrationRecipe extends Recipe {
                 .filter(entry -> entry.getKey().matches(invocation))
                 .flatMap(entry -> entry.getValue().stream())
                 .filter(spec -> isBuilderReplacementApplicable(spec, invocation, collectedArgs))
+                .filter(spec -> collectedArgs.keySet().equals(spec.methodNamesToExtractParameters()))
                 .filter(spec -> matchesReceiverType(spec, invocation))
                 .sorted(Comparator.comparing(spec -> !spec.textComments().isEmpty()))
                 .map(spec -> (ReplacementUtils.ReplacementSpec) spec)

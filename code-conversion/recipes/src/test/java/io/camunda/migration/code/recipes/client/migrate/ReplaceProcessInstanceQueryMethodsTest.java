@@ -89,10 +89,14 @@ public class HandleProcessInstanceQueryMethodsTestClass {
 
     public void processInstanceQueryMethods(String activityIdIn, String businessKey, String processDefinitionKey) {
 
-        engine.getRuntimeService().createProcessInstanceQuery()
-                .activityIdIn(activityIdIn)
-                .active()
-                .list();
+        camundaClient
+                .newProcessInstanceSearchRequest()
+                .filter(filter -> filter
+                        .elementId(activityIdIn)
+                        .state(ProcessInstanceState.ACTIVE))
+                .send()
+                .join()
+                .items();
 
         // TODO: processInstanceBusinessKey was removed - use businessId (Camunda 8.9+) instead
         camundaClient
@@ -525,6 +529,13 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .activityIdIn(activityId)
                             .count();
 
+                    int activityListSize = engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .activityIdIn(activityId)
+                            .active()
+                            .list()
+                            .size();
+
                     long businessCount = engine.getRuntimeService()
                             .createProcessInstanceQuery()
                             .processInstanceBusinessKey(businessKey)
@@ -557,10 +568,25 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                 private CamundaClient camundaClient;
 
                 public void countQueries(String activityId, String businessKey) {
-                    long activityCount = engine.getRuntimeService()
-                            .createProcessInstanceQuery()
-                            .activityIdIn(activityId)
-                            .count();
+                    Long activityCount = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter
+                                    .elementId(activityId)
+                                    .state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems();
+
+                    int activityListSize = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter
+                                    .elementId(activityId)
+                                    .state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue();
 
                     // TODO: processInstanceBusinessKey was removed - use businessId (Camunda 8.9+) instead
                     Long businessCount = camundaClient
@@ -755,10 +781,10 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                 @Autowired
                 private ProcessEngine engine;
 
-                public void queryByActivityId(String activityId, String[] activityIds) {
+                public void queryByActivityId(String[] activityIds) {
                     engine.getRuntimeService()
                             .createProcessInstanceQuery()
-                            .activityIdIn(activityId)
+                            .activityIdIn(activityIds)
                             .active()
                             .list();
 
