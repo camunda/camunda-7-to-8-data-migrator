@@ -43,9 +43,25 @@ export const variable_instance = [
 				},
 				{
 					leftEntry: (
+						<pre>(string[]) processInstanceIdIn</pre>
+					),
+					rightEntry: (
+						<>
+							<pre>(string[]) filter.processInstanceKey.$in</pre>
+							<p>
+								Resolve Camunda 7 process-instance IDs to the
+								corresponding Camunda 8 process instance keys
+								before applying this filter. Keep this predicate
+								separate from scope selectors; when multiple source
+								filter fields are supplied, intersect their complete
+								result sets by <code>variableKey</code>.
+							</p>
+						</>
+					),
+				},
+				{
+					leftEntry: (
 						<pre>
-							(string[]) processInstanceIdIn
-							<br />
 							(string[]) executionIdIn
 							<br />
 							(string[]) taskIdIn
@@ -57,16 +73,15 @@ export const variable_instance = [
 					),
 					rightEntry: (
 						<>
-							<pre>
-								(string[]) filter.processInstanceKey.$in
-								<br />
-								(string[]) filter.scopeKey.$in
-							</pre>
+							<pre>(string[]) filter.scopeKey.$in</pre>
 							<p>
-								Resolve all Camunda 7 process-instance,
-								execution, task, activity, and scope IDs to
-								the corresponding Camunda 8 element instance
-								keys before applying the filters.
+								Resolve Camunda 7 execution, task, activity, and
+								variable-scope IDs to the corresponding Camunda 8
+								element instance keys. These are separate C7
+								predicates: do not combine IDs from different source
+								fields into one <code>$in</code> list. Issue one
+								request per populated field and intersect the complete
+								result sets by <code>variableKey</code>.
 							</p>
 						</>
 					),
@@ -77,9 +92,12 @@ export const variable_instance = [
 						<>
 							<pre>(string) filter.tenantId</pre>
 							<p>
-								The Camunda 8 filter accepts one tenant ID. Issue
-								one request per C7 tenant ID when multiple values
-								are supplied.
+								The Camunda 8 filter accepts one tenant ID, while
+								C7 treats <code>tenantIdIn</code> as an OR list.
+								Issue one request per C7 tenant ID, retrieve all
+								pages, then union and deduplicate the results by{" "}
+								<code>variableKey</code> before applying pagination
+								or deriving a count. Do not sum per-tenant totals.
 							</p>
 						</>
 					),
@@ -179,9 +197,12 @@ export const variable_instance = [
 					</p>
 					<p>
 						For multiple <code>variableValues</code> entries, issue
-						one request per entry, then intersect the responses by{" "}
-						<code>variableKey</code> before applying pagination or
-						deriving counts. Do not union the responses.
+						one request per entry and follow each response's{" "}
+						<code>page.endCursor</code> with <code>page.after</code>{" "}
+						until all pages are retrieved. Then intersect the complete
+						result sets by <code>variableKey</code> before applying
+						pagination or deriving counts. Do not intersect only the
+						first page or union the responses.
 					</p>
 					<p>
 						Map <code>variableName</code> to{" "}
@@ -191,6 +212,14 @@ export const variable_instance = [
 						<code>tenantId</code> to{" "}
 						<code>sort[].field=tenantId</code>. There is no Camunda
 						8 sort field for <code>variableType</code>.
+					</p>
+					<p>
+						When multiple process-instance or scope selector fields
+						are supplied, issue separate searches for each populated
+						field and intersect their complete result sets by{" "}
+						<code>variableKey</code>. Apply the C7 conjunction before
+						pagination or counting; do not combine different source
+						fields into one C8 <code>$in</code> filter.
 					</p>
 					<p>
 						Include <code>?truncateValues=false</code> to return
@@ -319,9 +348,16 @@ export const variable_instance = [
 					See the GET <code>/variable-instance</code> mapping for
 					filter conversions, scope-key resolution, and unsupported
 					parameters. Use one Camunda 8 request per{" "}
-					<code>variableValues</code> entry, then intersect the
-					responses by <code>variableKey</code> before applying
-					pagination or deriving counts. Do not union the responses.
+					<code>variableValues</code> entry and follow{" "}
+					<code>page.endCursor</code> with <code>page.after</code> for
+					each request until all pages are retrieved. Then intersect the
+					complete responses by <code>variableKey</code> before applying
+					pagination or deriving counts. Apply the same complete-page
+					intersection to multiple process-instance or scope selector
+					fields, and the complete-page union to multiple{" "}
+					<code>tenantIdIn</code> values. Do not combine different source
+					fields into one <code>$in</code> filter or union conjunctive
+					<code>variableValues</code> responses.
 				</p>
 			),
 		},
@@ -363,7 +399,14 @@ export const variable_instance = [
 				<code>page.hasMoreTotalItems</code> from the Camunda 8 search
 				response. When <code>hasMoreTotalItems</code> is{" "}
 				<code>true</code>, <code>totalItems</code> is only a lower
-				bound, not the exact C7 count.
+				bound, not the exact C7 count. For multiple{" "}
+				<code>tenantIdIn</code> values,{" "}
+				<code>variableValues</code> entries, or process-instance and
+				scope selector fields, follow <code>page.endCursor</code> for
+				every request, apply the required complete-page union or
+				intersection by <code>variableKey</code>, and count the
+				deduplicated result. Do not sum capped totals or read one
+				search total as the combined C7 count.
 			</p>
 		),
 	},
@@ -384,8 +427,15 @@ export const variable_instance = [
 				<code>page.hasMoreTotalItems</code> from the Camunda 8 search
 				response. When <code>hasMoreTotalItems</code> is{" "}
 				<code>true</code>, <code>totalItems</code> is only a lower
-				bound, not the exact C7 count. Sorting is not needed for a
-				count.
+				bound, not the exact C7 count. For multiple{" "}
+				<code>tenantIdIn</code> values,{" "}
+				<code>variableValues</code> entries, or process-instance and
+				scope selector fields, follow <code>page.endCursor</code> for
+				every request, apply the required complete-page union or
+				intersection by <code>variableKey</code>, and count the
+				deduplicated result. Do not sum capped totals or read one
+				search total as the combined C7 count. Sorting is not needed
+				for a count.
 			</p>
 		),
 	},

@@ -21,8 +21,11 @@ export const external_task = [
 				be used to search for jobs without activating them. Note that
 				external tasks in Camunda 7 correspond to BPMN element jobs
 				in Camunda 8. Set <code>filter.kind</code> to{" "}
-				<code>BPMN_ELEMENT</code> so listener and ad-hoc-subprocess
-				jobs are excluded.
+				<code>BPMN_ELEMENT</code> and, when the C7 query identifies a
+				topic, set <code>filter.type</code> to the corresponding C8
+				job type. <code>filter.kind</code> alone also includes other
+				BPMN element job types, so a search without a known topic/type
+				restriction is not an exact C7 external-task mapping.
 			</div>
 		),
 	},
@@ -41,8 +44,11 @@ export const external_task = [
 				be used to search for jobs without activating them. Note that
 				external tasks in Camunda 7 correspond to BPMN element jobs
 				in Camunda 8. Set <code>filter.kind</code> to{" "}
-				<code>BPMN_ELEMENT</code> so listener and ad-hoc-subprocess
-				jobs are excluded.
+				<code>BPMN_ELEMENT</code> and, when the C7 query identifies a
+				topic, set <code>filter.type</code> to the corresponding C8
+				job type. <code>filter.kind</code> alone also includes other
+				BPMN element job types, so a search without a known topic/type
+				restriction is not an exact C7 external-task mapping.
 			</div>
 		),
 	},
@@ -63,8 +69,11 @@ export const external_task = [
 				<code>page.hasMoreTotalItems</code> is{" "}
 				<code>true</code>, <code>page.totalItems</code> is only a
 				lower bound, not the exact count. Set{" "}
-				<code>filter.kind</code> to <code>BPMN_ELEMENT</code> so
-				listener and ad-hoc-subprocess jobs are excluded.
+				<code>filter.kind</code> to <code>BPMN_ELEMENT</code> and
+				<code>filter.type</code> to the known external-task topic
+				type. <code>filter.kind</code> alone also includes unrelated
+				BPMN element job types, so an unqualified count is not exact
+				and can overcount C7 external tasks.
 			</div>
 		),
 	},
@@ -85,8 +94,11 @@ export const external_task = [
 				<code>page.hasMoreTotalItems</code> is{" "}
 				<code>true</code>, <code>page.totalItems</code> is only a
 				lower bound, not the exact count. Set{" "}
-				<code>filter.kind</code> to <code>BPMN_ELEMENT</code> so
-				listener and ad-hoc-subprocess jobs are excluded.
+				<code>filter.kind</code> to <code>BPMN_ELEMENT</code> and
+				<code>filter.type</code> to the known external-task topic
+				type. <code>filter.kind</code> alone also includes unrelated
+				BPMN element job types, so an unqualified count is not exact
+				and can overcount C7 external tasks.
 			</div>
 		),
 	},
@@ -462,9 +474,15 @@ export const external_task = [
 					</p>
 					<p>
 						Set <code>filter.kind</code> to{" "}
-						<code>BPMN_ELEMENT</code> in every request. Camunda 7
-						external tasks do not include execution-listener,
-						task-listener, or ad-hoc-subprocess jobs.
+						<code>BPMN_ELEMENT</code> in every request and, for
+						any selector other than an exact{" "}
+						<code>jobKey</code> or <code>jobKey.$in</code>, also
+						set <code>filter.type</code> to a known external-task
+						topic type. <code>filter.kind</code> alone includes
+						unrelated BPMN element job types and can update jobs
+						outside the C7 external-task set. If no type mapping is
+						known, the selector is not an exact mapping and must
+						not be used for a batch retry update.
 					</p>
 					<p>
 						Do not pass either Camunda 7 query object directly as a
@@ -744,9 +762,15 @@ export const external_task = [
 					</p>
 					<p>
 						Set <code>filter.kind</code> to{" "}
-						<code>BPMN_ELEMENT</code> in every request. Camunda 7
-						external tasks do not include execution-listener,
-						task-listener, or ad-hoc-subprocess jobs.
+						<code>BPMN_ELEMENT</code> in every request and, for
+						any selector other than an exact{" "}
+						<code>jobKey</code> or <code>jobKey.$in</code>, also
+						set <code>filter.type</code> to a known external-task
+						topic type. <code>filter.kind</code> alone includes
+						unrelated BPMN element job types and can update jobs
+						outside the C7 external-task set. If no type mapping is
+						known, the selector is not an exact mapping and must
+						not be used for a batch retry update.
 					</p>
 					<p>
 						Do not pass either Camunda 7 query object directly as a
@@ -839,12 +863,16 @@ export const external_task = [
 		mappedExplanation: (
 			<div>
 				The Camunda 8.10 Search jobs endpoint can search by the
-				<code>type</code> field. External task topic names correspond to
-				BPMN element job types in Camunda 8. Set{" "}
-				<code>filter.kind</code> to <code>BPMN_ELEMENT</code>. The
-				endpoint is paginated and can return terminal jobs. Page through
-				all results, retain only current jobs, and collect unique{" "}
-				<code>type</code> values.
+				<code>type</code> field, but <code>BPMN_ELEMENT</code> includes
+				job types that are not C7 external-task topics. There is no
+				exact mapping from <code>/external-task/topic-names</code> using
+				only this endpoint. Use external-task definition metadata or a
+				known C7-topic-to-C8-type allowlist, then search each allowed
+				type with <code>filter.kind=BPMN_ELEMENT</code> and collect the
+				unique types. Without that allowlist, mark this mapping as
+				non-equivalent rather than treating every returned type as a
+				topic name. The endpoint is paginated and can return terminal
+				jobs, so page through all results and retain only current jobs.
 				Translate <code>withLockedTasks</code>,{" "}
 				<code>withUnlockedTasks</code>, and{" "}
 				<code>withRetriesLeft</code> using the job's worker, deadline,
