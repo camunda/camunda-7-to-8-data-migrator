@@ -138,6 +138,8 @@ After both complete, ask via AskUserQuestion whether to wire deployment of conve
   - Build the deployment inventory from those recorded converted model paths.
   - Exclude findings reports and other non-model artifacts from the deployment inventory.
   - Add every form with a recorded `bindingType=deployment`, including relinked forms, to the deployment inventory.
+  - Record each deployment-bound form's final project-relative path in the deployment inventory.
+  - Record each deployment-bound form's owning converted BPMN path.
   - Confirm that each inventory entry is under a packaged resource directory before adding its deployment pattern.
   - Prefer packaging the existing directory for each inventory entry when it contains only inventory entries. (SHOULD)
   - If an inventory entry is outside a packaged resource directory, copy only the recorded converted file and associated deployment-bound forms to a dedicated packaged resource directory, or configure precise build includes for those files.
@@ -147,6 +149,7 @@ After both complete, ask via AskUserQuestion whether to wire deployment of conve
   - Use a deployment pattern only when its packaged-classpath matches are limited to inventory entries.
   - Confirm that every inventory entry matches at least one deployment pattern.
   - Confirm that every deployment pattern matches at least one inventory entry.
+  - Validate that each deployment-bound form and its owning converted BPMN share the same `@Deployment(resources = ...)` declaration or invocation.
   - Derive each deployment pattern from the recorded converted paths or the selected `--prefix`.
   - Use `classpath*:**/converted-c8-*.bpmn` only when the recorded paths use the default `converted-c8-` prefix.
   - Add the `.dmn` pattern only when a packaged converted DMN file is recorded.

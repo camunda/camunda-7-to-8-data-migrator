@@ -245,8 +245,10 @@ Each item below is a check to run and a condition that must hold at exit. Record
 8. **Tests** — run `mvn test` or the Gradle test task. Every test passes, or each failure is
    documented with an explanation.
 9. **Deployment resources** — Where the scope includes model migration and the user chose **Yes,
-   add/update @Deployment for converted files**, apply these checks to application code containing
-   `@Deployment(resources = ...)`:
+   add/update @Deployment for converted files**, apply these checks to application code in scope.
+   - Require an `@Deployment(resources = ...)` declaration when application code is in scope and
+     the deployment inventory is non-empty.
+   - Add or update that declaration before validating deployment patterns.
    - Treat every resource directory that the build configures for inclusion in a Maven or Gradle
      application artifact as a packaged resource directory.
    - Include `src/main/resources` when it exists.
@@ -259,8 +261,10 @@ Each item below is a check to run and a condition that must hold at exit. Record
    - If an inventory entry is outside a packaged resource directory, copy only the recorded
      converted file and associated deployment-bound forms to a dedicated packaged resource
      directory, or configure precise build includes for those files.
-   - Keep the original source model unchanged and do not package its directory when it contains
-     unrelated files.
+   - Keep the original source model unchanged.
+   - Do not add its source directory as a new resource root when it contains unrelated files.
+   - If its directory is already packaged, use precise build includes or copy only the recorded
+     converted files and associated deployment-bound forms.
    - Update every recorded path after copying a resource.
    - Derive each deployment pattern from the recorded converted paths or the selected `--prefix`.
    - Use the default `converted-c8-` pattern only when the recorded paths use that prefix.
@@ -300,7 +304,8 @@ Check these pitfalls as well:
 After every manual BPMN edit, lint the converted copy with the Camunda compatibility ruleset for the
 target version. See the linting section in `references/model-migration-approaches.md`.
 
-1. A `converted-c8-*` file exists for every in-scope diagram, unless the run is analyze-only.
+1. A converted copy with the selected `--prefix` exists for every in-scope diagram, unless the run
+   is analyze-only. The default `--prefix` is `converted-c8-`.
 2. Every original file is intact and was never overwritten.
 3. Treat every resource directory that the build configures for inclusion in a Maven or Gradle
    application artifact as a packaged resource directory. Include `src/main/resources` when it
