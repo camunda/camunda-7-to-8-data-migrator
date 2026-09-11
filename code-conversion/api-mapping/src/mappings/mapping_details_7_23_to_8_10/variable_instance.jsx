@@ -532,7 +532,12 @@ export const variable_instance = [
 				every request, apply the required complete-page union or
 				intersection by <code>variableKey</code>, and count the
 				deduplicated result. Do not sum capped totals or read one
-				search total as the combined C7 count.
+				search total as the combined C7 count. If a value predicate
+				was omitted for client-side type resolution or post-filtering,
+				fetch all untruncated pages and count only after applying the
+				C7 predicate; an uncapped total would otherwise count the
+				unfiltered superset. The C8 search is eventually consistent,
+				so the count describes the current C8 index and may lag C7.
 			</p>
 		),
 	},
@@ -564,8 +569,13 @@ export const variable_instance = [
 				every request, apply the required complete-page union or
 				intersection by <code>variableKey</code>, and count the
 				deduplicated result. Do not sum capped totals or read one
-				search total as the combined C7 count. Sorting is not needed
-				for a count.
+				search total as the combined C7 count. If a value predicate
+				was omitted for client-side type resolution or post-filtering,
+				fetch all untruncated pages and count only after applying the
+				C7 predicate; an uncapped total would otherwise count the
+				unfiltered superset. The C8 search is eventually consistent,
+				so the count describes the current C8 index and may lag C7.
+				Sorting is not needed for a count.
 			</p>
 		),
 	},
