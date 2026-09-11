@@ -563,9 +563,11 @@ public abstract class AbstractMigrationRecipe extends Recipe {
           private Optional<ReplacementUtils.ReplacementSpec> findBuilderReplacementSpecForType(
               J.MethodInvocation invocation,
               Map<MethodMatcher, List<ReplacementUtils.BuilderReplacementSpec>> specMap) {
+            Map<String, Expression> collectedArgs = collectArguments(invocation);
             return specMap.entrySet().stream()
                 .filter(entry -> entry.getKey().matches(invocation))
                 .flatMap(entry -> entry.getValue().stream())
+                .filter(spec -> isBuilderReplacementApplicable(spec, invocation, collectedArgs))
                 .filter(spec -> matchesReceiverType(spec, invocation))
                 .sorted(Comparator.comparing(spec -> !spec.textComments().isEmpty()))
                 .map(spec -> (ReplacementUtils.ReplacementSpec) spec)

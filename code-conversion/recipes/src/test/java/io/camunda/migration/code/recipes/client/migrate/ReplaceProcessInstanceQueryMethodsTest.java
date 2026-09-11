@@ -610,6 +610,51 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                 public long directCountPreconfiguredQuery(ProcessInstanceQuery query) {
                     return query.count();
                 }
+
+                public int countPreconfiguredFilteredQuery(
+                        ProcessInstanceQuery query, String processDefinitionKey) {
+                    return query.processDefinitionKey(processDefinitionKey).list().size();
+                }
+
+                public long directCountPreconfiguredFilteredQuery(
+                        ProcessInstanceQuery query, String processDefinitionKey) {
+                    return query.processDefinitionKey(processDefinitionKey).count();
+                }
+            }
+            """));
+  }
+
+  @Test
+  void doesNotChangeTypesForUnsupportedProcessInstanceFilters() {
+    rewriteRun(
+        spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
+        java(
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import java.util.List;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.camunda.bpm.engine.runtime.ProcessInstance;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class UnsupportedProcessInstanceListTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public List<ProcessInstance> findSuspended(String activityId) {
+                    return engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .activityIdIn(activityId)
+                            .suspended()
+                            .list();
+                }
             }
             """));
   }

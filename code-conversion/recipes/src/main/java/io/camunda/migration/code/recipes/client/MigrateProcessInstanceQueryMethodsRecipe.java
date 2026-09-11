@@ -462,8 +462,7 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
       ReplacementUtils.BuilderReplacementSpec spec,
       J.MethodInvocation queryTerminal,
       Map<String, Expression> collectedArgs) {
-    if (spec.methodNamesToExtractParameters().isEmpty()
-        && !hasCreateProcessInstanceQueryInReceiverChain(queryTerminal)) {
+    if (!hasCreateProcessInstanceQueryInReceiverChain(queryTerminal)) {
       return false;
     }
 
