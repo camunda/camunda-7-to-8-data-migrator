@@ -343,9 +343,11 @@ export const variable_instance = [
 					leftEntry: <pre>(boolean) deserializeValues</pre>,
 					rightEntry: (
 						<p>
-							Camunda 8 stores variable values as JSON. Use{" "}
-							<code>truncateValues=false</code> when the complete
-							value is required.
+							Camunda 8 stores variable values as JSON and has no
+							equivalent for the Camunda 7{" "}
+							<code>deserializeValues</code> option. The separate{" "}
+							<code>truncateValues=false</code> option only
+							controls whether response values are truncated.
 						</p>
 					),
 				},
@@ -625,12 +627,12 @@ export const variable_instance = [
 			<p>
 				Camunda 8.10 does not provide a generic binary variable download
 				endpoint. For a document-backed variable, call{" "}
-				<code>
-					GET /variables/{"{variableKey}"}?truncateValues=false
-				</code>
+				<code>GET /variables/{"{variableKey}"}</code>
 				, resolve its <code>DocumentReference</code>, and download the
-				content with <code>GET /documents/{"{documentId}"}</code>. See
-				the process-variable mapping for this conditional flow. Other
+				content with <code>GET /documents/{"{documentId}"}</code>,
+				passing <code>storeId</code> and the non-null{" "}
+				<code>contentHash</code> as query parameters. See the
+				process-variable mapping for this conditional flow. Other
 				non-document binary variable types have no equivalent endpoint.
 			</p>
 		),
