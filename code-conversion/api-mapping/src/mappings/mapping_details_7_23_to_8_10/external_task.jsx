@@ -59,10 +59,12 @@ export const external_task = [
 			<div>
 				In Camunda 8.10, the <code>POST Search jobs</code> endpoint can
 				be used to search for jobs. The response includes a{" "}
-				<code>page.totalItems</code> field that provides the total count
-				of matching BPMN element jobs. Set <code>filter.kind</code> to{" "}
-				<code>BPMN_ELEMENT</code> so listener and ad-hoc-subprocess
-				jobs are excluded.
+				<code>page.totalItems</code> field, but it can be capped. If{" "}
+				<code>page.hasMoreTotalItems</code> is{" "}
+				<code>true</code>, <code>page.totalItems</code> is only a
+				lower bound, not the exact count. Set{" "}
+				<code>filter.kind</code> to <code>BPMN_ELEMENT</code> so
+				listener and ad-hoc-subprocess jobs are excluded.
 			</div>
 		),
 	},
@@ -79,10 +81,12 @@ export const external_task = [
 			<div>
 				In Camunda 8.10, the <code>POST Search jobs</code> endpoint can
 				be used to search for jobs. The response includes a{" "}
-				<code>page.totalItems</code> field that provides the total count
-				of matching BPMN element jobs. Set <code>filter.kind</code> to{" "}
-				<code>BPMN_ELEMENT</code> so listener and ad-hoc-subprocess
-				jobs are excluded.
+				<code>page.totalItems</code> field, but it can be capped. If{" "}
+				<code>page.hasMoreTotalItems</code> is{" "}
+				<code>true</code>, <code>page.totalItems</code> is only a
+				lower bound, not the exact count. Set{" "}
+				<code>filter.kind</code> to <code>BPMN_ELEMENT</code> so
+				listener and ad-hoc-subprocess jobs are excluded.
 			</div>
 		),
 	},
@@ -863,7 +867,10 @@ export const external_task = [
 			<div>
 				In Camunda 8.10, the <code>POST Search jobs</code> endpoint can
 				be used to retrieve a specific job by filtering on{" "}
-				<code>jobKey</code>.
+				<code>jobKey</code>. Set <code>filter.kind</code> to{" "}
+				<code>BPMN_ELEMENT</code> so listener and ad-hoc-subprocess jobs
+				are excluded. Resolve the C7 external-task ID to the
+				corresponding C8 job key before making the request.
 			</div>
 		),
 	},
