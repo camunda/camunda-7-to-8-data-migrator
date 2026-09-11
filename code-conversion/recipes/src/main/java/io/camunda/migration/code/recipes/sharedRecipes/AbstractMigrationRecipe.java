@@ -60,6 +60,13 @@ public abstract class AbstractMigrationRecipe extends Recipe {
     return replacement;
   }
 
+  protected boolean preserveVariableDeclarationType(
+      J.VariableDeclarations declarations,
+      J.MethodInvocation invocation,
+      ReplacementUtils.ReplacementSpec spec) {
+    return false;
+  }
+
   protected abstract List<ReplacementUtils.ReturnReplacementSpec> returnMethodInvocations();
 
   protected abstract List<ReplacementUtils.RenameReplacementSpec> renameMethodInvocations();
@@ -103,6 +110,21 @@ public abstract class AbstractMigrationRecipe extends Recipe {
                 if (spec.returnTypeStrategy()
                     == ReplacementUtils.ReturnTypeStrategy.INFER_FROM_CONTEXT) {
                   return super.visitVariableDeclarations(declarations, ctx);
+                }
+
+                if (preserveVariableDeclarationType(declarations, invocation, spec)) {
+                  getCursor().putMessage(invocation.getId().toString(), "comments added");
+                  J.VariableDeclarations modifiedDeclarations =
+                      declarations.withComments(
+                          Stream.concat(
+                                  declarations.getComments().stream(),
+                                  spec.textComments().stream()
+                                      .map(
+                                          text ->
+                                              RecipeUtils.createSimpleComment(declarations, text)))
+                              .toList());
+                  modifiedDeclarations = super.visitVariableDeclarations(modifiedDeclarations, ctx);
+                  return maybeAutoFormat(declarations, modifiedDeclarations, ctx);
                 }
 
                 String resolvedFqn = null;

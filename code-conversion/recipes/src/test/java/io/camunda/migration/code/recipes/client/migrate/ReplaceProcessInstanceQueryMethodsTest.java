@@ -344,13 +344,13 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                 private CamundaClient camundaClient;
 
                 public void countQueries() {
-                    Long listSize = camundaClient
+                    int listSize = camundaClient
                             .newProcessInstanceSearchRequest()
                             .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
                             .send()
                             .join()
                             .page()
-                            .totalItems();
+                            .totalItems().intValue();
 
                     Long streamCount = camundaClient
                             .newProcessInstanceSearchRequest()
@@ -423,6 +423,15 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .size();
                     return count;
                 }
+
+                public int countProcessInstancesWithMultipleVariables() {
+                    int other = 0, count = engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size();
+                    return other + count;
+                }
             }
             """,
             """
@@ -476,6 +485,17 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .page()
                             .totalItems().intValue();
                     return count;
+                }
+
+                public int countProcessInstancesWithMultipleVariables() {
+                    int other = 0, count = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue();
+                    return other + count;
                 }
             }
             """));
@@ -706,6 +726,21 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                                 .processDefinitionKey(processDefinitionKey)
                                 .suspended()
                                 .count();
+                    }
+
+                    public long directCountMultipleActivityIds(String firstActivityId, String secondActivityId) {
+                        return engine.getRuntimeService()
+                                .createProcessInstanceQuery()
+                                .activityIdIn(firstActivityId, secondActivityId)
+                                .count();
+                    }
+
+                    public int listSizeMultipleActivityIds(String firstActivityId, String secondActivityId) {
+                        return engine.getRuntimeService()
+                                .createProcessInstanceQuery()
+                                .activityIdIn(firstActivityId, secondActivityId)
+                                .list()
+                                .size();
                     }
                 }
                 """));

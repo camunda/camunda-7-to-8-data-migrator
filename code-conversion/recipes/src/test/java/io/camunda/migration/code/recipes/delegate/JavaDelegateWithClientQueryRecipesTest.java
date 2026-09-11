@@ -114,7 +114,7 @@ public class JavaDelegateWithClientQueryRecipesTest implements RewriteTest {
                             .page()
                             .totalItems();
 
-                    Long pagedCount = camundaClient
+                    int pagedCount = camundaClient
                             .newProcessInstanceSearchRequest()
                             .filter(filter -> filter
                                     .processDefinitionId("example-workflow-process")
@@ -122,7 +122,7 @@ public class JavaDelegateWithClientQueryRecipesTest implements RewriteTest {
                             .send()
                             .join()
                             .page()
-                            .totalItems();
+                            .totalItems().intValue();
 
                     Long streamCount = camundaClient
                             .newProcessInstanceSearchRequest()

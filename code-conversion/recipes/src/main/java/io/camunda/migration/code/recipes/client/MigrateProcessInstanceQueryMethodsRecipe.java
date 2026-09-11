@@ -462,7 +462,8 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
       ReplacementUtils.BuilderReplacementSpec spec,
       J.MethodInvocation queryTerminal,
       Map<String, Expression> collectedArgs) {
-    if (!hasCreateProcessInstanceQueryInReceiverChain(queryTerminal)) {
+    if (!hasCreateProcessInstanceQueryInReceiverChain(queryTerminal)
+        || hasUnsupportedActivityIdInArguments(queryTerminal)) {
       return false;
     }
 
@@ -477,11 +478,23 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
     return true;
   }
 
+  private boolean hasUnsupportedActivityIdInArguments(J.MethodInvocation invocation) {
+    Expression current = invocation.getSelect();
+    while (current instanceof J.MethodInvocation methodInvocation) {
+      if (methodInvocation.getSimpleName().equals("activityIdIn")
+          && (methodInvocation.getArguments().size() != 1
+              || methodInvocation.getArguments().get(0) instanceof J.Empty)) {
+        return true;
+      }
+      current = methodInvocation.getSelect();
+    }
+    return false;
+  }
+
   @Override
   protected J.MethodInvocation adjustBuilderReplacement(
       J.MethodInvocation replacement, J.MethodInvocation replacementTarget, Cursor cursor) {
-    if (!replacementTarget.getSimpleName().equals("size")
-        || isDirectVariableInitializer(replacementTarget, cursor)) {
+    if (!replacementTarget.getSimpleName().equals("size")) {
       return replacement;
     }
 
@@ -490,14 +503,12 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
             .apply(cursor, replacementTarget.getCoordinates().replace(), replacement);
   }
 
-  private boolean isDirectVariableInitializer(
-      J.MethodInvocation replacementTarget, Cursor cursor) {
-    J.VariableDeclarations declarations = cursor.firstEnclosing(J.VariableDeclarations.class);
-    return declarations != null
-        && declarations.getVariables().stream()
-            .map(J.VariableDeclarations.NamedVariable::getInitializer)
-            .filter(Objects::nonNull)
-            .anyMatch(initializer -> initializer.getId().equals(replacementTarget.getId()));
+  @Override
+  protected boolean preserveVariableDeclarationType(
+      J.VariableDeclarations declarations,
+      J.MethodInvocation invocation,
+      ReplacementUtils.ReplacementSpec spec) {
+    return invocation.getSimpleName().equals("size");
   }
 
   private boolean hasCreateProcessInstanceQueryInReceiverChain(J.MethodInvocation invocation) {
