@@ -257,33 +257,44 @@ Each item below is a check to run and a condition that must hold at exit. Record
    - Add or update the selected deployment path before validating deployment patterns or resource
      lists.
    - Rerun compilation and tests after adding or updating the deployment path.
-   - Treat every resource directory that the build configures for inclusion in a Maven or Gradle
-     application artifact as a packaged resource directory.
-   - Include `src/main/resources` when it exists.
-   - Confirm that every recorded converted file and every form with a recorded
-     `bindingType=deployment` is under a packaged resource directory and is available on the
-     application classpath before validating deployment patterns.
+   - For Spring Boot `@Deployment`, treat every resource directory that the build configures for
+     inclusion in a Maven or Gradle application artifact as a packaged resource directory.
+   - For Spring Boot `@Deployment`, include `src/main/resources` when it exists.
+   - For Spring Boot `@Deployment`, confirm that every recorded converted file and every form with a
+     recorded `bindingType=deployment` is under a packaged resource directory and is available on
+     the application classpath before validating deployment patterns.
+   - For non-Spring `CamundaClient` commands, validate each inventory entry against the source used
+     by the explicit deployment command instead of requiring a packaged classpath resource.
    - Build the deployment inventory from recorded converted model paths and every form with a
      recorded `bindingType=deployment`, including relinked forms.
    - Exclude findings reports and other non-deployable artifacts from the deployment inventory.
-   - If an inventory entry is outside a packaged resource directory, copy only the recorded
-     converted file and associated deployment-bound forms to a dedicated packaged resource
-     directory, or configure precise build includes for those files.
+   - For Spring Boot `@Deployment`, if an inventory entry is outside a packaged resource directory,
+     copy only the recorded converted file and associated deployment-bound forms to a dedicated
+     packaged resource directory, or configure precise build includes for those files.
    - Keep the original source model unchanged.
-   - Do not add its source directory as a new resource root when it contains unrelated files.
-   - If its directory is already packaged, use precise build includes or copy only the recorded
-     converted files and associated deployment-bound forms.
+   - For Spring Boot `@Deployment`, do not add its source directory as a new resource root when it
+     contains unrelated files.
+   - For Spring Boot `@Deployment`, if its directory is already packaged, use precise build
+     includes or copy only the recorded converted files and associated deployment-bound forms.
    - Update every recorded path after copying a resource.
-   - Derive each deployment pattern from the recorded converted paths or the selected `--prefix`.
-   - Use the default `converted-c8-` pattern only when the recorded paths use that prefix.
-   - Derive each form pattern from its recorded deployment-bound form path, including relinked
-     forms.
-   - Use a deployment pattern only when its packaged-classpath matches are limited to inventory
-     entries.
-   - Confirm that every inventory entry matches at least one deployment pattern.
-   - Confirm that every deployment pattern matches at least one inventory entry under a packaged
-     resource directory.
-   - Remove patterns for resource types with no inventory entry.
+   - For Spring Boot `@Deployment`, derive each deployment pattern from the recorded converted
+     paths or the selected `--prefix`.
+   - For Spring Boot `@Deployment`, use the default `converted-c8-` pattern only when the recorded
+     paths use that prefix.
+   - For Spring Boot `@Deployment`, derive each form pattern from its recorded deployment-bound form
+     path, including relinked forms.
+   - For Spring Boot `@Deployment`, use a deployment pattern only when its packaged-classpath
+     matches are limited to inventory entries.
+   - For Spring Boot `@Deployment`, confirm that every inventory entry matches at least one
+     deployment pattern.
+   - For non-Spring `CamundaClient` commands, confirm that every inventory entry is supplied by an
+     explicit deployment command.
+   - For Spring Boot `@Deployment`, confirm that every deployment pattern matches at least one
+     inventory entry under a packaged resource directory.
+   - For Spring Boot `@Deployment`, when the deployment inventory is non-empty, remove patterns for
+     resource types with no inventory entry.
+   - For Spring Boot `@Deployment`, when the deployment inventory is empty, preserve existing
+     deployment patterns.
    Where the scope excludes model migration or the user chose **No**, preserve existing deployment
    patterns and do not compare them with the current model inventory.
 10. **Eventually-consistent queries** — search for every C8 search-request factory method listed in

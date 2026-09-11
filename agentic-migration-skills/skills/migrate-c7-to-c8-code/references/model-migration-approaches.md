@@ -111,7 +111,8 @@ directory. Otherwise, use another explicitly non-packaged directory.
 ### 4. Surface Outputs
 
 After the run and report relocation, report:
-- Converted files: every `converted-c8-*.bpmn` / `*.dmn` produced (from the captured `Created ...` lines).
+- Converted files: every converted model path captured from the `Created ...` lines, including the
+  selected `--prefix` and the full filename suffix.
 - Skipped files: any `File already exists` errors, naming the stale targets. Those diagrams were NOT converted. Offer to re-run once the user removes the stale copies (see Pre-flight: Leftover Artifacts).
 - Analysis findings: summarize from CLI stdout and/or the JSON report, grouped by severity (WARNING / TASK / REVIEW / INFO).
 - Analysis artifacts: point the user to the relocated XLSX report (human-readable), and note the relocated JSON report is the step 5 input.

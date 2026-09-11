@@ -365,8 +365,9 @@ another user question.
 ## Deployment and validation
 
 Deployment binding requires the converted BPMN and accepted `.form` file in the same deployment. Use
-explicit accepted resource paths when possible. Use a recursive pattern such as
-`classpath*:**/converted-c8-*.form` only when it cannot include drafts or declined forms.
+explicit accepted resource paths derived from each recorded final form path when possible. If a
+recursive pattern is necessary, derive it from the recorded final paths, including any selected
+prefix, and use it only when it cannot include drafts or declined forms.
 
 Before reporting a form complete:
 

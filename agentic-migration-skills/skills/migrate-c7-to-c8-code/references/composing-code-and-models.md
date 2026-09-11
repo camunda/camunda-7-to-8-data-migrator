@@ -131,9 +131,12 @@ After both complete, ask via AskUserQuestion whether to wire deployment of conve
 
 - **Yes, add/update deployment for converted files** (use `@Deployment(resources = ...)` for Spring Boot applications):
   - Use explicit `CamundaClient` deployment commands for non-Spring applications.
-  - Apply the inventory, packaging, coverage, and co-location rules to the explicit resource list.
-  - Treat every resource directory that the build configures for inclusion in a Maven or Gradle application artifact as a packaged resource directory.
-  - Include `src/main/resources` when it exists.
+  - Apply the inventory, coverage, and co-location rules to the explicit resource list.
+  - For Spring Boot `@Deployment`, treat every resource directory that the build configures for
+    inclusion in a Maven or Gradle application artifact as a packaged resource directory.
+  - For Spring Boot `@Deployment`, include `src/main/resources` when it exists.
+  - For non-Spring `CamundaClient` commands, validate each inventory entry against the source used
+    by the explicit deployment command instead of requiring a packaged classpath resource.
   - For M1 and E1, record converted model paths from `Created ...` lines.
   - For M2, record each converted model path after writing the converted copy.
   - For M3, record each downloaded converted model path after pairing it with its original.
@@ -142,24 +145,43 @@ After both complete, ask via AskUserQuestion whether to wire deployment of conve
   - Add every form with a recorded `bindingType=deployment`, including relinked forms, to the deployment inventory.
   - Record each deployment-bound form's final project-relative path in the deployment inventory.
   - Record each deployment-bound form's owning converted BPMN path.
-  - Confirm that each inventory entry is under a packaged resource directory before adding its deployment pattern.
-  - Prefer packaging the existing directory for each inventory entry when it contains only inventory entries. (SHOULD)
-  - If an inventory entry is outside a packaged resource directory, copy only the recorded converted file and associated deployment-bound forms to a dedicated packaged resource directory, or configure precise build includes for those files.
+  - For Spring Boot `@Deployment`, confirm that each inventory entry is under a packaged resource
+    directory before adding its deployment pattern.
+  - For Spring Boot `@Deployment`, prefer packaging the existing directory for each inventory entry
+    when it contains only inventory entries. (SHOULD)
+  - For Spring Boot `@Deployment`, if an inventory entry is outside a packaged resource directory,
+    copy only the recorded converted file and associated deployment-bound forms to a dedicated
+    packaged resource directory, or configure precise build includes for those files.
   - Keep each original source model unchanged in its original location.
   - Update every recorded path after copying a resource.
-  - Add a deployment pattern only when its resource type has an inventory entry under a packaged resource directory.
-  - Use a deployment pattern only when its packaged-classpath matches are limited to inventory entries.
-  - Confirm that every inventory entry matches at least one deployment pattern.
-  - Confirm that every deployment pattern matches at least one inventory entry.
+  - For Spring Boot `@Deployment`, add a deployment pattern only when its resource type has an
+    inventory entry under a packaged resource directory.
+  - For Spring Boot `@Deployment`, use a deployment pattern only when its packaged-classpath matches
+    are limited to inventory entries.
+  - For Spring Boot `@Deployment`, confirm that every inventory entry matches at least one
+    deployment pattern.
+  - For non-Spring `CamundaClient` commands, confirm that every inventory entry is supplied by an
+    explicit deployment command.
+  - For Spring Boot `@Deployment`, confirm that every deployment pattern matches at least one
+    inventory entry.
   - Validate that each deployment-bound form and its owning converted BPMN share the same deployment declaration or invocation.
-  - Derive each deployment pattern from the recorded converted paths or the selected `--prefix`.
-  - Derive each model pattern from its recorded filename suffix.
-  - Use `classpath*:**/converted-c8-*.bpmn` only when the recorded paths use the default `converted-c8-` prefix and the `.bpmn` suffix.
-  - Include full suffixes such as `.bpmn20.xml` and `.dmn11.xml` when the recorded paths use them.
-  - Add a DMN pattern only when a packaged converted DMN file is recorded.
-  - Derive each form pattern from its recorded deployment-bound form path, including relinked forms.
-  - Add the `.form` pattern only when a form with a recorded `bindingType=deployment` is packaged.
-  - Never target original diagrams, draft forms, declined forms, or resource types with no inventory entry.
+  - For Spring Boot `@Deployment`, derive each deployment pattern from the recorded converted paths
+    or the selected `--prefix`.
+  - For Spring Boot `@Deployment`, derive each model pattern from its recorded filename suffix.
+  - For Spring Boot `@Deployment`, use `classpath*:**/converted-c8-*.bpmn` only when the recorded
+    paths use the default `converted-c8-` prefix and the `.bpmn` suffix.
+  - For Spring Boot `@Deployment`, include full suffixes such as `.bpmn20.xml` and `.dmn11.xml`
+    when the recorded paths use them.
+  - For Spring Boot `@Deployment`, add a DMN pattern only when a packaged converted DMN file is
+    recorded.
+  - For Spring Boot `@Deployment`, derive each form pattern from its recorded deployment-bound form
+    path, including relinked forms.
+  - For Spring Boot `@Deployment`, add the `.form` pattern only when a form with a recorded
+    `bindingType=deployment` is packaged.
+  - For Spring Boot `@Deployment`, when the deployment inventory is non-empty, never target original
+    diagrams, draft forms, declined forms, or resource types with no inventory entry.
+  - For Spring Boot `@Deployment`, when the deployment inventory is empty, preserve existing
+    deployment wiring.
 - **No, I will handle deployment outside app startup** - leave code unchanged and record this decision in MIGRATION_REPORT.md.
 
 ## Report Keeping
