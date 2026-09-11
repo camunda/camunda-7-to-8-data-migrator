@@ -30,16 +30,27 @@ export const variable_instance = [
 							<pre>
 								(string) filter.name
 								<br />
+								(string) filter.name.$eq
+								<br />
 								(string) filter.name.$like
 							</pre>
 							<p>
-								Translate each Camunda 7 <code>%</code> wildcard
-								to the Camunda 8 <code>*</code> wildcard. Before
-								sending <code>$like</code>, escape literal
-								backslashes, <code>*</code>, and <code>?</code>{" "}
-								with the Camunda 8 backslash escape so C7 literal
-								characters do not become C8 wildcards. Camunda 8
-								treats <code>%</code> literally.
+								Use the scalar <code>filter.name</code> for
+								<code>variableName</code> when{" "}
+								<code>variableNameLike</code> is absent. When
+								both C7 parameters are supplied, use the
+								advanced object with{" "}
+								<code>filter.name.$eq</code> and{" "}
+								<code>filter.name.$like</code>; do not combine
+								scalar <code>filter.name</code> with{" "}
+								<code>$like</code>. Translate each Camunda 7{" "}
+								<code>%</code> wildcard to the Camunda 8{" "}
+								<code>*</code> wildcard. Before sending{" "}
+								<code>$like</code>, escape literal backslashes,{" "}
+								<code>*</code>, and <code>?</code> with the
+								Camunda 8 backslash escape so C7 literal
+								characters do not become C8 wildcards. Camunda
+								8 treats <code>%</code> literally.
 							</p>
 						</>
 					),
@@ -134,8 +145,8 @@ export const variable_instance = [
 								has no numeric comparison operator for variable
 								values, so{" "}
 								<code>gt</code>, <code>gteq</code>,{" "}
-								<code>lt</code>, and <code>lteq</code> are
-								unsupported.
+								<code>lt</code>, <code>lteq</code>, and{" "}
+								<code>notLike</code> are unsupported.
 							</p>
 						</>
 					),
@@ -188,17 +199,32 @@ export const variable_instance = [
 						does not include variables inherited from parent scopes.
 					</p>
 					<p>
+						When both <code>variableName</code> and{" "}
+						<code>variableNameLike</code> are supplied, use{" "}
+						<code>filter.name.$eq</code> and{" "}
+						<code>filter.name.$like</code> together in the
+						advanced name filter. Do not send scalar{" "}
+						<code>filter.name</code> alongside{" "}
+						<code>filter.name.$like</code>. Apply the same rule
+						when the POST mapping reuses these filters.
+					</p>
+					<p>
 						Use the advanced <code>$in</code> and{" "}
 						<code>$like</code> operators for array and pattern
 						criteria where the target filter supports them. Variable
 						values in{" "}
 						<code>filter.value</code> must use their serialized JSON
-						representation. For GET requests, values are always C7
-						strings, so JSON-encode them with their quotes (for
-						example, <code>"5"</code>, not <code>5</code>). For
-						POST requests, preserve number, boolean, and string
-						types with <code>JSON.stringify</code>; string values
-						also include quotes. For <code>like</code>, escape
+						representation. For GET requests, the query value is an
+						untyped string token. Resolve the source variable type
+						before JSON-encoding it (for example, numeric{" "}
+						<code>5</code> becomes <code>5</code>, while a string
+						value becomes <code>"5"</code>). If the type cannot be
+						resolved, retrieve candidates and apply the value
+						predicate client-side instead of forcing every value to
+						a JSON string. For POST requests, preserve number,
+						boolean, and string types with{" "}
+						<code>JSON.stringify</code>; string values also include
+						quotes. For <code>like</code>, escape
 						literal backslashes, <code>*</code>, and{" "}
 						<code>?</code> before translating C7{" "}
 						<code>%</code> wildcards to C8 <code>*</code>, then
@@ -210,7 +236,19 @@ export const variable_instance = [
 						<code>like</code> operators. The C8 filter does not
 						support the numeric comparison operators{" "}
 						<code>gt</code>, <code>gteq</code>,{" "}
-						<code>lt</code>, or <code>lteq</code>.
+						<code>lt</code>, <code>lteq</code>, or{" "}
+						<code>notLike</code>.
+					</p>
+					<p>
+						Camunda 8 defaults <code>page.limit</code> to 100. For
+						any unbounded C7 search, or when{" "}
+						<code>maxResults</code> can exceed one page, follow{" "}
+						<code>page.endCursor</code> with{" "}
+						<code>page.after</code> until all matching variables
+						are retrieved before applying{" "}
+						<code>firstResult</code> and{" "}
+						<code>maxResults</code>. Use one page only when the
+						requested C7 result window is known to fit in it.
 					</p>
 					<p>
 						For multiple <code>variableValues</code> entries, issue
@@ -308,7 +346,11 @@ export const variable_instance = [
 				Use the same filter, sorting, and pagination mappings as the GET
 				<code>/variable-instance</code> endpoint. The Camunda 8 request
 				body uses <code>filter</code>, <code>sort</code>, and{" "}
-				<code>page</code> at the root level.
+				<code>page</code> at the root level. When both{" "}
+				<code>variableName</code> and{" "}
+				<code>variableNameLike</code> are supplied, use{" "}
+				<code>filter.name.$eq</code> and{" "}
+				<code>filter.name.$like</code> together.
 			</p>
 		),
 		direct: {
@@ -340,9 +382,9 @@ export const variable_instance = [
 								<code>*</code>, and JSON-encode the complete
 								string pattern. The numeric{" "}
 								<code>gt</code>, <code>gteq</code>,{" "}
-								<code>lt</code>, and <code>lteq</code>{" "}
-								operators are unsupported for C8 variable
-								values.
+								<code>lt</code>, <code>lteq</code>, and{" "}
+								<code>notLike</code> operators are unsupported
+								for C8 variable values.
 							</p>
 						</>
 					),
@@ -375,24 +417,38 @@ export const variable_instance = [
 				},
 			],
 			additionalInfo: (
-				<p>
-					See the GET <code>/variable-instance</code> mapping for
-					filter conversions, scope-key resolution, and unsupported
-					parameters. Use one Camunda 8 request per{" "}
-					<code>variableValues</code> entry and follow{" "}
-					<code>page.endCursor</code> with <code>page.after</code> for
-					each request until all pages are retrieved. Do not send C7{" "}
-					<code>firstResult</code> as <code>page.from</code> in these
-					cursor-paginated intermediate requests or stop traversal at
-					C7 <code>maxResults</code>. Then intersect the complete
-					responses by <code>variableKey</code> before applying the C7
-					offset and limit or deriving counts. Apply the same complete-
-					page intersection to multiple process-instance or scope
-					selector fields, and the complete-page union to multiple{" "}
-					<code>tenantIdIn</code> values. Do not combine different source
-					fields into one <code>$in</code> filter or union conjunctive
-					<code>variableValues</code> responses.
-				</p>
+				<>
+					<p>
+						See the GET <code>/variable-instance</code> mapping for
+						filter conversions, scope-key resolution, and unsupported
+						parameters. Camunda 8 defaults{" "}
+						<code>page.limit</code> to 100, so for any unbounded C7
+						POST query, or when <code>maxResults</code> can exceed
+						one page, follow <code>page.endCursor</code> with{" "}
+						<code>page.after</code> until all matching variables are
+						retrieved before applying{" "}
+						<code>firstResult</code> and{" "}
+						<code>maxResults</code>.
+					</p>
+					<p>
+						Use one Camunda 8 request per{" "}
+						<code>variableValues</code> entry and follow{" "}
+						<code>page.endCursor</code> with <code>page.after</code>{" "}
+						for each request until all pages are retrieved. Do not
+						send C7 <code>firstResult</code> as{" "}
+						<code>page.from</code> in these cursor-paginated
+						intermediate requests or stop traversal at C7{" "}
+						<code>maxResults</code>. Then intersect the complete
+						responses by <code>variableKey</code> before applying the
+						C7 offset and limit or deriving counts. Apply the same
+						complete-page intersection to multiple process-instance
+						or scope selector fields, and the complete-page union to
+						multiple <code>tenantIdIn</code> values. Do not combine
+						different source fields into one <code>$in</code> filter
+						or union conjunctive <code>variableValues</code>{" "}
+						responses.
+					</p>
+				</>
 			),
 		},
 		discontinued: {
@@ -433,7 +489,9 @@ export const variable_instance = [
 				<code>page.hasMoreTotalItems</code> from the Camunda 8 search
 				response. When <code>hasMoreTotalItems</code> is{" "}
 				<code>true</code>, <code>totalItems</code> is only a lower
-				bound, not the exact C7 count. For multiple{" "}
+				bound, not the exact C7 count. Follow{" "}
+				<code>page.endCursor</code> and count all returned items,
+				even for a single filter. For multiple{" "}
 				<code>tenantIdIn</code> values,{" "}
 				<code>variableValues</code> entries, or process-instance and
 				scope selector fields, follow <code>page.endCursor</code> for
@@ -461,7 +519,9 @@ export const variable_instance = [
 				<code>page.hasMoreTotalItems</code> from the Camunda 8 search
 				response. When <code>hasMoreTotalItems</code> is{" "}
 				<code>true</code>, <code>totalItems</code> is only a lower
-				bound, not the exact C7 count. For multiple{" "}
+				bound, not the exact C7 count. Follow{" "}
+				<code>page.endCursor</code> and count all returned items,
+				even for a single filter. For multiple{" "}
 				<code>tenantIdIn</code> values,{" "}
 				<code>variableValues</code> entries, or process-instance and
 				scope selector fields, follow <code>page.endCursor</code> for
@@ -502,9 +562,13 @@ export const variable_instance = [
 			],
 			additionalInfo: (
 				<p>
-					The Camunda 8 response contains the complete JSON value. The
-					Camunda 7 <code>deserializeValue</code> option has no direct
-					equivalent.
+					The Camunda 8 response's <code>value</code> is a string
+					containing the serialized JSON representation, not a typed
+					JSON value. Parse it as JSON when recreating the parsed
+					Camunda 7 value, or preserve the serialized string when
+					the Camunda 7 caller requested the serialized form. The
+					Camunda 7 <code>deserializeValue</code> option has no
+					direct equivalent, so apply this conversion explicitly.
 				</p>
 			),
 		},
