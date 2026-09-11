@@ -129,14 +129,16 @@ remediation starting point. Do not infer a category-specific cross-check from an
 
 After both complete, ask via AskUserQuestion whether to wire deployment of converted files in application code:
 
-- **Yes, add/update @Deployment for converted files** (recommended where code scope includes a Spring Boot app):
+- **Yes, add/update deployment for converted files** (use `@Deployment(resources = ...)` for Spring Boot applications):
+  - Use explicit `CamundaClient` deployment commands for non-Spring applications.
+  - Apply the inventory, packaging, coverage, and co-location rules to the explicit resource list.
   - Treat every resource directory that the build configures for inclusion in a Maven or Gradle application artifact as a packaged resource directory.
   - Include `src/main/resources` when it exists.
   - For M1 and E1, record converted model paths from `Created ...` lines.
   - For M2, record each converted model path after writing the converted copy.
   - For M3, record each downloaded converted model path after pairing it with its original.
   - Build the deployment inventory from those recorded converted model paths.
-  - Exclude findings reports and other non-model artifacts from the deployment inventory.
+  - Exclude findings reports and other non-deployable artifacts from the deployment inventory.
   - Add every form with a recorded `bindingType=deployment`, including relinked forms, to the deployment inventory.
   - Record each deployment-bound form's final project-relative path in the deployment inventory.
   - Record each deployment-bound form's owning converted BPMN path.
@@ -149,10 +151,12 @@ After both complete, ask via AskUserQuestion whether to wire deployment of conve
   - Use a deployment pattern only when its packaged-classpath matches are limited to inventory entries.
   - Confirm that every inventory entry matches at least one deployment pattern.
   - Confirm that every deployment pattern matches at least one inventory entry.
-  - Validate that each deployment-bound form and its owning converted BPMN share the same `@Deployment(resources = ...)` declaration or invocation.
+  - Validate that each deployment-bound form and its owning converted BPMN share the same deployment declaration or invocation.
   - Derive each deployment pattern from the recorded converted paths or the selected `--prefix`.
-  - Use `classpath*:**/converted-c8-*.bpmn` only when the recorded paths use the default `converted-c8-` prefix.
-  - Add the `.dmn` pattern only when a packaged converted DMN file is recorded.
+  - Derive each model pattern from its recorded filename suffix.
+  - Use `classpath*:**/converted-c8-*.bpmn` only when the recorded paths use the default `converted-c8-` prefix and the `.bpmn` suffix.
+  - Include full suffixes such as `.bpmn20.xml` and `.dmn11.xml` when the recorded paths use them.
+  - Add a DMN pattern only when a packaged converted DMN file is recorded.
   - Derive each form pattern from its recorded deployment-bound form path, including relinked forms.
   - Add the `.form` pattern only when a form with a recorded `bindingType=deployment` is packaged.
   - Never target original diagrams, draft forms, declined forms, or resource types with no inventory entry.

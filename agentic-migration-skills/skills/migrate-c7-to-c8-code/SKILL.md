@@ -84,7 +84,9 @@ These rules apply to every later step.
 - Before the first change, check for uncommitted changes. If the working tree is dirty, then ask the
   user to commit or stash.
 - Never commit without an explicit user request.
-- Write each converted model to a `converted-c8-*` copy. Leave every original file unchanged.
+- Write each converted model to a converted copy with the selected `--prefix`.
+- Use `converted-c8-` when no prefix is selected.
+- Leave every original file unchanged.
 - Where the target is a separate location, such as a sibling Camunda 8 project, treat the Camunda 7
   project as read-only and copy the assets across.
 - Before any edit, load the pattern catalog. See `references/pattern-catalog-sources.md`.
@@ -245,10 +247,16 @@ Each item below is a check to run and a condition that must hold at exit. Record
 8. **Tests** — run `mvn test` or the Gradle test task. Every test passes, or each failure is
    documented with an explanation.
 9. **Deployment resources** — Where the scope includes model migration and the user chose **Yes,
-   add/update @Deployment for converted files**, apply these checks to application code in scope.
-   - Require an `@Deployment(resources = ...)` declaration when application code is in scope and
-     the deployment inventory is non-empty.
-   - Add or update that declaration before validating deployment patterns.
+   add/update deployment for converted files**, apply these checks to Spring Boot application code
+   in scope. For non-Spring application code, use explicit `CamundaClient` deployment commands and
+   apply equivalent inventory and coverage checks.
+   - Require an `@Deployment(resources = ...)` declaration when Spring Boot application code is in
+     scope and the deployment inventory is non-empty.
+   - Require explicit `CamundaClient` deployment commands when non-Spring application code is in
+     scope and the deployment inventory is non-empty.
+   - Add or update the selected deployment path before validating deployment patterns or resource
+     lists.
+   - Rerun compilation and tests after adding or updating the deployment path.
    - Treat every resource directory that the build configures for inclusion in a Maven or Gradle
      application artifact as a packaged resource directory.
    - Include `src/main/resources` when it exists.
@@ -257,7 +265,7 @@ Each item below is a check to run and a condition that must hold at exit. Record
      application classpath before validating deployment patterns.
    - Build the deployment inventory from recorded converted model paths and every form with a
      recorded `bindingType=deployment`, including relinked forms.
-   - Exclude findings reports and other non-model artifacts.
+   - Exclude findings reports and other non-deployable artifacts from the deployment inventory.
    - If an inventory entry is outside a packaged resource directory, copy only the recorded
      converted file and associated deployment-bound forms to a dedicated packaged resource
      directory, or configure precise build includes for those files.
