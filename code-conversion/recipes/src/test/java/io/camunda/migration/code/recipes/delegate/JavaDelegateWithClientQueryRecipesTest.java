@@ -102,9 +102,9 @@ public class JavaDelegateWithClientQueryRecipesTest implements RewriteTest {
                             .send()
                             .join()
                             .page()
-                            .totalItems().intValue() % 2 == 0;
+                            .totalItems() % 2 == 0;
 
-                    Long activeCount = camundaClient
+                    long activeCount = camundaClient
                             .newProcessInstanceSearchRequest()
                             .filter(filter -> filter
                                     .processDefinitionId("example-workflow-process")
@@ -112,7 +112,7 @@ public class JavaDelegateWithClientQueryRecipesTest implements RewriteTest {
                             .send()
                             .join()
                             .page()
-                            .totalItems();
+                            .totalItems().longValue();
 
                     int pagedCount = camundaClient
                             .newProcessInstanceSearchRequest()
@@ -124,7 +124,7 @@ public class JavaDelegateWithClientQueryRecipesTest implements RewriteTest {
                             .page()
                             .totalItems().intValue();
 
-                    Long streamCount = camundaClient
+                    long streamCount = camundaClient
                             .newProcessInstanceSearchRequest()
                             .filter(filter -> filter
                                     .processDefinitionId("example-workflow-process")
@@ -132,7 +132,7 @@ public class JavaDelegateWithClientQueryRecipesTest implements RewriteTest {
                             .send()
                             .join()
                             .page()
-                            .totalItems();
+                            .totalItems().longValue();
 
                     Object inputValue = job.getVariable("inputValue");
                     System.out.println("ExampleWorkflowDelegate " + inputValue);
