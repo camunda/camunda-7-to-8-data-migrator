@@ -132,14 +132,19 @@ After both complete, ask via AskUserQuestion whether to wire deployment of conve
 - **Yes, add/update @Deployment for converted files** (recommended where code scope includes a Spring Boot app):
   - Treat every resource directory that the build configures for inclusion in a Maven or Gradle application artifact as a packaged resource directory.
   - Include `src/main/resources` when it exists.
-  - Build the deployment inventory from the recorded output file list, including paths captured from `Created ...` lines, and every form with a recorded `bindingType=deployment`, including relinked forms.
+  - Build the deployment inventory from recorded converted model paths captured from `Created ...` lines.
+  - Exclude findings reports and other non-model artifacts from the deployment inventory.
+  - Add every form with a recorded `bindingType=deployment`, including relinked forms, to the deployment inventory.
   - Confirm that each inventory entry is under a packaged resource directory before adding its deployment pattern.
-  - Move or package each recorded converted file and each form with a recorded `bindingType=deployment` before adding its deployment pattern.
+  - Prefer packaging the existing directory for each inventory entry.
+  - If moving is necessary, move the source model, converted copy, and associated deployment-bound forms together.
+  - Update every recorded path after moving a resource.
   - Add a deployment pattern only when its resource type has an inventory entry under a packaged resource directory.
   - Use a deployment pattern only when its packaged-classpath matches are limited to inventory entries.
   - Confirm that every inventory entry matches at least one deployment pattern.
   - Confirm that every deployment pattern matches at least one inventory entry.
-  - Add `classpath*:**/converted-c8-*.bpmn` only when a packaged converted BPMN file is recorded.
+  - Derive each deployment pattern from the recorded converted paths or the selected `--prefix`.
+  - Use `classpath*:**/converted-c8-*.bpmn` only when the recorded paths use the default `converted-c8-` prefix.
   - Add the `.dmn` pattern only when a packaged converted DMN file is recorded.
   - Add the `.form` pattern only when a form with a recorded `bindingType=deployment` is packaged.
   - Never target original diagrams, draft forms, declined forms, or resource types with no inventory entry.
