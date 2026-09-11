@@ -374,6 +374,114 @@ public class HandleProcessInstanceQueryMethodsTestClass {
   }
 
   @Test
+  void preservesIntResultForListSizeExpressions() {
+    rewriteRun(
+        spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
+        java(
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class ProcessInstanceQueryCountExpressionTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public int countProcessInstances() {
+                    return engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size();
+                }
+
+                public int countProcessInstancesWithTernary(boolean useCount) {
+                    int count = useCount
+                            ? engine.getRuntimeService()
+                                    .createProcessInstanceQuery()
+                                    .active()
+                                    .list()
+                                    .size()
+                            : 0;
+                    return count;
+                }
+
+                public int countProcessInstancesWithAssignment() {
+                    int count = 0;
+                    count = engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size();
+                    return count;
+                }
+            }
+            """,
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import io.camunda.client.api.search.enums.ProcessInstanceState;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class ProcessInstanceQueryCountExpressionTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public int countProcessInstances() {
+                    return camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue();
+                }
+
+                public int countProcessInstancesWithTernary(boolean useCount) {
+                    int count = useCount
+                            ? camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue()
+                            : 0;
+                    return count;
+                }
+
+                public int countProcessInstancesWithAssignment() {
+                    int count = 0;
+                    count = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue();
+                    return count;
+                }
+            }
+            """));
+  }
+
+  @Test
   void replacesFilteredProcessInstanceCounts() {
     rewriteRun(
         spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
@@ -535,6 +643,24 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                                 .suspended()
                                 .list()
                                 .size();
+                    }
+
+                    public int countSuspendedWithProcessDefinitionKey(String processDefinitionKey) {
+                        return engine.getRuntimeService()
+                                .createProcessInstanceQuery()
+                                .processDefinitionKey(processDefinitionKey)
+                                .suspended()
+                                .list()
+                                .size();
+                    }
+
+                    public long directCountSuspendedWithProcessDefinitionKey(
+                            String processDefinitionKey) {
+                        return engine.getRuntimeService()
+                                .createProcessInstanceQuery()
+                                .processDefinitionKey(processDefinitionKey)
+                                .suspended()
+                                .count();
                     }
                 }
                 """));

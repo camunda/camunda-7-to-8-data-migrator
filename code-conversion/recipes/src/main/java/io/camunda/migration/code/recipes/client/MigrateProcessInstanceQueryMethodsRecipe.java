@@ -12,6 +12,7 @@ import io.camunda.migration.code.recipes.utils.RecipeUtils;
 import io.camunda.migration.code.recipes.utils.ReplacementUtils;
 import java.util.*;
 import org.jspecify.annotations.NonNull;
+import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.TreeVisitor;
@@ -475,6 +476,29 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
       current = invocation.getSelect();
     }
     return true;
+  }
+
+  @Override
+  protected J.MethodInvocation adjustBuilderReplacement(
+      J.MethodInvocation replacement, J.MethodInvocation replacementTarget, Cursor cursor) {
+    if (!replacementTarget.getSimpleName().equals("size")
+        || isDirectVariableInitializer(replacementTarget, cursor)) {
+      return replacement;
+    }
+
+    return (J.MethodInvocation)
+        RecipeUtils.createSimpleJavaTemplate("#{any(java.lang.Long)}.intValue()")
+            .apply(cursor, replacementTarget.getCoordinates().replace(), replacement);
+  }
+
+  private boolean isDirectVariableInitializer(
+      J.MethodInvocation replacementTarget, Cursor cursor) {
+    J.VariableDeclarations declarations = cursor.firstEnclosing(J.VariableDeclarations.class);
+    return declarations != null
+        && declarations.getVariables().stream()
+            .map(J.VariableDeclarations.NamedVariable::getInitializer)
+            .filter(Objects::nonNull)
+            .anyMatch(initializer -> initializer.getId().equals(replacementTarget.getId()));
   }
 
   private boolean hasCreateProcessInstanceQueryInReceiverChain(J.MethodInvocation invocation) {

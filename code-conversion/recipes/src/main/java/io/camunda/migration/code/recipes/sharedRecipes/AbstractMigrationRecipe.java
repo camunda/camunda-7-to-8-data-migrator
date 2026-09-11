@@ -55,6 +55,11 @@ public abstract class AbstractMigrationRecipe extends Recipe {
     return true;
   }
 
+  protected J.MethodInvocation adjustBuilderReplacement(
+      J.MethodInvocation replacement, J.MethodInvocation replacementTarget, Cursor cursor) {
+    return replacement;
+  }
+
   protected abstract List<ReplacementUtils.ReturnReplacementSpec> returnMethodInvocations();
 
   protected abstract List<ReplacementUtils.RenameReplacementSpec> renameMethodInvocations();
@@ -315,9 +320,11 @@ public abstract class AbstractMigrationRecipe extends Recipe {
 
             J.MethodInvocation countedQuery = findCountedQuery(invocation);
             if (countedQuery != null) {
+              boolean countMatcherMatched = false;
               for (Map.Entry<MethodMatcher, List<ReplacementUtils.BuilderReplacementSpec>> entry :
                   countBuilderSpecMap.entrySet()) {
                 if (entry.getKey().matches(countedQuery)) {
+                  countMatcherMatched = true;
                   J.MethodInvocation replacement =
                       replaceBuilderInvocation(
                           invocation, countedQuery, entry.getValue(), ctx);
@@ -325,6 +332,9 @@ public abstract class AbstractMigrationRecipe extends Recipe {
                     return replacement;
                   }
                 }
+              }
+              if (countMatcherMatched) {
+                return invocation;
               }
             }
 
@@ -360,16 +370,21 @@ public abstract class AbstractMigrationRecipe extends Recipe {
                 invocation.getSimpleName().equals("count")
                     ? countBuilderSpecMap
                     : builderSpecMap;
+            boolean terminalMatcherMatched = false;
             for (Map.Entry<MethodMatcher, List<ReplacementUtils.BuilderReplacementSpec>> entry :
                 specs.entrySet()) {
               MethodMatcher matcher = entry.getKey();
               if (matcher.matches(invocation)) {
+                terminalMatcherMatched = true;
                 J.MethodInvocation replacement =
                     replaceBuilderInvocation(invocation, invocation, entry.getValue(), ctx);
                 if (replacement != null) {
                   return replacement;
                 }
               }
+            }
+            if (invocation.getSimpleName().equals("count") && terminalMatcherMatched) {
+              return invocation;
             }
 
             // migrate methods based on returned variable declaration identifier
@@ -478,6 +493,9 @@ public abstract class AbstractMigrationRecipe extends Recipe {
                                     != null
                                 ? Collections.emptyList()
                                 : spec.textComments());
+
+                templatedReplacement =
+                    adjustBuilderReplacement(templatedReplacement, replacementTarget, getCursor());
 
                 templatedReplacement =
                     (J.MethodInvocation)
