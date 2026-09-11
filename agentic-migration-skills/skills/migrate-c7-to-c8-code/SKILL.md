@@ -272,9 +272,10 @@ target version. See the linting section in `references/model-migration-approache
 
 1. A `converted-c8-*` file exists for every in-scope diagram, unless the run is analyze-only.
 2. Every original file is intact and was never overwritten.
-3. No `analysis-results.*` file remains under any configured packaged resource directory. Keep
-   findings reports under `.camunda-migration/reports/` or another explicitly non-packaged
-   directory.
+3. Treat every resource directory that the build configures for inclusion in a Maven or Gradle
+   application artifact as a packaged resource directory. Include `src/main/resources` when it
+   exists. No `analysis-results.*` file remains under a packaged resource directory. Keep findings
+   reports under `.camunda-migration/reports/` or another explicitly non-packaged directory.
 4. Every WARNING, TASK, and REVIEW finding is fixed, or classified in the per-category verdict table
    with its category, count, cross-referenced code artifact, and verdict. See
    `references/model-migration-approaches.md` step 5d. A flat "fixed or recorded" note is not enough.

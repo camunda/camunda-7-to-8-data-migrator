@@ -26,7 +26,7 @@ Do not include them in the packaged-resource warning. Never consume them as this
 
 If anything else is found, warn through AskUserQuestion before converting:
 
-> Found outputs from a previous migration attempt: `<list>`. This run will not overwrite them. The fresh analysis report is written alongside under a ` (n)`-suffixed name, and only this run's own outputs are used — stale files are never consumed. Diagrams whose `converted-c8-*` target already exists are skipped with an error, so for a full re-conversion, cancel and delete or move the old files first.
+> Found outputs from a previous migration attempt: `<list>`. This run will not overwrite them. Fresh findings reports are written beside the source under ` (n)`-suffixed names, then relocated to `.camunda-migration/reports/` before validation. Only this run's own outputs are used — stale files are never consumed. Diagrams whose `converted-c8-*` target already exists are skipped with an error, so for a full re-conversion, cancel and delete or move the old files first.
 
 - **OK, proceed** — run without `-o`/`--override`. Old files stay untouched.
 - **Cancel** — stop so the user can back up or clean up first.
@@ -85,7 +85,7 @@ Capture the exact paths of everything the run produces from the `Created ...` li
 The CLI writes converted copies and findings reports beside the input. A report under a packaged
 resource directory is included in a Maven or Gradle application artifact.
 
-After the CLI exits, create `.camunda-migration/reports/` in the confirmed project root. Move every
+After the CLI exits, create `.camunda-migration/reports/` in the project root. Move every
 fresh findings report captured from a `Created ...` line into that directory before validation.
 Move `analysis-results.csv`, `analysis-results.json`, `analysis-results.md`, and
 `analysis-results.xlsx` when the selected flags create them. Keep every `converted-c8-*` file beside
@@ -95,9 +95,10 @@ Do not overwrite an existing file in `.camunda-migration/reports/`. Choose an av
 ` (n)`-suffixed name and use the moved path as the authoritative report path. If relocation fails,
 stop model validation and report the error. Do not claim a complete migration.
 
-Before packaging the project, inspect every configured resource directory. No `analysis-results.*`
-file may remain there. Keep the findings reports in `.camunda-migration/reports/` or another
-explicitly non-packaged directory.
+Before packaging the project, inspect every resource directory that the build configures for
+packaging, including `src/main/resources` when it exists. No `analysis-results.*` file may remain
+there. Keep the findings reports in `.camunda-migration/reports/` or another explicitly
+non-packaged directory.
 
 ### 4. Surface Outputs
 
