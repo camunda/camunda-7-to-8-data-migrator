@@ -150,10 +150,12 @@ only, then do not ask this question and preserve existing deployment wiring.
   - Add every form with a recorded `bindingType=deployment`, including relinked forms, to the deployment inventory.
   - Record each deployment-bound form's final project-relative path in the deployment inventory.
   - Record each deployment-bound form's owning converted BPMN path.
-  - Record existing deployment resources in `MIGRATION_REPORT.md` before editing.
-  - Record each added or updated deployment pattern and its `migration-managed` marker in
-    `MIGRATION_REPORT.md`.
-  - Before a later run applies the preservation rule, reload deployment-pattern provenance from
+  - Record every existing deployment pattern in `MIGRATION_REPORT.md` before editing.
+  - Include its exact project-relative pattern and owning deployment declaration.
+  - Preserve a prior `migration-managed` marker for an existing pattern.
+  - If no prior marker exists, record `migration-managed=false`.
+  - Record each added or updated deployment pattern with `migration-managed=true`.
+  - Before a later run applies the preservation rule, reload every pattern record and marker from
     `MIGRATION_REPORT.md`.
   - Where the application uses Spring Boot `@Deployment`, confirm that each inventory entry is
     under a packaged resource directory before adding its deployment pattern.
@@ -163,6 +165,9 @@ only, then do not ask this question and preserve existing deployment wiring.
     resource directory, then copy only the recorded converted file and associated deployment-bound
     forms to a dedicated packaged resource directory, or configure precise build includes for those
     files.
+  - If two recorded resources share a basename, preserve source subdirectories or choose distinct
+    collision-safe destination filenames.
+  - Never overwrite a destination resource during this copy.
   - Keep each original source model unchanged in its original location.
   - Update every recorded path after copying a resource.
   - Where the application uses Spring Boot `@Deployment`, add a deployment pattern only when its

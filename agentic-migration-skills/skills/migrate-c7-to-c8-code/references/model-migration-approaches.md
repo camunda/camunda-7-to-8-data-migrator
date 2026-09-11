@@ -16,7 +16,7 @@ Use `.camunda-migration/m2/` for M2 converted copies. Record every M2 converted-
 
 ## Pre-flight: Leftover Artifacts
 
-Before any local approach (M1, M2, E1), scan for outputs of previous migration attempts:
+Before any approach (M1, M2, M3, E1), scan for outputs of previous migration attempts:
 
 - M1/E1 converted copies using the selected `--prefix`
 - M2 converted copies under `.camunda-migration/m2/` and every path recorded in
@@ -27,8 +27,12 @@ Before any local approach (M1, M2, E1), scan for outputs of previous migration a
 
 Never flag the `.camunda-migration/` CLI JAR — an intentional cache, not a leftover.
 
-For M2, scan the complete `.camunda-migration/m2/` directory before conversion. Treat every
-unrecorded BPMN or DMN file as a stale converted-copy candidate and include it in the user warning.
+For M2, scan the complete `.camunda-migration/m2/` directory before conversion. Treat every BPMN or
+DMN file already present as a stale converted-copy candidate, including files recorded in an older
+`MIGRATION_REPORT.md`. Do not use a pre-existing M2 file in the current inventory.
+
+For M3, scan downloaded converted files before pairing them with originals. Treat every file present
+before this run as stale and do not use it as a converted copy.
 
 A packaged resource directory is any resource directory that Maven or Gradle includes in an application artifact. Include `src/main/resources` when it exists.
 
