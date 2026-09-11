@@ -230,6 +230,9 @@ Count occurrences for sizing, but decide remediation ONCE per category (or per c
    }
    ```
 
+   Treat the baseline comparison as authoritative. A class remains an invalid worker target even
+   when its name ends with `Worker`. Only a class absent from the baseline can be the new adapter.
+
    Add a preceding service task whose `@JobWorker` calls the method (or runs the equivalent logic) and stores the result in a plain process variable. Then replace the expression with a FEEL reference to that variable (e.g. `=total`). For multi-instance `collection` this is the required shape, because the collection must exist as a variable before the multi-instance body starts.
 2. **Compute via execution listener** (most elegant when no extra visible shape in the diagram is desired): attach a `zeebe:executionListener` (8.6+) backed by a `@JobWorker` that computes the value into a variable, e.g. on the `end` event of the preceding element or the `start` event of the element carrying the expression. Caveats: the listener must run BEFORE the expression is evaluated. For multi-instance `collection` it must sit on a preceding element, never the MI body itself (the collection is read at activation). Listeners are jobs too, so a failure creates an incident on the element. The precompute step becomes invisible in the diagram, so document it.
 3. **Refactor into DMN** (when the expression encodes a business rule/decision, typical for gateway conditions): move the logic into a DMN table in a preceding business rule task and read its output variable.

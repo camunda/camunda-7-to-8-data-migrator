@@ -254,10 +254,11 @@ Each item below is a check to run and a condition that must hold at exit. Record
    complete query count. Confirm that each migrated C7 `list().size()`, `list().stream().count()`,
    or `count()` uses `.page().totalItems()` and review `.page().hasMoreTotalItems()` for large searches.
 11. **Worker adapters** — compare every `@JobWorker` declaration's fully qualified declaring class
-   name with the original Java source baseline recorded in Step 2. Flag the declaration when its
-   class appears in that baseline. Accept it only when the class is new, is a `*Worker` adapter
-   component, and delegates to the baseline bean. A migrated Spring bean method must never receive
-   `@JobWorker` directly.
+    name with the original Java source baseline recorded in Step 2. Flag the declaration when its
+    class appears in that baseline, even when the class name ends with `Worker`. Accept it only
+    when the class is absent from the baseline, is a new `*Worker` adapter component, and delegates
+    to the baseline bean. Record each flagged declaration and its replacement adapter in
+    `MIGRATION_REPORT.md`. A migrated Spring bean method must never receive `@JobWorker` directly.
 
 Check these pitfalls as well:
 
@@ -275,33 +276,40 @@ target version. See the linting section in `references/model-migration-approache
 
 1. A `converted-c8-*` file exists for every in-scope diagram, unless the run is analyze-only.
 2. Every original file is intact and was never overwritten.
-3. Every WARNING, TASK, and REVIEW finding is fixed, or classified in the per-category verdict table
+3. Treat every resource directory that the build configures for inclusion in a Maven or Gradle
+   application artifact as a packaged resource directory. Include `src/main/resources` when it
+   exists. No findings report named `analysis-results.<ext>` or `analysis-results (n).<ext>` remains
+   under a packaged resource directory, where `n` is a positive integer and `<ext>` is `.csv`,
+   `.json`, `.md`, or `.xlsx`. Keep findings reports under `.camunda-migration/reports/` only when
+   the build does not package that directory. Otherwise, use another explicitly non-packaged
+   directory.
+4. Every WARNING, TASK, and REVIEW finding is fixed, or classified in the per-category verdict table
    with its category, count, cross-referenced code artifact, and verdict. See
    `references/model-migration-approaches.md` step 5d. A flat "fixed or recorded" note is not enough.
-4. Every source Generated Task Form is `accepted`, `blocked`, or `declined`, including a
+5. Every source Generated Task Form is `accepted`, `blocked`, or `declined`, including a
    form-property-only definition. None is silently omitted.
-5. Every accepted form is a standard Camunda 8 `.form`.
-6. Every accepted form parses.
-7. Where a target-compatible official schema exists, the skill validates every accepted form with it.
-8. Where target-compatible form-js tooling exists, the skill imports or renders every accepted form
+6. Every accepted form is a standard Camunda 8 `.form`.
+7. Every accepted form parses.
+8. Where a target-compatible official schema exists, the skill validates every accepted form with it.
+9. Where target-compatible form-js tooling exists, the skill imports or renders every accepted form
    with it.
-9. Every accepted form has a matching `zeebe:formDefinition`.
-10. The skill deploys every accepted form with its BPMN.
-11. No draft, blocked, or declined form is linked or deployed. Every semantic gap and every user
+10. Every accepted form has a matching `zeebe:formDefinition`.
+11. The skill deploys every accepted form with its BPMN.
+12. No draft, blocked, or declined form is linked or deployed. Every semantic gap and every user
    decision is recorded.
-12. Every referenced form and every form-free owner has a recorded per-category decision and a final
+13. Every referenced form and every form-free owner has a recorded per-category decision and a final
    status of `kept`, `relinked`, `accepted`, `declined`, `deferred`, or `blocked`. The in-progress
    statuses `pending` and `draft` must not remain. A `deferred` or `blocked` item stays open follow-up
    work. A kept external reference is never reported as a completed migration, and no category is
    closed as **no action** because the converter copied a reference.
-13. Every relinked or rebuilt form is referenced by `zeebe:formDefinition@formId` with a recorded
+14. Every relinked or rebuilt form is referenced by `zeebe:formDefinition@formId` with a recorded
    binding decision: `bindingType` written for `deployment` and `versionTag`, or `latest` left
    deliberately to the Camunda 8 default. The copied Camunda 7 `externalReference` or `formKey` is
    gone from that element.
-14. Once the verdict table is complete, the converted copies hold no `conversion:*` node, no
+15. Once the verdict table is complete, the converted copies hold no `conversion:*` node, no
    `conversion:*` attribute, no unused Camunda 7 namespace declaration, and no leftover BPMN
    definitions-level XPath `expressionLanguage` attribute.
-15. When the model uses M2, inspect every `zeebe:taskDefinition/@type`. Derive the expected type
+16. When the model uses M2, inspect every `zeebe:taskDefinition/@type`. Derive the expected type
     from the original `camunda:delegateExpression`, `camunda:expression`, `camunda:class`, or
     `camunda:topic` attribute using the binding rules in
     `references/model-migration-approaches.md`. If the emitted type differs, require a confirmed
