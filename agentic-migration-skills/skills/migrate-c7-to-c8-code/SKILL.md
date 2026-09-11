@@ -244,23 +244,36 @@ Each item below is a check to run and a condition that must hold at exit. Record
    `application.properties` or `.yaml`.
 8. **Tests** — run `mvn test` or the Gradle test task. Every test passes, or each failure is
    documented with an explanation.
-9. **Deployment resources** — where application code contains `@Deployment(resources = ...)`, treat
-   every resource directory that the build configures for inclusion in a Maven or Gradle
-   application artifact as a packaged resource directory. Include `src/main/resources` when it
-   exists. Confirm that every recorded converted file and every form with a recorded
-   `bindingType=deployment` is under a packaged resource directory and is available on the
-   application classpath before validating deployment patterns. Build the deployment inventory from
-   recorded converted model paths and every form with a recorded `bindingType=deployment`, including
-   relinked forms. Exclude findings reports and other non-model artifacts. If an inventory entry is
-   outside a packaged resource directory, configure the build to package its current directory
-   before adding its deployment pattern. If moving is necessary, move the source model, converted
-   copy, and associated deployment-bound forms together. Update every recorded path after moving a
-   resource. Derive each deployment pattern from the recorded converted paths or the selected
-   `--prefix`. Use the default `converted-c8-` pattern only when the recorded paths use that
-   prefix. Use a deployment pattern only when its packaged-classpath matches are limited to
-   inventory entries. Confirm that every inventory entry matches at least one deployment pattern.
-   Confirm that every deployment pattern matches at least one inventory entry under a packaged
-   resource directory. Remove patterns for resource types with no inventory entry.
+9. **Deployment resources** — Where the scope includes model migration and the user chose **Yes,
+   add/update @Deployment for converted files**, apply these checks to application code containing
+   `@Deployment(resources = ...)`:
+   - Treat every resource directory that the build configures for inclusion in a Maven or Gradle
+     application artifact as a packaged resource directory.
+   - Include `src/main/resources` when it exists.
+   - Confirm that every recorded converted file and every form with a recorded
+     `bindingType=deployment` is under a packaged resource directory and is available on the
+     application classpath before validating deployment patterns.
+   - Build the deployment inventory from recorded converted model paths and every form with a
+     recorded `bindingType=deployment`, including relinked forms.
+   - Exclude findings reports and other non-model artifacts.
+   - If an inventory entry is outside a packaged resource directory, copy only the recorded
+     converted file and associated deployment-bound forms to a dedicated packaged resource
+     directory, or configure precise build includes for those files.
+   - Keep the original source model unchanged and do not package its directory when it contains
+     unrelated files.
+   - Update every recorded path after copying a resource.
+   - Derive each deployment pattern from the recorded converted paths or the selected `--prefix`.
+   - Use the default `converted-c8-` pattern only when the recorded paths use that prefix.
+   - Derive each form pattern from its recorded deployment-bound form path, including relinked
+     forms.
+   - Use a deployment pattern only when its packaged-classpath matches are limited to inventory
+     entries.
+   - Confirm that every inventory entry matches at least one deployment pattern.
+   - Confirm that every deployment pattern matches at least one inventory entry under a packaged
+     resource directory.
+   - Remove patterns for resource types with no inventory entry.
+   Where the scope excludes model migration or the user chose **No**, preserve existing deployment
+   patterns and do not compare them with the current model inventory.
 10. **Eventually-consistent queries** — search for every C8 search-request factory method listed in
    `references/code-transform-checklist.md`, not only the `SearchRequest` type name. Every migrated
    search call site has a matching open item in the `MIGRATION_REPORT.md` open-items section. A
