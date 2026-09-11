@@ -33,10 +33,13 @@ export const variable_instance = [
 								(string) filter.name.$like
 							</pre>
 							<p>
-								Translate the Camunda 7 <code>%</code> wildcard
-								to the Camunda 8 <code>*</code> wildcard before
-								sending <code>$like</code>. Camunda 8 treats{" "}
-								<code>%</code> literally.
+								Translate each Camunda 7 <code>%</code> wildcard
+								to the Camunda 8 <code>*</code> wildcard. Before
+								sending <code>$like</code>, escape literal
+								backslashes, <code>*</code>, and <code>?</code>{" "}
+								with the Camunda 8 backslash escape so C7 literal
+								characters do not become C8 wildcards. Camunda 8
+								treats <code>%</code> literally.
 							</p>
 						</>
 					),
@@ -120,13 +123,19 @@ export const variable_instance = [
 								<code>name_operator_value</code>. Map{" "}
 								<code>eq</code>, <code>neq</code>, and{" "}
 								<code>like</code> to the corresponding C8
-								operator; for <code>like</code>, translate{" "}
-								<code>%</code> wildcards to{" "}
-								<code>*</code>. C8 has no numeric comparison
-								operator for variable values, so{" "}
-								<code>gt</code>, <code>gteq</code>,{" "}
-								<code>lt</code>, and <code>lteq</code> are
-								unsupported.
+							operator. For <code>eq</code> and{" "}
+							<code>neq</code>, JSON-encode the C7 string
+							value, including its quotes, before setting{" "}
+							<code>filter.value</code>. For{" "}
+							<code>like</code>, escape literal backslashes,{" "}
+							<code>*</code>, and <code>?</code>, translate{" "}
+							<code>%</code> wildcards to <code>*</code>, and
+							JSON-encode the resulting string pattern. C8
+							has no numeric comparison operator for variable
+							values, so{" "}
+							<code>gt</code>, <code>gteq</code>,{" "}
+							<code>lt</code>, and <code>lteq</code> are
+							unsupported.
 							</p>
 						</>
 					),
@@ -184,14 +193,22 @@ export const variable_instance = [
 						criteria where the target filter supports them. Variable
 						values in{" "}
 						<code>filter.value</code> must use their serialized JSON
-						representation. Parse each{" "}
+						representation. For GET requests, values are always C7
+						strings, so JSON-encode them with their quotes (for
+						example, <code>"5"</code>, not <code>5</code>). For
+						POST requests, preserve number, boolean, and string
+						types with <code>JSON.stringify</code>; string values
+						also include quotes. For <code>like</code>, escape
+						literal backslashes, <code>*</code>, and{" "}
+						<code>?</code> before translating C7{" "}
+						<code>%</code> wildcards to C8 <code>*</code>, then
+						JSON-encode the complete pattern.
+						Parse each{" "}
 						<code>variableValues</code> expression as{" "}
 						<code>name_operator_value</code> and map the supported{" "}
 						<code>eq</code>, <code>neq</code>, and{" "}
-						<code>like</code> operators. For{" "}
-						<code>like</code>, translate C7 <code>%</code>{" "}
-						wildcards to C8 <code>*</code> wildcards. The C8 filter
-						does not support the numeric comparison operators{" "}
+						<code>like</code> operators. The C8 filter does not
+						support the numeric comparison operators{" "}
 						<code>gt</code>, <code>gteq</code>,{" "}
 						<code>lt</code>, or <code>lteq</code>.
 					</p>
@@ -199,19 +216,27 @@ export const variable_instance = [
 						For multiple <code>variableValues</code> entries, issue
 						one request per entry and follow each response's{" "}
 						<code>page.endCursor</code> with <code>page.after</code>{" "}
-						until all pages are retrieved. Then intersect the complete
-						result sets by <code>variableKey</code> before applying
-						pagination or deriving counts. Do not intersect only the
+						until all pages are retrieved. Do not send C7{" "}
+						<code>firstResult</code> as <code>page.from</code> in
+						these cursor-paginated intermediate requests, and do not
+						stop traversal at C7 <code>maxResults</code>. Then
+						intersect the complete result sets by{" "}
+						<code>variableKey</code> before applying the C7 offset
+						and limit or deriving counts. Do not intersect only the
 						first page or union the responses.
 					</p>
 					<p>
 						Map <code>variableName</code> to{" "}
 						<code>sort[].field=name</code>,{" "}
-						<code>activityInstanceId</code> to{" "}
-						<code>sort[].field=scopeKey</code>, and{" "}
 						<code>tenantId</code> to{" "}
-						<code>sort[].field=tenantId</code>. There is no Camunda
-						8 sort field for <code>variableType</code>.
+						<code>sort[].field=tenantId</code>. C8{" "}
+						<code>scopeKey</code> values do not preserve the C7{" "}
+						<code>activityInstanceId</code> string ordering, so do
+						not map that sort directly. Resolve activity-instance
+						IDs and sort client-side after retrieving the complete
+						result set, or mark the sort unsupported. There is no C8
+						sort field for{" "}
+						<code>variableType</code>.
 					</p>
 					<p>
 						When multiple process-instance or scope selector fields
@@ -305,9 +330,15 @@ export const variable_instance = [
 								Map each object's <code>operator</code> value{" "}
 								<code>eq</code>, <code>neq</code>, or{" "}
 								<code>like</code> to the corresponding C8
-								operator. For <code>like</code>, translate{" "}
-								C7 <code>%</code> wildcards to C8{" "}
-								<code>*</code> wildcards. The numeric{" "}
+								operator. Preserve each POST value's JSON type
+								with <code>JSON.stringify</code> before setting{" "}
+								<code>filter.value</code>; string values include
+								their JSON quotes. For <code>like</code>, escape
+								literal backslashes, <code>*</code>, and{" "}
+								<code>?</code>, translate C7{" "}
+								<code>%</code> wildcards to C8{" "}
+								<code>*</code>, and JSON-encode the complete
+								string pattern. The numeric{" "}
 								<code>gt</code>, <code>gteq</code>,{" "}
 								<code>lt</code>, and <code>lteq</code>{" "}
 								operators are unsupported for C8 variable
@@ -350,11 +381,14 @@ export const variable_instance = [
 					parameters. Use one Camunda 8 request per{" "}
 					<code>variableValues</code> entry and follow{" "}
 					<code>page.endCursor</code> with <code>page.after</code> for
-					each request until all pages are retrieved. Then intersect the
-					complete responses by <code>variableKey</code> before applying
-					pagination or deriving counts. Apply the same complete-page
-					intersection to multiple process-instance or scope selector
-					fields, and the complete-page union to multiple{" "}
+					each request until all pages are retrieved. Do not send C7{" "}
+					<code>firstResult</code> as <code>page.from</code> in these
+					cursor-paginated intermediate requests or stop traversal at
+					C7 <code>maxResults</code>. Then intersect the complete
+					responses by <code>variableKey</code> before applying the C7
+					offset and limit or deriving counts. Apply the same complete-
+					page intersection to multiple process-instance or scope
+					selector fields, and the complete-page union to multiple{" "}
 					<code>tenantIdIn</code> values. Do not combine different source
 					fields into one <code>$in</code> filter or union conjunctive
 					<code>variableValues</code> responses.

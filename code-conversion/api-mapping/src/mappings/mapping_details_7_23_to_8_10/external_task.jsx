@@ -26,6 +26,10 @@ export const external_task = [
 				job type. <code>filter.kind</code> alone also includes other
 				BPMN element job types, so a search without a known topic/type
 				restriction is not an exact C7 external-task mapping.
+				Unlike Camunda 7's current external tasks, C8 search results can
+				include terminal jobs. Follow <code>page.endCursor</code> through
+				all pages, discard results whose <code>endTime</code> is non-null,
+				and apply C7 pagination only to the remaining jobs.
 			</div>
 		),
 	},
@@ -49,6 +53,10 @@ export const external_task = [
 				job type. <code>filter.kind</code> alone also includes other
 				BPMN element job types, so a search without a known topic/type
 				restriction is not an exact C7 external-task mapping.
+				Unlike Camunda 7's current external tasks, C8 search results can
+				include terminal jobs. Follow <code>page.endCursor</code> through
+				all pages, discard results whose <code>endTime</code> is non-null,
+				and apply C7 pagination only to the remaining jobs.
 			</div>
 		),
 	},
@@ -74,6 +82,10 @@ export const external_task = [
 				type. <code>filter.kind</code> alone also includes unrelated
 				BPMN element job types, so an unqualified count is not exact
 				and can overcount C7 external tasks.
+				The C7 count includes only current external tasks. Follow{" "}
+				<code>page.endCursor</code> through all result pages, discard
+				jobs whose <code>endTime</code> is non-null, and count the
+				remaining jobs instead of using <code>page.totalItems</code>.
 			</div>
 		),
 	},
@@ -99,6 +111,10 @@ export const external_task = [
 				type. <code>filter.kind</code> alone also includes unrelated
 				BPMN element job types, so an unqualified count is not exact
 				and can overcount C7 external tasks.
+				The C7 count includes only current external tasks. Follow{" "}
+				<code>page.endCursor</code> through all result pages, discard
+				jobs whose <code>endTime</code> is non-null, and count the
+				remaining jobs instead of using <code>page.totalItems</code>.
 			</div>
 		),
 	},
@@ -483,6 +499,17 @@ export const external_task = [
 						outside the C7 external-task set. If no type mapping is
 						known, the selector is not an exact mapping and must
 						not be used for a batch retry update.
+					</p>
+					<p>
+						For retry updates, a kind/type filter can still match
+						terminal job records. Search each translated selector
+						first, follow all cursor pages, retain only jobs whose{" "}
+						<code>endTime</code> is <code>null</code>, and submit
+						the update by the resulting deduplicated{" "}
+						<code>jobKey.$in</code>. An exact job key must also pass
+						this current-state check; do not send a broad kind/type
+						filter directly when C7 current-task semantics are
+						required.
 					</p>
 					<p>
 						Do not pass either Camunda 7 query object directly as a
@@ -899,6 +926,10 @@ export const external_task = [
 				<code>BPMN_ELEMENT</code> so listener and ad-hoc-subprocess jobs
 				are excluded. Resolve the C7 external-task ID to the
 				corresponding C8 job key before making the request.
+				After the search, treat the task as found only when the matching
+				job has <code>endTime</code> equal to <code>null</code>. A
+				terminal job must be reported as not found because C7 exposes
+				only current external tasks.
 			</div>
 		),
 	},
