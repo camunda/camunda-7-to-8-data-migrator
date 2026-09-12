@@ -484,10 +484,10 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
           && newArray.getInitializer() != null
           && (isIntContextType(newArray.getType())
               || (newArray.getTypeExpression() != null
-                  && isIntContextType(newArray.getTypeExpression().getType()))
-              && newArray.getInitializer().stream()
-                  .anyMatch(
-                      initializer -> containsReplacementTarget(initializer, replacementTarget)))) {
+                  && isIntContextType(newArray.getTypeExpression().getType())))
+          && newArray.getInitializer().stream()
+              .anyMatch(
+                  initializer -> containsReplacementTarget(initializer, replacementTarget))) {
         return true;
       }
 
