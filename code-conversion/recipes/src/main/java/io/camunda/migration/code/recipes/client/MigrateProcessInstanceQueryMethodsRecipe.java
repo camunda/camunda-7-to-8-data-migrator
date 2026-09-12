@@ -442,11 +442,12 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
       Object value = current.getValue();
 
       if (value instanceof J.VariableDeclarations declarations) {
-        return isIntType(declarations.getType());
+        return isIntContextType(declarations.getType())
+            || isIntReturningFunctionalType(declarations.getType());
       }
 
       if (value instanceof J.Assignment assignment && assignment.getVariable() != null) {
-        return isIntType(assignment.getVariable().getType());
+        return isIntContextType(assignment.getVariable().getType());
       }
 
       if (value instanceof J.MethodInvocation methodInvocation) {
@@ -460,11 +461,31 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
         }
       }
 
+      if (value instanceof J.Lambda lambda && isIntReturningLambda(lambda)) {
+        return true;
+      }
+
       if (value instanceof J.Return) {
-        J.MethodDeclaration method = cursor.firstEnclosing(J.MethodDeclaration.class);
-        return method != null
-            && method.getReturnTypeExpression() != null
-            && isIntType(method.getReturnTypeExpression().getType());
+        J.Lambda lambda = cursor.firstEnclosing(J.Lambda.class);
+        if (lambda == null) {
+          J.MethodDeclaration method = cursor.firstEnclosing(J.MethodDeclaration.class);
+          return method != null
+              && method.getReturnTypeExpression() != null
+              && isIntType(method.getReturnTypeExpression().getType());
+        }
+        if (isIntReturningLambda(lambda)) {
+          return true;
+        }
+      }
+
+      if (value instanceof J.NewArray newArray
+          && newArray.getInitializer() != null
+          && newArray.getInitializer().stream()
+              .anyMatch(initializer -> isReplacementTarget(initializer, replacementTarget))
+          && (isIntContextType(newArray.getType())
+              || (newArray.getTypeExpression() != null
+                  && isIntContextType(newArray.getTypeExpression().getType())))) {
+        return true;
       }
 
       if (value instanceof J.ArrayDimension arrayDimension
@@ -485,6 +506,24 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
       current = current.getParentTreeCursor();
     }
     return false;
+  }
+
+  private boolean isIntContextType(JavaType type) {
+    return isIntType(type)
+        || (type instanceof JavaType.Array array && isIntType(array.getElemType()));
+  }
+
+  private boolean isIntReturningLambda(J.Lambda lambda) {
+    return isIntReturningFunctionalType(lambda.getType());
+  }
+
+  private boolean isIntReturningFunctionalType(JavaType type) {
+    if (type instanceof JavaType.Method method) {
+      return isIntType(method.getReturnType());
+    }
+    return type instanceof JavaType.FullyQualified fullyQualified
+        && fullyQualified.getMethods().stream()
+            .anyMatch(method -> isIntType(method.getReturnType()));
   }
 
   private boolean isReplacementTarget(J expression, J.MethodInvocation replacementTarget) {

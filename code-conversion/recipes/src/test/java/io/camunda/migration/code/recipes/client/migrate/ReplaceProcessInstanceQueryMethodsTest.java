@@ -550,6 +550,8 @@ public class HandleProcessInstanceQueryMethodsTestClass {
             import org.springframework.beans.factory.annotation.Autowired;
             import org.springframework.stereotype.Component;
 
+            import java.util.function.IntSupplier;
+
             @Component
             public class ProcessInstanceQueryIntContextTestClass {
 
@@ -587,6 +589,24 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .list()
                             .size()];
                 }
+
+                public int[] arrayInitializer() {
+                    int[] values = {engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size()};
+                    return values;
+                }
+
+                public IntSupplier intSupplier() {
+                    IntSupplier count = () -> engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size();
+                    return count;
+                }
             }
             """,
             """
@@ -597,6 +617,8 @@ public class HandleProcessInstanceQueryMethodsTestClass {
             import org.camunda.bpm.engine.ProcessEngine;
             import org.springframework.beans.factory.annotation.Autowired;
             import org.springframework.stereotype.Component;
+
+            import java.util.function.IntSupplier;
 
             @Component
             public class ProcessInstanceQueryIntContextTestClass {
@@ -640,6 +662,28 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .join()
                             .page()
                             .totalItems().intValue()];
+                }
+
+                public int[] arrayInitializer() {
+                    int[] values = {camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue()};
+                    return values;
+                }
+
+                public IntSupplier intSupplier() {
+                    IntSupplier count = () -> camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue();
+                    return count;
                 }
             }
             """));
