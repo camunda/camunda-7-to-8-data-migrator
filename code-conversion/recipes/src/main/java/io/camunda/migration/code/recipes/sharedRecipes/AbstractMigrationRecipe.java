@@ -643,18 +643,27 @@ public abstract class AbstractMigrationRecipe extends Recipe {
           }
 
           private J.MethodInvocation findCountedQuery(J.MethodInvocation invocation) {
+            Expression select = unwrapParentheses(invocation.getSelect());
             if (invocation.getSimpleName().equals("size")
-                && invocation.getSelect() instanceof J.MethodInvocation query) {
+                && select instanceof J.MethodInvocation query) {
               return query;
             }
 
             if (invocation.getSimpleName().equals("count")
-                && invocation.getSelect() instanceof J.MethodInvocation stream
+                && select instanceof J.MethodInvocation stream
                 && stream.getSimpleName().equals("stream")
-                && stream.getSelect() instanceof J.MethodInvocation query) {
+                && unwrapParentheses(stream.getSelect()) instanceof J.MethodInvocation query) {
               return query;
             }
             return null;
+          }
+
+          private Expression unwrapParentheses(Expression expression) {
+            while (expression instanceof J.Parentheses<?> parentheses
+                && parentheses.getTree() instanceof Expression nested) {
+              expression = nested;
+            }
+            return expression;
           }
 
           private boolean hasAnyMethodInReceiverChain(

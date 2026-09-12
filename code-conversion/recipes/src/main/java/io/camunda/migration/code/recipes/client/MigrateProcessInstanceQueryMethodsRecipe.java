@@ -15,7 +15,9 @@ import org.jspecify.annotations.NonNull;
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
+import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
@@ -452,11 +454,11 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
 
       if (value instanceof J.MethodInvocation methodInvocation) {
         for (int i = 0; i < methodInvocation.getArguments().size(); i++) {
-          if (isReplacementTarget(methodInvocation.getArguments().get(i), replacementTarget)) {
+          if (containsReplacementTarget(methodInvocation.getArguments().get(i), replacementTarget)) {
             JavaType.Method methodType = methodInvocation.getMethodType();
             return methodType != null
                 && i < methodType.getParameterTypes().size()
-                && isIntType(methodType.getParameterTypes().get(i));
+                && isIntContextType(methodType.getParameterTypes().get(i));
           }
         }
       }
@@ -480,26 +482,27 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
 
       if (value instanceof J.NewArray newArray
           && newArray.getInitializer() != null
-          && newArray.getInitializer().stream()
-              .anyMatch(initializer -> isReplacementTarget(initializer, replacementTarget))
           && (isIntContextType(newArray.getType())
               || (newArray.getTypeExpression() != null
-                  && isIntContextType(newArray.getTypeExpression().getType())))) {
+                  && isIntContextType(newArray.getTypeExpression().getType()))
+              && newArray.getInitializer().stream()
+                  .anyMatch(
+                      initializer -> containsReplacementTarget(initializer, replacementTarget)))) {
         return true;
       }
 
       if (value instanceof J.ArrayDimension arrayDimension
-          && isReplacementTarget(arrayDimension.getIndex(), replacementTarget)) {
+          && containsReplacementTarget(arrayDimension.getIndex(), replacementTarget)) {
         return true;
       }
 
       if (value instanceof J.Switch switchStatement
-          && isReplacementTarget(switchStatement.getSelector().getTree(), replacementTarget)) {
+          && containsReplacementTarget(switchStatement.getSelector().getTree(), replacementTarget)) {
         return true;
       }
 
       if (value instanceof J.SwitchExpression switchExpression
-          && isReplacementTarget(switchExpression.getSelector().getTree(), replacementTarget)) {
+          && containsReplacementTarget(switchExpression.getSelector().getTree(), replacementTarget)) {
         return true;
       }
 
@@ -532,6 +535,25 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
       current = parentheses.getTree();
     }
     return current.getId().equals(replacementTarget.getId());
+  }
+
+  private boolean containsReplacementTarget(J expression, J.MethodInvocation replacementTarget) {
+    if (isReplacementTarget(expression, replacementTarget)) {
+      return true;
+    }
+
+    boolean[] found = {false};
+    new JavaIsoVisitor<Object>() {
+      @Override
+      public J visit(Tree tree, Object ctx) {
+        if (tree.getId().equals(replacementTarget.getId())) {
+          found[0] = true;
+          return (J) tree;
+        }
+        return super.visit(tree, ctx);
+      }
+    }.visit(expression, null);
+    return found[0];
   }
 
   private boolean isIntType(JavaType type) {

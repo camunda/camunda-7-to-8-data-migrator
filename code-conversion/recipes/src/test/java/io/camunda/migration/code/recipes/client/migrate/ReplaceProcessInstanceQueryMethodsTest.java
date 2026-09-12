@@ -607,6 +607,80 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .size();
                     return count;
                 }
+
+                private void acceptInt(int count) {}
+
+                private void acceptInts(int... counts) {}
+
+                public void nestedMethodArguments() {
+                    acceptInt(engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size() + 1);
+                    acceptInts(engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size());
+                }
+
+                public int[] nestedArrayDimension() {
+                    return new int[engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size() + 1];
+                }
+
+                public int nestedSwitchSelector() {
+                    switch (engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size() + 1) {
+                        case 0:
+                            return 0;
+                        default:
+                            return 1;
+                    }
+                }
+
+                public String nestedSwitchExpression() {
+                    return switch (engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size() + 1) {
+                        case 0 -> "zero";
+                        default -> "other";
+                    };
+                }
+
+                public int[] nestedArrayInitializer() {
+                    return new int[] {engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size() + 1};
+                }
+
+                public int parenthesizedListSize() {
+                    return (engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list())
+                            .size();
+                }
+
+                public long parenthesizedStreamCount() {
+                    return (engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list())
+                            .stream()
+                            .count();
+                }
             }
             """,
             """
@@ -684,6 +758,95 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .page()
                             .totalItems().intValue();
                     return count;
+                }
+
+                private void acceptInt(int count) {}
+
+                private void acceptInts(int... counts) {}
+
+                public void nestedMethodArguments() {
+                    acceptInt(camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue() + 1);
+                    acceptInts(camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue());
+                }
+
+                public int[] nestedArrayDimension() {
+                    return new int[camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue() + 1];
+                }
+
+                public int nestedSwitchSelector() {
+                    switch (camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue() + 1) {
+                        case 0:
+                            return 0;
+                        default:
+                            return 1;
+                    }
+                }
+
+                public String nestedSwitchExpression() {
+                    return switch (camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue() + 1) {
+                        case 0 -> "zero";
+                        default -> "other";
+                    };
+                }
+
+                public int[] nestedArrayInitializer() {
+                    return new int[] {camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue() + 1};
+                }
+
+                public int parenthesizedListSize() {
+                    return camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue();
+                }
+
+                public long parenthesizedStreamCount() {
+                    return camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().longValue();
                 }
             }
             """));
