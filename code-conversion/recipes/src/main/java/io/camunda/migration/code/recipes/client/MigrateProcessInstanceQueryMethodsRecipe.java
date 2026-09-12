@@ -415,7 +415,7 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
   protected J.MethodInvocation adjustBuilderReplacement(
       J.MethodInvocation replacement, J.MethodInvocation replacementTarget, Cursor cursor) {
     if (replacementTarget.getSimpleName().equals("size")) {
-      if (!requiresIntResult(cursor, replacementTarget)) {
+      if (sizeResultType(cursor, replacementTarget) == SizeResultType.LONG) {
         return replacement;
       }
 
@@ -475,24 +475,37 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
         : null;
   }
 
-  private boolean requiresIntResult(Cursor cursor, J.MethodInvocation replacementTarget) {
-    Cursor current = cursor.getParentTreeCursor();
+  private SizeResultType sizeResultType(Cursor cursor, J.MethodInvocation replacementTarget) {
+    Cursor current = cursor.getParent();
+    while (current != null && !(current.getValue() instanceof Tree)) {
+      current = current.getParent();
+    }
     while (current != null) {
       Object value = current.getValue();
 
       if (value instanceof J.VariableDeclarations declarations) {
-        return isIntContextType(declarations.getType())
-            || isIntReturningFunctionalType(declarations.getType());
+        SizeResultType resultType = resultTypeFor(declarations.getType());
+        if (resultType != SizeResultType.UNKNOWN) {
+          return resultType;
+        }
+        resultType = functionalResultType(declarations.getType());
+        if (resultType != SizeResultType.UNKNOWN) {
+          return resultType;
+        }
       }
 
       if (value instanceof J.Assignment assignment && assignment.getVariable() != null) {
-        return isIntContextType(assignment.getVariable().getType());
+        SizeResultType resultType = resultTypeFor(assignment.getVariable().getType());
+        if (resultType != SizeResultType.UNKNOWN) {
+          return resultType;
+        }
       }
 
       if (value instanceof J.AssignmentOperation assignmentOperation
           && assignmentOperation.getVariable() != null
-          && isIntType(assignmentOperation.getVariable().getType())) {
-        return true;
+          && resultTypeFor(assignmentOperation.getVariable().getType())
+              != SizeResultType.UNKNOWN) {
+        return resultTypeFor(assignmentOperation.getVariable().getType());
       }
 
       if (value instanceof J.MethodInvocation methodInvocation) {
@@ -500,9 +513,11 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
           if (containsReplacementTarget(methodInvocation.getArguments().get(i), replacementTarget)) {
             JavaType.Method methodType = methodInvocation.getMethodType();
             if (methodType != null
-                && i < methodType.getParameterTypes().size()
-                && isIntContextType(methodType.getParameterTypes().get(i))) {
-              return true;
+                && i < methodType.getParameterTypes().size()) {
+              SizeResultType resultType = resultTypeFor(methodType.getParameterTypes().get(i));
+              if (resultType != SizeResultType.UNKNOWN) {
+                return resultType;
+              }
             }
           }
         }
@@ -512,27 +527,37 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
         for (int i = 0; i < newClass.getArguments().size(); i++) {
           if (containsReplacementTarget(newClass.getArguments().get(i), replacementTarget)) {
             JavaType.Method constructorType = newClass.getConstructorType();
-            return constructorType != null
-                && i < constructorType.getParameterTypes().size()
-                && isIntContextType(constructorType.getParameterTypes().get(i));
+            if (constructorType != null && i < constructorType.getParameterTypes().size()) {
+              SizeResultType resultType =
+                  resultTypeFor(constructorType.getParameterTypes().get(i));
+              if (resultType != SizeResultType.UNKNOWN) {
+                return resultType;
+              }
+            }
           }
         }
       }
 
-      if (value instanceof J.Lambda lambda && isIntReturningLambda(lambda)) {
-        return true;
+      if (value instanceof J.Lambda lambda) {
+        SizeResultType resultType = lambdaResultType(lambda);
+        if (resultType != SizeResultType.UNKNOWN) {
+          return resultType;
+        }
       }
 
       if (value instanceof J.Return) {
         J.Lambda lambda = cursor.firstEnclosing(J.Lambda.class);
         if (lambda == null) {
           J.MethodDeclaration method = cursor.firstEnclosing(J.MethodDeclaration.class);
-          return method != null
-              && method.getReturnTypeExpression() != null
-              && isIntType(method.getReturnTypeExpression().getType());
+          if (method != null && method.getReturnTypeExpression() != null) {
+            return resultTypeFor(method.getReturnTypeExpression().getType());
+          }
         }
-        if (isIntReturningLambda(lambda)) {
-          return true;
+        if (lambda != null) {
+          SizeResultType resultType = lambdaResultType(lambda);
+          if (resultType != SizeResultType.UNKNOWN) {
+            return resultType;
+          }
         }
       }
 
@@ -544,45 +569,83 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
           && newArray.getInitializer().stream()
               .anyMatch(
                   initializer -> containsReplacementTarget(initializer, replacementTarget))) {
-        return true;
+        return SizeResultType.INT;
       }
 
       if (value instanceof J.ArrayDimension arrayDimension
           && containsReplacementTarget(arrayDimension.getIndex(), replacementTarget)) {
-        return true;
+        return SizeResultType.INT;
       }
 
       if (value instanceof J.Switch switchStatement
           && containsReplacementTarget(switchStatement.getSelector().getTree(), replacementTarget)) {
-        return true;
+        return SizeResultType.INT;
       }
 
       if (value instanceof J.SwitchExpression switchExpression
           && containsReplacementTarget(switchExpression.getSelector().getTree(), replacementTarget)) {
-        return true;
+        return SizeResultType.INT;
       }
 
-      current = current.getParentTreeCursor();
+      current = current.getParent();
+      while (current != null && !(current.getValue() instanceof Tree)) {
+        current = current.getParent();
+      }
     }
-    return false;
+    return SizeResultType.UNKNOWN;
+  }
+
+  private enum SizeResultType {
+    INT,
+    LONG,
+    UNKNOWN
+  }
+
+  private SizeResultType resultTypeFor(JavaType type) {
+    if (isIntType(type)
+        || (type instanceof JavaType.Array array && isIntType(array.getElemType()))) {
+      return SizeResultType.INT;
+    }
+    if (isLongType(type)
+        || (type instanceof JavaType.Array array && isLongType(array.getElemType()))) {
+      return SizeResultType.LONG;
+    }
+    return SizeResultType.UNKNOWN;
   }
 
   private boolean isIntContextType(JavaType type) {
-    return isIntType(type)
-        || (type instanceof JavaType.Array array && isIntType(array.getElemType()));
+    return resultTypeFor(type) == SizeResultType.INT;
   }
 
-  private boolean isIntReturningLambda(J.Lambda lambda) {
-    return isIntReturningFunctionalType(lambda.getType());
+  private SizeResultType lambdaResultType(J.Lambda lambda) {
+    return functionalResultType(lambda.getType());
   }
 
-  private boolean isIntReturningFunctionalType(JavaType type) {
+  private SizeResultType functionalResultType(JavaType type) {
     if (type instanceof JavaType.Method method) {
-      return isIntType(method.getReturnType());
+      return resultTypeFor(method.getReturnType());
     }
-    return type instanceof JavaType.FullyQualified fullyQualified
-        && fullyQualified.getMethods().stream()
-            .anyMatch(method -> isIntType(method.getReturnType()));
+    if (type instanceof JavaType.FullyQualified fullyQualified) {
+      boolean hasIntReturn =
+          fullyQualified.getMethods().stream()
+              .anyMatch(method -> resultTypeFor(method.getReturnType()) == SizeResultType.INT);
+      boolean hasLongReturn =
+          fullyQualified.getMethods().stream()
+              .anyMatch(method -> resultTypeFor(method.getReturnType()) == SizeResultType.LONG);
+      if (hasIntReturn && !hasLongReturn) {
+        return SizeResultType.INT;
+      }
+      if (hasLongReturn && !hasIntReturn) {
+        return SizeResultType.LONG;
+      }
+    }
+    return SizeResultType.UNKNOWN;
+  }
+
+  private boolean isLongType(JavaType type) {
+    return type == JavaType.Primitive.Long
+        || (type instanceof JavaType.FullyQualified fqn
+            && fqn.getFullyQualifiedName().equals("java.lang.Long"));
   }
 
   private boolean isReplacementTarget(J expression, J.MethodInvocation replacementTarget) {
