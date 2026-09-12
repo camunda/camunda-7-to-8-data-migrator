@@ -681,6 +681,14 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .stream()
                             .count();
                 }
+
+                public int parenthesizedReceiverChainListSize() {
+                    return (engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active())
+                            .list()
+                            .size();
+                }
             }
             """,
             """
@@ -847,6 +855,97 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .join()
                             .page()
                             .totalItems().longValue();
+                }
+
+                public int parenthesizedReceiverChainListSize() {
+                    return camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue();
+                }
+            }
+            """));
+  }
+
+  @Test
+  void preservesIntResultForConstructorAndCompoundAssignment() {
+    rewriteRun(
+        spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
+        java(
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import java.util.concurrent.atomic.AtomicInteger;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class ProcessInstanceQueryAssignmentContextTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public void countQueries() {
+                    int total = 0;
+                    total += engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size();
+
+                    AtomicInteger count = new AtomicInteger(engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size());
+                }
+            }
+            """,
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import io.camunda.client.api.search.enums.ProcessInstanceState;
+
+            import java.util.concurrent.atomic.AtomicInteger;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class ProcessInstanceQueryAssignmentContextTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public void countQueries() {
+                    int total = 0;
+                    total += camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue();
+
+                    AtomicInteger count = new AtomicInteger(camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue());
                 }
             }
             """));

@@ -397,7 +397,7 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
           && !spec.methodNamesToExtractParameters().contains(invocation.getSimpleName())) {
         return false;
       }
-      current = invocation.getSelect();
+      current = unwrapParentheses(invocation.getSelect());
     }
     return true;
   }
@@ -452,6 +452,12 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
         return isIntContextType(assignment.getVariable().getType());
       }
 
+      if (value instanceof J.AssignmentOperation assignmentOperation
+          && assignmentOperation.getVariable() != null
+          && isIntType(assignmentOperation.getVariable().getType())) {
+        return true;
+      }
+
       if (value instanceof J.MethodInvocation methodInvocation) {
         for (int i = 0; i < methodInvocation.getArguments().size(); i++) {
           if (containsReplacementTarget(methodInvocation.getArguments().get(i), replacementTarget)) {
@@ -459,6 +465,17 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
             return methodType != null
                 && i < methodType.getParameterTypes().size()
                 && isIntContextType(methodType.getParameterTypes().get(i));
+          }
+        }
+      }
+
+      if (value instanceof J.NewClass newClass) {
+        for (int i = 0; i < newClass.getArguments().size(); i++) {
+          if (containsReplacementTarget(newClass.getArguments().get(i), replacementTarget)) {
+            JavaType.Method constructorType = newClass.getConstructorType();
+            return constructorType != null
+                && i < constructorType.getParameterTypes().size()
+                && isIntContextType(constructorType.getParameterTypes().get(i));
           }
         }
       }
@@ -564,13 +581,22 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
 
   private boolean hasCreateProcessInstanceQueryInReceiverChain(J.MethodInvocation invocation) {
     Expression current = invocation.getSelect();
+    current = unwrapParentheses(current);
     while (current instanceof J.MethodInvocation methodInvocation) {
       if (methodInvocation.getSimpleName().equals("createProcessInstanceQuery")) {
         return true;
       }
-      current = methodInvocation.getSelect();
+      current = unwrapParentheses(methodInvocation.getSelect());
     }
     return false;
+  }
+
+  private Expression unwrapParentheses(Expression expression) {
+    while (expression instanceof J.Parentheses<?> parentheses
+        && parentheses.getTree() instanceof Expression nested) {
+      expression = nested;
+    }
+    return expression;
   }
 
   @Override

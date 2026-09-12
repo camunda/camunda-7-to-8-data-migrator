@@ -637,7 +637,7 @@ public abstract class AbstractMigrationRecipe extends Recipe {
                   && !(mi.getArguments().get(0) instanceof J.Empty)) {
                 collectedArgs.putIfAbsent(name, mi.getArguments().get(0));
               }
-              current = mi.getSelect();
+              current = unwrapParentheses(mi.getSelect());
             }
             return collectedArgs;
           }
