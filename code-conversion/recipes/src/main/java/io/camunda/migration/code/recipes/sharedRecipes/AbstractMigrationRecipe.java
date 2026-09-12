@@ -21,6 +21,9 @@ import org.openrewrite.java.tree.*;
 
 public abstract class AbstractMigrationRecipe extends Recipe {
 
+  private static final String TRACKED_QUERY_RESULT_VARIABLE_PREFIX =
+      "migration.query-result-variable.";
+
   /** Instantiates a new instance. */
   public AbstractMigrationRecipe() {}
 
@@ -71,6 +74,40 @@ public abstract class AbstractMigrationRecipe extends Recipe {
     return false;
   }
 
+  protected boolean preserveAssignmentType(
+      J.Assignment assignment,
+      J.MethodInvocation invocation,
+      ReplacementUtils.ReplacementSpec spec) {
+    return false;
+  }
+
+  protected boolean shouldTrackQueryResultVariable(
+      J.MethodInvocation invocation, ReplacementUtils.ReplacementSpec spec) {
+    return false;
+  }
+
+  protected String manualMigrationComment(J.MethodInvocation invocation, Cursor cursor) {
+    return null;
+  }
+
+  private void trackQueryResultVariable(
+      Cursor cursor,
+      J.VariableDeclarations declarations,
+      J.MethodInvocation invocation,
+      ReplacementUtils.ReplacementSpec spec) {
+    if (shouldTrackQueryResultVariable(invocation, spec)
+        && !declarations.getVariables().isEmpty()) {
+      String variableName = declarations.getVariables().get(0).getName().getSimpleName();
+      cursor
+          .dropParentUntil(parent -> parent instanceof J.Block)
+          .putMessage(TRACKED_QUERY_RESULT_VARIABLE_PREFIX + variableName, "true");
+    }
+  }
+
+  protected boolean isTrackedQueryResultVariable(String variableName, Cursor cursor) {
+    return cursor.getNearestMessage(TRACKED_QUERY_RESULT_VARIABLE_PREFIX + variableName) != null;
+  }
+
   protected abstract List<ReplacementUtils.ReturnReplacementSpec> returnMethodInvocations();
 
   protected abstract List<ReplacementUtils.RenameReplacementSpec> renameMethodInvocations();
@@ -109,6 +146,8 @@ public abstract class AbstractMigrationRecipe extends Recipe {
 
               if (matchingSpec != null) {
                 ReplacementUtils.ReplacementSpec spec = matchingSpec;
+
+                trackQueryResultVariable(getCursor(), declarations, invocation, spec);
 
                 // nothing to do if type stays the same
                 if (spec.returnTypeStrategy()
@@ -283,10 +322,18 @@ public abstract class AbstractMigrationRecipe extends Recipe {
                       .apply(getCursor(), assignment.getCoordinates().replace(), invocation);
 
               assert resolvedFqn != null;
-              modifiedAssignment =
-                  modifiedAssignment.withVariable(
-                      modifiedAssignment.getVariable().withType(JavaType.buildType(resolvedFqn)));
-              modifiedAssignment = modifiedAssignment.withType(JavaType.buildType(resolvedFqn));
+              boolean preserveType = preserveAssignmentType(assignment, invocation, spec);
+              if (preserveType) {
+                modifiedAssignment =
+                    modifiedAssignment.withVariable(
+                        modifiedAssignment.getVariable().withType(originalName.getType()));
+                modifiedAssignment = modifiedAssignment.withType(assignment.getType());
+              } else {
+                modifiedAssignment =
+                    modifiedAssignment.withVariable(
+                        modifiedAssignment.getVariable().withType(JavaType.buildType(resolvedFqn)));
+                modifiedAssignment = modifiedAssignment.withType(JavaType.buildType(resolvedFqn));
+              }
 
               maybeAddImport(resolvedFqn);
 
@@ -296,7 +343,11 @@ public abstract class AbstractMigrationRecipe extends Recipe {
               // record fqn of identifier for later uses
               getCursor()
                   .dropParentUntil(parent -> parent instanceof J.Block)
-                  .putMessage(originalName.toString(), resolvedFqn);
+                  .putMessage(
+                      originalName.toString(),
+                      preserveType && originalName.getType() != null
+                          ? originalName.getType().toString()
+                          : resolvedFqn);
 
               // merge comments
               modifiedAssignment =
@@ -342,6 +393,24 @@ public abstract class AbstractMigrationRecipe extends Recipe {
             // test to skip visitor
             if (visitorSkipCondition().test(getCursor())) {
               return invocation;
+            }
+
+            String manualMigrationComment = manualMigrationComment(invocation, getCursor());
+            if (manualMigrationComment != null) {
+              boolean alreadyHasComment =
+                  invocation.getComments().stream()
+                      .anyMatch(
+                          comment ->
+                              comment instanceof TextComment textComment
+                                  && textComment.getText().contains(manualMigrationComment));
+              if (alreadyHasComment) {
+                return invocation;
+              }
+              return invocation.withComments(
+                  Stream.concat(
+                          invocation.getComments().stream(),
+                          Stream.of(RecipeUtils.createSimpleComment(invocation, manualMigrationComment)))
+                      .toList());
             }
 
             J.MethodInvocation countedQuery = findCountedQuery(invocation);

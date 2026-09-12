@@ -901,6 +901,13 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .list()
                             .size();
 
+                    int assigned = 0;
+                    assigned = engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size();
+
                     AtomicInteger count = new AtomicInteger(engine.getRuntimeService()
                             .createProcessInstanceQuery()
                             .active()
@@ -939,6 +946,15 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .page()
                             .totalItems().intValue();
 
+                    int assigned = 0;
+                    assigned = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue();
+
                     AtomicInteger count = new AtomicInteger(camundaClient
                             .newProcessInstanceSearchRequest()
                             .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
@@ -946,6 +962,76 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .join()
                             .page()
                             .totalItems().intValue());
+                }
+            }
+            """));
+  }
+
+  @Test
+  void flagsCountsOnAssignedProcessInstanceLists() {
+    rewriteRun(
+        spec -> spec.recipe(new MigrateProcessInstanceQueryMethodsRecipe()),
+        java(
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import java.util.List;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.camunda.bpm.engine.runtime.ProcessInstance;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class AssignedProcessInstanceListCountTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public int countInstances() {
+                    List<ProcessInstance> instances = engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .processDefinitionKey("order-process")
+                            .active()
+                            .list();
+                    return instances.size();
+                }
+            }
+            """,
+            """
+            package org.camunda.community.migration.example;
+
+            import io.camunda.client.CamundaClient;
+            import io.camunda.client.api.search.enums.ProcessInstanceState;
+
+            import java.util.List;
+            import org.camunda.bpm.engine.ProcessEngine;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class AssignedProcessInstanceListCountTestClass {
+
+                @Autowired
+                private ProcessEngine engine;
+
+                @Autowired
+                private CamundaClient camundaClient;
+
+                public int countInstances() {
+                    List<io.camunda.client.api.search.response.ProcessInstance> instances = camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter
+                                    .processDefinitionId("order-process")
+                                    .state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .items();
+                    return //TODO: Manual migration required - use page().totalItems() for the complete query count of: instances
+             instances.size();
                 }
             }
             """));

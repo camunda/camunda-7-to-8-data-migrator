@@ -8,6 +8,7 @@
 package io.camunda.migration.code.recipes.client;
 
 import io.camunda.migration.code.recipes.sharedRecipes.AbstractMigrationRecipe;
+import io.camunda.migration.code.recipes.utils.MigrationMessages;
 import io.camunda.migration.code.recipes.utils.RecipeUtils;
 import io.camunda.migration.code.recipes.utils.ReplacementUtils;
 import java.util.*;
@@ -393,6 +394,9 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
 
     Expression current = queryTerminal;
     while (current instanceof J.MethodInvocation invocation) {
+      if (invocation.getSimpleName().equals("createProcessInstanceQuery")) {
+        return true;
+      }
       if (!UNFILTERED_QUERY_METHODS.contains(invocation.getSimpleName())
           && !spec.methodNamesToExtractParameters().contains(invocation.getSimpleName())) {
         return false;
@@ -438,6 +442,39 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
         || invocation.getSimpleName().equals("count");
   }
 
+  @Override
+  protected boolean preserveAssignmentType(
+      J.Assignment assignment,
+      J.MethodInvocation invocation,
+      ReplacementUtils.ReplacementSpec spec) {
+    return invocation.getSimpleName().equals("size")
+        || invocation.getSimpleName().equals("count");
+  }
+
+  @Override
+  protected boolean shouldTrackQueryResultVariable(
+      J.MethodInvocation invocation, ReplacementUtils.ReplacementSpec spec) {
+    return invocation.getSimpleName().equals("list");
+  }
+
+  @Override
+  protected String manualMigrationComment(J.MethodInvocation invocation, Cursor cursor) {
+    Expression select = unwrapParentheses(invocation.getSelect());
+    String variableName = null;
+    if (invocation.getSimpleName().equals("size") && select instanceof J.Identifier identifier) {
+      variableName = identifier.getSimpleName();
+    } else if (invocation.getSimpleName().equals("count")
+        && select instanceof J.MethodInvocation stream
+        && stream.getSimpleName().equals("stream")
+        && unwrapParentheses(stream.getSelect()) instanceof J.Identifier identifier) {
+      variableName = identifier.getSimpleName();
+    }
+
+    return variableName != null && isTrackedQueryResultVariable(variableName, cursor)
+        ? MigrationMessages.formatQueryResultCount(variableName)
+        : null;
+  }
+
   private boolean requiresIntResult(Cursor cursor, J.MethodInvocation replacementTarget) {
     Cursor current = cursor.getParentTreeCursor();
     while (current != null) {
@@ -462,9 +499,11 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
         for (int i = 0; i < methodInvocation.getArguments().size(); i++) {
           if (containsReplacementTarget(methodInvocation.getArguments().get(i), replacementTarget)) {
             JavaType.Method methodType = methodInvocation.getMethodType();
-            return methodType != null
+            if (methodType != null
                 && i < methodType.getParameterTypes().size()
-                && isIntContextType(methodType.getParameterTypes().get(i));
+                && isIntContextType(methodType.getParameterTypes().get(i))) {
+              return true;
+            }
           }
         }
       }

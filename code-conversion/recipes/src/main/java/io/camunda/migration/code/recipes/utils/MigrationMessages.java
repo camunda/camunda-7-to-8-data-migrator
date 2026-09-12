@@ -25,6 +25,8 @@ public final class MigrationMessages {
   // Message templates using %s for String.format()
   static final String UNRESOLVED_RETURN_TYPE_MSG =
       "TODO: Manual migration required - could not resolve return type for: %s";
+  static final String QUERY_RESULT_COUNT_MSG =
+      "TODO: Manual migration required - use page().totalItems() for the complete query count of: %s";
 
   /**
    * Creates a formatted TODO comment for unresolved return type.
@@ -49,5 +51,14 @@ public final class MigrationMessages {
   public static boolean containsUnresolvedTypeMessage(String text, String variableName) {
     return text != null && text.contains(formatUnresolvedReturnType(variableName));
   }
-}
 
+  /**
+   * Creates a formatted TODO comment for a count derived from a migrated query result variable.
+   *
+   * @param variableName the variable whose result count needs manual migration
+   * @return formatted TODO comment
+   */
+  public static String formatQueryResultCount(String variableName) {
+    return String.format(QUERY_RESULT_COUNT_MSG, variableName);
+  }
+}
