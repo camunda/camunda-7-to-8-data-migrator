@@ -252,10 +252,10 @@ Each item below is a check to run and a condition that must hold at exit. Record
 10. **Query counts and pagination**
     - Use a whitespace-tolerant or syntax-aware search for `.items()` followed by `.size()`.
     - Use a whitespace-tolerant or syntax-aware search for `.items()` followed by `.stream()` and `.count()`.
-    - Treat each hit as a validation failure when it represents a complete query count.
+    - If a hit represents a complete query count, then treat it as a validation failure.
     - Confirm that each migrated C7 `list().size()`, `list().stream().count()`, or `count()` uses
       `.page().totalItems()`.
-    - Review `.page().hasMoreTotalItems()` for large searches.
+    - If a search can exceed cluster result limits, then review `.page().hasMoreTotalItems()`.
 11. **Worker adapters** — compare every `@JobWorker` declaration's fully qualified declaring class
     name with the original Java source baseline recorded in Step 2. Flag the declaration when its
     class appears in that baseline, even when the class name ends with `Worker`. Accept it only

@@ -467,9 +467,32 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
             && isIntType(method.getReturnTypeExpression().getType());
       }
 
+      if (value instanceof J.ArrayDimension arrayDimension
+          && isReplacementTarget(arrayDimension.getIndex(), replacementTarget)) {
+        return true;
+      }
+
+      if (value instanceof J.Switch switchStatement
+          && isReplacementTarget(switchStatement.getSelector().getTree(), replacementTarget)) {
+        return true;
+      }
+
+      if (value instanceof J.SwitchExpression switchExpression
+          && isReplacementTarget(switchExpression.getSelector().getTree(), replacementTarget)) {
+        return true;
+      }
+
       current = current.getParentTreeCursor();
     }
     return false;
+  }
+
+  private boolean isReplacementTarget(J expression, J.MethodInvocation replacementTarget) {
+    J current = expression;
+    while (current instanceof J.Parentheses<?> parentheses) {
+      current = parentheses.getTree();
+    }
+    return current.getId().equals(replacementTarget.getId());
   }
 
   private boolean isIntType(JavaType type) {

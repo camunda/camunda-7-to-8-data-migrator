@@ -146,10 +146,10 @@ decision in `MIGRATION_REPORT.md`.
 
 Catalog: `20-client-code/10-process-engine/count-query-results.md`.
 
-- Replace `list().size()`, `list().stream().count()`, and `count()` with
-  `page().totalItems()` when the code needs the complete query count.
+- If the code needs the complete query count, then replace `list().size()`,
+  `list().stream().count()`, and `count()` with `page().totalItems()`.
 - Never use `items().size()` or `items().stream().count()` for a complete query count.
-- Review `page().hasMoreTotalItems()` when the search can exceed cluster result limits.
+- If the search can exceed cluster result limits, then review `page().hasMoreTotalItems()`.
 
 ---
 
