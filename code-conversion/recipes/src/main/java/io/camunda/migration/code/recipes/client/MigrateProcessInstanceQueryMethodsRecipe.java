@@ -451,7 +451,7 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
 
       if (value instanceof J.MethodInvocation methodInvocation) {
         for (int i = 0; i < methodInvocation.getArguments().size(); i++) {
-          if (methodInvocation.getArguments().get(i).getId().equals(replacementTarget.getId())) {
+          if (isReplacementTarget(methodInvocation.getArguments().get(i), replacementTarget)) {
             JavaType.Method methodType = methodInvocation.getMethodType();
             return methodType != null
                 && i < methodType.getParameterTypes().size()

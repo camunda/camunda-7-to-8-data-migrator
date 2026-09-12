@@ -438,6 +438,14 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .list()
                             .size());
                 }
+
+                public void countProcessInstancesAsParenthesizedMethodArgument() {
+                    acceptInt((engine.getRuntimeService()
+                            .createProcessInstanceQuery()
+                            .active()
+                            .list()
+                            .size()));
+                }
             }
             """,
             """
@@ -514,6 +522,16 @@ public class HandleProcessInstanceQueryMethodsTestClass {
                             .join()
                             .page()
                             .totalItems().intValue());
+                }
+
+                public void countProcessInstancesAsParenthesizedMethodArgument() {
+                    acceptInt((camundaClient
+                            .newProcessInstanceSearchRequest()
+                            .filter(filter -> filter.state(ProcessInstanceState.ACTIVE))
+                            .send()
+                            .join()
+                            .page()
+                            .totalItems().intValue()));
                 }
             }
             """));
