@@ -91,16 +91,16 @@ public abstract class AbstractMigrationRecipe extends Recipe {
   }
 
   private void trackQueryResultVariable(
-      Cursor cursor,
-      J.VariableDeclarations declarations,
-      J.MethodInvocation invocation,
-      ReplacementUtils.ReplacementSpec spec) {
-    if (shouldTrackQueryResultVariable(invocation, spec)
-        && !declarations.getVariables().isEmpty()) {
-      String variableName = declarations.getVariables().get(0).getName().getSimpleName();
-      cursor
-          .dropParentUntil(parent -> parent instanceof J.Block)
-          .putMessage(TRACKED_QUERY_RESULT_VARIABLE_PREFIX + variableName, "true");
+      Cursor cursor, String variableName, boolean classScoped) {
+    Cursor current = cursor;
+    while (current != null) {
+      Object value = current.getValue();
+      if ((classScoped && value instanceof J.ClassDeclaration)
+          || (!classScoped && value instanceof J.Block)) {
+        current.putMessage(TRACKED_QUERY_RESULT_VARIABLE_PREFIX + variableName, "true");
+        return;
+      }
+      current = current.getParent();
     }
   }
 
@@ -132,6 +132,19 @@ public abstract class AbstractMigrationRecipe extends Recipe {
               return declarations;
             }
 
+            for (J.VariableDeclarations.NamedVariable variable : declarations.getVariables()) {
+              if (variable.getInitializer() instanceof J.MethodInvocation invocation) {
+                findReplacementSpec(invocation)
+                    .filter(spec -> shouldTrackQueryResultVariable(invocation, spec))
+                    .ifPresent(
+                        spec ->
+                            trackQueryResultVariable(
+                                getCursor(),
+                                variable.getName().getSimpleName(),
+                                getCursor().firstEnclosing(J.Block.class) == null));
+              }
+            }
+
             // Analyze first variable
             J.VariableDeclarations.NamedVariable firstVar = declarations.getVariables().get(0);
             J.Identifier originalName = firstVar.getName();
@@ -146,8 +159,6 @@ public abstract class AbstractMigrationRecipe extends Recipe {
 
               if (matchingSpec != null) {
                 ReplacementUtils.ReplacementSpec spec = matchingSpec;
-
-                trackQueryResultVariable(getCursor(), declarations, invocation, spec);
 
                 // nothing to do if type stays the same
                 if (spec.returnTypeStrategy()
@@ -285,10 +296,6 @@ public abstract class AbstractMigrationRecipe extends Recipe {
               return assignment;
             }
 
-            if (!(assignment.getVariable() instanceof J.Identifier originalName)) {
-              return super.visitAssignment(assignment, ctx);
-            }
-
             if (!(assignment.getAssignment() instanceof J.MethodInvocation invocation)) {
               return super.visitAssignment(assignment, ctx);
             }
@@ -299,6 +306,18 @@ public abstract class AbstractMigrationRecipe extends Recipe {
 
             if (matchingSpec != null) {
               ReplacementUtils.ReplacementSpec spec = matchingSpec;
+              String assignedVariableName = getAssignedVariableName(assignment.getVariable());
+              if (assignedVariableName != null
+                  && shouldTrackQueryResultVariable(invocation, spec)) {
+                trackQueryResultVariable(
+                    getCursor(),
+                    assignedVariableName,
+                    assignment.getVariable() instanceof J.FieldAccess);
+              }
+
+              if (!(assignment.getVariable() instanceof J.Identifier originalName)) {
+                return super.visitAssignment(assignment, ctx);
+              }
 
               // nothing to do if type stays the same
               if (spec.returnTypeStrategy()
@@ -698,7 +717,7 @@ public abstract class AbstractMigrationRecipe extends Recipe {
 
           private Map<String, Expression> collectArguments(J.MethodInvocation invocation) {
             Map<String, Expression> collectedArgs = new HashMap<>();
-            Expression current = invocation.getSelect();
+            Expression current = unwrapParentheses(invocation.getSelect());
 
             while (current instanceof J.MethodInvocation mi) {
               String name = mi.getSimpleName();
@@ -733,6 +752,16 @@ public abstract class AbstractMigrationRecipe extends Recipe {
               expression = nested;
             }
             return expression;
+          }
+
+          private String getAssignedVariableName(Expression variable) {
+            if (variable instanceof J.Identifier identifier) {
+              return identifier.getSimpleName();
+            }
+            if (variable instanceof J.FieldAccess fieldAccess) {
+              return fieldAccess.getName().getSimpleName();
+            }
+            return null;
           }
 
           private boolean hasAnyMethodInReceiverChain(

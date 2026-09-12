@@ -150,6 +150,8 @@ Catalog: `20-client-code/10-process-engine/count-query-results.md`.
   `list().stream().count()`, and `count()` with `page().totalItems()`.
 - If the original result type is `int` or `Integer`, then append `.intValue()` to
   `page().totalItems()`.
+- Trace search results assigned to variables before checking later `.size()` or `.stream().count()`
+  uses.
 - Never use `items().size()` or `items().stream().count()` for a complete query count.
 - If the search can exceed cluster result limits, then review `page().hasMoreTotalItems()`.
 

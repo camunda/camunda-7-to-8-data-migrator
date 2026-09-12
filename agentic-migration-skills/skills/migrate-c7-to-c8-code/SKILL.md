@@ -252,6 +252,7 @@ Each item below is a check to run and a condition that must hold at exit. Record
 10. **Query counts and pagination**
     - Use a whitespace-tolerant or syntax-aware search for `.items()` followed by `.size()`.
     - Use a whitespace-tolerant or syntax-aware search for `.items()` followed by `.stream()` and `.count()`.
+    - Trace search results assigned to variables before checking later `.size()` or `.stream().count()` uses.
     - If a hit represents a complete query count, then treat it as a validation failure.
     - Confirm that each migrated C7 `list().size()`, `list().stream().count()`, or `count()` uses
       `.page().totalItems()`.

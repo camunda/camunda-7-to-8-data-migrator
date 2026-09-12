@@ -461,18 +461,28 @@ public class MigrateProcessInstanceQueryMethodsRecipe extends AbstractMigrationR
   protected String manualMigrationComment(J.MethodInvocation invocation, Cursor cursor) {
     Expression select = unwrapParentheses(invocation.getSelect());
     String variableName = null;
-    if (invocation.getSimpleName().equals("size") && select instanceof J.Identifier identifier) {
-      variableName = identifier.getSimpleName();
+    if (invocation.getSimpleName().equals("size")) {
+      variableName = getTrackedVariableName(select);
     } else if (invocation.getSimpleName().equals("count")
         && select instanceof J.MethodInvocation stream
         && stream.getSimpleName().equals("stream")
-        && unwrapParentheses(stream.getSelect()) instanceof J.Identifier identifier) {
-      variableName = identifier.getSimpleName();
+        ) {
+      variableName = getTrackedVariableName(unwrapParentheses(stream.getSelect()));
     }
 
     return variableName != null && isTrackedQueryResultVariable(variableName, cursor)
         ? MigrationMessages.formatQueryResultCount(variableName)
         : null;
+  }
+
+  private String getTrackedVariableName(Expression expression) {
+    if (expression instanceof J.Identifier identifier) {
+      return identifier.getSimpleName();
+    }
+    if (expression instanceof J.FieldAccess fieldAccess) {
+      return fieldAccess.getName().getSimpleName();
+    }
+    return null;
   }
 
   private SizeResultType sizeResultType(Cursor cursor, J.MethodInvocation replacementTarget) {
